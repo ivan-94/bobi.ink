@@ -20,36 +20,36 @@ categories: Mindnode
 
 ## 创建操作符
 
-![创建操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/创建操作符.png?raw=true)
+![创建操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/创建操作符.png)
 
 ## 过滤操作符
 
-![过滤操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/过滤.png?raw=true)
+![过滤操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/过滤.png)
 
 ## 转换操作符
 
-![转换操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/转换.png?raw=true)
+![转换操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/转换.png)
 
 ## 组合操作符
 
-![组合操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/组合.png?raw=true)
+![组合操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/组合.png)
 
 ## 分组操作符
 
-![分组操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/分组.png?raw=true)
+![分组操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/分组.png)
 
 ## 错误处理操作符
 
-![错误处理操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/错误处理.png?raw=true)
+![错误处理操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/错误处理.png)
 
 ## 辅助-条件-数学-配置操作符
 
-![辅助-条件-数学-配置操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/辅助-条件-数学-配置.png?raw=true)
+![辅助-条件-数学-配置操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/辅助-条件-数学-配置.png)
 
 ## 多播操作符
 
-![多播操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/多播.png?raw=true)
+![多播操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/多播.png)
 
 ## 高阶 Observable 操作符
 
-![高阶Observable操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/高阶Observable.png?raw=true)
+![高阶Observable操作符](https://raw.githubusercontent.com/ivan-94/mindnodes/master/rxjs/操作符/高阶Observable.png)
