@@ -13,8 +13,8 @@ timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: https://bobi.ink
-root: /
+url: https://ivan-94.github.io/bobi.ink/
+root: /bobi.ink/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 
@@ -73,7 +73,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: cactus-white
+theme: default
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html

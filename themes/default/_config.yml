@@ -1,0 +1,45 @@
+nav:
+  Blogs: /
+  Projects: http://github.com/ivan-94
+
+projects_url: http://github.com/ivan-94
+
+customize:
+    gravatar:
+        email: 
+    logo:
+        enabled: true
+        width: 50
+        height: 50
+        url: /images/logo.jpeg
+        gravatar: false
+    favicon: 
+      # eg. generate with http://realfavicongenerator.net/
+      desktop:
+        url: /images/favicon.ico
+        gravatar: false
+      android:
+        url: /images/favicon-192x192.png
+        gravator: false
+      apple:
+        url: /images/apple-touch-icon.png
+        gravator: false
+    show_all_posts: false
+    post_count: 10
+    highlight: pojoaque
+
+# RSS
+rss:
+
+# Plugins
+plugins:
+    disqus_shortname: # Disqus Comments Shortname
+    google_analytics: UA-44571525-2 # enter the tracking ID for your Google Analytics
+
+# Miscellaneous
+miscellaneous:
+    open_graph: # see http://ogp.me
+        fb_app_id:
+        fb_admins:
+        twitter_id:
+        google_plus:

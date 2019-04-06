@@ -24,7 +24,8 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "hexo-deployer-git": "^1.0.0"
+    "hexo-deployer-git": "^1.0.0",
+    "hexo-generator-feed": "^1.2.2"
   },
   "repository": {
     "type": "git",
