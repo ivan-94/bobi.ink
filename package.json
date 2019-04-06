@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "start": "hexo server -p 8080",
-    "deploy": "hexo deploy"
+    "build": "hexo generate",
+    "deploy": "hexo clean && hexo deploy"
   },
   "hexo": {
     "version": "3.8.0"
