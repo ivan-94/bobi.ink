@@ -81,3 +81,7 @@ deploy:
   type: git
   repo: https://github.com/ivan-94/bobi.ink/
   branch: gh-pages
+
+lazyload:
+  enable: true 
+  onlypost: true
