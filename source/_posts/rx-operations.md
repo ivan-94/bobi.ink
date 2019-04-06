@@ -10,6 +10,14 @@ categories: Mindnode
 
 > Mindode项目[地址](https://github.com/ivan-94/mindnodes/tree/master/rxjs/操作符), 可以在这个项目获取原始的Mindode文件.
 
+## 学习资源
+
++ [官方文档](https://rxjs.dev)
++ [可交互的弹珠图](https://rxmarbles.com/#distinctUntilChanged) 直观地理解操作符的功能
++ [reactive.how](https://rxjs-cn.github.io/learn-rxjs-operators/) 学习响应式编程的动画卡片
++ [学习RxJS操作符](https://rxjs-cn.github.io/learn-rxjs-operators/)
++ [book: 深入浅出RxJS](https://www.amazon.cn/dp/B07CXZ9D8N/ref=sr_1_1?__mk_zh_CN=亚马逊网站&keywords=rxjs&qid=1554539743&s=gateway&sr=8-1)
+
 ## 创建操作符
 
 ![创建操作符](https://github.com/ivan-94/mindnodes/blob/master/rxjs/操作符/创建操作符.png?raw=true)
