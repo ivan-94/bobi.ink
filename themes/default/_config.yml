@@ -33,7 +33,7 @@ rss:
 
 # Plugins
 plugins:
-    disqus_shortname: bobi.ink # Disqus Comments Shortname
+    disqus_shortname: bobi-ink # Disqus Comments Shortname
     google_analytics: UA-44571525-2 # enter the tracking ID for your Google Analytics
 
 # Miscellaneous
