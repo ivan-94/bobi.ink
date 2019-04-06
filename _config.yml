@@ -78,4 +78,6 @@ theme: cactus-white
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type:
+  type: git
+  repo: https://github.com/ivan-94/bobi.ink/
+  branch: gh-pages
