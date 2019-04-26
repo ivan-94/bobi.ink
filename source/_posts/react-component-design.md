@@ -17,6 +17,8 @@ categories: 前端
 
 ### 函数组件
 
+React Hooks 出现后, 函数组件有了出镜率
+
 - 1️⃣ 使用{ComponentName}Props 形式声明 Props 类型, 并导出
 - 2️⃣ 使用`FC`(`FunctionComponent`的简写)类型来声明函数组件. 这个类型定义了默认的 props(如 children)以及一些静态属性(如 defaultProps)
 
@@ -162,13 +164,120 @@ categories: 前端
   </Layout>;
   ```
 
+- 7️⃣ Forwarding Refs
+
+### 类组件
+
+相比函数, 基于类的类型检查会更好理解(例如那些熟悉传统面向对象编程语言的开发者).
+
+- 1️⃣ 继承 React.Component 或 React.PureComponent
+
+  ```typescript
+  import React from 'react';
+
+  /**
+   * 首先导出Props声明, 同样是{ComponentName}Props形式命名
+   */
+  export interface CounterProps {
+    defaultCount: number; // 可选props, 不需要?修饰
+  }
+
+  /**
+   * 组件状态, 不需要暴露
+   */
+  interface State {
+    count: number;
+  }
+
+  /**
+   * 类注释
+   * 继承React.Component, 并声明Props和State类型
+   */
+  export class Counter extends React.Component<CounterProps, State> {
+    /**
+     * 默认参数
+     */
+    public static defaultProps = {
+      defaultCount: 0,
+    };
+
+    /**
+     * 初始化State
+     */
+    public state = {
+      count: this.props.defaultCount,
+    };
+
+    /**
+     * 声明周期方法
+     */
+    public componentDidMount() {}
+    /**
+     * 建议靠近componentDidMount, 资源消费和资源释放靠近在一起, 方便review
+     */
+    public componentWillUnmount() {}
+    public componentDidCatch() {}
+    public componentDidUpdate(prevProps: CounterProps, prevState: State) {}
+
+    /**
+     * 渲染函数
+     */
+    public render() {
+      return (
+        <div>
+          {this.state.count}
+          <button onClick={this.increment}>Increment</button>
+          <button onClick={this.decrement}>Decrement</button>
+        </div>
+      );
+    }
+
+    /**
+     * ① 组件私有方法, 不暴露
+     * ② 使用类实例属性形式绑定this
+     */
+    private increment = () => {
+      this.setState(({ count }) => ({ count: count + 1 }));
+    };
+
+    private decrement = () => {
+      this.setState(({ count }) => ({ count: count - 1 }));
+    };
+  }
+  ```
+
+- 2️⃣ 使用`static defaultProps`定义默认 props
+  Typescript [3.0](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#support-for-defaultprops-in-jsx)开始支持对使用 defaultProps 对 JSX props 进行推断, 在defaultProps中定义的props可以不需要'?'可选操作符修饰. 代码如上 👆
+
+- 3️⃣ 子组件声明
+  类组件可以使用静态属性形式声明子组件
+
+  ```typescript
+  export class Layout extends React.Component<LayoutProps> {
+    public static Header = Header
+    public static Footer = Footer
+
+    public render() {
+      return <div className="layout">{this.props.children}</div>
+    }
+  }
+  ```
+
+  - 4️⃣ 泛型
+
+  ```typescript
+  export class List<T> extends React.Component<ListProps<T>> {
+    public render() {}
+  }
+  ```
+
 defaultProps
 子组件声明
 高阶组件: 缺点
 泛型组件: 类组件, 函数组件
 声明顺序, 类型命名规范
 styled-components
-其他常见用法
+其他常见用法 ref event
 文档化
 
 ### 扩展资料
