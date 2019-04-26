@@ -247,18 +247,18 @@ React Hooks 出现后, 函数组件有了出镜率
   ```
 
 - 2️⃣ 使用`static defaultProps`定义默认 props
-  Typescript [3.0](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#support-for-defaultprops-in-jsx)开始支持对使用 defaultProps 对 JSX props 进行推断, 在defaultProps中定义的props可以不需要'?'可选操作符修饰. 代码如上 👆
+  Typescript [3.0](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#support-for-defaultprops-in-jsx)开始支持对使用 defaultProps 对 JSX props 进行推断, 在 defaultProps 中定义的 props 可以不需要'?'可选操作符修饰. 代码如上 👆
 
 - 3️⃣ 子组件声明
   类组件可以使用静态属性形式声明子组件
 
   ```typescript
   export class Layout extends React.Component<LayoutProps> {
-    public static Header = Header
-    public static Footer = Footer
+    public static Header = Header;
+    public static Footer = Footer;
 
     public render() {
-      return <div className="layout">{this.props.children}</div>
+      return <div className="layout">{this.props.children}</div>;
     }
   }
   ```
@@ -271,8 +271,73 @@ React Hooks 出现后, 函数组件有了出镜率
   }
   ```
 
+### (远离)高阶组件
+
+在 React Hooks 出来之前, 高阶组件是 React 的一个重要逻辑复用方式. 相比较而言高阶组件比较重, 难以理解, 而且会造成'嵌套地狱(wrapper)'. 另外对 Typescript 类型化也不友好. 所以新项目还是建议使用 React Hooks.
+
+一个简单的高阶组件:
+
+```typescript
+import React, { FC } from 'react';
+
+/**
+ * 忽略类型的指定属性
+ */
+export type Omit<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+
+/**
+ * 声明注入的Props
+ */
+export interface ThemeProps {
+  primary: string;
+  secondary: string;
+}
+
+/**
+ * 给指定组件注入'主题'
+ */
+export function withTheme<P extends ThemeProps>(Component: React.ComponentType<P>) {
+  /**
+   * WithTheme 自己暴露的Props
+   */
+  interface OwnProps {}
+
+  /**
+   * 高阶组件的props, 忽略ThemeProps, 外部不需要传递这些属性
+   */
+  type WithThemeProps = Omit<P, keyof ThemeProps> & OwnProps;
+
+  /**
+   * 高阶组件
+   */
+  const WithTheme = (props: WithThemeProps) => {
+    const fakeTheme: ThemeProps = {
+      primary: 'red',
+      secondary: 'blue',
+    };
+    // ❌ 这里会报错
+    return <Component {...fakeTheme} {...props} />;
+  };
+
+  WithTheme.displayName = `withTheme${Component.displayName}`;
+
+  return WithTheme;
+}
+```
+
+一般高阶组件的报错信息都很难理解:
+
+![](/images/04/hoc-err.png)
+
+暂时性修复上面保存可以使用`@ts-ignore`或者显式类型断言. 相关[issue](https://github.com/piotrwitek/react-redux-typescript-guide/issues/111).
+
+使用高阶组件还有一些痛点:
+
+- 无法完美地使用 ref.
+  - 在 React.forwardRef 发布之前, 有一些库会使用 innerRef 或者 wrapperRef, 转发给封装的组件的 ref.
+  - 无法推断 ref 引用组件的类型, 需要显式声明
+
 defaultProps
-子组件声明
 高阶组件: 缺点
 泛型组件: 类组件, 函数组件
 声明顺序, 类型命名规范
