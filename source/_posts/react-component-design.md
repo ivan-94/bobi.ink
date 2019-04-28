@@ -603,7 +603,24 @@ export function useTheme() {
 
   了解更多[styled-components 和 Typescript](https://www.styled-components.com/docs/api#typescript)
 
-- 7️⃣ 为没有提供 Typescript 声明文件的第三方库自定义声明
+- 7️⃣ 为没有提供 Typescript 声明文件的第三方库自定义模块声明
+
+  笔者一般习惯在项目根目录下(和 tsconfig.json 同在一个目录下)放置一个`global.d.ts`. 放置项目的全局声明文件
+
+  ```typescript
+  // /global.d.ts
+
+  // 自定义模块声明
+  declare module 'awesome-react-component' {
+    // 依赖其他模块的声明文件
+    import * as React from 'react';
+    export const Foo: React.FC<{ a: number; b: string }>;
+  }
+  ```
+
+  了解更多[如何定义声明文件](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)
+
+- 8️⃣ 为文档生成做好准备
 
 声明顺序, 类型命名规范
 styled-components
