@@ -135,7 +135,8 @@ React Hooks 出现后, 函数组件有了出镜率
   ```
 
 - 6️⃣ 子组件声明
-  使用`Parent.Child`形式的 JSX 可以让节点父子关系更加直观, 当然也有可能让代码变得啰嗦.
+  使用`Parent.Child`形式的 JSX 可以让节点父子关系更加直观, 它类似于一种命名空间的机制, 可以避免命名冲突. 相比`ParentChild`这种命名方式
+  `Parent.Child`更为优雅些. 当然也有可能让代码变得啰嗦.
 
   ```typescript
   import React, { PropsWithChildren } from 'react';
@@ -263,7 +264,7 @@ React Hooks 出现后, 函数组件有了出镜率
   }
   ```
 
-  - 4️⃣ 泛型
+- 4️⃣ 泛型
 
   ```typescript
   export class List<T> extends React.Component<ListProps<T>> {
@@ -271,7 +272,7 @@ React Hooks 出现后, 函数组件有了出镜率
   }
   ```
 
-### (远离)高阶组件
+### 高阶组件
 
 在 React Hooks 出来之前, 高阶组件是 React 的一个重要逻辑复用方式. 相比较而言高阶组件比较重, 难以理解, 而且会造成'嵌套地狱(wrapper)'. 另外对 Typescript 类型化也不友好. 所以新项目还是建议使用 React Hooks.
 
@@ -279,11 +280,6 @@ React Hooks 出现后, 函数组件有了出镜率
 
 ```typescript
 import React, { FC } from 'react';
-
-/**
- * 忽略类型的指定属性
- */
-export type Omit<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
 
 /**
  * 声明注入的Props
@@ -296,7 +292,7 @@ export interface ThemeProps {
 /**
  * 给指定组件注入'主题'
  */
-export function withTheme<P extends ThemeProps>(Component: React.ComponentType<P>) {
+export function withTheme<P>(Component: React.ComponentType<P & ThemeProps>) {
   /**
    * WithTheme 自己暴露的Props
    */
@@ -305,17 +301,17 @@ export function withTheme<P extends ThemeProps>(Component: React.ComponentType<P
   /**
    * 高阶组件的props, 忽略ThemeProps, 外部不需要传递这些属性
    */
-  type WithThemeProps = Omit<P, keyof ThemeProps> & OwnProps;
+  type WithThemeProps = P & OwnProps;
 
   /**
    * 高阶组件
    */
   const WithTheme = (props: WithThemeProps) => {
+    // 假设theme从context中获取
     const fakeTheme: ThemeProps = {
       primary: 'red',
       secondary: 'blue',
     };
-    // ❌ 这里会报错
     return <Component {...fakeTheme} {...props} />;
   };
 
@@ -325,17 +321,40 @@ export function withTheme<P extends ThemeProps>(Component: React.ComponentType<P
 }
 ```
 
-一般高阶组件的报错信息都很难理解:
+再简化一点:
 
-![](/images/04/hoc-err.png)
+```typescript
+/**
+ * 抽取出通用的高阶组件类型
+ */
+type HOC<InjectedProps, OwnProps = {}> = <P>(
+  Component: React.ComponentType<P & InjectedProps>,
+) => React.ComponentType<P & OwnProps>;
 
-暂时性修复上面保存可以使用`@ts-ignore`或者显式类型断言. 相关[issue](https://github.com/piotrwitek/react-redux-typescript-guide/issues/111).
+/**
+ * 声明注入的Props
+ */
+export interface ThemeProps {
+  primary: string;
+  secondary: string;
+}
+
+export const withTheme: HOC<ThemeProps> = Component => props => {
+  // 假设theme从context中获取
+  const fakeTheme: ThemeProps = {
+    primary: 'red',
+    secondary: 'blue',
+  };
+  return <Component {...fakeTheme} {...props} />;
+};
+```
 
 使用高阶组件还有一些痛点:
 
 - 无法完美地使用 ref.
   - 在 React.forwardRef 发布之前, 有一些库会使用 innerRef 或者 wrapperRef, 转发给封装的组件的 ref.
   - 无法推断 ref 引用组件的类型, 需要显式声明
+- 高阶组件类型报错很难理解
 
 defaultProps
 高阶组件: 缺点
