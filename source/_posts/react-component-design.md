@@ -412,22 +412,22 @@ export const withTheme: HOC<ThemeProps> = Component => props => {
 
 ### Context
 
-Context提供了一种跨组件间状态共享机制
+Context 提供了一种跨组件间状态共享机制
 
 ```typescript
-import React, { FC, useContext } from 'react'
+import React, { FC, useContext } from 'react';
 
 export interface Theme {
-  primary: string
-  secondary: string
+  primary: string;
+  secondary: string;
 }
 
 /**
  * 声明Context的类型, 以{Name}ContextValue命名
  */
 export interface ThemeContextValue {
-  theme: Theme
-  onThemeChange: (theme: Theme) => void
+  theme: Theme;
+  onThemeChange: (theme: Theme) => void;
 }
 
 /**
@@ -439,7 +439,7 @@ export const ThemeContext = React.createContext<ThemeContextValue>({
     secondary: 'blue',
   },
   onThemeChange: noop,
-})
+});
 
 /**
  * Provider, 以{Name}Provider命名
@@ -449,20 +449,138 @@ export const ThemeProvider: FC<{ theme: Theme; onThemeChange: (theme: Theme) => 
     <ThemeContext.Provider value={{ theme: props.theme, onThemeChange: props.onThemeChange }}>
       {props.children}
     </ThemeContext.Provider>
-  )
-}
+  );
+};
 
 /**
  * 暴露hooks, 以use{Name}命名
  */
 export function useTheme() {
-  return useContext(ThemeContext)
+  return useContext(ThemeContext);
 }
 ```
 
-defaultProps
-高阶组件: 缺点
-泛型组件: 类组件, 函数组件
+### 杂项
+
+- 1️⃣ 使用`on{Event}`命名事件处理器. 如果存在多个相同事件处理器, 则按照`on{Type}{Event}`命名, 例如 onNameChange
+
+  ```typescript
+  export const EventDemo: FC<{}> = props => {
+    const onClick = useCallback<React.MouseEventHandler>(evt => {
+      evt.preventDefault();
+      // ...
+    }, []);
+
+    return <button onClick={onClick} />;
+  };
+  ```
+
+- 2️⃣ 使用 React 内置事件处理器的类型
+  `@types/react`内置了以下事件处理器的类型 👇
+
+  ```typescript
+  type EventHandler<E extends SyntheticEvent<any>> = { bivarianceHack(event: E): void }['bivarianceHack'];
+  type ReactEventHandler<T = Element> = EventHandler<SyntheticEvent<T>>;
+  type ClipboardEventHandler<T = Element> = EventHandler<ClipboardEvent<T>>;
+  type CompositionEventHandler<T = Element> = EventHandler<CompositionEvent<T>>;
+  type DragEventHandler<T = Element> = EventHandler<DragEvent<T>>;
+  type FocusEventHandler<T = Element> = EventHandler<FocusEvent<T>>;
+  type FormEventHandler<T = Element> = EventHandler<FormEvent<T>>;
+  type ChangeEventHandler<T = Element> = EventHandler<ChangeEvent<T>>;
+  type KeyboardEventHandler<T = Element> = EventHandler<KeyboardEvent<T>>;
+  type MouseEventHandler<T = Element> = EventHandler<MouseEvent<T>>;
+  type TouchEventHandler<T = Element> = EventHandler<TouchEvent<T>>;
+  type PointerEventHandler<T = Element> = EventHandler<PointerEvent<T>>;
+  type UIEventHandler<T = Element> = EventHandler<UIEvent<T>>;
+  type WheelEventHandler<T = Element> = EventHandler<WheelEvent<T>>;
+  type AnimationEventHandler<T = Element> = EventHandler<AnimationEvent<T>>;
+  type TransitionEventHandler<T = Element> = EventHandler<TransitionEvent<T>>;
+  ```
+
+  可以简洁地声明事件处理器类型:
+
+  ```typescript
+  export const EventDemo: FC<{}> = props => {
+    /**
+     * 可以限定具体Target的类型
+     */
+    const onChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(evt => {
+      console.log(evt.target.value);
+    }, []);
+
+    return <input onChange={onChange} />;
+  };
+  ```
+
+- 3️⃣ 自定义组件暴露事件处理器类型
+
+  和原生 html 元素一个, 自定义组件应该暴露自己的事件处理器类型, 尤其是较为复杂的事件处理器, 这样也避免开发者关心事件处理器的参数
+
+  自定义事件处理器类型以`{ComponentName}{Event}Handler`命名. 为了和原生事件处理器类型区分, 不使用`EventHandler`形式的后缀
+
+  ```typescript
+  import React, { FC, useState } from 'react';
+
+  export interface UploadValue {
+    url: string;
+    name: string;
+    size: number;
+  }
+
+  /**
+   * 暴露事件处理器类型
+   */
+  export type UploadChangeHandler = (value?: UploadValue, file?: File) => void;
+
+  export interface UploadProps {
+    value?: UploadValue;
+    onChange?: UploadChangeHandler;
+  }
+
+  export const Upload: FC<UploadProps> = props => {
+    return <div>...</div>;
+  };
+  ```
+
+- 4️⃣ 获取原生元素 props
+
+  有些场景我们希望固定原生元素的某些 props. 所有元素 props 都继承了`React.HTMLAttributes`, 一个特殊的属性也扩展了自己的属性, 例如`InputHTMLAttributes`. 具体可以参考`React.createElement`方法的实现
+
+  ```typescript
+  import React, { FC } from 'react';
+
+  export function fixClass<
+    T extends Element = HTMLDivElement,
+    Attribute extends React.HTMLAttributes<T> = React.HTMLAttributes<T>
+  >(cls: string, type: keyof React.ReactHTML = 'div') {
+    const FixedClassName: FC<Attribute> = props => {
+      return React.createElement(type, { ...props, className: `${cls} ${props.className}` });
+    };
+
+    return FixedClassName;
+  }
+
+  /**
+   * Test
+   */
+  const Container = fixClass('card');
+  const Header = fixClass('card__header', 'header');
+  const Body = fixClass('card__body', 'main');
+  const Footer = fixClass('card__body', 'footer');
+
+  const Test = () => {
+    return (
+      <Container>
+        <Header>header</Header>
+        <Body>header</Body>
+        <Footer>footer</Footer>
+      </Container>
+    );
+  };
+  ```
+
+- 4️⃣ styled-components
+
 声明顺序, 类型命名规范
 styled-components
 其他常见用法 ref event
@@ -479,7 +597,7 @@ styled-components
 
 <br/>
 
-## 组件划分
+## 组件的组织
 
 ### 目录划分
 
@@ -521,10 +639,10 @@ workspace 模式
 
 ```typescript
 interface ButtonProps {
-  className?: string;
-  style?: React.CSSProperties;
+className?: string;
+style?: React.CSSProperties;
 }
-```
+````
 
 ### 避免使用 style props
 
@@ -559,7 +677,7 @@ CSS-in-js 不适用于高性能场景, 多余的嵌套
 
 ---
 
-## 业务抽象
+## 组件的思维
 
 ### 使用组件的思维来抽象业务
 
