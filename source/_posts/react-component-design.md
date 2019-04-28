@@ -622,10 +622,37 @@ export function useTheme() {
 
 - 8️⃣ 为文档生成做好准备
 
-声明顺序, 类型命名规范
-styled-components
-其他常见用法 ref event
-文档化
+  目前社区有多种react组件文档生成方案, 例如[`docz`](https://www.docz.site), [styleguidist](https://github.com/styleguidist/react-docgen-typescript). 它们底层都使用[react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript)对Typescript进行解析. 就目前而言, 它还有些坑, 而且解析比较慢. 不管不妨碍我们使用它的风格对代码进行注释:
+
+  ```typescript
+  import * as React from 'react';
+  import { Component } from 'react';
+
+  /**
+  * Props注释
+  */
+  export interface IColumnProps extends React.HTMLAttributes<any> {
+    /** prop1 description */
+    prop1?: string;
+    /** prop2 description */
+    prop2: number;
+    /**
+    * prop3 description
+    */
+    prop3: () => void;
+    /** prop4 description */
+    prop4: 'option1' | 'option2' | 'option3';
+  }
+
+  /**
+  * 对组件进行注释
+  */
+  export class Column extends Component<IColumnProps, {}> {
+    render() {
+      return <div>Column</div>;
+    }
+  }
+  ```
 
 ### 扩展资料
 
