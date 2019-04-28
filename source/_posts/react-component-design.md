@@ -410,6 +410,56 @@ export const withTheme: HOC<ThemeProps> = Component => props => {
   - 无法推断 ref 引用组件的类型, 需要显式声明
 - 高阶组件类型报错很难理解
 
+### Context
+
+Context提供了一种跨组件间状态共享机制
+
+```typescript
+import React, { FC, useContext } from 'react'
+
+export interface Theme {
+  primary: string
+  secondary: string
+}
+
+/**
+ * 声明Context的类型, 以{Name}ContextValue命名
+ */
+export interface ThemeContextValue {
+  theme: Theme
+  onThemeChange: (theme: Theme) => void
+}
+
+/**
+ * 创建Context, 并设置默认值, 以{Name}Context命名
+ */
+export const ThemeContext = React.createContext<ThemeContextValue>({
+  theme: {
+    primary: 'red',
+    secondary: 'blue',
+  },
+  onThemeChange: noop,
+})
+
+/**
+ * Provider, 以{Name}Provider命名
+ */
+export const ThemeProvider: FC<{ theme: Theme; onThemeChange: (theme: Theme) => void }> = props => {
+  return (
+    <ThemeContext.Provider value={{ theme: props.theme, onThemeChange: props.onThemeChange }}>
+      {props.children}
+    </ThemeContext.Provider>
+  )
+}
+
+/**
+ * 暴露hooks, 以use{Name}命名
+ */
+export function useTheme() {
+  return useContext(ThemeContext)
+}
+```
+
 defaultProps
 高阶组件: 缺点
 泛型组件: 类组件, 函数组件
