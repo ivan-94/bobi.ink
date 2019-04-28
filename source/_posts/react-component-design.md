@@ -475,7 +475,7 @@ export function useTheme() {
   };
   ```
 
-- 2️⃣ 使用 React 内置事件处理器的类型
+- 2️⃣ 使用 @types/react 内置事件处理器的类型
   `@types/react`内置了以下事件处理器的类型 👇
 
   ```typescript
@@ -579,7 +579,31 @@ export function useTheme() {
   };
   ```
 
-- 4️⃣ styled-components
+- 5️⃣ 不要使用 React.PropTypes
+
+  有了 Typescript 之后可以安全地约束 Props 和 State, 没有必要引入 React.PropTypes, 而且它的表达能力比较弱
+
+- 6️⃣ styled-components
+
+  styled-components 是目前最流行的`CSS-in-js`库, Typescript 在 2.9 支持泛型[`标签模板`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-9.html#generic-type-arguments-in-generic-tagged-templates). 这意味着可以简单地对 styled-components 创建的组件进行类型约束
+
+  ```typescript
+  // 依赖于@types/styled-components
+  import styled from 'styled-components/macro';
+
+  const Title = styled.h1<{ active?: boolean }>`
+    color: ${props => (props.active ? 'red' : 'gray')};
+  `;
+
+  // 扩展已有组件
+  const NewHeader = styled(Header)<{ customColor: string }>`
+    color: ${props => props.customColor};
+  `;
+  ```
+
+  了解更多[styled-components 和 Typescript](https://www.styled-components.com/docs/api#typescript)
+
+- 7️⃣ 为没有提供 Typescript 声明文件的第三方库自定义声明
 
 声明顺序, 类型命名规范
 styled-components
@@ -639,10 +663,10 @@ workspace 模式
 
 ```typescript
 interface ButtonProps {
-className?: string;
-style?: React.CSSProperties;
+  className?: string;
+  style?: React.CSSProperties;
 }
-````
+```
 
 ### 避免使用 style props
 
