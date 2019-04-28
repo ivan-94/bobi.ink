@@ -167,6 +167,60 @@ React Hooks 出现后, 函数组件有了出镜率
 
 - 7️⃣ Forwarding Refs
 
+React.forwardRef 在 16.3 新增, 可以用于转发 ref, 适用于 HOC 和函数组件.
+
+函数组件在 16.8.4 之前是不支持 ref 的, 配合 forwardRef 和 useImperativeHandle 可以让函数组件向外暴露方法
+
+```typescript
+import React, { useState, useImperativeHandle, FC, useRef, useCallback } from 'react';
+
+export interface MyModalProps {
+  title?: React.ReactNode;
+  onOk?: () => void;
+  onCancel?: () => void;
+}
+
+/**
+ * 暴露的方法, 适用`{ComponentName}Methods`形式命名
+ */
+export interface MyModalMethods {
+  show(): void;
+}
+
+export const MyModal = React.forwardRef<MyModalMethods, MyModalProps>((props, ref) => {
+  const [visible, setVisible] = useState();
+
+  // 初始化ref暴露的方法
+  useImperativeHandle(ref, () => ({
+    show: () => setVisible(true),
+  }));
+
+  return <Modal visible={visible}>...</Modal>;
+});
+
+/**
+ * Test.tsx
+ */
+const Test: FC<{}> = props => {
+  const modal = useRef<MyModalMethods | null>(null);
+
+  const confirm = useCallback(() => {
+    if (modal.current) {
+      modal.current.show();
+    }
+  }, []);
+
+  const handleOk = useCallback(() => {}, []);
+
+  return (
+    <div>
+      <button onClick={confirm}>show</button>
+      <MyModal ref={modal} onOk={handleOk} />
+    </div>
+  );
+};
+```
+
 ### 类组件
 
 相比函数, 基于类的类型检查会更好理解(例如那些熟悉传统面向对象编程语言的开发者).
@@ -367,6 +421,7 @@ styled-components
 ### 扩展资料
 
 - [piotrwitek/react-redux-typescript-guide](https://github.com/piotrwitek/react-redux-typescript-guide)
+- [TypeScript 如何完美地书写 React 中的 HOC？](https://www.zhihu.com/question/279911703)
 
 <br/>
 
