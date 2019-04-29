@@ -8,7 +8,8 @@ categories: 前端
 
 ### 组件的分类
 
-- 1️⃣ **容器组件**和**展示组件**分离
+#### 1️⃣ **容器组件**和**展示组件**分离
+
   *容器组件和展示组件分离*是 React 开发的重要思想, 它影响的 React 应用项目的组织和架构. 下面总结一下两者的区别
 
   |          | 容器组件        | 展示组件 |
@@ -50,7 +51,7 @@ categories: 前端
   - 展示和容器组件更好的分离，有助于更好的理解应用和 UI, 可以独立地维护
   - 展示组件变得轻量(无状态/或局部状态), 更容易被测试
 
-- 2️⃣ 分离逻辑和视图: `容器组件和展示组件`的分离本质上是`逻辑和视图`的分离.
+#### 2️⃣ 分离逻辑和视图: `容器组件和展示组件`的分离本质上是`逻辑和视图`的分离.
 
   在`React Hooks`出现后, 容器组件进化为 Hooks 形式, Hooks 可以和视图层更自然的分离. 它为视图层提供纯粹的数据来源, 可以复用于不同的'展示平台', 例如 web 版和 native 版:
 
@@ -63,12 +64,12 @@ categories: 前端
 
   上面使用了`useLogin.tsx`来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用
 
-- 3️⃣ 有状态组件和无状态组件
+#### 3️⃣ 有状态组件和无状态组件
 
   无状态组件内部不存储状态, 完全由外部的 props 来映射. 这类组件一般以函数组件形式, 作为低级/高复用的底层展示型组件.
   无状态组件天然就是'纯组件', 如果无状态组件的映射需要一点成本, 可以使用 React.memo 避免重复渲染
 
-- 4️⃣ 纯组件和非纯组件
+#### 4️⃣ 纯组件和非纯组件
 
   纯组件的'纯'来源于函数式编程. 指的是"对于一个函数而言, 给定相同的输入, 它总是返回相同的输出, 过程没有副作用, 没有额外的状态依赖". 对应到 React 组件中, 纯组件指的是 props(严格上说还有 state 和 context, 它们也是组件的输入)没有变化, 组件的输出就不会变动.
 
@@ -82,12 +83,73 @@ categories: 前端
 
   <img src="/images/04/redux.png" width="400" />
 
-- 5️⃣ 按照UI划分为'布局组件'和'内容组件'
+#### 5️⃣ 按照UI划分为'布局组件'和'内容组件'
+  - 布局组件用于控制页面的布局，为内容组件提供占位符。通过props传入组件来进行填充. 比如`Grid`, `Layout`, `HorizontalSplit`
+  - 内容组件会包含一些内容，而不仅有布局。内容组件被布局组件约束在占位符内. 比如`Button`, `Label`, `Input`
+
+  例如下图, List/List.Item就是布局组件，而Input，Address则是内容组件
+
+  <img src="/images/04/layout-vs-content.png" lazyload width="600" />
+
+  将布局从内容组件中抽取出来，分离布局和内容，可以让两者更好维护，比如布局变动不会影响内容，内容组件可以被用于不同页面的布局。**组件应该是一个内聚的隔离单元**，它也是自包含的，组件不应该影响其外部的状态, 例如一个按钮不应该修改外部的布局, 另外也要避免影响全局的样式
+
 
 ### 目录划分
 
-多入口项目
+#### 1️⃣ 基本目录结构
 
+关于项目目录结构的划分有两种流行的模式: 
+
+- `Rails-style/by-type`: 按照文件的类型划分为不同的目录，例如`components`、`constants`、 `typings`、`views`
+- `Domain-style/by-feature`: 按照一个功能特性或与创建单独的文件夹，包含多种类型的文件或目录
+
+实际的项目环境我们一般使用的是混合模式，下面是一个典型的React项目结构:
+
+```shell
+src/
+  components/      # 🔴 项目通用的‘展示组件’
+    Button/
+      index.tsx    # 组件的入口, 导出组件
+      Groups.tsx   # 子组件
+      loading.svg  # 静态资源
+      style.css    # 组件样式
+    ...
+    index.ts       # 到处所有组件
+  containers/      # 🔴 包含'容器组件'和'页面组件'
+    LoginPage/     # 页面组件, 例如登录
+      components/  # 页面级别展示组件，这些组件不能复用与其他页面组件。
+        Button.tsx # 组件未必是一个目录形式，对于一个简单组件可以是一个单文件形式. 但还是推荐使用目录，方便扩展
+        Panel.tsx
+      reducer.ts   # redux reduces
+      useLogin.ts  # (可选)放置'逻辑', 按照👆分离逻辑和视图的原则，将逻辑、状态处理抽取到hook文件
+      types.ts     # typescript 类型声明
+      style.css
+      logo.png
+      message.ts
+      constants.ts
+      index.tsx
+    HomePage/
+    ...
+    index.tsx      # 🔴应用根组件
+  hooks/           # 🔴可复用的hook
+    useList.ts
+    usePromise.ts
+  ...
+  index.tsx        # 应用入口, 在这里使用ReactDOM对跟组件进行渲染
+  stores.ts        # redux stores
+  contants.ts      # 全局常量
+```
+
+这里使用`Rails-style`模式为不同**类型/职责**的文件划分不同的目录或通过文件名进行区分, 也使用`Domain-style`将不同**作用域**的文件/目录聚合在一起. 上面最为明显的就是`components`目录.
+
+前端项目一般按照页面路由来拆分组件， 这些组件我们暂且称为‘页面组件’, 这些组件是和业务功能耦合的，而且每个页面之间具有一定的独立性. 这里将页面组件放置在`containers`, 如其名，这个目录原本是用来放置容器组件的，实际项目中通常是将‘容器组件’和‘页面组件’混合在了一起. 现阶段如果要实现纯粹的逻辑分离，我个人觉得还是应该抽取到hook中
+
+#### 2️⃣ 多页应用的目录划分
+
+#### 3️⃣ 多页应用的目录划分: lerna模式
+
+多入口项目
+作用域
 一个项目下
 好处
 共享资源, 一起优化
@@ -112,8 +174,19 @@ workspace 模式
 
 展示组件和容器组件, 展示组件避免耦合业务
 
+### 导入
+
+避免使用相对路径
+避免使用循环依赖
+
 ### 子组件
 
 ### 文档
 
 - 3️⃣ 跨平台的另外一种方式, taro
+
+### 扩展
+
+- [Three Rules For Structuring (Redux) Applications](https://jaysoo.ca/2016/02/28/organizing-redux-application/#rule-2-create-strict-module-boundaries)
+- [How To Scale React Applications](https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/)
+- [Redux 常见问题：代码结构](http://cn.redux.js.org/docs/faq/CodeStructure.html)
