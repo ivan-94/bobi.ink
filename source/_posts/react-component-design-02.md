@@ -36,7 +36,7 @@ categories: 前端
         components/
         index.tsx
   ```
-  
+
   对于展示组件，我们要以一种'第三方组件库'的标准来考虑组件的设计，减少和业务的耦合，考虑各种应用的场景， 设计好公开的接口.
 
 - **容器组件**主要关注业务处理. 容器组件一般以'高阶组件'形式存在, 它一般 ① 从外部数据源(redux 这些状态管理器或者直接请求服务端数据)获取数据, 然后 ② 组合*展示组件*来构建完整的视图.
@@ -73,13 +73,13 @@ Login/
 
 #### 4️⃣ 纯组件和非纯组件
 
-纯组件的'纯'来源于函数式编程. 指的是"对于一个函数而言, 给定相同的输入, 它总是返回相同的输出, 过程没有副作用, 没有额外的状态依赖". 
+纯组件的'纯'来源于函数式编程. 指的是"对于一个函数而言, 给定相同的输入, 它总是返回相同的输出, 过程没有副作用, 没有额外的状态依赖".
 
 对应到 React 组件中, 纯组件指的是 props(严格上说还有 state 和 context, 它们也是组件的输入)没有变化, 组件的输出就不会变动.
 
   <img src="/images/04/input-output.png" width="400" />
 
-和相比React组件的输出输出模型而言, [Cyclejs](http://cyclejs.cn)对组件输入/输出的抽象则做的更加彻底，更加‘函数式’👇。它的组件就是一个普通的函数，只有'单向'的输入和输出:
+和相比 React 组件的输出输出模型而言, [Cyclejs](http://cyclejs.cn)对组件输入/输出的抽象则做的更加彻底，更加‘函数式’👇。它的组件就是一个普通的函数，只有'单向'的输入和输出:
 
   <img src="/images/04/cyclejs.png" width="400" />
 
@@ -91,7 +91,7 @@ Login/
 
   <img src="/images/04/redux.png" width="400" />
 
-不管是Cyclejs还是Redux，抽象是需要付出一点代价的，就比如redux代码可能会很罗嗦, 一个复杂的状态树， 如果缺乏良好的组织，真个应用会变得很难理解。
+不管是 Cyclejs 还是 Redux，抽象是需要付出一点代价的，就比如 redux 代码可能会很罗嗦, 一个复杂的状态树， 如果缺乏良好的组织，真个应用会变得很难理解。
 
 扩展:
 
@@ -220,11 +220,11 @@ app/               # 🔴 后台管理应用
 
 #### 4️⃣ 跨平台应用
 
-使用ReactNative 可以将React衍生到移动原生应用的开发领域. 尽管也有[`react-native-web`](https://github.com/necolas/react-native-web)这样的解决方案, Web和Native的API和功能可能会相差很大, 久而久之就会出现大量无法控制的填充代码，另外react-native-web也可能成为风险点。 一般按照下面风格来组织跨平台应用:
+使用 ReactNative 可以将 React 衍生到移动原生应用的开发领域. 尽管也有[`react-native-web`](https://github.com/necolas/react-native-web)这样的解决方案, Web 和 Native 的 API 和功能可能会相差很大, 久而久之就会出现大量无法控制的填充代码，另外 react-native-web 也可能成为风险点。 一般按照下面风格来组织跨平台应用:
 
 ```shell
 src/
-  components/      
+  components/
     Button/
       index.tsx     # 🔴 ReactNative 组件
       index.web.tsx # 🔴 web组件
@@ -232,10 +232,10 @@ src/
       style.css     # 组件样式
     ...
     index.ts
-    index.web.ts  
+    index.web.ts
   containers/
     LoginPage/
-      components/ 
+      components/
       ....
       useLogin.ts   # 🔴 存放分离的逻辑，可以在React Native和Web组件中共享
       index.web.tsx
@@ -251,26 +251,25 @@ src/
   index.tsx            # React Native 应用入口
 ```
 
-可以通过webpack的`resolve.extensions`来配置扩展名补全的优先级
+可以通过 webpack 的`resolve.extensions`来配置扩展名补全的优先级
 
 #### 3️⃣ 跨平台的另外一种方式: taro
 
-对于国内的开发者来说，跨平台可不只Native那么简单，我们还有各种各样的小程序、小应用。终端的**碎片化**让前端的开发工作越来越有挑战性. 
+对于国内的开发者来说，跨平台可不只 Native 那么简单，我们还有各种各样的小程序、小应用。终端的**碎片化**让前端的开发工作越来越有挑战性.
 
-Taro就这样诞生了, Taro基于React的标准语法(DSL)， 结合编译原理的思想，将一套代码转换为多种终端的目标代码, 并提供一套统一的内置组件库和SDK来抹平多端的差异
+Taro 就这样诞生了, Taro 基于 React 的标准语法(DSL)， 结合编译原理的思想，将一套代码转换为多种终端的目标代码, 并提供一套统一的内置组件库和 SDK 来抹平多端的差异
 
   <img src="/images/04/taro.png" width="400" />
 
-因为Taro使用React的标准语法和API，这使得我们按照原有的React开发约定和习惯来开发多端应用，且只保持一套代码. 但是不要忘了抽象都是有代价的。
+因为 Taro 使用 React 的标准语法和 API，这使得我们按照原有的 React 开发约定和习惯来开发多端应用，且只保持一套代码. 但是不要忘了抽象都是有代价的。
 
-> 可以查看Taro官方文档[了解更多](https://github.com/NervJS/taro) <br/>
-> [Flutter](https://github.com/flutter/flutter)是近期比较或的跨平台方案，但是跟本文主题无关
+> 可以查看 Taro 官方文档[了解更多](https://github.com/NervJS/taro) <br/> > [Flutter](https://github.com/flutter/flutter)是近期比较或的跨平台方案，但是跟本文主题无关
 
 ### 模块
 
 #### 1️⃣ 创建严格的模块边界
 
-下图是一个某页面的模块导入，相当混乱，这还算可以接受，笔者还见过上千行的组件，其中模块导入语句就占一百多行. 这有一部分原因是Vscode自动导入功能导致，更大的原因是这些模块缺乏组织。
+下图是一个某页面的模块导入，相当混乱，这还算可以接受，笔者还见过上千行的组件，其中模块导入语句就占一百多行. 这有一部分原因是 Vscode 自动导入功能导致，更大的原因是这些模块缺乏组织。
 
   <img src="/images/04/imports.png" width="600" />
 
@@ -291,16 +290,16 @@ ComplexPage/
 我认为*一个‘目录’就是一个模块边界*. 你*不应该*这样子导入模块:
 
 ```typescript
-import ComplexPage from '../ComplexPage'
-import Foo from '../ComplexPage/components/Foo'
-import Foo from '../ComplexPage/components/Bar'
-import {XXX} from '../ComplexPage/components/constants'
-import {User,ComplexPageProps} from '../ComplexPage/components/type'
+import ComplexPage from '../ComplexPage';
+import Foo from '../ComplexPage/components/Foo';
+import Foo from '../ComplexPage/components/Bar';
+import { XXX } from '../ComplexPage/components/constants';
+import { User, ComplexPageProps } from '../ComplexPage/components/type';
 ```
 
-一个模块/目录应该由一个‘出口’文件来统一管理模块的导出，限定模块的可见性. 比如上面的模块，`components/Foo`、 `components/Bar`, `constants.ts`这些文件其实是ComplexPage组件的'实现细节'. 这些是外部模块不应该去耦合， 但是目前并没有一个限定机制，只能依靠约定. 
+一个模块/目录应该由一个‘出口’文件来统一管理模块的导出，限定模块的可见性. 比如上面的模块，`components/Foo`、 `components/Bar`, `constants.ts`这些文件其实是 ComplexPage 组件的'实现细节'. 这些是外部模块不应该去耦合， 但是目前并没有一个限定机制，只能依靠约定.
 
-在前端项目中index文件最适合作为一个'出口'文件, 当导入一个目录时，模块查找器会查找该目录下是否存在的index文件. index文件负责控制一个模块可见性:
+在前端项目中 index 文件最适合作为一个'出口'文件, 当导入一个目录时，模块查找器会查找该目录下是否存在的 index 文件. index 文件负责控制一个模块可见性:
 
 ```typescript
 // 导入外部模块需要使用的类型
@@ -319,58 +318,59 @@ import {default} from './ComplexPage'
 现在导入语句可以更加简洁:
 
 ```typescript
-import ComplexPage, {ComplexPageProps, User, XXX} from '../ComplexPage'
+import ComplexPage, { ComplexPageProps, User, XXX } from '../ComplexPage';
 ```
 
-这条规则也可以用于组件库, 在webpack的Tree-shaking特性还不成熟之前， 我们都使用了各种各样的技巧来实现按需导入. 例如[`babel-plugin-import`](https://github.com/ant-design/babel-plugin-import)或导入子路径:
+这条规则也可以用于组件库, 在 webpack 的 Tree-shaking 特性还不成熟之前， 我们都使用了各种各样的技巧来实现按需导入. 例如[`babel-plugin-import`](https://github.com/ant-design/babel-plugin-import)或导入子路径:
 
 ```typescript
-import TextField from '~/components/TextField'
-import SelectField from '~/components/SelectField'
-import RaisedButton from '~/components/RaisedButton'
+import TextField from '~/components/TextField';
+import SelectField from '~/components/SelectField';
+import RaisedButton from '~/components/RaisedButton';
 ```
 
-现在可以使用Named import直接导入，让webpack来帮你优化:
+现在可以使用 Named import 直接导入，让 webpack 来帮你优化:
 
 ```typescript
-import {TextField, SelectField, RaisedButton} from '~/components'
+import { TextField, SelectField, RaisedButton } from '~/components';
 ```
 
 #### 2️⃣ `Named export` vs `default export`
 
-这两种导出方式都有各自的适用场景，这里不会一棒子打死就不使用某种导出方式. 首先看一下named export有什么优点:
+这两种导出方式都有各自的适用场景，这里不会一棒子打死就不使用某种导出方式. 首先看一下 named export 有什么优点:
 
 - 命名确定
-  - 方便Typescript进行重构
+
+  - 方便 Typescript 进行重构
   - 方便智能提醒和自动导入(auto-import)识别
-  - 方便reexport
+  - 方便 reexport
 
     ```typescript
     // named
-    export * from './named-export'
+    export * from './named-export';
 
     // default
-    export {default as Foo} from './default-export'
+    export { default as Foo } from './default-export';
     ```
-- 一个模块支持多个named export
 
-那么default export有什么优点:
+- 一个模块支持多个 named export
 
-- default export一般代表‘模块本身’，当我们使用‘默认导入’导入一个模块时，开发者是自然而然知道这个默认导入的是一个什么对象。例如react导出的是一个React对象, LoginPage导出的是一个登录页面, somg.png导入的是一张图片. 这类模块总有一个确定的'主体对象'. 所以默认导入的名称和模块的名称一般是保持一致的(Typescript的auto-import就是基于文件名). 当然'主体对象'是一种隐式的概念
+那么 default export 有什么优点:
+
+- default export 一般代表‘模块本身’，当我们使用‘默认导入’导入一个模块时，开发者是自然而然知道这个默认导入的是一个什么对象。例如 react 导出的是一个 React 对象, LoginPage 导出的是一个登录页面, somg.png 导入的是一张图片. 这类模块总有一个确定的'主体对象'. 所以默认导入的名称和模块的名称一般是保持一致的(Typescript 的 auto-import 就是基于文件名). 当然'主体对象'是一种隐式的概念
 - 当‘主体对象’明确的情况下，默认导出更加简洁。例如`lazy(import('./MyPage'))`
 
-default export也有一些缺点:
+default export 也有一些缺点:
 
 - 和其他模块机制(commonjs)互操作时比较难以理解. 例如我们会这样子导入默认模块`require('./xx').default`
-- named import 优点就是default export的缺点
-
+- named import 优点就是 default export 的缺点
 
 所以总结一下:
 
 1. 对于'主体对象'明确的模块需要有默认导出, 例如页面组件，类
-2. 对于'主体对象'不明确的模块不应该使用默认导出，例如组件库、utils(放置各种工具方法)、contants常量
+2. 对于'主体对象'不明确的模块不应该使用默认导出，例如组件库、utils(放置各种工具方法)、contants 常量
 
-按照这个规则可以这样子组织components目录：
+按照这个规则可以这样子组织 components 目录：
 
 ```shell
   components/
@@ -385,45 +385,80 @@ default export也有一些缺点:
     index.ts           # 导出所有组件
 ```
 
-对于Foo模块来说， 存在一个主体对象即Foo组件, 所以这里使用`default export`导出的Foo组件， 代码为:
+对于 Foo 模块来说， 存在一个主体对象即 Foo 组件, 所以这里使用`default export`导出的 Foo 组件， 代码为:
 
 ```typescript
 // 这三个文件全部使用named export导出
-export * from './contants'
-export * from './types'
-export * from './Foo'
+export * from './contants';
+export * from './types';
+export * from './Foo';
 
 // 导入主体对象
-export { Foo as default } from './Foo'
+export { Foo as default } from './Foo';
 ```
 
-现在假设Bar组件依赖于Foo:
+现在假设 Bar 组件依赖于 Foo:
 
 ```typescript
 // components/Bar/Bar.tsx
-import React from 'react'
+import React from 'react';
 
 // 导入Foo组件, 根据模块边界规则, 不能直接引用../Foo/Foo.tsx
-import Foo from '../Foo'
+import Foo from '../Foo';
 
 export const Bar = () => {
   return (
     <div>
       <Foo />
     </div>
-  )
-}
+  );
+};
 ```
 
 对于`components`模块来说，它的所有子模块都是平等的，所以不存在一个主体对象，`default export`在这里不适用。 `components/index.ts`代码:
 
 ```typescript
 // components/index.ts
-export * from './Foo'
-export * from './Bar'
+export * from './Foo';
+export * from './Bar';
 ```
 
 #### 3️⃣ 避免循环依赖
+
+**循环依赖是模块糟糕设计的一个表现**, 这时候你需要考虑拆分和设计模块文件, 例如
+
+```typescript
+// --- Foo.tsx ---
+import Bar from './Bar';
+
+export interface SomeType {}
+
+export const Foo = () => {};
+Foo.Bar = Bar;
+
+// --- Bar.tsx ----
+import { SomeType } from './Foo';
+...
+```
+
+上面 Foo 和 Bar 组件就形成了一个简单循环依赖, 尽管它不会造成什么运行时问题. 解决方案就是将 SomeType 抽取到单独的文件:
+
+```typescript
+// --- types.ts ---
+export interface SomeType {}
+
+// --- Foo.tsx ---
+import Bar from './Bar';
+import {SomeType} from './types'
+
+export const Foo = () => {};
+...
+Foo.Bar = Bar;
+
+// --- Bar.tsx ----
+import {SomeType} from './types'
+...
+```
 
 #### 相对路径不要超过两级
 
@@ -435,17 +470,16 @@ export * from './Bar'
 
 避免使用循环依赖
 
-
 ### 拆分
 
 拆分为子函数
 拆分为子组件
+
 ### 组件的识别
 
 以 gzb-bn 为例
 
 ### 子组件
-
 
 ### 模块化
 
@@ -457,3 +491,4 @@ export * from './Bar'
 - [How To Scale React Applications](https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/)
 - [Redux 常见问题：代码结构](http://cn.redux.js.org/docs/faq/CodeStructure.html)
 - [export default considered harmful](https://basarat.gitbooks.io/typescript/docs/tips/defaultIsBad.html)
+- [JavaScript 模块的循环加载](http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html)
