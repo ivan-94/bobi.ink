@@ -336,13 +336,103 @@ import RaisedButton from '~/components/RaisedButton'
 import {TextField, SelectField, RaisedButton} from '~/components'
 ```
 
+#### 2️⃣ `Named export` vs `default export`
+
+这两种导出方式都有各自的适用场景，这里不会一棒子打死就不使用某种导出方式. 首先看一下named export有什么优点:
+
+- 命名确定
+  - 方便Typescript进行重构
+  - 方便智能提醒和自动导入(auto-import)识别
+  - 方便reexport
+
+    ```typescript
+    // named
+    export * from './named-export'
+
+    // default
+    export {default as Foo} from './default-export'
+    ```
+- 一个模块支持多个named export
+
+那么default export有什么优点:
+
+- default export一般代表‘模块本身’，当我们使用‘默认导入’导入一个模块时，开发者是自然而然知道这个默认导入的是一个什么对象。例如react导出的是一个React对象, LoginPage导出的是一个登录页面, somg.png导入的是一张图片. 这类模块总有一个确定的'主体对象'. 所以默认导入的名称和模块的名称一般是保持一致的(Typescript的auto-import就是基于文件名). 当然'主体对象'是一种隐式的概念
+- 当‘主体对象’明确的情况下，默认导出更加简洁。例如`lazy(import('./MyPage'))`
+
+default export也有一些缺点:
+
+- 和其他模块机制(commonjs)互操作时比较难以理解. 例如我们会这样子导入默认模块`require('./xx').default`
+- named import 优点就是default export的缺点
+
+
+所以总结一下:
+
+1. 对于'主体对象'明确的模块需要有默认导出, 例如页面组件，类
+2. 对于'主体对象'不明确的模块不应该使用默认导出，例如组件库、utils(放置各种工具方法)、contants常量
+
+按照这个规则可以这样子组织components目录：
+
+```shell
+  components/
+    Foo/
+      Foo.tsx
+      types.ts
+      constants.ts
+      index.ts         # 导出Foo组件
+    Bar/
+      Bar.tsx
+      index.tsx
+    index.ts           # 导出所有组件
+```
+
+对于Foo模块来说， 存在一个主体对象即Foo组件, 所以这里使用`default export`导出的Foo组件， 代码为:
+
+```typescript
+// 这三个文件全部使用named export导出
+export * from './contants'
+export * from './types'
+export * from './Foo'
+
+// 导入主体对象
+export { Foo as default } from './Foo'
+```
+
+现在假设Bar组件依赖于Foo:
+
+```typescript
+// components/Bar/Bar.tsx
+import React from 'react'
+
+// 导入Foo组件, 根据模块边界规则, 不能直接引用../Foo/Foo.tsx
+import Foo from '../Foo'
+
+export const Bar = () => {
+  return (
+    <div>
+      <Foo />
+    </div>
+  )
+}
+```
+
+对于`components`模块来说，它的所有子模块都是平等的，所以不存在一个主体对象，`default export`在这里不适用。 `components/index.ts`代码:
+
+```typescript
+// components/index.ts
+export * from './Foo'
+export * from './Bar'
+```
+
+#### 3️⃣ 避免循环依赖
+
+#### 相对路径不要超过两级
+
 ### 导出
 
 展示组件和容器组件, 展示组件避免耦合业务
 
 ### 导入
 
-避免使用相对路径
 避免使用循环依赖
 
 
@@ -366,3 +456,4 @@ import {TextField, SelectField, RaisedButton} from '~/components'
 - [Three Rules For Structuring (Redux) Applications](https://jaysoo.ca/2016/02/28/organizing-redux-application/#rule-2-create-strict-module-boundaries)
 - [How To Scale React Applications](https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/)
 - [Redux 常见问题：代码结构](http://cn.redux.js.org/docs/faq/CodeStructure.html)
+- [export default considered harmful](https://basarat.gitbooks.io/typescript/docs/tips/defaultIsBad.html)
