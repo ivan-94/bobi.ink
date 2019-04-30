@@ -239,7 +239,18 @@ src/
 
 可以通过webpack的`resolve.extensions`来配置扩展名补全的优先级
 
-#### 3️⃣ 跨平台的另外一种方式, taro
+#### 3️⃣ 跨平台的另外一种方式: taro
+
+对于国内的开发者来说，跨平台可不只Native那么简单，我们还有各种各样的小程序、小应用。终端的**碎片化**让前端的开发工作越来越有挑战性. 
+
+Taro就这样诞生了, Taro基于React的标准语法(DSL)， 结合编译原理的思想，将一套代码转换为多种终端的目标代码, 并提供一套统一的内置组件库和SDK来抹平多端的差异
+
+  <img src="/images/04/taro.png" width="400" />
+
+因为Taro使用React的标准语法和API，这使得我们按照原有的React开发约定和习惯来开发多端应用，且只保持一套代码. 但是不要忘了抽象都是有代价的。
+
+> 可以查看Taro官方文档[了解更多](https://github.com/NervJS/taro) <br/>
+> [Flutter](https://github.com/flutter/flutter)是近期比较或的跨平台方案，但是跟本文主题无关
 
 多入口项目
 作用域
