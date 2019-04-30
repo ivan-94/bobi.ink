@@ -153,12 +153,12 @@ src/
   components/       # 共享组件
   containers/
     Admin/          # 后台管理页面
-      components/
+      components/   # 后台特定的组件库
       LoginPage/
       index.tsx
       ...
     App/
-      components/
+      components/  # App特定的组件库
       LoginPage/   # App页面
       index.tsx
       stores.ts    # redux stores
@@ -171,11 +171,38 @@ src/
 ```
 
 webpack 支持多页应用的构建, 我一般会将应用入口文件命名为`*.page.tsx`, 然后在 src 自动扫描匹配的文件作为入口.
-利用 webpack 的[`SplitChunksPlugin`](https://webpack.docschina.org/plugins/split-chunks-plugin/)可以为多页应用抽取共享的模块, 这个对于功能差不多, 有较多共享代码的多页应用是个很好的特性. 意味着资源被一起优化, 抽取共享模块, 有利于减少编译文件体积和浏览器缓存.
+利用 webpack 的[`SplitChunksPlugin`](https://webpack.docschina.org/plugins/split-chunks-plugin/)可以为自动多页应用抽取共享的模块, 这个对于功能差不多和有较多共享代码的多页应用是个很好的特性. 意味着资源被一起优化, 抽取共享模块, 有利于减少编译文件体积和浏览器缓存.
 
-> [`html-webpack-plugin`](https://github.com/jantimon/html-webpack-plugin/blob/master/package.json)4.0 开始支持注入共享 chunk. 在此之前需要显式定义SplitChunksPlugin 分离的chunk.
+> [`html-webpack-plugin`](https://github.com/jantimon/html-webpack-plugin/blob/master/package.json)4.0 开始支持注入共享 chunk. 在此之前需要显式定义 SplitChunksPlugin 分离的 chunk.
 
 #### 3️⃣ 多页应用的目录划分: lerna 模式
+
+上面的方式, 所有页面都聚集在一个项目下面, 共享一样的依赖和 npm 模块. 这可能会带了一下问题:
+
+1. 不能允许不同页面有不同版本的依赖
+2. 对于毫无相关的应用, 这种组织方式会让代码变得混乱, 例如 App 和后台, 他们使用的技术栈, 组件库, 交互体验都可能相差较大, 而且容易造成命名冲突.
+   例如后台和 App 都有自己的 Button 组件. 这时候放在根 components 则不太合适, 但很难对这种行为进行约束, 所以就有了类似的命名: Button, ButtonForAdmin....
+
+这种场景可以利用[lerna](https://lernajs.io)或者 [yarn workspace](https://yarnpkg.com/zh-Hans/docs/workspaces) 机制, 将多页应用隔离在不同的 npm 模块下, 以 yarn workspace 为例:
+
+```shell
+package.json
+yarn.lock
+node_modules/      # 所有依赖都会安装在这里
+share/             # 🔴 共享模块
+  hooks/
+  utils/
+admin/             # 🔴 后台管理应用
+  components/
+  containers/
+  index.tsx
+  package.json     # 声明自己的模块以及share模块的依赖
+app/               # 🔴 后台管理应用
+  components/
+  containers/
+  index.tsx
+  package.json     # 声明自己的模块以及share模块的依赖
+```
 
 #### 4️⃣ 跨平台应用
 
