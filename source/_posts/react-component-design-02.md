@@ -206,6 +206,39 @@ app/               # 🔴 后台管理应用
 
 #### 4️⃣ 跨平台应用
 
+使用ReactNative 可以将React衍生到移动原生应用的开发领域. 尽管也有[`react-native-web`](https://github.com/necolas/react-native-web)这样的解决方案, Web和Native的API和功能可能会相差很大, 久而久之就会出现大量无法控制的填充代码，另外react-native-web也可能成为风险点。 一般按照下面风格来组织跨平台应用:
+
+```shell
+src/
+  components/      
+    Button/
+      index.tsx     # 🔴 ReactNative 组件
+      index.web.tsx # 🔴 web组件
+      loading.svg   # 静态资源
+      style.css     # 组件样式
+    ...
+    index.ts
+    index.web.ts  
+  containers/
+    LoginPage/
+      components/ 
+      ....
+      useLogin.ts   # 🔴 存放分离的逻辑，可以在React Native和Web组件中共享
+      index.web.tsx
+      index.tsx
+    HomePage/
+    ...
+    index.tsx
+  hooks/
+    useList.ts
+    usePromise.ts
+  ...
+  index.web.tsx        # web应用入口
+  index.tsx            # React Native 应用入口
+```
+
+可以通过webpack的`resolve.extensions`来配置扩展名补全的优先级
+
 #### 3️⃣ 跨平台的另外一种方式, taro
 
 多入口项目
