@@ -64,7 +64,9 @@ Login/
   index.tsx
 ```
 
-上面使用了`useLogin.tsx`来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用
+上面使用了`useLogin.tsx`来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用.
+
+TODO: 不仅仅是业务逻辑, 组件逻辑也可以分离
 
 #### 3️⃣ 有状态组件和无状态组件
 
@@ -335,6 +337,33 @@ import RaisedButton from '~/components/RaisedButton';
 import { TextField, SelectField, RaisedButton } from '~/components';
 ```
 
+但是不是所有目录都有出口文件, 这时候目录就不是模块的边界了. 例如`utils/`, utils 只是一个模块命名空间, utils 下面的文件都是一些互不相关或者不同类型的文件, 甚至可能命名冲突, 例如:
+
+```shell
+utils/
+  common.ts
+  dom.ts
+  sdk.ts
+```
+
+我们习惯直接引用这些文件, 而不是通过一个入口文件, 这样可以更明确导入的是什么类型的:
+
+```typescript
+import { hide } from './utils/dom'; // 通过文件名可以知道, 这可能是隐藏某个DOM元素
+import { hide } from './utils/sdk'; // webview sdk 提供的的某个方法
+```
+
+最后再总结一下:
+
+  <img src="/images/04/module-boundary.png" width="600" />
+
+根据模块边界原则(如上图), 一个模块可以访问兄弟(同个作用域下), 祖先及祖先的兄弟模块. 例如:
+
+- Bar 可以访问 Foo, 但不能再向下访问它的细节, 即不能访问`../Foo/types.ts`, 但可以访问它的出口文件`../Foo`
+- types.ts 不能访问 containers/HomePage
+- LoginPage 和访问 HomePage
+- LoginPage 可以访问 utils/sdk
+
 #### 2️⃣ `Named export` vs `default export`
 
 这两种导出方式都有各自的适用场景，这里不会一棒子打死就不使用某种导出方式. 首先看一下 named export 有什么优点:
@@ -461,6 +490,38 @@ import {SomeType} from './types'
 ```
 
 #### 相对路径不要超过两级
+
+当项目越来越复杂, 目录可能会越来越深, 这时候会出现这样的导入路径:
+
+```ts
+import { hide } from '../../../utils/dom';
+```
+
+首先这种导入语句非常不优雅, 而且可读性很差. 当你在不清楚当前文件的目录上下文时, 你不知道具体模块在哪. 即使你知道当前文件的位置, 你也需要跟随导入路径在目录树中向上追溯在能定位到导入的模块. 所以这种深相对路径是反人类的.
+
+另外这种导入路径不方便模块迁移(尽管 Vscode 支持移动文件时重构导入路径), 文件迁移需要重写这些相对导入路径.
+
+所以一般推荐**相对路径导入不应该超过两级**, 即只能是`../`和`./`. 可以将相对路径转换成绝对路径形式, 例如 webpack 中可以配置`resolve.alias`:
+
+```ts
+    ...
+    resolve: {
+      ...
+      alias: {
+        // 可以直接使用~访问相对于src目录的模块
+        // 如 ~/components/Button
+        '~': context,
+      },
+    }
+```
+
+这样我们可以这样子导入相对于`src`的模块:
+
+```ts
+import { hide } from '~/utils/dom';
+```
+
+对于 Typescript 可以配置[paths](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping)选项; 对于 babel 可以使用[`babel-plugin-module-resolver`](https://www.npmjs.com/package/babel-plugin-module-resolver)
 
 ### 导出
 
