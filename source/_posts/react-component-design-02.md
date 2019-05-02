@@ -6,6 +6,20 @@ categories: 前端
 
 ## 组件的组织
 
+一个复杂的应用都是由简单的应用发展而来的, 随着越来越多的功能加入项目, 代码就会变得越来越难以控制. 本文章主要探讨在大型项目中如何对组件进行组织, 让项目可维护性更好.
+
+### 组件设计的基本原则
+
+`高内聚, 低耦合`这个原则适用于所有软件工程, 也包括组件设计. 这两个原则是组件独立性的一个判断标准.
+
+**高内聚**, 要求一个组件有一个明确的组件边界, 将紧密相关的内容聚集在一个组件下, 实现"专一"的功能. 和传统的前端编程不一样, 一个组件一般是一个**自包含**的单元, 它包含了逻辑/样式/结构, 甚至是依赖的静态资源. 这也使得组件是一个比较独立的个体. 当然这种独立性是相对的, 为了最大化这种独立性, 需要根据**单一职责**将组件拆分为更小粒度的组件, 这样可以被更灵活的组合和复用.
+
+虽然组件是独立的, 但是他需要和其他组件进行组合才能实现应用, 这就有了'关联'. **低耦合**要求最小化这种关联性, 比如明确模块边界不应该访问其他组件的内部细节, 组件的接口最小化, 单一数据流
+
+**单一职责**是实现高内聚和低耦合基本方法, 它们最终的目的是组件的可复用性和可维护性.
+
+文章后续内容主要讨论实现*高内聚/低耦合*具体措施
+
 ### 组件的分类
 
 #### 1️⃣ **容器组件**和**展示组件**分离
@@ -66,7 +80,15 @@ Login/
 
 上面使用了`useLogin.tsx`来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用.
 
-TODO: 不仅仅是业务逻辑, 组件逻辑也可以分离
+不仅仅是业务逻辑, 展示组件逻辑也可以分离, 例如`FilePicker`和`ImagePicker`两个组件的'文件上传逻辑'是共享的, 这部分逻辑可以抽取到高阶组件或者 hooks 中.
+
+  <img src="/images/04/demo.png" width="400" />
+
+分离逻辑和视图的主要手段有:
+
+- hooks
+- 高阶组件
+- function children
 
 #### 3️⃣ 有状态组件和无状态组件
 
@@ -299,22 +321,24 @@ import { XXX } from '../ComplexPage/components/constants';
 import { User, ComplexPageProps } from '../ComplexPage/components/type';
 ```
 
-一个模块/目录应该由一个‘出口’文件来统一管理模块的导出，限定模块的可见性. 比如上面的模块，`components/Foo`、 `components/Bar`, `constants.ts`这些文件其实是 ComplexPage 组件的'实现细节'. 这些是外部模块不应该去耦合， 但是目前并没有一个限定机制，只能依靠约定.
+一个模块/目录应该由一个‘出口’文件来统一管理模块的导出，限定模块的可见性. 比如上面的模块，`components/Foo`、 `components/Bar`和`constants.ts`这些文件其实是 ComplexPage 组件的'实现细节'. 这些是外部模块不应该去耦合，但这个在语言层面并没有一个限定机制，只能依靠约定.
 
-在前端项目中 index 文件最适合作为一个'出口'文件, 当导入一个目录时，模块查找器会查找该目录下是否存在的 index 文件. index 文件负责控制一个模块可见性:
+> 当其他模块依赖某个模块的'细节'时, 可能是一种重构的信号: 比如依赖一个模块的一个工具函数或者是一个对象类型声明, 这时候抬升到父级模块, 让兄弟模块共享是更好的方式.
+
+在前端项目中 index 文件最适合作为一个'出口'文件, 当导入一个目录时，模块查找器会查找该目录下是否存在的 index 文件. index 文件负责控制一个模块可见性, 所以开发者开设计一个模块的 API 时, 需要考虑模块各种使用方式:
 
 ```typescript
 // 导入外部模块需要使用的类型
-export * from './type'
-export * from './constants'
-export * from './reducers'
+export * from './type';
+export * from './constants';
+export * from './reducers';
 
 // 不暴露外部不需要关心的实现细节
 // export * from './components/Foo'
 // export * from './components/Bar'
 
 // 模块的默认导出
-import {default} from './ComplexPage'
+export { ComplexPage as default } from './ComplexPage';
 ```
 
 现在导入语句可以更加简洁:
@@ -523,28 +547,142 @@ import { hide } from '~/utils/dom';
 
 对于 Typescript 可以配置[paths](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping)选项; 对于 babel 可以使用[`babel-plugin-module-resolver`](https://www.npmjs.com/package/babel-plugin-module-resolver)
 
-### 导出
-
-展示组件和容器组件, 展示组件避免耦合业务
-
-### 导入
-
-避免使用循环依赖
-
 ### 拆分
 
-拆分为子函数
-拆分为子组件
+#### 1️⃣ 拆分 render 方法
 
-### 组件的识别
+当 render 方法的 JSX 结构非常复杂的时候, 首先应该尝试分离这些渲染函数, 最简单的做法的就是拆分为多个子 render 方法:
 
-以 gzb-bn 为例
+  <img src="/images/04/sub-render.png" width="600" />
 
-### 子组件
+当然这种方式只是暂时让 render 方法看起来没有那么复杂, 它并没有拆分组件本身, 所有输入和状态依然聚集在一个组件下面. 所以一般拆分 render 方法只是第一步: 随着组件越来越复杂, 表现为文件越来越长, 笔者一般将 300 行作为一个阈值, 超过 300 行则说明需要对这个组件进进一步拆分.
 
-### 模块化
+#### 2️⃣ 拆分为组件
 
-### 文档
+如果已经按照上述方法对组件的 render 进行了拆分, 当一个组件变得臃肿时, 可以方便地将这些子 render 方法拆分为组件. 一般组件抽离有以下几种方式:
+
+1. 纯渲染拆分: 子 render 方法一般是纯渲染的, 他们可以很方便地抽离为*无状态组件*
+
+```typescript
+public render() {
+  const { visible } = this.state
+  return (
+    <Modal
+      visible={visible}
+      title={this.getLocale('title')}
+      width={this.width}
+      maskClosable={false}
+      onOk={this.handleOk}
+      onCancel={this.handleCancel}
+      footer={<Footer {...}></Footer>}
+    >
+    <Body {...}></Body>
+  </Modal>
+  )
+}
+```
+
+2. 纯逻辑拆分: 按照`逻辑和视图分离`的原则, 将逻辑控制部分抽离到 hooks 或高阶组件中
+3. 逻辑和渲染拆分: 将相关的视图和逻辑抽取出去形成一个独立的组件, 这是更为彻底的拆分方式, 贯彻单一职责原则.
+
+### 组件划分示例
+
+我们一般会从 UI 原型图中分析和划分组件, 在 React 官方的[Thinking in react](https://react.docschina.org/docs/thinking-in-react.html)也提到通过 UI 来划分组件层级: _这是因为 UI 和数据模型往往遵循着相同的信息架构，这意味着将 UI 划分成组件的工作往往是很容易的。只要把它划分成能准确表示你数据模型的一部分的组件就可以_. 组件划分需要遵循上文提到的一些原则, 他还依赖于你的开发经验. 本节通过一个简单的应用讲述划分组件的过程
+
+这是某政府部门的服务申报系统, 一共由四个页面组成:
+
+  <img src="/images/04/demo-all.png" width="600" />
+
+#### 1️⃣ 划分页面
+
+页面是最顶层的组件单元, 划分页面非常简单, 我们根据原型图就可以划分四个页面: `ListPage`, `CreatePage`, `PreviewPage`, `DetailPage`
+
+```shell
+src/
+  containers/
+    ListPage/
+    CreatePage/
+    PreviewPage/
+    DetailPage/
+    index.tsx     # 根组件, 一般在这里定义路由
+```
+
+#### 2️⃣ 划分基础 UI 组件
+
+首先看`ListPage`
+
+  <img src="/images/04/ListPage.png" width="400" />
+
+ListPage 根据 UI 可以划分为下面这些组件:
+
+```shell
+ScrollView        # 滚动视图, 提供下拉刷新, 无限加载等功能
+  List            # 列表容器, 布局组件
+    Item          # 列表项, 布局组件, 提供header, body等占位符
+      props - header
+         Title       # 渲染标题
+      props - after
+         Time        # 渲染时间
+      props - body
+         Status      # 渲染列表项的状态
+```
+
+在看看`CreatePage`
+
+  <img src="/images/04/CreatePage.png" width="400" />
+
+这是一个表单填写页面, 为了提高表单填写体验, 这里划分为多个步骤, 每个步骤里有多个表单分组, 每个表单的结构都差不多左边是 label 展示, 右边是实际表单, 所以根据 UI 可以对组件进行这样的划分:
+
+```shell
+CreatePage
+  Steps            # 步骤容器, 提供了步骤布局和步骤切换等功能
+    Step           # 单一步骤容器
+      List         # 表单分组
+        List.Item  # 表单容器, 支持设置label
+          Input    # 具体表单类型
+          Address
+          NumberInput
+          Select
+          FileUpload
+```
+
+> 组件命名的建议: 对于集合型组件, 一般会使用单复数命名, 例如上面的 Steps/Step; List/Item 这种形式也比较常见, 例如 Form/Form.Item, 这种形式比较适合作为子组件形式. 可以学习一下第三方组件库是怎么给组件命名的
+
+PreviewPage 是创建后的数据预览页面, 数据结构和页面结构和 CreatePage 差不多:
+
+  <img src="/images/04/PreviewPage.png" width="400" />
+
+Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Input.Preview.
+
+#### 3️⃣ 设计组件的状态
+
+对于 ListPage 来说状态比较简单, 这里主要讨论 CreatePage 的状态. CreatePage 的特点:
+
+- 表单组件使用受控模式, 本身不会存储表单的状态. 表单之间的状态可能是联动的
+- 状态需要在 CreatePage 和 PreviewPage 之间共享
+- 需要对表单进行统一校验
+
+由于需要在 CreatePage 和 PreviewPage 中共享数据, 表单的状态应该抽取和提升. 在这个项目的实际开发中, 我的做法是创建一个 FormStore 的 Context 组件, 下级组件通过
+这个 context 来统一存储数据. 另外我决定使用配置的方式, 来渲染这些表单. 大概的结构如下:
+
+```ts
+// CreatePage/index.tsx
+<FormStore>
+  <Switch>
+    <Route path="/create/preview" component={Preview} />
+    <Route path="/create" component={Create} />
+  </Switch>
+</FormStore>
+
+// CreatePage/Create.tsx
+<Steps>
+  {steps.map(i =>
+  <Step key={i.name}>
+    <FormRenderer forms={i.forms}  /> {/* forms为表单配置, 根据配置的表单类型渲染表单组件, 从FormStore的获取和存储值 */}
+  </Step>
+  )}
+</Steps>
+```
 
 ### 扩展
 
@@ -553,3 +691,4 @@ import { hide } from '~/utils/dom';
 - [Redux 常见问题：代码结构](http://cn.redux.js.org/docs/faq/CodeStructure.html)
 - [export default considered harmful](https://basarat.gitbooks.io/typescript/docs/tips/defaultIsBad.html)
 - [JavaScript 模块的循环加载](http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html)
+- [thinking-in-react](https://react.docschina.org/docs/thinking-in-react.html)
