@@ -4,7 +4,7 @@ date: 2019/4/23
 categories: 前端
 ---
 
-## 认识到 CSS 的局限性
+## 认识 CSS 的局限性
 
 ![vjeux-speak](/images/04/vjeux-speak.png)
 
@@ -259,7 +259,7 @@ const Container = styled.div`
 `;
 ```
 
-> SCSS 也提供了很多内置工具方法, 比如颜色的处理, 尺寸的计算. styled-components 提供了一个类似的 js 库: [polished](https://github.com/styled-components/polished)来满足这部分需求, 通过 babel 插件可以在编译时转换为静态代码, 无需加入运行时.
+> SCSS 也提供了很多内置工具方法, 比如颜色的处理, 尺寸的计算. styled-components 提供了一个类似的 js 库: [polished](https://github.com/styled-components/polished)来满足这部分需求, 另外还集成了常用的 mixin, 如 clearfix. 通过 babel 插件可以在编译时转换为静态代码, 不需要运行时.
 
 #### 6. 绑定组件的'全局样式'
 
@@ -279,9 +279,50 @@ const GlobalStyle = createGlobalStyle`
 </React.Fragment>
 ```
 
-#### 7. [主题机制](https://www.styled-components.com/docs/advanced#theming)
+#### 7. Theme 机制及 Theme 对象的设计
 
-通过 React context 机制来控制全局配置
+styled-components 的 [ThemeProvider](https://www.styled-components.com/docs/advanced#theming) 可以用于取代 SCSS 的变量机制, 只不过它更加灵活, 可以被所有下级组件共享, 并动态变化.
+
+关于 Theme 对象的设计我觉得可以参考传统的 UI 框架, 例如[Foundation](https://github.com/zurb/foundation-sites/tree/develop/scss)或者[Bootstrap](https://github.com/twbs/bootstrap/tree/master/scss), 经过多年的迭代它们代码组织非常好, 非常值得学习. 以 Bootstrap 的项目结构为例:
+
+```shell
+.
+├── _alert.scss
+├── ...                # 定义各种组件的样式
+├── _print.scss        # 打印样式适配
+├── _root.scss         # 🔴根样式, 即全局样式
+├── _transitions.scss  # 过渡效果
+├── _type.scss         # 🔴基本排版样式
+├── _reboot.scss       # 🔴浏览器重置代码, 类似于normalize.css
+├── _functions.scss
+├── _mixins.scss
+├── _utilities.scss
+├── _variables.scss    # 🔴配置, 包含全局配置和所有组件配置
+├── bootstrap-grid.scss
+├── bootstrap-reboot.scss
+├── bootstrap.scss
+├── mixins             # 各种mixin, 可复用的css代码
+├── utilities          # 各种工具方法
+└── vendor
+    └── _rfs.scss
+```
+
+[`_variables.scss`](https://github.com/twbs/bootstrap/blob/master/scss/_variables.scss)包含了以下配置:
+
+- 颜色系统: 调色盘配置
+  - 灰阶颜色: 提供白色到黑色之间多个级别的灰阶颜色. 例如
+    <img src="/images/04/gray-scale.png" width="300"/>
+  - 语义颜色: 根据 UI 上面的语义, 定义各种颜色. 这个也是 CSS 开发的常见模式
+    <img src="/images/04/sem-color.png" width="300"/>
+- 尺寸系统: 多个级别的间距, 尺寸大小配置
+- 配置开关: 全局性的配置开关, 例如是否支持圆角, 阴影
+- 链接样式配置: 如颜色, 激活状态, decoration
+- 排版: 字体, 字体大小, font-weight, 行高, 边框, 标题等基本排版配置
+- 网格化断点配置
+
+bootstrap 将这些配置项有很高的参考意义. 组件可以认为是 UI 的输出, 如果你的应用有统一和规范的设计语言(参考[antd](https://ant.design/docs/spec/values-cn)), 这些配置会很有意义, 它可以让你的代码更灵活, 更稳定, 可复用性和可维护性更高. 不管对于 UI 设计还是客户端开发, 设计规范可以提高团队工作效率, 减少沟通成本.
+
+styled-components 的 Theme 使用的是`React Context` API, 官方文档有详尽的描述, 这里就不展开了. 点击这里[了解更多](https://www.styled-components.com/docs/advanced#theming), 了解在[Typescript 中声明 theme 类型](https://www.styled-components.com/docs/api#typescript)
 
 #### 8. 提升开发体验
 
@@ -359,8 +400,6 @@ const Thing = styled.div`
   // ...
   ```
 
-- Theme 设计
-
 #### 11. 其他 CSS-in-js 方案
 
 - CSS-module
@@ -379,7 +418,7 @@ const Thing = styled.div`
 
 CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段对关键节点添加其他属性.
 
-> 如果使用css-module, 建议使用`*.module.css`来命名css文件, 和普通CSS区分开来.
+> 如果使用 css-module, 建议使用`*.module.css`来命名 css 文件, 和普通 CSS 区分开来.
 
 ### 4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案
 
@@ -413,7 +452,7 @@ CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段�
 
 - 转换为普通 JS 文件, 方便代码分割和异步加载
 - 相比 svg-sprite 和 iconfont 方案更容易管理
-- svg 可以通过 CSS 配置; 相比iconfont支持多色
+- svg 可以通过 CSS/JS 配置, 可操作性更强; 相比 iconfont 支持多色
 - 支持 svgo 压缩
 
 基本用法:
@@ -430,7 +469,29 @@ const App = () => (
 
 了解[更多](https://www.smooth-code.com/open-source/svgr/docs/webpack/)
 
-> antd 3.9之后使用svg图标[代替了font图标](https://ant.design/components/icon-cn/#SVG-图标)
+> antd 3.9 之后使用 svg 图标[代替了 font 图标](https://ant.design/components/icon-cn/#SVG-图标) <br/>
+> 对比[SVG vs Image, SVG vs Iconfont](https://aotu.io/notes/2018/11/23/SVG_vs_Image_vs_iconfont/index.html)
+
+## 规范
+
+### 1️⃣ 促进建立统一的 UI 设计规范
+
+上文已经阐述了 UI 设计规范的重要性, 有兴趣的读者可以看看这篇文章[开发和设计沟通有多难？ - 你只差一个设计规范](https://juejin.im/post/5b766ac56fb9a009aa154c27). 简单总结一下:
+
+- 提供团队协作效率
+- 提高组件的复用率. 统一的组件规范可以让组件更好管理
+- 保持产品迭代过程中品牌一致性
+
+### 2️⃣ CSS 编写规范
+
+可以参考以下规范:
+
+- [编码规范 by @mdo](https://codeguide.bootcss.com) bootstrap 使用的规范
+- [Airbnb CSS/Sass styleguide](https://github.com/airbnb/css)
+- [Aotu 实验室代码规范](https://guide.aotu.io/docs/css/code.html#CSS3浏览器私有前缀写法)
+- [FEX-Team 编码规范](https://github.com/fex-team/styleguide/blob/master/css.md)
+
+### 3️⃣ 使用[stylint](https://stylelint.io)进行样式规范检查
 
 ## 扩展
 
@@ -442,3 +503,5 @@ const App = () => (
 - [styled-components FAQ](https://www.styled-components.com/docs/faqs)
 - [Styled components V4: the good, the bad, and something completely different](https://medium.com/ansarada-thinking/styled-components-v4-the-good-the-bad-and-something-completely-different-e891139e0138)
 - [Should I use CSS-in-JS?](https://reactarmory.com/answers/should-i-use-css-in-js)
+- [聊聊 UI 设计规范：移动端、H5 与 Web 端](http://qinsman.com/1606_uispec/)
+- [开发也能构建 UI 组件设计规范](https://juejin.im/post/5b768e18e51d45565d23e52c)
