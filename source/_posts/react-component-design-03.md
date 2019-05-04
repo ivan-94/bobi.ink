@@ -88,6 +88,7 @@ interface ButtonProps {
 - 主题机制
 - 支持 react-native. 这个用起来比较爽
 - 支持 stylint, 编辑器高亮和智能提示
+- 只是服务端渲染
 - 符合分离展示组件和行为组件理念
 
 > styled-components 可以基本覆盖所有 CSS 的使用场景:
@@ -357,19 +358,55 @@ const Thing = styled.div`
   // ...
   ```
 
+- Theme 设计
+
+#### 11. 其他 CSS-in-js 方案
+
+- CSS-module
+- JSS
+- emotion
+- glamorous
+
+这里值得一提的是[CSS-module](https://github.com/css-modules/css-modules), 这也是社区比较流行的解决方案. 严格来说, 这不是 CSS-in-js, 有兴趣的读者可以看这篇文章[CSS Modules 详解及 React 中实践](https://zhuanlan.zhihu.com/p/20495964).
+
+特性:
+
+- 比较轻量, 不需要 JS 运行时, 因为他在编译阶段进行计算
+- 所有样式默认都是 local, 通过导入模块方式可以导入这些生成的类名
+- 可以和 CSS processor 配合
+- 采用非标准的语法, 例如:global, :local, :export, compose:
+
+CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段对关键节点添加其他属性.
+
 ### 4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案
 
-如果是作为第三方组件库形式开发, 个人觉得不应该耦合各种 CSS-in-js/CSS-module, 甚至是 SCSS/Less. 不能强求你的组件库使用者耦合这些技术栈, 而且部分技术是需要构建工具支持的. 建议使用原生 CSS
+如果是作为第三方组件库形式开发, 个人觉得不应该耦合各种 CSS-in-js/CSS-module. 不能强求你的组件库使用者耦合这些技术栈, 而且部分技术是需要构建工具支持的. 建议使用原生 CSS, 或者将 SCSS/Less 这些工具作为增强方案
 
-### 使用原生 CSS
+### 5️⃣ 优先使用原生 CSS
 
-为什么不使用 Sass, less. 新的语法, 很难控制
+笔者的项目大部分都是使用`styled-components`, 但对于部分精致要求性能优化的组件, 一般我会回退使用原生 CSS, 再配合 BEM 命名规范就能满足需求.
 
-CSS-in-js 和 inline 不适用于高性能场景, 多余的嵌套
+### 6️⃣ 选择合适自己团队的技术栈
 
-方法论
+每个团队的情况和偏好不一样, 选择合适自己的才是最好的. 关于 CSS 方面的技术栈搭配也非常多样:
 
----
+![css determination](/images/04/css-determination.png)
+
+- **选择 CSS-in-js 方案**:
+  优点: 这个方案解决了大部分 CSS 的缺陷, 灵活, 动态性强, 学习成本比较低, 非常适合组件化的场景.
+  缺点: 性能相比静态 CSS 要弱, 不过这点已经慢慢在改善. 可以考虑在部分组件使用原生 CSS
+- **选择 CSS 方案**:
+  - **选择原生 CSS 方案**: 这种方案最简单
+  - **选择 Preprocessor**: 添加 CSS 预处理器, 可以增强 CSS 的可编程性: 模块化, 变量, 函数, mixin. 预处理器可以减少代码重复, 让 CSS 更好维护. 适合组织性要求很高的大型项目. 缺点就是需要学习成本, 所以这里笔者建议使用标准的cssnext来代替SCSS/Less这些方案
+  - **方法论**: CSS 的各种方法论旨在提高 CSS 的组织性, 提供一些架构建议, 让 CSS 更好维护.
+  - **postcss**: 对 CSS 进行优化增强, 例如添加厂商前缀
+  - **css-module**: 隔离 CSS, 解决 CSS 的一些缺陷, 让 CSS 适合组件化场景. 可选, 通过合适的命名和组织其实是可以规避 CSS 的缺陷
+
+综上所述, CSS-in-js 和 CSS 方案各有适用场景. 比如对于组件库, 如 antd 则选择了 Preprocessor 方案. 对于一般应用笔者建议使用 CSS-in-js 方案, 它学习成本很低, 并且'There's Only One Way To Do It' 没有太多心智负担, 代码相对比较可控. 而 CSS 方案, 对于大型应用要做到有组织有纪律和规划化, 需要花费较大的精力, 尤其是团队成员能力不均情况下, 很容易失控
+
+### 7️⃣ 使用 svgr 渲染 svg 图标
+
+样式可用, 普通JS文件, 代码分隔异步加载
 
 ## 扩展
 
@@ -379,3 +416,4 @@ CSS-in-js 和 inline 不适用于高性能场景, 多余的嵌套
 - [What to use for React styling?](https://www.javascriptstuff.com/how-to-style-react/)
 - [styled-components FAQ](https://www.styled-components.com/docs/faqs)
 - [Styled components V4: the good, the bad, and something completely different](https://medium.com/ansarada-thinking/styled-components-v4-the-good-the-bad-and-something-completely-different-e891139e0138)
+- [Should I use CSS-in-JS?](https://reactarmory.com/answers/should-i-use-css-in-js)
