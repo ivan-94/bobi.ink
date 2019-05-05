@@ -4,19 +4,88 @@ date: 2019/4/23
 categories: 前端
 ---
 
-## Props
-
-### 灵活的 props
-
-### 避免透传
-
 ### 通信/事件
 
 ## 组件的思维
 
-### 使用组件的思维来抽象业务
+### 使用组件的方式来表达逻辑
 
-Locker
+大部分情况下, 我们会将 UI 转换成组件. 其实组件不单单可以表示 UI, 也可以用来表示业务逻辑, 这个可以巧妙地解决一些问题.
+
+举一个例子: 当一个审批人在审批一个请求时, 请求发起者是不能重新编辑的; 反之发起者在编辑时, 审批人不能进行审批. 这是一个锁定机制, 后端一般使用类似心跳机制来维护这个'锁', 这个锁会有过期机制, 所以前端一般会使用轮询机制来激活锁.
+
+一般的实现:
+
+```ts
+class MyPage extends React.Component {
+  public componentDidMount() {
+    // 根据一些条件触发
+    if (isApprover || isEditing) {
+      this.timer = setInterval(async () => {
+        // 轮询
+      }, 5000);
+    }
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+}
+```
+
+随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook, 但都不够灵活. 另一种方式就是将这些业务逻辑抽取为组件, 例如 Locker:
+
+```ts
+const Locker: FC<{ onError: err => boolean, id: string }> = props => {
+  const {id, onError} = props
+  useEffect(() => {
+    let timer
+    const poll = () => {
+      timer = setTimeout(async () => {
+        // ...
+      }, 5000)
+    }
+
+    poll()
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [id])
+
+  return null
+};
+```
+
+使用 Locker
+
+```ts
+render() {
+  return (<div>
+    {this.isEdting || this.isApprover && <Locker id={this.id} onError={this.handleError}></Locker>}
+  </div>)
+}
+```
+
+再开一下脑洞. 通过一个 Fetch 组件来进行接口请求:
+
+```ts
+<Fetch method="user.getById" id={userId}>
+  {({ data, error, retry, loading }) => (
+    <Container>
+      {loading ? (
+        <Loader />
+      ) : error ? (
+        <ErrorMessage error={error} retry={retry} />
+      ) : data ? (
+        <Detail data={data} />
+      ) : null}
+    </Container>
+  )}
+</Fetch>
+```
+
+在 React Hooks 出现之前, 为了给函数组件(或者说 dumb component)添加状态, 通常会使用这种模式, [react-powerplug](https://github.com/renatorib/react-powerplug)就是这样一个典型的例子.
 
 ### hooks 取代高阶组件
 
@@ -124,8 +193,15 @@ export default class Label extends Overlay<LabelProps> {
 
 context 缺陷
 
+## Props
+
+### 灵活的 props
+
+### 避免透传
+
 ## 组件规范
 
 ## 扩展
 
 - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
+- [recompose](https://github.com/acdlite/recompose/blob/master/docs/API.md)
