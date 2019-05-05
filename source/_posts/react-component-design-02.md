@@ -706,6 +706,8 @@ Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Inp
 </Steps>
 ```
 
+### 文档
+
 ### 扩展
 
 - [Three Rules For Structuring (Redux) Applications](https://jaysoo.ca/2016/02/28/organizing-redux-application/#rule-2-create-strict-module-boundaries)
