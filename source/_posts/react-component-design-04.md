@@ -33,7 +33,9 @@ class MyPage extends React.Component {
 }
 ```
 
-随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook, 但都不够灵活. 另一种方式就是将这些业务逻辑抽取为组件, 例如 Locker:
+随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook, 但都不够灵活, 比如条件化锁定这个功能实现起来就比较别扭.
+
+另一种方式就是将这些业务逻辑抽取为组件, 例如 Locker:
 
 ```ts
 const Locker: FC<{ onError: err => boolean, id: string }> = props => {
@@ -96,9 +98,128 @@ render() {
 
 useList 为例
 
-### hooks 响应式编程
+### hooks 实现'响应式'编程
 
-数据响应式
+`Vue`的非侵入性[响应式系统](https://cn.vuejs.org/v2/guide/reactivity.html)是其最独特的特性之一, 而 React 这边指提供了 setState 这个 API, 复杂组件为了保证状态的'不可变性', 代码往往会写的又臭又长. 例如:
+
+```ts
+this.setState({
+  pagination: {
+    ...this.state.pagination,
+    current: (defaultPagination && defaultPagination.current) || 1,
+    pageSize: (defaultPagination && defaultPagination.pageSize) || 15,
+    total: 0,
+  },
+});
+```
+
+后来有了[mobx](https://cn.mobx.js.org), 基本接近了 Vue 开发体验:
+
+```ts
+@observer
+class TodoView extends React.Component {
+  private @observable loading: boolean;
+  private @observable error?: Error;
+  private @observable list: Item[] = [];
+  // 衍生状态
+  private @computed get completed() {
+    return this.list.filter(i => i.completed)
+  }
+
+  public componentDidMount() {
+    this.load();
+  }
+
+  public render() {
+    /// ...
+  }
+
+  private async load() {
+    try {
+      this.error = undefined
+      this.loading = true
+      const list = await fetchList()
+      this.list = list
+    } catch (err) {
+      this.error = err
+    } finally {
+      this.loading = false
+    }
+  }
+}
+```
+
+mobx 也有挺多缺点:
+
+- 代码侵入性. 所有需要响应数据变动的组件都需要使用 observer 装饰, 属性需要使用 observable 装饰. 对 mobx 耦合较深, 日后切换框架成本很高
+- 兼容性. mobx v5 后使用 Proxy 进行重构, Proxy 在 Chrome49 之后才支持. 如果要兼容旧版浏览器则只能使用 v4, v4 有一些[坑](https://cn.mobx.js.org/#mobx-4-vs-mobx-5), 这些坑对于不了解 mobx 的新手很难发现:
+  - Observable 数组并非真正的数组. 比如 antd 的 Table 组件就不认 mobx 的数组, 需要传入到组件之间使用 slice 进行转换
+  - 向一个已存在的 observable 对象中添加属性不会被自动捕获
+
+于是 hooks 出现了, 它让组件的状态管理变得更简单直接, 而且它的思想也很接近 mobx 响应式编程哲学:
+
+![mobx](/images/04/mobx.png)
+
+1. 简洁地声明状态
+
+**状态** 是驱动应用的数据. 例如 UI 状态或者业务领域状态
+
+```ts
+function Demo() {
+  const [list, setList] = useState<Item[]>([]);
+  // ...
+}
+```
+
+2. 衍生
+
+任何 源自状态并且不会再有任何进一步的相互作用的东西就是衍生。包括用户视图, 衍生状态, 其他副作用
+
+```ts
+function Demo(props: { id: string }) {
+  const { id } = props;
+  // 取代mobx的observable: 获取列表, 在挂载或id变动时请求
+  const [value, setValue, loading, error, retry] = usePromise(
+    async id => {
+      return getList(id);
+    },
+    [id],
+  );
+
+  // 衍生状态: 取代mobx的computed
+  const unreads = useMemo(() => value.filter(i => !i.readed), [value]);
+
+  // 衍生副作用: value变动后自动持久化
+  useDebounce(
+    () => {
+      saveList(id, value);
+    },
+    1000,
+    [value],
+  );
+
+  // 衍生视图
+  return <List data={value} onChange={setValue} error={error} loading={loading} retry={retry} />;
+}
+```
+
+<img src="/images/04/hook-stream.png" width="400" />
+
+所以说 hook 是一个革命性的东西, 它可以让组件的状态数据流更加清晰. 换做 class 组件, 我们通常的做法可能是在 componentDidUpdate()生命周期方法中进行数据比较, 然后命令式地触发一些方法, 比如 id 变化时触发 getList, list 变化时进行 saveList.
+
+hook 似乎在淡化组件生命周期的概念, 让开发者更专注于状态的关系, 以数据流的方式来思考组件的开发. [Dan Abramov](https://mobile.twitter.com/dan_abramov)在[编写有弹性的组件](https://overreacted.io/zh-hans/writing-resilient-components/)也提到了一个原则"不要阻断数据流", 证实了笔者的想法:
+
+> 无论何时使用 props 和 state，请考虑如果它们发生变化会发生什么。在大多数情况下，组件不应以不同方式处理初始渲染和更新流程。这使它能够适应逻辑上的变化。
+
+读者可以看一下[awesome-react-hooks](https://github.com/rehooks/awesome-react-hooks), 这些开源的 hook 方案都挺有意思. 例如[rxjs-hooks](https://github.com/LeetCode-OpenSource/rxjs-hooks), 巧妙地将 react hooke 和 rxjs 结合的起来:
+
+```ts
+function App(props: { foo: number }) {
+  // 响应props的变动
+  const value = useObservable(inputs$ => inputs$.pipe(map(([val]) => val + 1)), 200, [props.foo]);
+  return <h1>{value}</h1>;
+}
+```
 
 ### 类继承也有用处
 
@@ -205,3 +326,4 @@ context 缺陷
 
 - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
 - [recompose](https://github.com/acdlite/recompose/blob/master/docs/API.md)
+- [编写有弹性的组件](https://overreacted.io/zh-hans/writing-resilient-components/)
