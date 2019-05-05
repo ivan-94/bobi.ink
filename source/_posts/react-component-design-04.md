@@ -4,9 +4,125 @@ date: 2019/4/23
 categories: 前端
 ---
 
-### 通信/事件
-
 ## 组件的思维
+
+### 高阶组件
+
+在很长一段时期里，高阶组件都是增强和组合 React 元素的最流行的方式. 这个概念源自于函数式编程的高阶函数. 高阶组件可以定义为: **高阶组件是函数，它接收原始组件并返回原始组件的增强/填充版本**:
+
+```ts
+const HOC = Component => EnhancedComponent;
+```
+
+首先要明白我们**为什么需要高阶组件**:
+
+React 的[文档](https://react.docschina.org/docs/higher-order-components.html)说的非常清楚, 高阶组件是一种用于复用组件逻辑模式.
+最为常见的例子就是 redux 的`connect`和 react-router 的 withRouter. 高阶组件最初用于取代 mixin(了解[React Mixin 的前世今生](https://zhuanlan.zhihu.com/p/20361937)). 总结来说就是两点:
+
+- 逻辑复用. 把一些通用的代码逻辑提取出来放到高阶组件中, 让更多组件可以共享
+- 分离关注点. 在之前的章节中提到"逻辑和视图分离"的原则, 高阶组件就是实现该原则的载体. 我们一般将行为层抽取到高阶组件中来实现
+
+高阶组件的一些**实现方法**主要有两种:
+
+- `属性代理(Props Proxy)`: 代理传递给被包装组件的 props, 对 props 进行操作. 这种方式用得最多. 使用这种方式可以做到:
+
+  - 操作 props
+  - 访问被包装组件实例
+  - 提取 state
+  - 用其他元素包裹被包装组件
+
+- `反向继承(Inheritance Inversion)`: 高阶组件继承被包装的组件. 例如:
+
+  ```ts
+  function myhoc(WrappedComponent) {
+    return class Enhancer extends WrappedComponent {
+      render() {
+        return super.render();
+      }
+    };
+  }
+  ```
+
+  可以实现:
+
+  - 渲染劫持: 即控制被包装组件的渲染输出.
+  - 操作 state: state 一般属于组件的内部细节, 通过继承的方式可以暴露给子类. 可以增删查改被包装组件的 state, 除非你知道你在干什么, 一般不建议这么做.
+
+实际上高阶组件能做的不止上面列举的, 高阶组件非常灵活, 全凭你的想象力. 读者可以了解 [recompose](https://github.com/acdlite/recompose/blob/master/docs/API.md)这个库, 简直把高阶组件玩出花了.
+
+总结一下高阶组件的**应用场景**:
+
+- 操作 props: 增删查改 props. 例如转换 props, 扩展 props, 固定 props, 重命名 props
+- 注入 context 或外部状态: 例如redux的connnect, react-router的withRouter
+- 扩展 state: 例如给函数式组件注入状态
+- 避免重复渲染: 例如React.memo
+- 分离逻辑, 让组件保持 dumb
+
+> 高阶组件相关文档在网上有很多, 本文不打算展开描述. 深入了解[高阶组件](https://zhuanlan.zhihu.com/p/24776678)
+
+高阶组件的一些**规范**:
+
+- 包装显示名字以便于调试
+
+  ```ts
+  function withSubscription(WrappedComponent) {
+    class WithSubscription extends React.Component {
+      /* ... */
+    }
+    WithSubscription.displayName = `WithSubscription(${getDisplayName(WrappedComponent)})`;
+    return WithSubscription;
+  }
+
+  function getDisplayName(WrappedComponent) {
+    return WrappedComponent.displayName || WrappedComponent.name || 'Component';
+  }
+  ```
+
+- 使用 React.forwardRef 来转发 ref
+- 使用'高阶函数'来配置'高阶组件', 这样可以让高阶组件的组合性最大化. Redux 的 connect 就是典型的例子
+
+  ```ts
+  const ConnectedComment = connect(
+    commentSelector,
+    commentActions,
+  )(Comment);
+  ```
+
+  当使用 compose 进行组合时就能体会到它的好处:
+
+  ```ts
+  // 🙅 不推荐
+  const EnhancedComponent = withRouter(connect(commentSelector)(WrappedComponent));
+
+  // ✅ 使用compose方法进行组合
+  // compose(f, g, h) 和 (...args) => f(g(h(...args)))是一样的
+  const enhance = compose(
+    // 这些都是单独一个参数的高阶组件
+    withRouter,
+    connect(commentSelector),
+  );
+
+  const EnhancedComponent = enhance(WrappedComponent);
+  ```
+
+- 转发所有不相关 props 属性给被包装的组件
+
+  ```ts
+  render() {
+    const { extraProp, ...passThroughProps } = this.props;
+    // ...
+    return (
+      <WrappedComponent
+        injectedProp={injectedProp}
+        {...passThroughProps}
+      />
+    );
+  }
+  ```
+
+- 命名: 一般以 with\*命名, 如果携带参数, 则以 create\*命名
+
+### xxx
 
 ### 使用组件的方式来表达逻辑
 
@@ -95,6 +211,8 @@ render() {
 
 高阶组件难以进行类型声明
 高阶组件组件嵌套
+
+跨平台的逻辑复用
 
 useList 为例
 
