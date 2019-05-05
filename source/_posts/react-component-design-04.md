@@ -53,9 +53,9 @@ React 的[文档](https://react.docschina.org/docs/higher-order-components.html)
 总结一下高阶组件的**应用场景**:
 
 - 操作 props: 增删查改 props. 例如转换 props, 扩展 props, 固定 props, 重命名 props
-- 注入 context 或外部状态: 例如redux的connnect, react-router的withRouter
+- 注入 context 或外部状态: 例如 redux 的 connnect, react-router 的 withRouter. 旧 context 是实验性 API, 所以很多库都不会将 context 保留出来, 而是通过高阶组件形式进行注入
 - 扩展 state: 例如给函数式组件注入状态
-- 避免重复渲染: 例如React.memo
+- 避免重复渲染: 例如 React.memo
 - 分离逻辑, 让组件保持 dumb
 
 > 高阶组件相关文档在网上有很多, 本文不打算展开描述. 深入了解[高阶组件](https://zhuanlan.zhihu.com/p/24776678)
@@ -122,11 +122,57 @@ React 的[文档](https://react.docschina.org/docs/higher-order-components.html)
 
 - 命名: 一般以 with\*命名, 如果携带参数, 则以 create\*命名
 
-### xxx
+### Render Props
+
+Render Props 也是一种常见的 react 模式, 比如官方的 Context API 和 React-Spring 动画库. 目的高阶组件差不多, 都是为了分离关注点, 提高组件逻辑可复用, 在某些场景可以取代高阶组件. 官方的定义是:
+
+> 是指一种在 React 组件之间使用一个值为函数的 prop 在 React 组件间共享代码的简单技术。
+
+React 并没有限定任何 props 的类型, 所以 props 也可以是函数形式. 当 props 为函数时, 父组件可以通过函数参数给子组件传递一些数据进行动态渲染. 典型代码为:
+
+```ts
+<FunctionAsChild>{() => <div>Hello,World!</div>}</FunctionAsChild>
+```
+
+使用示例:
+
+```ts
+<Spring from={{ opacity: 0 }} to={{ opacity: 1 }}>
+  {props => <div style={props}>hello</div>}
+</Spring>
+```
+
+某种程度上, 这种模式相比高阶组件要简单很多, 不管是实现还是使用层次. 缺点也很明显:
+
+- 可读性差
+- 组合性差. 只能通过 JSX 一层一层嵌套, 一般不宜多于一层
+- 适用于动态渲染. 因为局限在 JSX 节点中, 当前组件是很难获取到 render props 传递的数据. 如果要传递给当前组件还是得通过 props, 也就是通过高阶组件传递进来
+
+再开一下脑洞. 通过一个 Fetch 组件来进行接口请求:
+
+```ts
+<Fetch method="user.getById" id={userId}>
+  {({ data, error, retry, loading }) => (
+    <Container>
+      {loading ? (
+        <Loader />
+      ) : error ? (
+        <ErrorMessage error={error} retry={retry} />
+      ) : data ? (
+        <Detail data={data} />
+      ) : null}
+    </Container>
+  )}
+</Fetch>
+```
+
+在 React Hooks 出现之前, 为了给函数组件(或者说 dumb component)添加状态, 通常会使用这种模式, [react-powerplug](https://github.com/renatorib/react-powerplug)就是这样一个典型的例子.
+
+> 官方[文档](https://react.docschina.org/docs/render-props.html)
 
 ### 使用组件的方式来表达逻辑
 
-大部分情况下, 我们会将 UI 转换成组件. 其实组件不单单可以表示 UI, 也可以用来表示业务逻辑, 这个可以巧妙地解决一些问题.
+大部分情况下, 我们会将 UI 转换成组件. 其实组件不单单可以表示 UI, 也可以用来表示业务逻辑对象, 这个可以巧妙地解决一些问题.
 
 举一个例子: 当一个审批人在审批一个请求时, 请求发起者是不能重新编辑的; 反之发起者在编辑时, 审批人不能进行审批. 这是一个锁定机制, 后端一般使用类似心跳机制来维护这个'锁', 这个锁会有过期机制, 所以前端一般会使用轮询机制来激活锁.
 
@@ -149,9 +195,9 @@ class MyPage extends React.Component {
 }
 ```
 
-随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook, 但都不够灵活, 比如条件化锁定这个功能实现起来就比较别扭.
+随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook, 但都不够灵活, 比如条件锁定这个功能实现起来就比较别扭.
 
-另一种方式就是将这些业务逻辑抽取为组件, 例如 Locker:
+有时候考虑将业务抽象成为组件, 可能可以巧妙地解决我们的问题, 例如 Locker:
 
 ```ts
 const Locker: FC<{ onError: err => boolean, id: string }> = props => {
@@ -184,26 +230,6 @@ render() {
   </div>)
 }
 ```
-
-再开一下脑洞. 通过一个 Fetch 组件来进行接口请求:
-
-```ts
-<Fetch method="user.getById" id={userId}>
-  {({ data, error, retry, loading }) => (
-    <Container>
-      {loading ? (
-        <Loader />
-      ) : error ? (
-        <ErrorMessage error={error} retry={retry} />
-      ) : data ? (
-        <Detail data={data} />
-      ) : null}
-    </Container>
-  )}
-</Fetch>
-```
-
-在 React Hooks 出现之前, 为了给函数组件(或者说 dumb component)添加状态, 通常会使用这种模式, [react-powerplug](https://github.com/renatorib/react-powerplug)就是这样一个典型的例子.
 
 ### hooks 取代高阶组件
 
