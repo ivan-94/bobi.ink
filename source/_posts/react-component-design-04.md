@@ -235,7 +235,7 @@ render() {
 
 hooks 对于 React 开发来说是一个革命性的特性, 它改变了开发的思维和模式. 首先要问一下, "它解决了什么问题, 带来了什么新的东西?"
 
-hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'动机'上就说了:
+hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'**动机**'上就说了:
 
 - 1. 很难在组件之间复用状态逻辑:
 
@@ -269,20 +269,144 @@ Hooks 带来的**新东西**:
 
 <img alt="migrate to hooks" src="/images/04/hooks-transform.gif" width="500" />
 
-- 一种新的组件编写方式, 更简洁的 API 和代码复用机制. 这使得组件代码变得更简短, 和此前基于 class 或纯函数组件的开发方式不太一样. 上图就是迁移到 hooks 的代码结构对比.
-- 更细粒度的状态控制(useState). 以前一个组件只有一个 setState 集中式管理组件状态, 现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元. 这意味着不同的 hook 可以维护自己的状态
-- 自定义 hook 本身就是一个普通函数, 可以复合其他 hook 实现复杂逻辑, 非常灵活
+- 一种新的组件编写方式, 更简洁的 API 和代码复用机制. 这使得组件代码变得更简短, 和此前基于 class 或纯函数组件的开发方式不太一样. 上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I).
+- 更细粒度的状态控制(useState). 以前一个组件只有一个 setState 集中式管理组件状态, **现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元**. 这意味着不同的 hook 可以维护自己的状态
+- 自定义 hook 只是普通函数, 可以复合其他 hook 实现复杂逻辑, 非常灵活
 - 高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖)
 - 更容易进行逻辑和视图分离. hooks 天然隔离 JSX, 视图和逻辑之间的界限比较清晰, 这使得 hooks 可以更专注组件的行为.
 - 淡化组件生命周期概念, 将本来分散在多个生命周期的逻辑聚合起来
 - 一点点'响应式编程'的味道, 见下文
 - 跨平台的逻辑复用. 这是我自己开的脑洞, React hooks 出来之后尤雨溪就推了一个[vue-hooks](https://github.com/yyx990803/vue-hooks)试验项目, 如果后面发展顺利, hooks 是可以被用于跨框架
 
-一个示例:
+一个**示例**:
 
-TODO:
+无限滚动列表加载:
 
-一些注意事项:
+```ts
+import { useState, useRef, useCallback, useEffect } from 'react'
+
+export interface UseListOption<T> {
+  pageSize?: number
+}
+
+export interface UseListQuery<T> {
+  pageSize: number
+  offset: number
+  list: T[]
+}
+
+export function useList<T>(
+  fn: (query: UseListQuery<T>, ...args: any[]) => Promise<T[]>,
+  options: UseListOption<T> = {},
+  args: any[] = [],
+) {
+  const taskIdRef = useRef<number | undefined>(undefined)
+  const [list, setList] = useState<T[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error | undefined>(undefined)
+  const [hasMore, setHasMore] = useState(true)
+  const empty = useMemo(() => list.length === 0 && !hasMore, [list, hasMore])
+
+  const load = useCallback(
+    async (...args: any[]) => {
+      const { pageSize = 15 } = options
+
+      if (!hasMore) {
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(undefined)
+        const taskId = (taskIdRef.current = getUid())
+        const res = await fn(
+          {
+            pageSize,
+            offset: list.length,
+            list,
+          },
+          ...args,
+        )
+
+        // 已有并发发起的请求执行完毕
+        if (taskIdRef.current !== taskId) {
+          return
+        }
+
+        if (res.length < pageSize) {
+          setHasMore(false)
+        }
+
+        setList(l => [...l, ...res])
+      } catch (err) {
+        setError(err)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [fn, list, hasMore],
+  )
+
+  const clean = useCallback(() => {
+    setList([])
+    setLoading(false)
+    setError(undefined)
+    setHasMore(true)
+    setEmpty(false)
+  }, [])
+
+  const loadMore = useCallback(
+    () => {
+      load(...args)
+    },
+    [load, ...args],
+  )
+
+  const refresh = useCallback(
+    () => {
+      clean()
+      loadMore()
+    },
+    [loadMore, ...args],
+  )
+
+  useEffect(() => {
+    load(...args)
+  }, args)
+
+  return {
+    list,
+    setList,
+    loading,
+    empty,
+    error,
+    hasMore,
+    clean,
+    load: loadMore,
+    refresh,
+  }
+}
+```
+
+使用:
+
+```ts
+export const MyPage = props => {
+  const { list, refresh, load, hasMore, loading, error } = useList(async (query) =>  getList(query))
+
+  return <List
+    onReachEnd={load}
+    hasMore={hasMore}
+    dataSource={list}
+    rowHeight={64}
+    loading={loading}
+    error={error}
+    renderRow={renderRow}
+  />
+}
+```
+
+一些**注意事项**:
 
 - 只能在顶层调用钩子。不要在循环，控制流和嵌套的函数中调用钩子
 - 只能从 React 的函数式组件中调用钩子
@@ -290,7 +414,7 @@ TODO:
 - 代码组织结构 TODO:
 - debug
 
-总结 hooks 的常用场景:
+总结 hooks 的**常用场景**:
 
 - 副作用监听: useWindowSize
 - 封装可复用逻辑和状态: useInput, usePromise, useList
