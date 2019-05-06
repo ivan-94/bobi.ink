@@ -283,16 +283,16 @@ Hooks 带来的**新东西**:
 无限滚动列表加载:
 
 ```ts
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface UseListOption<T> {
-  pageSize?: number
+  pageSize?: number;
 }
 
 export interface UseListQuery<T> {
-  pageSize: number
-  offset: number
-  list: T[]
+  pageSize: number;
+  offset: number;
+  list: T[];
 }
 
 export function useList<T>(
@@ -300,25 +300,25 @@ export function useList<T>(
   options: UseListOption<T> = {},
   args: any[] = [],
 ) {
-  const taskIdRef = useRef<number | undefined>(undefined)
-  const [list, setList] = useState<T[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error | undefined>(undefined)
-  const [hasMore, setHasMore] = useState(true)
-  const empty = useMemo(() => list.length === 0 && !hasMore, [list, hasMore])
+  const taskIdRef = useRef<number | undefined>(undefined);
+  const [list, setList] = useState<T[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(true);
+  const empty = useMemo(() => list.length === 0 && !hasMore, [list, hasMore]);
 
   const load = useCallback(
     async (...args: any[]) => {
-      const { pageSize = 15 } = options
+      const { pageSize = 15 } = options;
 
       if (!hasMore) {
-        return
+        return;
       }
 
       try {
-        setLoading(true)
-        setError(undefined)
-        const taskId = (taskIdRef.current = getUid())
+        setLoading(true);
+        setError(undefined);
+        const taskId = (taskIdRef.current = getUid());
         const res = await fn(
           {
             pageSize,
@@ -326,53 +326,47 @@ export function useList<T>(
             list,
           },
           ...args,
-        )
+        );
 
         // 已有并发发起的请求执行完毕
         if (taskIdRef.current !== taskId) {
-          return
+          return;
         }
 
         if (res.length < pageSize) {
-          setHasMore(false)
+          setHasMore(false);
         }
 
-        setList(l => [...l, ...res])
+        setList(l => [...l, ...res]);
       } catch (err) {
-        setError(err)
+        setError(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
     [fn, list, hasMore],
-  )
+  );
 
   const clean = useCallback(() => {
-    setList([])
-    setLoading(false)
-    setError(undefined)
-    setHasMore(true)
-    setEmpty(false)
-  }, [])
+    setList([]);
+    setLoading(false);
+    setError(undefined);
+    setHasMore(true);
+    setEmpty(false);
+  }, []);
 
-  const loadMore = useCallback(
-    () => {
-      load(...args)
-    },
-    [load, ...args],
-  )
+  const loadMore = useCallback(() => {
+    load(...args);
+  }, [load, ...args]);
 
-  const refresh = useCallback(
-    () => {
-      clean()
-      loadMore()
-    },
-    [loadMore, ...args],
-  )
+  const refresh = useCallback(() => {
+    clean();
+    loadMore();
+  }, [loadMore, ...args]);
 
   useEffect(() => {
-    load(...args)
-  }, args)
+    load(...args);
+  }, args);
 
   return {
     list,
@@ -384,7 +378,7 @@ export function useList<T>(
     clean,
     load: loadMore,
     refresh,
-  }
+  };
 }
 ```
 
@@ -392,39 +386,68 @@ export function useList<T>(
 
 ```ts
 export const MyPage = props => {
-  const { list, refresh, load, hasMore, loading, error } = useList(async (query) =>  getList(query))
+  const { list, refresh, load, hasMore, loading, error } = useList(async query => getList(query));
 
-  return <List
-    onReachEnd={load}
-    hasMore={hasMore}
-    dataSource={list}
-    rowHeight={64}
-    loading={loading}
-    error={error}
-    renderRow={renderRow}
-  />
+  return (
+    <List
+      onReachEnd={load}
+      hasMore={hasMore}
+      dataSource={list}
+      rowHeight={64}
+      loading={loading}
+      error={error}
+      renderRow={renderRow}
+    />
+  );
+};
+```
+
+一般 hooks 的基本代码结构:
+
+```ts
+function useHook(options) {
+  // ⚛️refs
+  const refSomething = useRef();
+  // ⚛️states
+  const [someState, setSomeState] = useState(initialValue);
+  // ⚛️derived state
+  const computedState = useMemo(() => computed, [dependencies]);
+
+  // ⚛️side effect
+  useEffect(() => {}, []);
+  useEffect(() => {}, [dependencies]);
+
+  // ⚛️state operations
+  const handleChange = useCallback(() => {
+    setSomeState(newState)
+  }, [])
+
+  // ⚛️output
+  return <div>{...}</div>
 }
 ```
+
+自定义 hook 和函数组件的代码结构基本一致, 所以有时候 hooks 写着写着原来越像组件, 组件写着写着越像 hooks. 我觉得可以认为组件就是一种特殊的 hook, 只不过它输出 Virtual DOM.
 
 一些**注意事项**:
 
 - 只能在顶层调用钩子。不要在循环，控制流和嵌套的函数中调用钩子
 - 只能从 React 的函数式组件中调用钩子
 - 自定义 hooks 使用 use\*命名
-- 代码组织结构 TODO:
 - debug
 
 总结 hooks 的**常用场景**:
 
-- 副作用封装和监听: 例如useWindowSize(监听窗口大小)，useOnlineStatus(在线状态)
+- 副作用封装和监听: 例如 useWindowSize(监听窗口大小)，useOnlineStatus(在线状态)
 - 副作用衍生: useEffect, useDebounce, useThrottle, useTitle, useSetTimeout
-- DOM事件封装：useActive，useFocus, useDraggable, useTouch
-- 获取context
+- DOM 事件封装：useActive，useFocus, useDraggable, useTouch
+- 获取 context
 - 封装可复用逻辑和状态: useInput, usePromise(异步请求), useList
-  - 取代高阶组件和render Props. 例如使用useRouter取代withRouter, useSpring取代旧的Spring Render Props组件
+  - 取代高阶组件和 render Props. 例如使用 useRouter 取代 withRouter, useSpring 取代旧的 Spring Render Props 组件
   - 取代容器组件
-- 扩展状态操作: 原始的useState很简单，所以有很大的扩展空间， 例如useSetState(模拟旧的setState), useToggle(boolean值切换)，useArray, useLocalStorage(同步持久化到本地存储)
-- 继续开脑洞: hooks的探索还在[继续](https://usehooks.com/)
+  - 状态管理器: use-global-hook
+- 扩展状态操作: 原始的 useState 很简单，所以有很大的扩展空间， 例如 useSetState(模拟旧的 setState), useToggle(boolean 值切换)，useArray, useLocalStorage(同步持久化到本地存储)
+- 继续开脑洞: hooks 的探索还在[继续](https://usehooks.com/)
 
 学习 hooks:
 
