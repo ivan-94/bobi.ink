@@ -416,12 +416,15 @@ export const MyPage = props => {
 
 总结 hooks 的**常用场景**:
 
-- 副作用监听: useWindowSize
-- 封装可复用逻辑和状态: useInput, usePromise, useList
-- 封装可复用业务逻辑, 取代容器组件
-- 副作用衍生: useEffect, useDebounce, useThrottle
-
-useList 为例
+- 副作用封装和监听: 例如useWindowSize(监听窗口大小)，useOnlineStatus(在线状态)
+- 副作用衍生: useEffect, useDebounce, useThrottle, useTitle, useSetTimeout
+- DOM事件封装：useActive，useFocus, useDraggable, useTouch
+- 获取context
+- 封装可复用逻辑和状态: useInput, usePromise(异步请求), useList
+  - 取代高阶组件和render Props. 例如使用useRouter取代withRouter, useSpring取代旧的Spring Render Props组件
+  - 取代容器组件
+- 扩展状态操作: 原始的useState很简单，所以有很大的扩展空间， 例如useSetState(模拟旧的setState), useToggle(boolean值切换)，useArray, useLocalStorage(同步持久化到本地存储)
+- 继续开脑洞: hooks的探索还在[继续](https://usehooks.com/)
 
 学习 hooks:
 
@@ -429,6 +432,7 @@ useList 为例
 - [一篇看懂 React Hooks](https://zhuanlan.zhihu.com/p/50597236)
 - [React Today and Tomorrow and 90% Cleaner React With Hooks](https://www.youtube.com/watch?v=dpw9EHDh2bM)
 - [hook-guide](https://www.hooks.guide/)
+- [精读《怎么用 React Hooks 造轮子》](https://zhuanlan.zhihu.com/p/50274018)
 
 ### hooks 实现'响应式'编程
 
