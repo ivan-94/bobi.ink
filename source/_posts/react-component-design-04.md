@@ -265,17 +265,20 @@ hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'
   - hooks 如何解决: 函数式组件
   - 新的问题: 你要了解闭包
 
-Hooks 带来的**新东西**:
+Hooks 带来的**新东西**: **hook旨在让组件的内部逻辑组织成可复用的更小单元，这些单元各自维护一部分组件‘状态和逻辑’**。
 
-<img alt="migrate to hooks" src="/images/04/hooks-transform.gif" width="500" />
+<img alt="migrate to hooks" src="/images/04/hooks-transform.png" width="800" />
+图片来源于twitter([@sunil Pai](https://twitter.com/threepointone/status/1056594421079261185/photo/1?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1056594421079261185&ref_url=https%3A%2F%2Fmedium.com%2Fmedia%2Fe55e7bcbf2d4912af7e539a2646388e2%3FpostId%3Dfdbde8803889))
 
-- 一种新的组件编写方式, 更简洁的 API 和代码复用机制. 这使得组件代码变得更简短, 和此前基于 class 或纯函数组件的开发方式不太一样. 上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I).
+- 一种新的组件编写方式, 和此前基于 class 或纯函数组件的开发方式不太一样, hook提供了更简洁的 API 和代码复用机制, 这使得组件代码变得更简短. 
+  👆上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I).
 - 更细粒度的状态控制(useState). 以前一个组件只有一个 setState 集中式管理组件状态, **现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元**. 这意味着不同的 hook 可以维护自己的状态
-- 自定义 hook 只是普通函数, 可以复合其他 hook 实现复杂逻辑, 非常灵活
-- 高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖)
+- 不管是hook还是组件，都是普通函数. 从某种程度上看组件和hooks是同质的(都包含状态和逻辑)。 这使得你不需要在类，高阶组件或者renderProps之间切换
+- 自定义 hook 只是普通函数, 这是一种最简单的代码复用单元, 最简单也意味着更灵活。 可以复合其他 hook或普通函数来实现复杂逻辑. 本质上将，hooks就是给函数带来了状态的概念
+- 高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖). 
 - 更容易进行逻辑和视图分离. hooks 天然隔离 JSX, 视图和逻辑之间的界限比较清晰, 这使得 hooks 可以更专注组件的行为.
 - 淡化组件生命周期概念, 将本来分散在多个生命周期的逻辑聚合起来
-- 一点点'响应式编程'的味道, 见下文
+- 一点点'响应式编程'的味道, 每个hooks都包含一些状态和副作用，这些数据可以在hooks之间传递流动和响应， 见下文
 - 跨平台的逻辑复用. 这是我自己开的脑洞, React hooks 出来之后尤雨溪就推了一个[vue-hooks](https://github.com/yyx990803/vue-hooks)试验项目, 如果后面发展顺利, hooks 是可以被用于跨框架
 
 一个**示例**:
@@ -431,10 +434,9 @@ function useHook(options) {
 
 一些**注意事项**:
 
-- 只能在顶层调用钩子。不要在循环，控制流和嵌套的函数中调用钩子
+- 只能在组件顶层调用钩子。不要在循环，控制流和嵌套的函数中调用钩子
 - 只能从 React 的函数式组件中调用钩子
 - 自定义 hooks 使用 use\*命名
-- debug
 
 总结 hooks 的**常用场景**:
 
@@ -456,6 +458,8 @@ function useHook(options) {
 - [React Today and Tomorrow and 90% Cleaner React With Hooks](https://www.youtube.com/watch?v=dpw9EHDh2bM)
 - [hook-guide](https://www.hooks.guide/)
 - [精读《怎么用 React Hooks 造轮子》](https://zhuanlan.zhihu.com/p/50274018)
+- [Making Sense of React Hooks](https://medium.com/@dan_abramov/making-sense-of-react-hooks-fdbde8803889)
+- [React hooks: not magic, just arrays](https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e)
 
 ### hooks 实现'响应式'编程
 
