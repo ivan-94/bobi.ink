@@ -265,20 +265,20 @@ hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'
   - hooks 如何解决: 函数式组件
   - 新的问题: 你要了解闭包
 
-Hooks 带来的**新东西**: **hook旨在让组件的内部逻辑组织成可复用的更小单元，这些单元各自维护一部分组件‘状态和逻辑’**。
+Hooks 带来的**新东西**: **hook 旨在让组件的内部逻辑组织成可复用的更小单元，这些单元各自维护一部分组件‘状态和逻辑’**。
 
 <img alt="migrate to hooks" src="/images/04/hooks-transform.png" width="800" />
 图片来源于twitter([@sunil Pai](https://twitter.com/threepointone/status/1056594421079261185/photo/1?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1056594421079261185&ref_url=https%3A%2F%2Fmedium.com%2Fmedia%2Fe55e7bcbf2d4912af7e539a2646388e2%3FpostId%3Dfdbde8803889))
 
-- 一种新的组件编写方式, 和此前基于 class 或纯函数组件的开发方式不太一样, hook提供了更简洁的 API 和代码复用机制, 这使得组件代码变得更简短. 
-  👆上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I).
+- 一种新的组件编写方式, 和此前基于 class 或纯函数组件的开发方式不太一样, hook 提供了更简洁的 API 和代码复用机制, 这使得组件代码变得更简短.
+  👆 上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I).
 - 更细粒度的状态控制(useState). 以前一个组件只有一个 setState 集中式管理组件状态, **现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元**. 这意味着不同的 hook 可以维护自己的状态
-- 不管是hook还是组件，都是普通函数. 从某种程度上看组件和hooks是同质的(都包含状态和逻辑)。 这使得你不需要在类，高阶组件或者renderProps之间切换
-- 自定义 hook 只是普通函数, 这是一种最简单的代码复用单元, 最简单也意味着更灵活。 可以复合其他 hook或普通函数来实现复杂逻辑. 本质上将，hooks就是给函数带来了状态的概念
-- 高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖). 
+- 不管是 hook 还是组件，都是普通函数. 从某种程度上看组件和 hooks 是同质的(都包含状态和逻辑)。 这使得你不需要在类，高阶组件或者 renderProps 之间切换
+- 自定义 hook 只是普通函数, 这是一种最简单的代码复用单元, 最简单也意味着更灵活。 可以复合其他 hook 或普通函数来实现复杂逻辑. 本质上将，hooks 就是给函数带来了状态的概念
+- 高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖).
 - 更容易进行逻辑和视图分离. hooks 天然隔离 JSX, 视图和逻辑之间的界限比较清晰, 这使得 hooks 可以更专注组件的行为.
 - 淡化组件生命周期概念, 将本来分散在多个生命周期的逻辑聚合起来
-- 一点点'响应式编程'的味道, 每个hooks都包含一些状态和副作用，这些数据可以在hooks之间传递流动和响应， 见下文
+- 一点点'响应式编程'的味道, 每个 hooks 都包含一些状态和副作用，这些数据可以在 hooks 之间传递流动和响应， 见下文
 - 跨平台的逻辑复用. 这是我自己开的脑洞, React hooks 出来之后尤雨溪就推了一个[vue-hooks](https://github.com/yyx990803/vue-hooks)试验项目, 如果后面发展顺利, hooks 是可以被用于跨框架
 
 一个**示例**:
@@ -660,204 +660,248 @@ export default class Label extends Overlay<LabelProps> {
 
 当然这个不是唯一的解决方法, 使用高阶组件和 hooks 同样能够实现. 只不过对于原本就采用面向对象范式组织的库, 使用继承方式会更加好理解
 
-### 配置组件
-
-### 使用 Context 在组件树中共享状态
-
-- 动态表单+验证
-- context 默认值
-
 ### 模态框管理
 
 ![modal demo](/images/04/modal-demo.png)
 
-模态框是应用开发中使用频率非常高组件，尤其在中后台管理系统中. 但是在React中用着并不是特别爽, 典型的代码如下:
+模态框是应用开发中使用频率非常高组件，尤其在中后台管理系统中. 但是在 React 中用着并不是特别爽, 典型的代码如下:
 
 ```tsx
 const Demo: FC<{}> = props => {
   // ...
-  const [visible, setVisible] = useState(false)
-  const [editing, setEditing] = useState()
+  const [visible, setVisible] = useState(false);
+  const [editing, setEditing] = useState();
   const handleCancel = () => {
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   const prepareEdit = async (item: Item) => {
     // 加载详情
-    const detail = await loadingDeatil(item.id) 
-    setEditing(detail)
-    setVisible(true)
-  }
+    const detail = await loadingDeatil(item.id);
+    setEditing(detail);
+    setVisible(true);
+  };
 
   const handleOk = async () => {
     try {
-      const values = await form.validate()
+      const values = await form.validate();
       // 保存
-      await save(editing.id, values)
+      await save(editing.id, values);
       // 隐藏
-      setVisible(false)
+      setVisible(false);
     } catch {}
-  }
+  };
 
-  return
+  return;
   <>
-    <Table 
+    <Table
       dataSource={list}
       columns={[
         {
           text: '操作',
-          render: (item) => {
-            return <a onClick={() => prepareEdit(item)}>编辑</a>
-          }
-        }
-      ]} />
+          render: item => {
+            return <a onClick={() => prepareEdit(item)}>编辑</a>;
+          },
+        },
+      ]}
+    />
     <Modal visible={visible} onOk={handleOk} onCancel={handleHide}>
       {/* 表单渲染 */}
     </Modal>
-  </>
-}
+  </>;
+};
 ```
 
 上面的代码太丑了， 不相关逻辑堆积在一个组件下 ，不符合单一职责. 所以我们要将这部分代码抽取出去:
 
 ```tsx
-const EditModal: FC<{id?: string, visible: boolean, onCancel: () => void, onOk: () => void}> = props => {
+const EditModal: FC<{ id?: string; visible: boolean; onCancel: () => void; onOk: () => void }> = props => {
   // ...
-  const {visible, id, onHide, onOk} = props
+  const { visible, id, onHide, onOk } = props;
   const detail = usePromise(async (id: string) => {
-    return loadDetail(id)
-  })
+    return loadDetail(id);
+  });
 
   useEffect(() => {
-    if (id != null){
-      detail.call(id)
+    if (id != null) {
+      detail.call(id);
     }
-  }, [id])
+  }, [id]);
 
   const handleOk = () => {
     try {
-      const values = await form.validate()
+      const values = await form.validate();
       // 保存
-      await save(editing.id, values)
-      onOk()
+      await save(editing.id, values);
+      onOk();
     } catch {}
-  }
+  };
 
-  return <Modal visible={visible} onOk={onOk} onCancel={onCancel}>
-    {detail.value &&
-      {/* 表单渲染 */}
-    }
-  </Modal>
-}
+  return (
+    <Modal visible={visible} onOk={onOk} onCancel={onCancel}>
+      {detail.value &&
+        {
+          /* 表单渲染 */
+        }}
+    </Modal>
+  );
+};
 
 const Demo: FC<{}> = props => {
   // ...
-  const [visible, setVisible] = useState(false)
-  const [editing, setEditing] = useState<string|undefined>(undefined)
+  const [visible, setVisible] = useState(false);
+  const [editing, setEditing] = useState<string | undefined>(undefined);
   const handleHide = () => {
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   const prepareEdit = async (item: Item) => {
-    setEditing(item.id)
-    setVisible(true)
-  }
+    setEditing(item.id);
+    setVisible(true);
+  };
 
-  return
+  return;
   <>
-    <Table 
+    <Table
       dataSource={list}
       columns={[
         {
           text: '操作',
-          render: (item) => {
-            return <a onClick={() => prepareEdit(item)}>编辑</a>
-          }
-        }
-      ]} />
-    <EditModal id={editing} visible={visible} onOk={handleHide} onCancel={handleHide}> </EditModal>
-  </>
-}
+          render: item => {
+            return <a onClick={() => prepareEdit(item)}>编辑</a>;
+          },
+        },
+      ]}
+    />
+    <EditModal id={editing} visible={visible} onOk={handleHide} onCancel={handleHide}>
+      {' '}
+    </EditModal>
+  </>;
+};
 ```
 
-现在编辑相关的逻辑抽取到了EditModal上，但是Demo组件还要维护模态框的打开状态和一些数据状态。一个复杂的页面可能会有很多模态框，这样的代码会变得越来越恶心， 各种xxxVisible状态满天飞. 从实际开发角度上将，模态框控制的最简单的方式应该是这样的：
+现在编辑相关的逻辑抽取到了 EditModal 上，但是 Demo 组件还要维护模态框的打开状态和一些数据状态。一个复杂的页面可能会有很多模态框，这样的代码会变得越来越恶心， 各种 xxxVisible 状态满天飞. 从实际开发角度上将，模态框控制的最简单的方式应该是这样的：
 
 ```tsx
-const handleEdit = (item) => {
-  EditModal.show({                // 🔴 通过函数调用的方式出发弹窗. 这符合对模态框的习惯用法, 不关心模态框的可见状态. 例如window.confirm, wx.showModal().
-    id: item.id,                  // 🔴 传递数据给模态框
-    onOk: (saved) => {            // 🔴 事件回调
-      refreshList(saved)
+const handleEdit = item => {
+  EditModal.show({
+    // 🔴 通过函数调用的方式出发弹窗. 这符合对模态框的习惯用法, 不关心模态框的可见状态. 例如window.confirm, wx.showModal().
+    id: item.id, // 🔴 传递数据给模态框
+    onOk: saved => {
+      // 🔴 事件回调
+      refreshList(saved);
     },
     onCancel: async () => {
-      return confirm('确认取消')   // 控制模态框是否隐藏
-    }
-  })
-}
+      return confirm('确认取消'); // 控制模态框是否隐藏
+    },
+  });
+};
 ```
 
-这种方式在社区上也是有争议的，有些人认为这是React的反模式，[@欲三更](https://www.zhihu.com/people/yu-san-geng)在[Modal.confirm违反了React的模式吗？](https://zhuanlan.zhihu.com/p/54492049)就探讨了这个问题。 以图为例：
+这种方式在社区上也是有争议的，有些人认为这是 React 的反模式，[@欲三更](https://www.zhihu.com/people/yu-san-geng)在[Modal.confirm 违反了 React 的模式吗？](https://zhuanlan.zhihu.com/p/54492049)就探讨了这个问题。 以图为例：
 
 ![modal confirm](/images/04/modal-confirm.jpg)
 
-红线表示时间驱动(或者说时机驱动), 蓝线表示数据驱动。欲三更认为“哪怕一个带有明显数据驱动特色的React项目，也存在很多部分不是数据驱动而是事件驱动的. 数据只能驱动出状态，只有时机才能驱动出行为, 对于一个时机驱动的行为，你非得把它硬坳成一个数据驱动的状态，你不觉得很奇怪吗?”. 他的观点正不正确笔者不做评判, 但是某些场景严格要求‘数据驱动’，可能会有很多模板代码，写着会很难受
+红线表示时间驱动(或者说时机驱动), 蓝线表示数据驱动。欲三更认为“哪怕一个带有明显数据驱动特色的 React 项目，也存在很多部分不是数据驱动而是事件驱动的. 数据只能驱动出状态，只有时机才能驱动出行为, 对于一个时机驱动的行为，你非得把它硬坳成一个数据驱动的状态，你不觉得很奇怪吗?”. 他的观点正不正确笔者不做评判, 但是某些场景严格要求‘数据驱动’，可能会有很多模板代码，写着会很难受
 
 So 怎么实现?
 
-可以参考antd [Modal.confirm](https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx)的实现, 它使用`ReactDOM.render`来进行外挂渲染，也有人使用[Context API](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81)来实现的. 笔者认为比较理想的(至少API上看)是[react-comfirm](https://github.com/haradakunihiko/react-confirm)这样的:
+可以参考 antd [Modal.confirm](https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx)的实现, 它使用`ReactDOM.render`来进行外挂渲染，也有人使用[Context API](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81)来实现的. 笔者认为比较理想的(至少 API 上看)是[react-comfirm](https://github.com/haradakunihiko/react-confirm)这样的:
 
 ```tsx
 /**
  * EditModal.tsx
  */
-import {confirmable} from 'react-confirm'
-const EditModal = props => {/*...*/}
+import { confirmable } from 'react-confirm';
+const EditModal = props => {
+  /*...*/
+};
 
-export  default confirmable(EditModal)
+export default confirmable(EditModal);
 
 /**
  *  Demo.tsx
  */
-import EditModal from './EditModal'
+import EditModal from './EditModal';
 
 const showEditModal = createConfirmation(EditModal);
 
 const Demo: FC<{}> = props => {
   const prepareEdit = async (item: Item) => {
     showEditModal({
-      id: item.id,                  // 🔴 传递数据给模态框
-      onOk: (saved) => {            // 🔴 事件回调
-        refreshList(saved)
+      id: item.id, // 🔴 传递数据给模态框
+      onOk: saved => {
+        // 🔴 事件回调
+        refreshList(saved);
       },
-      onCancel: async (someValues) => {
-        return confirm('确认取消')   // 控制模态框是否隐藏
-      }
-    })
-  }
+      onCancel: async someValues => {
+        return confirm('确认取消'); // 控制模态框是否隐藏
+      },
+    });
+  };
 
   // ...
-}
+};
 ```
 
-使用`ReactDOM.render`外挂渲染形式的缺点就是无法访问Context，所以还是要妥协一下，结合Context API来实现示例：
+使用`ReactDOM.render`外挂渲染形式的缺点就是无法访问 Context，所以还是要妥协一下，结合 Context API 来实现示例：
 
 <iframe src="https://codesandbox.io/embed/lryom9617l?autoresize=1&fontsize=14" title="useModal" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 扩展
 
 - [Modal.confirm](https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx)
-- [Modal.confirm违反了React的模式吗？](https://zhuanlan.zhihu.com/p/54492049)
+- [Modal.confirm 违反了 React 的模式吗？](https://zhuanlan.zhihu.com/p/54492049)
 - [使用 render props 抽象 Modal 组件的状态](https://www.zhihu.com/search?type=content&q=react%20modal)
 - [react-confirm](https://github.com/haradakunihiko/react-confirm)
-- [How to use React’s new Context API to easily manage modals](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81) 基于Context的方案
+- [How to use React’s new Context API to easily manage modals](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81) 基于 Context 的方案
+
+### 使用 Context 进行依赖注入
+
+Context 通过组件树提供了一个传递数据的方法，从而避免了在每一个层级手动的传递 props 属性.
+
+Context 在 React 应用中使用非常频繁, 新的[Context API](https://react.docschina.org/docs/context.html#when-to-use-context)也非常易用. Context 常用于以下场景:
+
+- 共享那些被认为对于一个'组件树'而言是“全局”的数据. 如当前认证的用户, 主题, i18n 配置, 表单状态
+- 组件配置. 配置组件的行为, 如 antd 的 ConfigProvider
+- 跨组件通信. 不推荐通过'事件'进行通信, 而是通过'状态'进行通信
+- 依赖注入
+
+Context 的作用域是子树, 也就是说一个 Context Provider 可以应用于多个子树, 子树的 Provider 也可以覆盖父级的 Provider 的 value. 基本结构:
+
+```tsx
+import React, {useState, useContext} from 'react'
+
+export inteface MyContextValue {
+  state: number
+  setState: (state: number) => void
+}
+
+const MyContext = React.createContext<MyContextValue>(
+  {
+    state: 1,
+    // 设置默认值, 抛出错误, 必须配合Provider使用
+    setState: () => throw new Error('请求MyContextProvider组件下级调用')
+  }
+)
+
+export const MyContextProvider: FC<{}> = props => {
+  const [state, setState] = useState(1)
+  return <MyContext.Provider value={{state, setState}}>{props.children}</MyContext.Provider>
+}
+
+export function useMyContext() {
+  return useContext(MyContext)
+}
+
+export default MyContextProvider
+```
 
 ### 使用 React-router 实现响应式的页面结构
 
 应急通信为例
 
 ### 异常处理
-
-context 缺陷
 
 ## Props
 
@@ -871,6 +915,7 @@ context 缺陷
 
 ## 扩展
 
+- [React bits](https://vasanthk.gitbooks.io/react-bits/patterns/30.component-switch.html)
 - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
 - [recompose](https://github.com/acdlite/recompose/blob/master/docs/API.md)
 - [编写有弹性的组件](https://overreacted.io/zh-hans/writing-resilient-components/)
