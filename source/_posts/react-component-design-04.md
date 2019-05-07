@@ -669,6 +669,188 @@ export default class Label extends Overlay<LabelProps> {
 
 ### 模态框管理
 
+![modal demo](/images/04/modal-demo.png)
+
+模态框是应用开发中使用频率非常高组件，尤其在中后台管理系统中. 但是在React中用着并不是特别爽, 典型的代码如下:
+
+```tsx
+const Demo: FC<{}> = props => {
+  // ...
+  const [visible, setVisible] = useState(false)
+  const [editing, setEditing] = useState()
+  const handleCancel = () => {
+    setVisible(false)
+  }
+
+  const prepareEdit = async (item: Item) => {
+    // 加载详情
+    const detail = await loadingDeatil(item.id) 
+    setEditing(detail)
+    setVisible(true)
+  }
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validate()
+      // 保存
+      await save(editing.id, values)
+      // 隐藏
+      setVisible(false)
+    } catch {}
+  }
+
+  return
+  <>
+    <Table 
+      dataSource={list}
+      columns={[
+        {
+          text: '操作',
+          render: (item) => {
+            return <a onClick={() => prepareEdit(item)}>编辑</a>
+          }
+        }
+      ]} />
+    <Modal visible={visible} onOk={handleOk} onCancel={handleHide}>
+      {/* 表单渲染 */}
+    </Modal>
+  </>
+}
+```
+
+上面的代码太丑了， 不相关逻辑堆积在一个组件下 ，不符合单一职责. 所以我们要将这部分代码抽取出去:
+
+```tsx
+const EditModal: FC<{id?: string, visible: boolean, onCancel: () => void, onOk: () => void}> = props => {
+  // ...
+  const {visible, id, onHide, onOk} = props
+  const detail = usePromise(async (id: string) => {
+    return loadDetail(id)
+  })
+
+  useEffect(() => {
+    if (id != null){
+      detail.call(id)
+    }
+  }, [id])
+
+  const handleOk = () => {
+    try {
+      const values = await form.validate()
+      // 保存
+      await save(editing.id, values)
+      onOk()
+    } catch {}
+  }
+
+  return <Modal visible={visible} onOk={onOk} onCancel={onCancel}>
+    {detail.value &&
+      {/* 表单渲染 */}
+    }
+  </Modal>
+}
+
+const Demo: FC<{}> = props => {
+  // ...
+  const [visible, setVisible] = useState(false)
+  const [editing, setEditing] = useState<string|undefined>(undefined)
+  const handleHide = () => {
+    setVisible(false)
+  }
+
+  const prepareEdit = async (item: Item) => {
+    setEditing(item.id)
+    setVisible(true)
+  }
+
+  return
+  <>
+    <Table 
+      dataSource={list}
+      columns={[
+        {
+          text: '操作',
+          render: (item) => {
+            return <a onClick={() => prepareEdit(item)}>编辑</a>
+          }
+        }
+      ]} />
+    <EditModal id={editing} visible={visible} onOk={handleHide} onCancel={handleHide}> </EditModal>
+  </>
+}
+```
+
+现在编辑相关的逻辑抽取到了EditModal上，但是Demo组件还要维护模态框的打开状态和一些数据状态。一个复杂的页面可能会有很多模态框，这样的代码会变得越来越恶心， 各种xxxVisible状态满天飞. 从实际开发角度上将，模态框控制的最简单的方式应该是这样的：
+
+```tsx
+const handleEdit = (item) => {
+  EditModal.show({                // 🔴 通过函数调用的方式出发弹窗. 这符合对模态框的习惯用法, 不关心模态框的可见状态. 例如window.confirm, wx.showModal().
+    id: item.id,                  // 🔴 传递数据给模态框
+    onOk: (saved) => {            // 🔴 事件回调
+      refreshList(saved)
+    },
+    onCancel: async () => {
+      return confirm('确认取消')   // 控制模态框是否隐藏
+    }
+  })
+}
+```
+
+这种方式在社区上也是有争议的，有些人认为这是React的反模式，[@欲三更](https://www.zhihu.com/people/yu-san-geng)在[Modal.confirm违反了React的模式吗？](https://zhuanlan.zhihu.com/p/54492049)就探讨了这个问题。 以图为例：
+
+![modal confirm](/images/04/modal-confirm.jpg)
+
+红线表示时间驱动(或者说时机驱动), 蓝线表示数据驱动。欲三更认为“哪怕一个带有明显数据驱动特色的React项目，也存在很多部分不是数据驱动而是事件驱动的. 数据只能驱动出状态，只有时机才能驱动出行为, 对于一个时机驱动的行为，你非得把它硬坳成一个数据驱动的状态，你不觉得很奇怪吗?”. 他的观点正不正确笔者不做评判, 但是某些场景严格要求‘数据驱动’，可能会有很多模板代码，写着会很难受
+
+So 怎么实现?
+
+可以参考antd [Modal.confirm](https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx)的实现, 它使用`ReactDOM.render`来进行外挂渲染，也有人使用[Context API](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81)来实现的. 笔者认为比较理想的(至少API上看)是[react-comfirm](https://github.com/haradakunihiko/react-confirm)这样的:
+
+```tsx
+/**
+ * EditModal.tsx
+ */
+import {confirmable} from 'react-confirm'
+const EditModal = props => {/*...*/}
+
+export  default confirmable(EditModal)
+
+/**
+ *  Demo.tsx
+ */
+import EditModal from './EditModal'
+
+const showEditModal = createConfirmation(EditModal);
+
+const Demo: FC<{}> = props => {
+  const prepareEdit = async (item: Item) => {
+    showEditModal({
+      id: item.id,                  // 🔴 传递数据给模态框
+      onOk: (saved) => {            // 🔴 事件回调
+        refreshList(saved)
+      },
+      onCancel: async (someValues) => {
+        return confirm('确认取消')   // 控制模态框是否隐藏
+      }
+    })
+  }
+
+  // ...
+}
+```
+
+使用`ReactDOM.render`外挂渲染形式的缺点就是无法访问Context，所以还是要妥协一下，结合Context API来实现示例：
+
+<iframe src="https://codesandbox.io/embed/lryom9617l?autoresize=1&fontsize=14" title="useModal" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+扩展
+
+- [Modal.confirm](https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx)
+- [Modal.confirm违反了React的模式吗？](https://zhuanlan.zhihu.com/p/54492049)
+- [使用 render props 抽象 Modal 组件的状态](https://www.zhihu.com/search?type=content&q=react%20modal)
+- [react-confirm](https://github.com/haradakunihiko/react-confirm)
+- [How to use React’s new Context API to easily manage modals](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81) 基于Context的方案
+
 ### 使用 React-router 实现响应式的页面结构
 
 应急通信为例
