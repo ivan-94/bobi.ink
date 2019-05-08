@@ -897,25 +897,34 @@ export function useMyContext() {
 export default MyContextProvider
 ```
 
+### 不可变的状态
+
+对于函数式编程范式的React来说，不可变状态有重要的意义.
+
+- 不可变数据具有可预测性。对于严格要求单向数据流的状态管理器来说，不可变数据是基本要求，它要求整个应用由一个单一的状态进行映射，不可变数据可以让整个应用变得可被预测. 可不变数据可以让应用更好调试，对象的变更更容易被跟踪和推导. 
+- 不可变数据还使一些复杂的功能更容易实现。避免数据改变，使我们能够安全保留对旧数据的引用，可以方便地实现撤销重做，或者时间旅行这些功能
+- 可以精确地进行重新渲染判断。可以简化shouldComponentUpdate比较。
+
+实现不可变数据的流行方法:
+
+- [immer](https://github.com/immerjs/immer)
+- [Immutable.js](https://github.com/immutable-js/immutable-js)
+
+笔者比较喜欢immer，几乎没有什么心智负担, 按照JS习惯的对象操作方式就可以实现不可变数据。
+
 ### 使用 React-router 实现响应式的页面结构
 
 应急通信为例
 
-### 异常处理
-
-## Props
-
-### 灵活的 props
-
-### 避免透传
-
 ## 组件规范
 
-- 开启严格模式
+- 开启严格模式: 开启StrictMode，尽早发现潜在问题和不规范用法
+- 第三方开发规范:
+  - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
+  - [React bits](https://vasanthk.gitbooks.io/react-bits/patterns/30.component-switch.html)
+  - [react-in-patterns](https://github.com/krasimir/react-in-patterns)
 
 ## 扩展
 
-- [React bits](https://vasanthk.gitbooks.io/react-bits/patterns/30.component-switch.html)
-- [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
 - [recompose](https://github.com/acdlite/recompose/blob/master/docs/API.md)
 - [编写有弹性的组件](https://overreacted.io/zh-hans/writing-resilient-components/)
