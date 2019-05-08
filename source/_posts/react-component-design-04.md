@@ -897,28 +897,99 @@ export function useMyContext() {
 export default MyContextProvider
 ```
 
+> Context默认值中的方法应该抛出错误, 警告不规范的使用
+
 ### 不可变的状态
 
-对于函数式编程范式的React来说，不可变状态有重要的意义.
+对于函数式编程范式的 React 来说，不可变状态有重要的意义.
 
-- 不可变数据具有可预测性。对于严格要求单向数据流的状态管理器来说，不可变数据是基本要求，它要求整个应用由一个单一的状态进行映射，不可变数据可以让整个应用变得可被预测. 可不变数据可以让应用更好调试，对象的变更更容易被跟踪和推导. 
+- 不可变数据具有可预测性。对于严格要求单向数据流的状态管理器来说，不可变数据是基本要求，它要求整个应用由一个单一的状态进行映射，不可变数据可以让整个应用变得可被预测. 可不变数据可以让应用更好调试，对象的变更更容易被跟踪和推导.
 - 不可变数据还使一些复杂的功能更容易实现。避免数据改变，使我们能够安全保留对旧数据的引用，可以方便地实现撤销重做，或者时间旅行这些功能
-- 可以精确地进行重新渲染判断。可以简化shouldComponentUpdate比较。
+- 可以精确地进行重新渲染判断。可以简化 shouldComponentUpdate 比较。
 
 实现不可变数据的流行方法:
 
 - [immer](https://github.com/immerjs/immer)
 - [Immutable.js](https://github.com/immutable-js/immutable-js)
 
-笔者比较喜欢immer，几乎没有什么心智负担, 按照JS习惯的对象操作方式就可以实现不可变数据。
+笔者比较喜欢 immer，没有什么心智负担, 按照 JS 习惯的对象操作方式就可以实现不可变数据。
 
-### 使用 React-router 实现响应式的页面结构
+### React-router: URL 即状态
 
-应急通信为例
+<center>
+ <img src="/images/04/static-router.png" width="300" />
+</center>
+
+传统的路由主要用于区分页面, 所以一开始前端路由也像后端路由(也称为**静态路由**)一样, 使用对象配置方式, 给不同的 url 分配不同的组件, 当应用启动时, 在路由配置表中查找匹配 URL 的组件并渲染出来.
+
+React-Router v4 算是一个真正意义上符合*组件化*思维的路由库, React-Router 称之为动态路由, 官方的解释是"指的是在应用程序渲染时发生的路由，而不是在运行应用程序之外的配置或约定中发生的路由", 具体说, `<Route/>`变成了一个普通 React 组件, 它在渲染时判断是否匹配 URL, 如果匹配就渲染指定的组件, 不匹配就返回 null.
+
+这时候 URL 意义已经不一样了, **URL 不再是简单的页面标志, 而是应用的状态**; **应用构成也不再局限于扁平页面, 而是多个可以响应 URL 状态的区域(可嵌套)**. 因为思维转变很大, 所以它刚出来时并不受青睐. 选择 v4 不代表放弃旧的路由方式, 你完全可以按照[旧的方式](https://react-router.docschina.org/core/guides/static-routes)来实现页面路由.
+
+应用实例: 一个应用由三个区域组成, 侧边栏放置多个入口, 点击这些入口会加载对应类型的列表, 点击列表需要加载详情. 三个区域存在级联关系
+
+![router demo](/images/04/router-demo.png)
+
+首先设计能够表达这种级联关系的 URL, 比如`/{group}/{id}`, URL 设计一般遵循[REST 风格](https://ruby-china.github.io/rails-guides/v5.0/routing.html#嵌套资源), 那么应用的大概结构是这样子:
+
+```tsx
+// App
+const App = () => {
+  <div className="app">
+    <SideBar />
+    <Route path="/:group" component={ListPage} />
+    <Route path="/:group/:id" component={Detail} />
+  </div>;
+};
+
+// SideBar
+const Sidebar = () => {
+  return (
+    <div className="sidebar">
+      {/* 使用NavLink 在匹配时显示激活状态 */}
+      <NavLink to="/message">消息</NavLink>
+      <NavLink to="/task">任务</NavLink>
+      <NavLink to="/location">定位</NavLink>
+    </div>
+  );
+};
+
+// ListPage
+const ListPage = props => {
+  const { group } = props.match.params;
+  // ...
+
+  // 响应group变化, 并加载指定类型列表
+  useEffect(() => {
+    load(group);
+  }, [group]);
+
+  // 列表项也会使用NavLink, 用于匹配当前展示的详情, 激活显示
+  return <div className="list">{renderList()}</div>;
+};
+
+// DetailPage
+const DetailPage = props => {
+  const { group, id } = props.match.params;
+  // ...
+
+  // 响应group和id, 并加载详情
+  useEffect(() => {
+    loadDetail(group, id);
+  }, [group, id]);
+
+  return <div className="detail">{renderDetail()}</div>;
+};
+```
+
+扩展
+
+- [React Router 哲学](https://react-router.docschina.org/core/guides/philosophy)
+- [聊聊 React Router v4 的设计思想](https://juejin.im/post/5986d1456fb9a03c3f405bd2)
 
 ## 组件规范
 
-- 开启严格模式: 开启StrictMode，尽早发现潜在问题和不规范用法
+- 开启严格模式: 开启 StrictMode，尽早发现潜在问题和不规范用法
 - 第三方开发规范:
   - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react#ordering)
   - [React bits](https://vasanthk.gitbooks.io/react-bits/patterns/30.component-switch.html)
