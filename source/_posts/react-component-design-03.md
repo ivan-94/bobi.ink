@@ -472,6 +472,37 @@ const App = () => (
 > antd 3.9 之后使用 svg 图标[代替了 font 图标](https://ant.design/components/icon-cn/#SVG-图标) <br/>
 > 对比[SVG vs Image, SVG vs Iconfont](https://aotu.io/notes/2018/11/23/SVG_vs_Image_vs_iconfont/index.html)
 
+### 8️⃣ 使用 rem 和 em 等相对单位, 创建更有弹性的组件
+
+Bootstrap v4 全面使用 rem 作为基本单位, 这使得所有组件都可以响应浏览器字体的调整:
+
+![](/images/04/bootstrap-rem.gif)
+
+rem 可以让整个文档可以响应 html 字体的变化, 经常用于移动端等比例还原设计稿, 详见[Rem 布局的原理解析](https://www.zhihu.com/column/p/30413803). 我个人对于觉得弹性组件来说更重要的是 em 单位, 尤其是那些比例固定组件, 例如 Button, Switch, Icon. 比如我会这样定义 svg Icon 的样式:
+
+```css
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+```
+
+像 iconfont 一样, 外部只需要设置`font-size`就可以配置 icon 到合适的尺寸, 默认则继承当前上下文的字体大小:
+
+```tsx
+<MyIcon style={{ fontSize: 17 }} />
+```
+
+`em` 可以让`Switch`这类固定比例的组件的样式可以更容易的被配置:
+
+<iframe src="https://codesandbox.io/embed/z67r8rpnr4?fontsize=14&hidenavigation=1&module=%2Fsrc%2Fstyles.css" title="z67r8rpnr4" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+扩展:
+
+- [Understanding and Using rem Units in CSS](https://www.sitepoint.com/understanding-and-using-rem-units-in-css/)
+- [Rem 布局的原理解析](https://www.zhihu.com/column/p/30413803)
+
 ## 规范
 
 ### 1️⃣ 促进建立统一的 UI 设计规范
