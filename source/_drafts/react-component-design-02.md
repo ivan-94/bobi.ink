@@ -769,6 +769,15 @@ Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Inp
 
 ### 文档
 
+对于组件的文档化推荐使用[Storybook](https://storybook.js.org), 这是一个组件 playground, 有以下特性
+
+- 可交互的组件示例
+- 可以用于展示组件的文档. 支持 props 生成和 markdown
+- 可以用于组件测试. 支持组件结构测试, 交互测试, 可视化测试, 可访问性或者手动测试
+- 丰富的插件生态
+
+React 官方[示例](https://storybooks-official.netlify.com). 由于篇幅原因, Storybook 就不展开细节, 有兴趣的读者可以参考官方文档.
+
 ### 扩展
 
 - [Three Rules For Structuring (Redux) Applications](https://jaysoo.ca/2016/02/28/organizing-redux-application/#rule-2-create-strict-module-boundaries)
