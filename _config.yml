@@ -40,7 +40,7 @@ relative_link: false
 future: true
 highlight:
   enable: true
-  line_number: true
+  line_number: false
   auto_detect: false
   tab_replace:
   
@@ -82,6 +82,6 @@ deploy:
   repo: https://github.com/ivan-94/bobi.ink/
   branch: gh-pages
 
-lazyload:
-  enable: true 
-  onlypost: true
+# markdown renderer
+marked:
+  modifyAnchors: 1

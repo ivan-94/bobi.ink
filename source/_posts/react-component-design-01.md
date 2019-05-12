@@ -6,7 +6,7 @@ categories: 前端
 
 ## 系列引言
 
-最近准备培训新人, 为了方便新人较快入手 React 开发并编写高质量的组件代码, 我根据自己的实践经验对** React 组件设计的相关实践和规范**整理了一些文档, 将部分章节分享了出来. 由于经验有限, 文章可能会有某些错误, 希望大家指出, 互相交流.
+最近准备培训新人, 为了方便新人较快入手 React 开发并编写高质量的组件代码, 我根据自己的实践经验对**React 组件设计的相关实践和规范**整理了一些文档, 将部分章节分享了出来. 由于经验有限, 文章可能会有某些错误, 希望大家指出, 互相交流.
 
 由于篇幅太长, 所以拆分为几篇文章. 主要有以下几个主题:
 
@@ -37,15 +37,15 @@ Javascript 的类型检查器主要有[Typescript](https://www.typescriptlang.or
 - [系列引言](#系列引言)
 - [类型检查](#类型检查)
   - [1. 函数组件](#1-函数组件)
-    - [1️⃣ **使用`{ComponentName}Props` 形式声明 Props 类型, 并导出**](#1️⃣-使用componentnameprops-形式声明-props-类型-并导出)
-    - [2️⃣ **优先使用`FC`(`FunctionComponent`的简写)类型来声明函数组件**](#2️⃣-优先使用fcfunctioncomponent的简写类型来声明函数组件)
+    - [1️⃣ **使用`ComponentNameProps` 形式命名 Props 类型, 并导出**](#1️⃣-使用componentnameprops-形式命名-props-类型-并导出)
+    - [2️⃣ **优先使用`FC`类型来声明函数组件**](#2️⃣-优先使用fc类型来声明函数组件)
     - [3️⃣ **不要直接使用`export default`导出组件**.](#3️⃣-不要直接使用export-default导出组件)
     - [4️⃣ **默认 props 声明**](#4️⃣-默认-props-声明)
     - [5️⃣ **泛型函数组件**](#5️⃣-泛型函数组件)
     - [6️⃣ **子组件声明**](#6️⃣-子组件声明)
     - [7️⃣ **Forwarding Refs**](#7️⃣-forwarding-refs)
   - [2. 类组件](#2-类组件)
-    - [1️⃣ **继承 React.Component 或 React.PureComponent**](#1️⃣-继承-reactcomponent-或-reactpurecomponent)
+    - [1️⃣ **继承 Component 或 PureComponent**](#1️⃣-继承-component-或-purecomponent)
     - [2️⃣ **使用`static defaultProps`定义默认 props**](#2️⃣-使用static-defaultprops定义默认-props)
     - [3️⃣ **子组件声明**](#3️⃣-子组件声明)
     - [4️⃣ **泛型**](#4️⃣-泛型)
@@ -53,11 +53,11 @@ Javascript 的类型检查器主要有[Typescript](https://www.typescriptlang.or
   - [4. Render Props](#4-render-props)
   - [5. Context](#5-context)
   - [6. 杂项](#6-杂项)
-    - [1️⃣ **使用`handle{Event}`命名事件处理器**.](#1️⃣-使用handleevent命名事件处理器)
-    - [2️⃣ **使用 @types/react 内置事件处理器的类型**](#2️⃣-使用-typesreact-内置事件处理器的类型)
+    - [1️⃣ **使用`handleEvent`命名事件处理器**.](#1️⃣-使用handleevent命名事件处理器)
+    - [2️⃣ **内置事件处理器的类型**](#2️⃣-内置事件处理器的类型)
     - [3️⃣ **自定义组件暴露事件处理器类型**](#3️⃣-自定义组件暴露事件处理器类型)
     - [4️⃣ **获取原生元素 props 定义**](#4️⃣-获取原生元素-props-定义)
-    - [5️⃣ **不要使用 React.PropTypes**](#5️⃣-不要使用-reactproptypes)
+    - [5️⃣ **不要使用 PropTypes**](#5️⃣-不要使用-proptypes)
     - [6️⃣ **styled-components**](#6️⃣-styled-components)
     - [7️⃣ **为没有提供 Typescript 声明文件的第三方库自定义模块声明**](#7️⃣-为没有提供-typescript-声明文件的第三方库自定义模块声明)
     - [8️⃣ **为文档生成做好准备**](#8️⃣-为文档生成做好准备)
@@ -78,13 +78,13 @@ React Hooks 出现后, 函数组件有了更多出镜率. 由于函数组件只�
 
 <br/>
 
-#### 1️⃣ **使用`{ComponentName}Props` 形式声明 Props 类型, 并导出**
+#### 1️⃣ **使用`ComponentNameProps` 形式命名 Props 类型, 并导出**
 
 <br/>
 
-#### 2️⃣ **优先使用`FC`(`FunctionComponent`的简写)类型来声明函数组件**
+#### 2️⃣ **优先使用`FC`类型来声明函数组件**
 
-这个类型定义了默认的 props(如 children)以及一些静态属性(如 defaultProps)
+`FC`是`FunctionComponent`的简写, 这个类型定义了默认的 props(如 children)以及一些静态属性(如 defaultProps)
 
 ```typescript
 import React, { FC } from 'react';
@@ -333,7 +333,7 @@ const Test: FC<{}> = props => {
 
 相比函数, 基于类的类型检查可能会更好理解(例如那些熟悉传统面向对象编程语言的开发者).
 
-#### 1️⃣ **继承 React.Component 或 React.PureComponent**
+#### 1️⃣ **继承 Component 或 PureComponent**
 
 ```typescript
 import React from 'react';
@@ -635,7 +635,7 @@ export function useTheme() {
 
 ### 6. 杂项
 
-#### 1️⃣ **使用`handle{Event}`命名事件处理器**.
+#### 1️⃣ **使用`handleEvent`命名事件处理器**.
 
 如果存在多个相同事件处理器, 则按照`handle{Type}{Event}`命名, 例如 handleNameChange.
 
@@ -652,7 +652,7 @@ export const EventDemo: FC<{}> = props => {
 
 <br/>
 
-#### 2️⃣ **使用 @types/react 内置事件处理器的类型**
+#### 2️⃣ **内置事件处理器的类型**
 
 `@types/react`内置了以下事件处理器的类型 👇
 
@@ -764,7 +764,7 @@ const Test = () => {
 
 <br/>
 
-#### 5️⃣ **不要使用 React.PropTypes**
+#### 5️⃣ **不要使用 PropTypes**
 
 有了 Typescript 之后可以安全地约束 Props 和 State, 没有必要引入 React.PropTypes, 而且它的表达能力比较弱
 
