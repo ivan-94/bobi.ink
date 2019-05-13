@@ -503,6 +503,8 @@ rem 可以让整个文档可以响应 html 字体的变化, 经常用于移动�
 - [Understanding and Using rem Units in CSS](https://www.sitepoint.com/understanding-and-using-rem-units-in-css/)
 - [Rem 布局的原理解析](https://www.zhihu.com/column/p/30413803)
 
+### 9️⃣ 全局管理排版
+
 ## 规范
 
 ### 1️⃣ 促进建立统一的 UI 设计规范
