@@ -50,7 +50,7 @@ CSS 是前端开发的重要组成部分，但是它并不完美，本文主要�
 - [3. 规范](#3-规范)
   - [1️⃣ 促进建立统一的 UI 设计规范](#1️⃣-促进建立统一的-ui-设计规范)
   - [2️⃣ CSS 编写规范](#2️⃣-css-编写规范)
-  - [3️⃣ 使用[stylint](https://stylelint.io)进行样式规范检查](#3️⃣-使用stylinthttpsstylelintio进行样式规范检查)
+  - [3️⃣ 使用stylelint进行样式规范检查](#3️⃣-使用stylelint进行样式规范检查)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -180,7 +180,7 @@ interface ButtonProps {
 - 提供了一些 CSS 预处理器的语法
 - 主题机制
 - 支持 react-native. 这个用起来比较爽
-- 支持 stylint, 编辑器高亮和智能提示
+- 支持 [stylelint](https://github.com/stylelint/stylelint), 编辑器高亮和智能提示
 - 支持服务端渲染
 - 符合分离展示组件和行为组件原则
 
@@ -695,7 +695,7 @@ em 可以让`Switch`这类固定比例的组件的样式可以更容易的被配
 - [Aotu 实验室代码规范](https://guide.aotu.io/docs/css/code.html#CSS3浏览器私有前缀写法)
 - [FEX-Team 编码规范](https://github.com/fex-team/styleguide/blob/master/css.md)
 
-### 3️⃣ 使用[stylint](https://stylelint.io)进行样式规范检查
+### 3️⃣ 使用stylelint进行样式规范检查
 
 <br/>
 
