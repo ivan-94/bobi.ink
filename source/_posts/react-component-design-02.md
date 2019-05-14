@@ -9,8 +9,8 @@ categories: 前端
 **系列目录**
 
 - [01 类型检查](/2019/05/10/react-component-design-01/)
-- [02 组件的组织](./)
-- 03 样式的管理 待更新
+- [02 组件的组织](/2019/05/11/react-component-design-02/)
+- [03 样式的管理](/2019/05/14/react-component-design-03/)
 - 04 组件的思维 待更新
 - 05 状态管理 待更新
 
@@ -928,7 +928,7 @@ CreatePage
 
 > 组件命名的建议: 对于集合型组件, 一般会使用单复数命名, 例如上面的 Steps/Step; List/Item 这种形式也比较常见, 例如 Form/Form.Item, 这种形式比较适合作为子组件形式. 可以学习一下第三方组件库是怎么给组件命名的.
 
-再看一下`PreviewPage`, PreviewPage 是创建后的数据预览页面, 数据结构和页面结构和 CreatePage 差不多. 将Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Input.Preview:
+再看一下`PreviewPage`, PreviewPage 是创建后的数据预览页面, 数据结构和页面结构和 CreatePage 差不多. 将 Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Input.Preview:
 
   <img src="/images/04/PreviewPage.png" width="400" />
 
