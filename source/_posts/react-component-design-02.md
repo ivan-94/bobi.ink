@@ -11,7 +11,7 @@ categories: 前端
 - [01 类型检查](/2019/05/10/react-component-design-01/)
 - [02 组件的组织](/2019/05/11/react-component-design-02/)
 - [03 样式的管理](/2019/05/14/react-component-design-03/)
-- 04 组件的思维 待更新
+- [04 组件的思维](/2019/05/15/react-component-design-04/)
 - 05 状态管理 待更新
 
 <br/>
