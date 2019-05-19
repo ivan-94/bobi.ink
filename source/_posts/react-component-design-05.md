@@ -8,7 +8,11 @@ categories: 前端
 
 ## 状态管理
 
-## 不需要的状态管理
+## 你不需要状态管理
+
+对于大部分简单的应用和中后台项目来说是不需要状态管理的。说实在话这些应用和传统 web 页面没什么区别, 每个页面都各自独立，每次打开一个新页面时拉取最新数据，增删改查仅此而已. 对于这些场景 React 的组件状态就可以满足
+
+对于的这种各自独立的‘静态’页面，引入状态管理就是过度设计了。如果是简单的状态共享，可以直接使用 Context API。
 
 中后台应用, 简单应用
 
@@ -16,6 +20,142 @@ categories: 前端
 
 复杂的数据流, 跨页面协作
 跨组件数据通信
+
+## 你不需要复杂的状态管理
+
+当你的应用有以下场景时，就要开始考虑状态管理:
+
+- 组件之间需要状态共享。同一份数据需要响应到多个视图，且被多个视图进行变更
+- 需要维护全局状态，并在他们变动时响应到视图
+- 数据流变得复杂，React 组件本身已经无法驾驭。例如跨页面的用户协作
+- 需要统一管理应用的状态。实现持久化，可恢复，可撤销/重做
+- ...
+
+首先确定是否需要 Redux、Mobx 这些复杂的状态管理工具? 在 2019 他们很多功能都可以被 React 本身提供的特性取代. 随着 React 16.3 发布了新的 Context API，我们可以方便地在它之上做简单的状态管理, 我们应该优先选择这些原生态的状态管理方式。
+
+简单的使用 Context API 来做状态管理:
+
+```tsx
+const HomeContext = React.createContext({
+  state: INITIAL_STATE,
+  mutations: {},
+});
+
+export default class HomeProvider extends React.Component {
+  state = INITIAL_STATE;
+
+  localeChange = locale => this.setState({ locale });
+  themeChange = theme => this.setState({ theme });
+
+  render() {
+    return (
+      <HomeContext
+        value={{
+          state: this.state,
+          mutations: {
+            localeChange: this.localeChange,
+            themeChange: this.themeChange,
+          },
+        }}
+      />
+    );
+  }
+}
+```
+
+最近 hooks 用得比较爽(参考上一篇文章: `组件的思维`)，我就想配合 Context API 做一个状态管理器, 后来发现已经有人做了： [unstated-next](https://github.com/jamiebuilds/unstated-next), 代码只有 38 行(Hooks+Context)，接口非常简单:
+
+![](/images/04/unstated.png)
+
+依赖于 hooks 本身灵活的特性，我们可以用它来做很多东西, 仅限于想象力. 例如异步数据获取:
+
+```ts
+function usePromiseDemo() {
+  // 假设usePromise类型为<T>(fn: (...args: any[]) => Promise<T>) => {loading:boolean, value: T, error?: Error}
+  const foo = usePromise(async (id: string) => fetchFoo(id));
+  const bar = usePromise(async () => fetchFoo());
+
+  // 衍生 side effect
+  useEffect(() => {
+    // handle foo value
+  }, [foo.value]);
+
+  return { foo, bar };
+}
+
+const PromiseDemo = createContainer(useCount);
+
+function Demo() {
+  const { foo } = useContainer(PromiseDemo);
+
+  useEffect(() => {
+    foo.call('hello');
+  });
+
+  return <List loading={foo.loading} error={foo.error} dataSource={foo.value} />;
+}
+```
+
+实现 Redux 的核心功能:
+
+```js
+function createRedux(reducer, initialState, effectFactory) {
+  function useRedux() {
+    const [state, dispatch] = useReducer(reducer, initialState);
+    const effects = effectFactory(dispatch, state)
+    return { state, dispatch };
+  }
+  return createContainer(useRedux);
+}
+
+// -- CounterStore.js---
+function reducer(state, {type, payload}) {
+  switch (type) {
+    case 'increment':
+      return {count: state.count + (payload != null ? payload: 1)};
+    case 'decrement':
+      return {count: state.count - 1};
+    default:
+      throw new Error();
+  }
+}
+const initialState = {count: 0};
+const effects = (dispatch, state) => {
+  async incrementAsync(payload) {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    dispatch({type:'increment', payload})
+  }
+}
+const CounterStore = createRedux(reducer, initialState, effects)
+
+// -- App.js---
+<HomeStore.Provider>
+  <Counter />
+</HomeStore.Provider>;
+```
+
+总结一下使用 hooks 作为状态管理器的优点:
+
+- 极简。如上
+- 可组合性. hooks 只是普通函数, 可以组合其他 hooks，以及其他 Hooks Container. 上一篇文章提到 hooks 写着写着很像组件，组件写着写着很像 hooks，在用法上组件可以认为是一种特殊的 hooks。hooks 有更灵活的组合特性
+- 以 react 之名. 基于 Context 实现组件状态共享，在基于 hooks 实现状态管理, 这个方式足够通用.
+- hooks 很多灵活的特性可以取代类似 Mobx 这些框架的大部分功能
+
+需要注意的地方
+
+- 没有外置的状态. 状态在组件内部，没有方法从外部触发状态变更 ƒ
+- 缺少约束. 是好处也是坏处, 对于团队和初学者来说没有约束会导致风格不统一，无法控制项目熵增。好处是可以自定义自己的约束
+- 性能优化. 需要考虑 Context 变更带来的性能问题
+
+其他类似的方案
+
+- [unstated](https://github.com/jamiebuilds/unstated) unstated-next 的前身，使用 setState API
+- [react-hooks-global-state](https://github.com/dai-shi/react-hooks-global-state)
+
+扩展
+
+- [React Context API — A Replacement for Redux?](https://blog.bitsrc.io/react-context-api-a-replacement-for-redux-6e20790492b3)
+- [unstated: 可能是简单状态管理工具中最好的](https://zhuanlan.zhihu.com/p/48219978)
 
 ## Redux
 
@@ -60,10 +200,13 @@ Redux 的代码只有一百多行，概念却很多，学习曲线非常陡峭�
 
 当我们需要处理复杂的应用状态，且 React 本身无法满足你时. 比如：
 
-- 你需要持久化应用状态，需要实现撤销重做这些功能
+- 你需要持久化应用状态, 这样你可以从本地存储或服务器返回数据中恢复应用
+- 需要实现撤销重做这些功能
+- 实现跨页面的用户协作
 - 应用状态很复杂时
 - 数据流比较复杂时
 - 许多不相关的组件需要共享和更新状态
+- 外置状态
 
 最佳实践
 
@@ -232,7 +375,7 @@ Redux 的代码只有一百多行，概念却很多，学习曲线非常陡峭�
 - [Redux 官方文档](https://redux.js.org/introduction/getting-started)
 - [redux 三重境](https://zhuanlan.zhihu.com/p/26485702)
 
-## 原生态的状态管理
+Redux-observable
 
 ## mobx
 
@@ -242,6 +385,11 @@ action 约束变量的变更
 
 ## 基于 hooks
 
+## 其他状态管理方案
+
 !不属于组件设计范围
 
-TODO: 学习观察组件库设计和代码
+扩展
+
+- [单页应用的数据流方案探索](https://zhuanlan.zhihu.com/p/26426054)
+- [复杂单页应用的数据层设计](https://zhuanlan.zhihu.com/p/24677176)
