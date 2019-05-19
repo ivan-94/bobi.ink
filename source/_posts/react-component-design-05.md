@@ -20,6 +20,19 @@ categories: 前端
 
 - 分离视图和状态. 状态管理器擅长状态管理，所以他们会将应用状态聚合在一起，而视图退化为贫血视图(只关注展示)，这样就可以简化`f`映射关系, 让`UI = f(state)`这个表达式更彻底
 - 约束状态的变更。Redux 要求通过`dispatch+reducer`, mobx 要求数据变更函数使用`action`装饰，目的就是让状态的变更根据可预测性
+- 单向数据流。数据流总是按照 Store -> View -> Store 这样的方式流动
+
+React 的状态管理方案有很多，选择这些方案可能会让人抓狂，你需要权衡很多东西:
+
+- 面向对象还是函数式还是函数响应式?
+- 单 Store 还是多 Store？
+- 不可变数据还是响应式（可观察）数据？
+- 写代码爽还是后期维护爽?
+- 自由还是约束？
+- 强类型还是弱类型？
+- 范式化数据还是非范式化？
+- React 原生还是第三方?
+- ...
 
 系列目录
 
@@ -31,8 +44,7 @@ categories: 前端
 - [你不需要状态管理](#你不需要状态管理)
 - [你不需要复杂的状态管理](#你不需要复杂的状态管理)
 - [Redux](#redux)
-- [mobx](#mobx)
-- [MST](#mst)
+- [Mobx](#mobx)
 - [基于 hooks](#基于-hooks)
 - [其他状态管理方案](#其他状态管理方案)
 
@@ -374,9 +386,9 @@ Redux 的代码只有一百多行，概念却很多，学习曲线非常陡峭�
 
   Redux 不是分形和 Redux 本身的定位有关，它是一个纯粹的状态管理器，不涉及组件的视图实现，所以无法像 elm 和 cyclejs 一样形成一个完整的应用闭环。 其实可以发现 react 组件本身就是分形的，组件原本就是状态和视图的集合.
 
-  分形的好处就是可以实现更灵活的复用和组合，减少胶水代码。显然现在支持纯分形架构的框架用得并不多，原因可能是门槛比较高。个人认为不支持分形在工程上还不至于成为 Redux 的痛点，我们可以通过‘模块化’将 Redux 拆分为多个模块，在多个 Container 中进行独立维护，从某种程度上是否可以减轻非分形架构的缺点？
+  分形的好处就是可以实现更灵活的复用和组合，减少胶水代码。显然现在支持纯分形架构的框架用得并不多，原因可能是门槛比较高。个人认为不支持分形在工程上还不至于成为 Redux 的痛点，我们可以通过‘模块化’将 Redux 拆分为多个模块，在多个 Container 中进行独立维护，从某种程度上是否就是分形？另外这种隔离的 UI 和状态，也是有好处的，比如 UI 相比业务的状态变化的频度会更大.
 
-  个人感觉到页面这个级别的分化是比较合适的，比如方便分工。比如最近笔者就有这样一个项目, 我们需要将一个原生 Windows 客户端转换成 electron 实现，限于资源问题，这个项目涉及到两个团队之间协作. Redux 在这里就是一个接口层，Windows 团队负责在 Redux 中维护状态和提供实现业务逻辑，而我们前端团队则负责展示层. 这样一来 Windows 不需要学习 React 和视图展示，我们也不需要关系他们复杂的业务逻辑(底层还是使用 C++, 暴露部分接口给 node)
+  个人感觉到页面这个级别的分化刚刚好，比如方便分工。比如最近笔者就有这样一个项目, 我们需要将一个原生 Windows 客户端转换成 electron 实现，限于资源问题，这个项目涉及到两个团队之间协作. 应用 Store 在这里就是一个接口层，Windows 团队负责在 这里 维护状态和实现业务逻辑，而我们前端团队则负责展示层. 这样一来 Windows 不需要学习 React 和视图展示，我们也不需要关系他们复杂的业务逻辑(底层还是使用 C++, 暴露部分接口给 node)
 
 **可能还有性能问题**
 
@@ -407,11 +419,239 @@ Redux 的代码只有一百多行，概念却很多，学习曲线非常陡峭�
 
 Redux-observable
 
-## mobx
+## Mobx
 
-action 约束变量的变更
+Mobx 提供了一个类似 Vue 的响应式系统，相对 Redux 来说 Mobx 的架构更容易理解。 拿官方的图来看:
 
-## MST
+![](/images/04/mobx-preview.png)
+
+- **响应式数据**. 首先使用@observable 将数据转换为‘响应式数据’，类似于 Vue 的 data。这些数据在一些上下文(例如 computed，observer 的包装的 React 组件，reaction)中被访问时可以被收集依赖，当这些数据变动时相关的依赖就会被通知.
+  响应树数据带来的两个优点是 ① 简化数据操作方式(相比 redux 和 setState); ② 精确的数据绑定，只有数据真正变动时，视图才需要渲染，数据的更新粒度越小，视图就可以更精细地更新
+- **衍生**.
+  - 衍生数据。Mobx 也推荐不要在状态中放置冗余或可推导的数据，而是使用 @computed 定义衍生的状态. computed 的概念类似于 Redux 中的 reselect，对范式化的数据进行反范式化或者聚合计算
+  - 副作用衍生. 当数据变动时触发依赖该数据的副作用，其中包含‘视图’。视图可以认为是响应式数据的衍生映射
+- **数据变更**. mobx 推荐在 action/flow(异步操作) 中对数据进行变更，action 可以认为是 Redux 中的 dispatch+reducer 的合体。在严格模式下 mobx 会限制只能在 action 函数中进行变更，这使得状态的变更可被追溯。
+
+上面就是 Mobx 的核心概念。举一个简单的例子：
+
+```ts
+/**
+ * TodoStore.ts
+ */
+class Todo {
+  public id = Math.random();
+  @observable public title: boolean;
+  @observable public finished = false;
+  public constructor(title: string) {
+    this.title = title;
+  }
+}
+
+class TodoStore {
+  @observable public todos: Todo[] = [];
+  @computed
+  public get unfinishedTodoCount() {
+    return this.todos.filter(todo => !todo.finished).length;
+  }
+}
+
+export default new TodoStore();
+
+/**
+ * TodoList.tsx
+ */
+
+@observer
+class TodoListView extends React.Component<{ store: TodoStore }> {
+  public render() {
+    const { todos } = store;
+    return (
+      <TodoList>
+        {todos.map(i => (
+          <Todo item={i} key={i.id} />
+        ))}
+      </TodoList>
+    );
+  }
+}
+
+/**
+ * App.tsx
+ */
+render(<TodoListView store={todoStore} />);
+```
+
+但是**Mobx 不是一个框架**，它不会像 Redux 一样告诉你如何去组织代码，在哪存储状态或者如何处理事件, 也没有最佳实践。好处是你可以按照自己的喜好组件项目，比如按照 Redux(Vuex)方式，也可以使用面向对象方式组织; 坏处是如果你没有相关经验, 会不知所措，不知道如何组织代码
+
+Mobx 一般使用面向对象的方式对 Store 进行组织, 官方文档[构建大型可扩展可维护项目的最佳实践](https://cn.mobx.js.org/best/store.html)也介绍了这种方式, 这个其实就是经典的 MVC 模式:
+
+```shell
+src/
+  components/          # 展示组件
+  models/              # 🔴 放置一些领域对象
+    Order.ts
+    User.ts
+    Product.ts
+    ...
+  stores/              # store
+    AppStore.ts        # 应用Store，存放应用全局信息，如auth，language，theme
+    OrderStore.ts
+    RootStore.ts       # 根Store，组合所有下级Store
+    ...
+  containers/
+    App/               # 根组件
+    Orders/            # 页面组件
+    ...
+  utils/
+  store.ts             # store初始化
+  index.tsx
+```
+
+**领域对象**
+
+面向对象领域有太多的名词和概念，而且比较抽象， 如果理解有误请纠正. 暂且不去理论领域对象是什么，你就视作是现实世界中一个业务实体在 OOP 的抽象. 比如可以当做`MVC`模式中的 M, 或者是 ORM 中数据库中映射出来的对象.
+
+对于复杂的领域对象，会抽取为单独的类， 比如前面例子中的`Todo`类. 因为它们和页面的关联关系较弱，且可能在多个页面中被复用, 所以放在根目录的`models/`下. 在代码层面领域对象有以下特点：
+
+- 定义了一些字段(@observable)和一些领域对象的操作方法(@action), 可能还关联其他领域对象，比如订单会关联用户和产品
+- 由 Store 来管理生命周期，或者说 Store 就 Model 的容器, 相当于数据库. Store 通常也是单例
+
+示例
+
+```ts
+import { observable } from 'mobx';
+
+export default class Order {
+  public id: string;
+
+  @observable
+  public name: string;
+
+  @observable
+  public createdDate: Date;
+
+  @observable
+  public product: Product;
+
+  @observable
+  public user: User;
+}
+```
+
+**Store**
+
+Store 只是一个 Model 容器， 负责管理 model 对象的生命周期、定义衍生状态、和后端接口集成. Store 一般是单例. 在 Mobx 应用中一般会划分为多个 Store 绑定不同的页面。
+
+示例
+
+```ts
+import { observable, computed, reaction } from 'mobx';
+
+export default class OrderStore {
+    // 定义模型state
+  @observable orders: Order[] = [];
+
+  _unSubscribeOrderChange: Function
+  rootStore: RootStore
+
+  // 定义衍生数据
+  @computed get finishedOrderCount() {}
+  @computed get finishedOrders() {}
+
+  // 定义副作用衍生
+  subscribeOrderChange() {      this._unSubscribeOrderChange = this.orders.observe((changeData) => {} }
+
+  // 定义action
+  @action  addOrder (order) {}
+  @action  removeOrder (order) {}
+
+  // 或者一些异步的action
+  async fetchOrders () {
+    const orders = await fetchOrders()
+    orders.forEach(item => this.addOrder(new OrderModel(this, item)))
+  }
+
+  // 初始化，初始化数据结构，初始化订阅等等
+  initialize () {
+    this.subscribeOrderChange()
+  }
+
+  // 一些清理工作
+  release () {
+    this._unSubscribeOrderChange()
+  }
+
+  constructor(store: RootStore) {
+    // 和rootStore进行通信
+    this.rootStore = store
+  }
+}
+```
+
+根 Store
+
+```ts
+class RootStore {
+  constructor() {
+    this.appStore = new AppStore(this);
+    this.orderStore = new OrderStore(this);
+    ...
+  }
+}
+```
+
+```tsx
+<Provider rootStore={new RootStore()}>
+  <App />
+</Provider>
+```
+
+扩展
+
+[真实世界的例子](https://github.com/gothinkster/react-mobx-realworld-example-app/blob/master/src/index.js)
+
+这种传统 MVC 的组织方式主要有以下优点:
+
+- 好理解. 经典的 MVC 模式, 面向对象，我们再熟悉不过了. 尤其是熟悉 Java 这些传统面向对象编程范式的后端开发人员. 在上文提到的跨团队的项目，我们选择的就是 mobx 作为状态管理器，并使用上述的方法来管理应用的状态，对于他们来说这是最好理解的方式.
+- 强类型
+- 规则简单。容易入手; 也不简单，对领域对象和领域 Store 的拆分和设计需要一点经验
+- 简洁。相对 Redux 多余的模板代码而言
+
+问题
+
+- 在多个 Store 之间共享数据比较麻烦. 我们的做法是让所有 Store 都继承一个父类作为中间者，通过事件订阅模式在多个 Store 间进行数据通信
+- 缺乏组织。相对 Redux 而言, 状态过于零散，不加以约束，状态可以被随意修改。我们很多代码就是这样，懒得写 action，甚至直接在视图层给状态赋值. 所以一定要开始严格模式
+- 没有 Magic. 这是一把双刃剑, Redux 有中间件机制，可以扩展抽象许多重复的工作, 比如为异步方法添加 loading 状态, 但是对 Typescript 不友好; 基于类的方案，无处下手，代码会比较啰嗦， 但更直观
+- 无法实现时间回溯，这是 Redux 的强项，但大部分的应用不需要这个功能
+
+<br/>
+
+还有一些 mobx 本身的问题, 这些问题在上一篇文章也有提及:
+
+- 组件侵入性. 需要改变 React 组件原本的结构, 所有需要响应数据变动的组件都需要使用 observer 装饰. 而组件本地状态则需要 observable 装饰, 以及数据操作方式. 对 mobx 耦合较深, 日后切换框架或重构的成本很高
+- 兼容性. mobx v5 后使用 Proxy 进行重构, 但 Proxy 在 Chrome49 之后才支持. 如果要兼容旧版浏览器则只能使用 v4, v4 有一些[坑](https://cn.mobx.js.org/#mobx-4-vs-mobx-5), 这些坑对于不了解 mobx 的新手很难发现:
+
+  - Observable 数组并非真正的数组. 比如 antd 的 Table 组件就不认 mobx 的数组, 需要传入到组件之间使用 slice 进行转换
+  - 向一个已存在的 observable 对象中添加属性不会被自动捕获
+
+MVC 只是 Mobx 的其中一种主流组织方式, 很多文章在讨论 Redux 和 mobx 时往往会沦为‘函数式和面向对象’之争，然后就下结论说 Redux 更适合大型项目，下这种结论最主要的原因是 Redux 有更多约束(only one way to do it), 适合项目的演进和团队协作, 而不在于函数式和面向对象。当然函数式和面向对象都有自己擅长的领域，例如函数式适合数据处理和复杂数据流抽象，而面向对象适合业务模型的抽象.
+
+换句话说适不适合大型项目是项目组织问题, 要看项目的场景, mobx 前期并没有提出任何解决方案和最佳实践。后来其作者也开发了[mobx-state-tree](https://github.com/mobxjs/mobx-state-tree)，作为 MobX 官方提供的状态模型构建库，MST 吸收了 Redux 等工具的优点， 提供了很多诸如 time travel、hot reload 及 redux-devtools 支持，强类型等很有用的特性。基本可以取代 Redux。限于笔者对 MST 实践不多就不展开了。
+
+还是得下一个结论, 选择 Mobx 还是 Redux? 这里还是引用来自[MobX vs Redux: Comparing the Opposing Paradigms - React Conf 2017 纪要](https://zhuanlan.zhihu.com/p/25989654)的结论:
+
+- 需要快速开发简单应用的小团队可以考虑使用 MobX，因为 MobX 需要开发的代码量小，学习成本低，上手快，适合于实时系统，仪表盘，文本编辑器，演示软件，但不适用于基于事件的系统
+- Redux 适用于大团队开发复杂应用，Redux 在可扩展性和可维护性方面可以 hold 住多人协作与业务需求多变，适合商业系统、基于事件的系统以及涉及复杂反应的游戏场景。
+
+上述结论的主要依据是 Redux 对 action / event 作出反应，而 MobX 对 state 变化作出反应。比如当一个数据变更涉及到 Mobx 的多个 Store，可以体现出 Redux 的方式更加优雅，数据流更加清晰. 前面都详尽阐述了Mobx和Redux的优缺点，相信读者心里早已有自己的喜好
+
+扩展
+
+- [你需要 Mobx 还是 Redux？](https://zhuanlan.zhihu.com/p/33761397)
+- [Mobx 思想的实现原理，及与 Redux 对比](https://zhuanlan.zhihu.com/p/25585910)
+- [MobX vs Redux: Comparing the Opposing Paradigms - React Conf 2017 纪要](https://zhuanlan.zhihu.com/p/25989654)
+- [dob](https://github.com/dobjs/dob) 更轻量的类似 mobx 的轮子
+- [积梦前端采用的 React 状态管理方案: Rex](https://segmentfault.com/a/1190000018940757)
 
 ## 基于 hooks
 
