@@ -45,8 +45,9 @@ React 的状态管理方案有很多，选择这些方案可能会让人抓狂�
 - [你不需要复杂的状态管理](#你不需要复杂的状态管理)
 - [Redux](#redux)
 - [Mobx](#mobx)
-- [基于 hooks](#基于-hooks)
+- [RxJS](#rxjs)
 - [其他状态管理方案](#其他状态管理方案)
+- [扩展](#扩展)
 
 <!-- /TOC -->
 
@@ -623,6 +624,7 @@ class RootStore {
 - 缺乏组织。相对 Redux 而言, 状态过于零散，不加以约束，状态可以被随意修改。我们很多代码就是这样，懒得写 action，甚至直接在视图层给状态赋值. 所以一定要开始严格模式
 - 没有 Magic. 这是一把双刃剑, Redux 有中间件机制，可以扩展抽象许多重复的工作, 比如为异步方法添加 loading 状态, 但是对 Typescript 不友好; 基于类的方案，无处下手，代码会比较啰嗦， 但更直观
 - 无法实现时间回溯，这是 Redux 的强项，但大部分的应用不需要这个功能
+- 无法 hot-reload
 
 <br/>
 
@@ -636,14 +638,14 @@ class RootStore {
 
 MVC 只是 Mobx 的其中一种主流组织方式, 很多文章在讨论 Redux 和 mobx 时往往会沦为‘函数式和面向对象’之争，然后就下结论说 Redux 更适合大型项目，下这种结论最主要的原因是 Redux 有更多约束(only one way to do it), 适合项目的演进和团队协作, 而不在于函数式和面向对象。当然函数式和面向对象都有自己擅长的领域，例如函数式适合数据处理和复杂数据流抽象，而面向对象适合业务模型的抽象.
 
-换句话说适不适合大型项目是项目组织问题, 要看项目的场景, mobx 前期并没有提出任何解决方案和最佳实践。后来其作者也开发了[mobx-state-tree](https://github.com/mobxjs/mobx-state-tree)，作为 MobX 官方提供的状态模型构建库，MST 吸收了 Redux 等工具的优点， 提供了很多诸如 time travel、hot reload 及 redux-devtools 支持，强类型等很有用的特性。基本可以取代 Redux。限于笔者对 MST 实践不多就不展开了。
+换句话说适不适合大型项目是项目组织问题, 要看项目的场景, mobx 前期并没有提出任何解决方案和最佳实践。后来其作者也开发了[mobx-state-tree](https://github.com/mobxjs/mobx-state-tree)，作为 MobX 官方提供的状态模型构建库，MST 吸收了 Redux 等工具的优点， 提供了很多诸如 time travel(immutable data)、hot reload、动作中间件及 redux-devtools 支持，强类型等很有用的特性, 基本可以取代 Redux, 在我印象中它更像是后端 ActiveRecord 这类 ORM 工具。限于笔者对 MST 实践不多就不展开了，后续有机会再分享分享。
 
 还是得下一个结论, 选择 Mobx 还是 Redux? 这里还是引用来自[MobX vs Redux: Comparing the Opposing Paradigms - React Conf 2017 纪要](https://zhuanlan.zhihu.com/p/25989654)的结论:
 
 - 需要快速开发简单应用的小团队可以考虑使用 MobX，因为 MobX 需要开发的代码量小，学习成本低，上手快，适合于实时系统，仪表盘，文本编辑器，演示软件，但不适用于基于事件的系统
 - Redux 适用于大团队开发复杂应用，Redux 在可扩展性和可维护性方面可以 hold 住多人协作与业务需求多变，适合商业系统、基于事件的系统以及涉及复杂反应的游戏场景。
 
-上述结论的主要依据是 Redux 对 action / event 作出反应，而 MobX 对 state 变化作出反应。比如当一个数据变更涉及到 Mobx 的多个 Store，可以体现出 Redux 的方式更加优雅，数据流更加清晰. 前面都详尽阐述了Mobx和Redux的优缺点，相信读者心里早已有自己的喜好
+上述结论的主要依据是 Redux 对 action / event 作出反应，而 MobX 对 state 变化作出反应。比如当一个数据变更涉及到 Mobx 的多个 Store，可以体现出 Redux 的方式更加优雅，数据流更加清晰. 前面都详尽阐述了 Mobx 和 Redux 的优缺点，相信读者心里早已有自己的喜好
 
 扩展
 
@@ -653,13 +655,18 @@ MVC 只是 Mobx 的其中一种主流组织方式, 很多文章在讨论 Redux �
 - [dob](https://github.com/dobjs/dob) 更轻量的类似 mobx 的轮子
 - [积梦前端采用的 React 状态管理方案: Rex](https://segmentfault.com/a/1190000018940757)
 
-## 基于 hooks
+## RxJS
+
+如果上文提到的状态管理工具都无法满足你的需要，你的项目复杂程度可能超过全国 99%的项目了. RxJS 可能可以助你一臂之力，笔者在这方面实践也比较少，推荐看看[徐飞的相关文章](https://www.zhihu.com/people/sharpmaster/posts)
 
 ## 其他状态管理方案
 
-!不属于组件设计范围
+- Apollo+GraphQL
+- [freactal](https://github.com/FormidableLabs/freactal/)
 
-扩展
+推荐这篇文章[State of React State Management for 2019](https://blog.bitsrc.io/state-of-react-state-management-in-2019-779647206bbc)
+
+## 扩展
 
 - [单页应用的数据流方案探索](https://zhuanlan.zhihu.com/p/26426054)
 - [复杂单页应用的数据层设计](https://zhuanlan.zhihu.com/p/24677176)
