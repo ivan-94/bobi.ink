@@ -293,7 +293,7 @@ save$   i--u--u---u----- # 存储流, 使用debounce来避免频繁存储
 ```shell
 todos$: i-u-u-uuu--u---- #
        \(render)/
-dom$:   i--u--u---u----- # dom渲染, 假设也是流(cycle.js就是如此)
+dom$:   i-u-u-uuu--u---- # dom渲染, 假设也是流(cycle.js就是如此)
 ```
 
 这个实例的数据流和 Redux 的模型非常像, add$, modify$, remove$和complete$就是 Action, todos 流会使用
