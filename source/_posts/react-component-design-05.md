@@ -143,6 +143,7 @@ categories: 前端
 - hooks 很多灵活的特性足以取代类似 Mobx 这些框架的大部分功能
 - 只是普通的 React 组件，可以在 React inspector 上调试
 - 强类型
+- 基于Context API更容易实现模块化(或者分形)
 
 <br/>
 
