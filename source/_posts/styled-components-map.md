@@ -4,7 +4,7 @@ date: 2019/5/29
 categories: 前端
 ---
 
-在[React 组件设计实践总结 03 - 样式的管理](https://juejin.im/post/5cdad9c7f265da039b08915d)一文中吹了一波 [styled-components](https://www.styled-components.com) 后，本文想深入来了解一下 styled-components 的原理. 如果你对 styled-components 还不了解，建议先阅读以下官方[文档](http://styled-components.com)或前面的文章.
+在[React 组件设计实践总结 03 - 样式的管理](https://juejin.im/post/5cdad9c7f265da039b08915d)一文中吹了一波 [styled-components](https://www.styled-components.com) 后，本文想深入来了解一下 styled-components 的原理. 如果你对 styled-components 还不了解，建议先阅读一下官方[文档](http://styled-components.com)或前面的文章.
 
 > 本文基于 styled-components v4.13 版本
 
@@ -43,7 +43,7 @@ categories: 前端
   <img src="/images/06/tag-template.png" width="400" />
 </center>
 
-**标签模板字面量相比普通的模板字面量更加灵活. 普通模板字符串会将所有内插值转换为字符串，而`标签模板字面量`则有你自己来控制**:
+**标签模板字面量相比普通的模板字面量更加灵活. 普通模板字符串会将所有内插值转换为字符串，而`标签模板字面量`则由你自己来控制**:
 
 <center>
   <img src="/images/06/tag-template-pros.png" width="600" />
@@ -75,11 +75,11 @@ categories: 前端
 
 ## 源码导读
 
-现在来看一下 styled-components 的实现。为了行为简洁，我们只关心 styled-components 的核心逻辑，所以我对源代码进行了大量的简化，比如忽略掉服务端渲染、ReactNative 实现、babel 插件等等.
+现在来看一下 styled-components 的实现。为了行文简洁，我们只关心 styled-components 的核心逻辑，所以我对源代码进行了大量的简化，比如忽略掉服务端渲染、ReactNative 实现、babel 插件等等.
 
 ### 1. 处理标签模板字面量
 
-先从从 `styled` 构造函数看起:
+先从 `styled` 构造函数看起:
 
 <center>
   <img src="/images/06/styled-code.png" width="500" />
@@ -91,7 +91,7 @@ styled 构造函数接收一个包装组件 target，而标签模板字面量则
   <img src="/images/06/css.png" width="750" />
 </center>
 
-看看 css 实现也非常简单:
+ css 实现也非常简单:
 
 <center>
   <img src="/images/06/css-code.png" width="700" />
@@ -99,9 +99,9 @@ styled 构造函数接收一个包装组件 target，而标签模板字面量则
 
 `interleave`函数将将静态字符串数组和内插值’拉链式‘交叉合并为单个数组, 比如[1, 2] + [a, b]会合并为[1, a, 2, b]
 
-关键在于如何将数组进行扁平化, 这个由 `flatten` 函数实现. flatten 函数会将嵌套的 css(也是数组)递归 concat 在一起，将 StyledComponent 组件转换为类名、还有处理 keyframe 等等. 最终剩下静态字符串和函数, 输出结果如上所示。
+关键在于如何将数组进行扁平化, 这个由 `flatten` 函数实现. flatten 函数会将嵌套的 css(数组形式)递归 concat 在一起，将 StyledComponent 组件转换为类名引用、还有处理 keyframe 等等. 最终剩下静态字符串和函数, 输出结果如上所示。
 
-**实际上 styled-components 会进行两次 flatten，第一次 flatten 将能够静态化的转换成字符串，将嵌套的 css 结构打平, 剩下一些函数，这些函数只能在运行时(比如在组件渲染时)执行；第二次是在运行时，拿到函数的运行上下文(props、theme 等等), 执行所有函数，将函数的执行结果进行递归合并，最终生成的是一个纯字符串数组**. 对于标签模板字面量的处理大概都是这个过程. 看看 flatten 的实现:
+**实际上 styled-components 会进行两次 flatten，第一次 flatten 将能够静态化的都转换成字符串，将嵌套的 css 结构打平, 只剩下一些函数，这些函数只能在运行时(比如在组件渲染时)执行；第二次是在运行时，拿到函数的运行上下文(props、theme 等等)后, 执行所有函数，将函数的执行结果进行递归合并，最终生成的是一个纯字符串数组**. 对于标签模板字面量的处理大概都是这个过程. 看看 flatten 的实现:
 
 <center>
   <img src="/images/06/flatten-code.png" width="700" />
@@ -181,7 +181,7 @@ createStyledComponent 是一个典型的高阶组件，它在执行期间会生�
 
 代码可能看晕了，通过流程图来梳理一下过程.
 
-> 上一篇文章[技术地图 - vue-cli](https://juejin.im/post/5cedb26451882566477b7235)一点代码也没有罗列，只有一个流程图, 读者可能一下子就傻眼了, 不知道在说些什么; 而且这个流程图太大，在移动端不好阅读的问题. 这期稍微改进一下新增’源码导读‘一节，代码表达能力毫无疑问是胜于流程图的，但是代码相对比较细节琐碎，所以第一是将代码进行简化，留下核心的逻辑，第二是使用流程图表示大概的程序流程，以及流程主体之间的关系.
+> 上一篇文章[技术地图 - vue-cli](https://juejin.im/post/5cedb26451882566477b7235)一点代码也没有罗列，只有一个流程图, 读者可能一下子就傻眼了, 不知道在说些什么; 而且这个流程图太大，在移动端不好阅读. 这期稍微改进一下，新增’源码导读‘一节，代码表达能力毫无疑问是胜于流程图的，但是代码相对比较细节琐碎，所以第一是将代码进行简化，留下核心的逻辑，第二是使用流程图表示大概的程序流程，以及流程主体之间的关系.
 
 ![](/images/06/process.png)
 
