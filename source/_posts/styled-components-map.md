@@ -8,6 +8,19 @@ categories: 前端
 
 > 本文基于 styled-components v4.13 版本
 
+<!-- TOC -->
+
+- [从 Tagged Template Literals 说起](#从-tagged-template-literals-说起)
+- [源码导读](#源码导读)
+  - [1. 处理标签模板字面量](#1-处理标签模板字面量)
+  - [2. React 组件的封装](#2-react-组件的封装)
+  - [3. 样式和类名的生成](#3-样式和类名的生成)
+  - [4. DOM 层操作](#4-dom-层操作)
+  - [5. 总结](#5-总结)
+- [技术地图](#技术地图)
+
+<!-- /TOC -->
+
 ## 从 Tagged Template Literals 说起
 
 标签模板字面量(Tagged Template Literals)是 ES6 新增的特性，它允许你自定义字符串的内插(interpolation)规则, styled-components 正是基于这个特性构建:
@@ -82,7 +95,7 @@ categories: 前端
   <img src="/images/06/flatten-code.png" width="700" />
 </center>
 
-流程代码是这样子:
+流程是这样子:
 
 <center>
 <img src="/images/06/flatten.png" width="700"/>
@@ -106,7 +119,7 @@ categories: 前端
 
 ---
 
-### 样式和类名的生成
+### 3. 样式和类名的生成
 
 上面看到 StyleComponent 通过 ComponentStyle 类来构造样式表并生成类名:
 
@@ -116,12 +129,12 @@ categories: 前端
 
 [stylis](https://github.com/thysultan/stylis.js/blob/master/README.md)是一个 3kb 的轻量的 CSS 预处理器, styled-components 所有的 CSS 特性都依赖于它， 例如嵌套规则(`a {&:hover{}}`)、厂商前缀、压缩等等.
 
-### DOM 层操作
+### 4. DOM 层操作
 
 现在来看一下 StyleSheet
 
 <center>
-<img src="/images/06/ComponentStyle.png" width="800"/>
+<img src="/images/06/StyleSheet.png" width="800"/>
 </center>
 
 看看简化版的 makeTag
@@ -130,8 +143,61 @@ categories: 前端
 <img src="/images/06/makeTag.png" width="800"/>
 </center>
 
+### 5. 总结
 
-代码可能看晕了，通过流程图来梳理一下过程. 上一篇文章的问题(没有任何代码，直接流程图可能难以理解，加上图片有点大，在移动端不好阅读)
+代码可能看晕了，通过流程图来梳理一下过程. 上一篇文章[技术地图 - vue-cli](https://juejin.im/post/5cedb26451882566477b7235)一点代码也没有罗列，只有一个流程图, 读者可能一下子就傻眼了, 不知道在说些什么; 而且这个流程图太大，在移动端不好阅读的问题. 这期稍微改进一下新增’源码导读‘一节，代码表达能力毫无疑问是胜于流程图的，但是代码相对比较细节琐碎，所以第一是将代码进行简化，留下核心的逻辑，第二是使用流程图表示大概的程序流程，以及流程主体之间的关系.
+
+![](/images/06/process.png)
+
+如上图 styled-components 主要有四个核心对象:
+
+- **WrappedComponent**: 这是 createStyledComponent 创建的包装组件，这个组件保存的被包装的 target、并生成组件 id 和 ComponentStyle 对象
+- **StyledComponent**: 这是样式组件，在它 render 时会将 props 作为 context 传递给 ComponentStyle，并生成类名
+- **ComponentStyle**: 负责生成最终的样式表和唯一的类名，并调用 StyleSheet 将生成的样表注入到文档中
+- **StyleSheet**: 负责管理已生成的样式表, 并注入到文档中
+
+**styled-components 性能优化建议**
+
+styled-components 每次渲染都会重新计算 cssRule，并进行 hash 计算出 className，如果已经对应的 className 还没插入到样式表中，则使用 stylis 进行预处理，并插入到样式表中; 另外 styled-components 对静态 cssRule(没有任何内插函数)进行优化，它们不会监听 ThemeContext 变化, 且在渲染时不会重新计算。
+
+通过这些规则可以得出以下性能优化的建议:
+
+- 静态化的 cssRule 性能是最好的
+- 减少 props 状态复杂度. styled-components 并不会对已有的不变的样式规则进行复用，一旦状态变化 styled-component 会生成一个全新的样式规则和类名. 这是最简单的一种实现, 避免了样式复用的复杂性，保持样式的隔离性。 例如
+
+  ```tsx
+  const Foo = styled.div<{ active: boolean }>`
+    color: red;
+    background: ${props => (props.active ? 'blue' : 'red')};
+  `;
+  ```
+
+  active 切换之间会生成两个类名:
+
+  ```css
+  .cQAOKL {
+    color: red;
+    background: red;
+  }
+  .kklCtT {
+    color: red;
+    background: blue;
+  }
+  ```
+
+  如果把 StyledComponent 看做是一个状态机，那么 styled-components 可能会为每一个可能的状态生成独立的样式. 如果 StyledComponent 样式很多, 而且状态比较复杂，那么会生成很多冗余的样式.
+
+- ❌ 不要用于动画。上面了解到 styled-component 会为每个状态生成一个样式表. 动画会在短时间会重新生成很多样式，性能非常差:
+
+  ```tsx
+  const Bar = styled.div<{ width: boolean }>`
+    color: red;
+    // 千万别这么干
+    width: ${props => props.width};
+  `;
+  ```
+
+  这种动画场景最好使用 style 内联样式来做
 
 简化，忽略掉服务端渲染
 如何进行优化
@@ -139,3 +205,5 @@ categories: 前端
 样式变动加载顺序
 
 ## 技术地图
+
+- @emotion
