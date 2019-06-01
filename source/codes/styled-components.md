@@ -95,8 +95,6 @@ const Button = styled.button`
 ```js
 // 文件位于 src/constructors/styled.js
 // 这里忽略掉styled.div这些简写形式, 它等价于styled('div')
-const styled = (tag: Target) => constructWithOptions(StyledComponent, tag);
-
 // 简化一下，styled的实现大概为:
 const styled = (tag: Target) => (...args) =>
   createStyledComponent(tag, {}, css(...args));
@@ -382,4 +380,10 @@ function makeTag() {
 
   return { insertRules, hasNameForId };
 }
+```
+
+```js
+const Foo = styled.div`
+  color: red;
+`;
 ```
