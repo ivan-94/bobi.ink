@@ -4,16 +4,16 @@ date: 2019/6/2
 categories: 前端
 ---
 
-React 的代码库现在已经比较庞大了，加上 v16 的 Fiber 重构，很容易初学者陷入细节的汪洋大海，搞懂了会让人觉得自己很牛逼，搞不懂很容易让人失去信心, 怀疑自己是否应该继续搞前端。那么尝试在本文这里找回一点自信吧(高手绕路).
+React 的代码库现在已经比较庞大了，加上 v16 的 Fiber 重构，初学者很容易陷入细节的汪洋大海，搞懂了会让人觉得自己很牛逼，搞不懂很容易让人失去信心, 怀疑自己是否应该继续搞前端。那么尝试在本文这里找回一点自信吧(高手绕路).
 
 Preact 是 React 的缩略版, 体积非常小, 但五脏俱全. 如果你想了解 React 的基本原理, 可以去学习学习 Preact 的源码, 这也正是本文的目的。
 
-关于 React 原理的优秀的文章已经非常多, 本文就是老酒装新瓶, 算是自己的一点总结，也为后面的文章作一下铺垫吧. 
+关于 React 原理的优秀的文章已经非常多, 本文就是老酒装新瓶, 算是自己的一点总结，也为后面的文章作一下铺垫吧.
 
-文章篇幅较长，阅读时间约20min，主要被代码占据，另外也画了流程图配合理解代码。
+文章篇幅较长，阅读时间约 20min，主要被代码占据，另外也画了流程图配合理解代码。
 
 > 注意：代码有所简化，忽略掉 svg、replaceNode、context 等特性
-> 本文代码基于preact v10版本
+> 本文代码基于 preact v10 版本
 
 <br/>
 
@@ -43,21 +43,21 @@ Preact 是 React 的缩略版, 体积非常小, 但五脏俱全. 如果你想了
  <img src="https://bobi.ink/images/07/vd.png" width="500"/>
 </center>
 
-Virtual-DOM 其实就是一颗对象树，没有什么特别的，这个对象树最终要映射到图形对象. VirtualDOM比较核心的是`diff算法`.
+Virtual-DOM 其实就是一颗对象树，没有什么特别的，这个对象树最终要映射到图形对象. Virtual-DOM 比较核心的是它的`diff算法`.
 
 你可以想象这里有一个`DOM映射器`，见名知义，**这个’DOM 映射器‘的工作就是将 Virtual-DOM 对象树映射浏览器页面的 DOM，只不过为了提高 DOM 的'操作性能'. 它不是每一次都全量渲染整个 Virtual-DOM 树，而是支持接收两颗 Virtual-DOM 对象树(一个更新前，一个更新后), 通过 diff 算法计算出两颗 Virtual-DOM 树差异的地方，然后只应用这些差异的地方到实际的 DOM 树, 从而减少 DOM 变更的成本.**
 
-Virtual-DOM 是比较争议性，推荐阅读[《网上都说操作真实 DOM 慢，但测试结果却比 React 更快，为什么？》](https://www.zhihu.com/question/31809713/answer/53544875) 。切记永远都不要离开场景去评判一个技术的好坏。当初网上把 React 吹得多么牛逼, 一些小白就会觉得 Virtual-DOM 很吊，JQuery 弱爆了。
+Virtual-DOM 是比较有争议性，推荐阅读[《网上都说操作真实 DOM 慢，但测试结果却比 React 更快，为什么？》](https://www.zhihu.com/question/31809713/answer/53544875) 。切记永远都不要离开场景去评判一个技术的好坏。当初网上把 React 吹得多么牛逼, 一些小白就会觉得 Virtual-DOM 很吊，JQuery 弱爆了。
 
-我觉得两个可比性不大，从性能上看, **框架再怎么牛逼它也是需要操作原生 DOM 的，而且它未必有你使用 JQuery 手动操作 DOM 来得'精细'**. 框架不合理使用也可能出现修改一个小状态，导致渲染雪崩(大范围重新渲染)的情况; 同理JQuery 虽然可以精细化操作 DOM, 但是不合理的 DOM 更新策略可能也会成为应用的性能瓶颈. 所以关键还得看你怎么用.
+我觉得两个可比性不大，从性能上看, **框架再怎么牛逼它也是需要操作原生 DOM 的，而且它未必有你使用 JQuery 手动操作 DOM 来得'精细'**. 框架不合理使用也可能出现修改一个小状态，导致渲染雪崩(大范围重新渲染)的情况; 同理 JQuery 虽然可以精细化操作 DOM, 但是不合理的 DOM 更新策略可能也会成为应用的性能瓶颈. 所以关键还得看你怎么用.
 
 那为什么需要 Virtual-DOM？
 
-**我个人的理解就是为了解放生产力。现如今硬件的性能越来越好，web 应用也越来越复杂，生产力也是要跟上的。**尽管手动操作 DOM 可能可以达到更高的性能和灵活性，但是这样对大部分开发者来说太低效了，我们是可以接受牺牲一点性能换取更高的开发效率的.
+**我个人的理解就是为了解放生产力。现如今硬件的性能越来越好，web 应用也越来越复杂，生产力也是要跟上的**. 尽管手动操作 DOM 可能可以达到更高的性能和灵活性，但是这样对大部分开发者来说太低效了，我们是可以接受牺牲一点性能换取更高的开发效率的.
 
-所以说Virtual-DOM 更大的意义在于开发方式的改变: 声明式、 数据驱动, 让开发者不需要关心 DOM 的操作细节(属性操作、事件绑定、DOM 节点变更)，也就是说应用的开发方式变成了`view=f(state)`, 这对生产力的解放是有很大推动作用的.
+所以说 Virtual-DOM 更大的意义在于开发方式的改变: 声明式、 数据驱动, 让开发者不需要关心 DOM 的操作细节(属性操作、事件绑定、DOM 节点变更)，也就是说应用的开发方式变成了`view=f(state)`, 这对生产力的解放是有很大推动作用的.
 
-当然 Virtual-DOM 不是唯一，也不是第一个的这样解决方案. 比如 AngularJS, Vue1.x 这些基于模板的实现方式, 也可以说实现这种开发方式. 那相对于他们 Virtual-DOM 的买点可能就是更高的性能了, 另外 Virtual-DOM 在渲染层上面的抽象更加彻底, 不再耦合于 DOM 本身，比如可以渲染为 RN，PDF，终端 UI 等等。
+当然 Virtual-DOM 不是唯一，也不是第一个的这样解决方案. 比如 AngularJS, Vue1.x 这些基于模板的实现方式, 也可以说实现这种开发方式转变的. 那相对于他们 Virtual-DOM 的买点可能就是更高的性能了, 另外 Virtual-DOM 在渲染层上面的抽象更加彻底, 不再耦合于 DOM 本身，比如可以渲染为 ReactNative，PDF，终端 UI 等等。
 
 <br />
 
@@ -67,13 +67,13 @@ Virtual-DOM 是比较争议性，推荐阅读[《网上都说操作真实 DOM �
 
 ## 从 createElement 开始
 
-很多小白将 `JSX` 等价为 Virtual-DOM，其实这两者并没有直接的关系, 我们知道 **JSX 不过是一个语法糖**. 
+很多小白将 `JSX` 等价为 Virtual-DOM，其实这两者并没有直接的关系, 我们知道 **JSX 不过是一个语法糖**.
 
-例如`<a href="/"><span>Home</span></a>`最终会转换为`h('a', { href:'/' }, h('span', null, 'Home'))`这种形式, `h`是 JSX Element 工厂方法，`h` 在 React 下约定是`React.createElement`. 
+例如`<a href="/"><span>Home</span></a>`最终会转换为`h('a', { href:'/' }, h('span', null, 'Home'))`这种形式, `h`是 JSX Element 工厂方法.
 
-`h` 是 `createElement` 的别名, Vue 生态系统也是使用这个惯例, 具体为什么没作考究(比较简短？)。
+`h` 在 React 下约定是`React.createElement`, 而大部分 Virtual-DOM 框架则使用`h`. `h` 是 `createElement` 的别名, Vue 生态系统也是使用这个惯例, 具体为什么没作考究(比较简短？)。
 
-可是使用`@jsx`注解或 babel 配置项来配置 JSX 工厂：
+可以使用`@jsx`注解或 babel 配置项来配置 JSX 工厂：
 
 ```jsx
 /**
@@ -82,7 +82,9 @@ Virtual-DOM 是比较争议性，推荐阅读[《网上都说操作真实 DOM �
 render(<div>hello jsx</div>, el);
 ```
 
-本文不是 react 或 preact 的入门文章，所以点到为止，更多内容可以查看[官方教程](https://preactjs.com/guide/getting-started). 现在来看看`createElemet`, **createElement 不过就是构造一个对象(VNode)**:
+本文不是 react 或 preact 的入门文章，所以点到为止，更多内容可以查看[官方教程](https://preactjs.com/guide/getting-started).
+
+现在来看看`createElement`, **createElement 不过就是构造一个对象(VNode)**:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -106,6 +108,18 @@ export function createVNode(type, props, key, ref) {
 ```
 <!-- prettier-ignore-end -->
 
+通过 JSX 和组件, 可以构造复杂的对象树:
+
+```jsx
+render(
+  <div className="container">
+    <SideBar />
+    <Body />
+  </div>,
+  root,
+);
+```
+
 <br/>
 
 ---
@@ -114,9 +128,11 @@ export function createVNode(type, props, key, ref) {
 
 ## Component 的实现
 
-对于一个视图框架来说，组件就是它的灵魂. 将一个应用分而治之, 拆分和组合不同级别的组件，可以简化应用的开发和维护，让程序更好理解. **组件是一个自定义的元素类型，可以声明组件的输入(props)、有自己的生命周期和状态以及方法、输出 Virtual-DOM 对象树**.
+对于一个视图框架来说，组件就是它的灵魂, 就像函数之于函数式语言，类之于面向对象语言, 没有组件则无法组成复杂的应用.
 
-自定义组件是基于 Component 类实现的. 对组件来说最基本的就是状态的维护, 这个通过 setState 来实现:
+组件化的思维推荐将一个应用分而治之, 拆分和组合不同级别的组件，这样可以简化应用的开发和维护，让程序更好理解. 从技术上看**组件是一个自定义的元素类型，可以声明组件的输入(props)、有自己的生命周期和状态以及方法、最终输出 Virtual-DOM 对象树, 作为应用Virtual-DOM树的一个分支存在**.
+
+Preact的自定义组件是基于 Component 类实现的. 对组件来说最基本的就是状态的维护, 这个通过 setState 来实现:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -129,9 +145,8 @@ Component.prototype.setState = function(update, callback) {
     (this._nextState = assign({}, this.state));
 
   // state更新
-  if (typeof update !== 'function' || (update = update(s, this.props))) {
+  if (typeof update !== 'function' || (update = update(s, this.props)))
     assign(s, update);
-  }
 
   if (this._vnode) { // 已挂载
     // 推入渲染回调队列, 在渲染完成后批量调用
@@ -157,10 +172,8 @@ const defer = typeof Promise == 'function'
 
 function enqueueRender(c) {
   // 不需要重复推入已经在队列的Component
-  if (!c._dirty && (c._dirty = true) && q.push(c) === 1) {
-    // 当队列从空变为非空时，开始调度
-    defer(process);
-  }
+  if (!c._dirty && (c._dirty = true) && q.push(c) === 1)
+    defer(process); // 当队列从空变为非空时，开始调度
 }
 
 // 批量清空队列, 调用Component的forceUpdate
@@ -176,7 +189,9 @@ function process() {
 
 <br/>
 
-Ok, 上面的代码可以看出 setState 本质上是调用 forceUpdate 进行组件重新渲染的，来看看 forceUpdate 的实现. 这里暂且忽略 diff, **将 diff 视作一个黑盒，他就是一个 DOM 映射器, 像上面说的 diff 接收两棵 VNode 树, 以及一个 DOM 挂载点, 在比对的过程中它可以会创建、移除或更新组件和 DOM 元素，触发对应的生命周期方法**.
+Ok, 上面的代码可以看出 `setState` 本质上是调用 `forceUpdate` 进行组件重新渲染的，来往下挖一挖 forceUpdate 的实现. 
+
+> 这里暂且忽略 diff, **将 diff 视作一个黑盒，他就是一个 DOM 映射器, 像上面说的 diff 接收两棵 VNode 树, 以及一个 DOM 挂载点, 在比对的过程中它可以会创建、移除或更新组件和 DOM 元素，触发对应的生命周期方法**.
 
 <!-- prettier-ignore-start -->
 ```js
@@ -200,7 +215,7 @@ Component.prototype.forceUpdate = function(callback) { // callback放置渲染�
 
 <br/>
 
-在看看 render 方法, 实现跟 forceUpdate 差不多, 都是调用diff算法来执行DOM更新，只不过由外部指定一个 DOM 容器:
+在看看 `render` 方法, 实现跟 forceUpdate 差不多, 都是调用 diff 算法来执行 DOM 更新，只不过由外部指定一个 DOM 容器:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -223,6 +238,8 @@ export function render(vnode, parentDom) {
   <img src="https://bobi.ink/images/07/setState.png" width="800" />
 </center>
 
+到目前为止没有看到组件的其他功能，如初始化、生命周期函数。这些特性在diff函数中定义，也就是说在组件挂载或更新的过程中被调用。下一节就会介绍diff
+
 <br/>
 
 ---
@@ -231,7 +248,9 @@ export function render(vnode, parentDom) {
 
 ## diff 算法
 
-千呼万唤始出来，通过上文可以看出，createElement 和 Component 逻辑都很薄， 主要的逻辑还是集中在 diff 函数中. React 将这个过程称为 `Reconciliation`, 在 Preact 中称为 `Differantiate`. 为了简化程序 Preact 的实现将 diff 和 DOM 杂糅在一起, 但逻辑还是很清晰，看下目录结构就知道了:
+千呼万唤始出来，通过上文可以看出，`createElement` 和 `Component` 逻辑都很薄， 主要的逻辑还是集中在 diff 函数中. React 将这个过程称为 `Reconciliation`, 在 Preact 中称为 `Differantiate`. 
+
+为了简化程序 Preact 的实现将 diff 和 DOM 杂糅在一起, 但逻辑还是很清晰，看下目录结构就知道了:
 
 <br/>
 
@@ -282,7 +301,11 @@ interface VNode<P = {}> {
 
 ### diffChildren
 
-先从最简单的开始, diffChildren 用于比对两个 VNode 列表，首先这里需要维护一个表示当前插入位置的变量(oldDOM). 在遍历新 VNode 列表过程中, 尝试找出相同 key 的旧VNode，和它进行比对. 如果新 VNode 和旧 VNode 位置不一样，这就需要移动它们; 如果插入位置(oldDOM)已经到了结尾，则直接追加到父节点。最后卸载旧 VNode 列表中未使用的 VNode.
+<center>
+  <img src="https://bobi.ink/images/07/diffChildren-base.png" width="600" />
+</center>
+
+先从最简单的开始, 上面已经猜出diffChildren 用于比对两个 VNode 列表，首先这里需要维护一个表示当前插入位置的变量(oldDOM). 在遍历新 VNode 列表过程中, 尝试找出相同 key 的旧 VNode，和它进行比对. 如果新 VNode 和旧 VNode 位置不一样，这就需要移动它们; 如果插入位置(oldDOM)已经到了结尾，则直接追加到父节点。最后卸载旧 VNode 列表中未使用的 VNode.
 
 <!-- prettier-ignore-start -->
 ```jsx
@@ -836,7 +859,8 @@ function getHookState(index) {
 ```js
 export function useEffect(callback, args) {
   const state = getHookState(currentIndex++);
-  if (argsChanged(state._args, args)) { // ⚛️状态变化
+  if (argsChanged(state._args, args)) {
+    // ⚛️状态变化
     state._value = callback;
     state._args = args;
     currentComponent.__hooks._pendingEffects.push(state); // ⚛️推进_pendingEffects队列
@@ -846,7 +870,8 @@ export function useEffect(callback, args) {
 
 export function useLayoutEffect(callback, args) {
   const state = getHookState(currentIndex++);
-  if (argsChanged(state._args, args)) { // ⚛️状态变化
+  if (argsChanged(state._args, args)) {
+    // ⚛️状态变化
     state._value = callback;
     state._args = args;
     currentComponent.__hooks._pendingLayoutEffects.push(state); // ⚛️推进_pendingLayoutEffects队列
@@ -856,7 +881,7 @@ export function useLayoutEffect(callback, args) {
 
 <br/>
 
-看看如何触发 effect. useEffect和上面看到的`enqueueRender`差不多，放进一个异步队列中，由`requestAnimationFrame`进行调度，批量处理:
+看看如何触发 effect. useEffect 和上面看到的`enqueueRender`差不多，放进一个异步队列中，由`requestAnimationFrame`进行调度，批量处理:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -903,7 +928,7 @@ function invokeEffect(hook) {
 
 <br/>
 
-再看看如何触发 LayoutEffect, 很简单，在diff完成后触发, 这个过程是同步的.
+再看看如何触发 LayoutEffect, 很简单，在 diff 完成后触发, 这个过程是同步的.
 
 ```js
 options.diffed = vnode => {
@@ -926,16 +951,16 @@ options.diffed = vnode => {
 
 文章篇幅很长，主要是太多代码了, 我自己也不喜欢看这种文章，所以没期望读者会看到这里. 后面文章再想办法改善改善. 谢谢你阅读到这里。
 
-本期的主角本身是一个小而美的视图框架，没有其他技术栈. 这里就安利一下preact作者[developit](https://github.com/developit)的另外一些小而美的库吧.
+本期的主角本身是一个小而美的视图框架，没有其他技术栈. 这里就安利一下 preact 作者[developit](https://github.com/developit)的另外一些小而美的库吧.
 
-- [Workerize](https://github.com/developit/workerize) 优雅地在webWorker中执行和调用程序
+- [Workerize](https://github.com/developit/workerize) 优雅地在 webWorker 中执行和调用程序
 - [microbundle](https://github.com/developit/microbundle) 零配置的库打包工具
-- [greenlet](https://github.com/developit/greenlet) 和workerize差不多，这个将单个异步函数放到webworker中执行，而workerize是将一个模块
-- [mitt](https://github.com/developit/mitt) 200byte的EventEmitter
-- [dlv](https://github.com/developit/dlv) 安全地访问深嵌套的对象属性，类似于lodash的get方法
-- [snarkdown](https://github.com/developit/snarkdown) 1kb的markdown parser
-- [unistore](https://github.com/developit/unistore) 简洁类Redux状态容器，支持react和preact
-- [stockroom](https://github.com/developit/stockroom) 在webWorker支持状态管理器
+- [greenlet](https://github.com/developit/greenlet) 和 workerize 差不多，这个将单个异步函数放到 webworker 中执行，而 workerize 是将一个模块
+- [mitt](https://github.com/developit/mitt) 200byte 的 EventEmitter
+- [dlv](https://github.com/developit/dlv) 安全地访问深嵌套的对象属性，类似于 lodash 的 get 方法
+- [snarkdown](https://github.com/developit/snarkdown) 1kb 的 markdown parser
+- [unistore](https://github.com/developit/unistore) 简洁类 Redux 状态容器，支持 react 和 preact
+- [stockroom](https://github.com/developit/stockroom) 在 webWorker 支持状态管理器
 
 ## 扩展
 
