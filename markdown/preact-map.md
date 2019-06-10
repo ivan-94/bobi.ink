@@ -1,5 +1,5 @@
 ---
-title: '[技术地图] preact'
+title: '[技术地图] Preact'
 date: 2019/6/2
 categories: 前端
 ---
@@ -13,7 +13,7 @@ Preact 是 React 的缩略版, 体积非常小, 但五脏俱全. 如果你想了
 文章篇幅较长，阅读时间约 20min，主要被代码占据，另外也画了流程图配合理解代码。
 
 > 注意：代码有所简化，忽略掉 svg、replaceNode、context 等特性
-> 本文代码基于 preact v10 版本
+> 本文代码基于 Preact v10 版本
 
 <br/>
 
@@ -82,7 +82,7 @@ Virtual-DOM 是比较有争议性，推荐阅读[《网上都说操作真实 DOM
 render(<div>hello jsx</div>, el);
 ```
 
-本文不是 react 或 preact 的入门文章，所以点到为止，更多内容可以查看[官方教程](https://preactjs.com/guide/getting-started).
+本文不是 React 或 Preact 的入门文章，所以点到为止，更多内容可以查看[官方教程](https://preactjs.com/guide/getting-started).
 
 现在来看看`createElement`, **createElement 不过就是构造一个对象(VNode)**:
 
@@ -130,9 +130,9 @@ render(
 
 对于一个视图框架来说，组件就是它的灵魂, 就像函数之于函数式语言，类之于面向对象语言, 没有组件则无法组成复杂的应用.
 
-组件化的思维推荐将一个应用分而治之, 拆分和组合不同级别的组件，这样可以简化应用的开发和维护，让程序更好理解. 从技术上看**组件是一个自定义的元素类型，可以声明组件的输入(props)、有自己的生命周期和状态以及方法、最终输出 Virtual-DOM 对象树, 作为应用Virtual-DOM树的一个分支存在**.
+组件化的思维推荐将一个应用分而治之, 拆分和组合不同级别的组件，这样可以简化应用的开发和维护，让程序更好理解. 从技术上看**组件是一个自定义的元素类型，可以声明组件的输入(props)、有自己的生命周期和状态以及方法、最终输出 Virtual-DOM 对象树, 作为应用 Virtual-DOM 树的一个分支存在**.
 
-Preact的自定义组件是基于 Component 类实现的. 对组件来说最基本的就是状态的维护, 这个通过 setState 来实现:
+Preact 的自定义组件是基于 Component 类实现的. 对组件来说最基本的就是状态的维护, 这个通过 setState 来实现:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -189,7 +189,7 @@ function process() {
 
 <br/>
 
-Ok, 上面的代码可以看出 `setState` 本质上是调用 `forceUpdate` 进行组件重新渲染的，来往下挖一挖 forceUpdate 的实现. 
+Ok, 上面的代码可以看出 `setState` 本质上是调用 `forceUpdate` 进行组件重新渲染的，来往下挖一挖 forceUpdate 的实现.
 
 > 这里暂且忽略 diff, **将 diff 视作一个黑盒，他就是一个 DOM 映射器, 像上面说的 diff 接收两棵 VNode 树, 以及一个 DOM 挂载点, 在比对的过程中它可以会创建、移除或更新组件和 DOM 元素，触发对应的生命周期方法**.
 
@@ -238,7 +238,7 @@ export function render(vnode, parentDom) {
   <img src="https://bobi.ink/images/07/setState.png" width="800" />
 </center>
 
-到目前为止没有看到组件的其他功能，如初始化、生命周期函数。这些特性在diff函数中定义，也就是说在组件挂载或更新的过程中被调用。下一节就会介绍diff
+到目前为止没有看到组件的其他功能，如初始化、生命周期函数。这些特性在 diff 函数中定义，也就是说在组件挂载或更新的过程中被调用。下一节就会介绍 diff
 
 <br/>
 
@@ -248,7 +248,7 @@ export function render(vnode, parentDom) {
 
 ## diff 算法
 
-千呼万唤始出来，通过上文可以看出，`createElement` 和 `Component` 逻辑都很薄， 主要的逻辑还是集中在 diff 函数中. React 将这个过程称为 `Reconciliation`, 在 Preact 中称为 `Differantiate`. 
+千呼万唤始出来，通过上文可以看出，`createElement` 和 `Component` 逻辑都很薄， 主要的逻辑还是集中在 diff 函数中. React 将这个过程称为 `Reconciliation`, 在 Preact 中称为 `Differantiate`.
 
 为了简化程序 Preact 的实现将 diff 和 DOM 杂糅在一起, 但逻辑还是很清晰，看下目录结构就知道了:
 
@@ -273,7 +273,7 @@ src/diff
 type ComponentFactory<P> = preact.ComponentClass<P> | FunctionalComponent<P>;
 
 interface VNode<P = {}> {
-  // 节点类型, 内置DOM元素为string类型，而自定义组件则是Component类型，preact中函数组件只是特殊的Component类型
+  // 节点类型, 内置DOM元素为string类型，而自定义组件则是Component类型，Preact中函数组件只是特殊的Component类型
   type: string | ComponentFactory<P> | null;
   props: P & { children: ComponentChildren } | string | number | null;
   key: Key
@@ -301,11 +301,19 @@ interface VNode<P = {}> {
 
 ### diffChildren
 
+先从最简单的开始, 上面已经猜出 diffChildren 用于比对两个 VNode 列表.
+
 <center>
   <img src="https://bobi.ink/images/07/diffChildren-base.png" width="600" />
 </center>
 
-先从最简单的开始, 上面已经猜出diffChildren 用于比对两个 VNode 列表，首先这里需要维护一个表示当前插入位置的变量(oldDOM). 在遍历新 VNode 列表过程中, 尝试找出相同 key 的旧 VNode，和它进行比对. 如果新 VNode 和旧 VNode 位置不一样，这就需要移动它们; 如果插入位置(oldDOM)已经到了结尾，则直接追加到父节点。最后卸载旧 VNode 列表中未使用的 VNode.
+如上图, 首先这里需要维护一个表示当前插入位置的变量 oldDOM, 它一开始指向 DOM childrenNode 的第一个元素, 后面每次插入更新或插入 newDOM，都会指向 newDOM 的下一个兄弟元素.
+
+在遍历 newChildren 列表过程中, 会尝试找出相同 key 的旧 VNode，和它进行 diff. 如果新 VNode 和旧 VNode 位置不一样，这就需要移动它们;对于新增的 DOM，如果插入位置(oldDOM)已经到了结尾，则直接追加到父节点, 否则插入到 oldDOM 之前。
+
+最后卸载旧 VNode 列表中未使用的 VNode.
+
+来详细看看源码:
 
 <!-- prettier-ignore-start -->
 ```jsx
@@ -696,7 +704,7 @@ function setProperty(dom, name, value, oldValue, isSvg) {
 ```
 <!-- prettier-ignore-end -->
 
-ok 至此 Diff 算法介绍完毕，其实这里面的逻辑并不是特别复杂, 当然 preact 只是一个极度精简的框架，React 复杂度要高得多，尤其 React Fiber 重构之后。你也可以把 preact 当做 react 的历史回顾，有兴趣再深入了解 React 的最新架构。
+OK 至此 Diff 算法介绍完毕，其实这里面的逻辑并不是特别复杂, 当然 Preact 只是一个极度精简的框架，React 复杂度要高得多，尤其 React Fiber 重构之后。你也可以把 Preact 当做 React 的历史回顾，有兴趣再深入了解 React 的最新架构。
 
 <br>
 
@@ -708,7 +716,7 @@ ok 至此 Diff 算法介绍完毕，其实这里面的逻辑并不是特别复�
 
 React16.8 正式引入的 hooks，这玩意带来了全新的 React 组件开发方式，让代码变得更加简洁。 [React hooks: not magic, just arrays](https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e)这篇文章已经揭示了 hooks 的基本实现原理, 它不过是基于数组实现的。preact 也实现了 hooks 机制，实现代码也就百来行，让我们来体会体会.
 
-hooks 功能本身是没有集成在 preact 代码库内部的，而是通过`preact/hooks`导入
+hooks 功能本身是没有集成在 Preact 代码库内部的，而是通过`preact/hooks`导入
 
 ```jsx
 import { h } from 'preact';
@@ -723,7 +731,7 @@ function Foo() {
 
 <br/>
 
-preact 提供了`options`对象对 preact 进行扩展，options 类似于 Preact 生命周期钩子，在 diff 过程中被调用(为了行文简洁，上面的代码我忽略掉了)。例如:
+那 Preact 是如何扩展 diff 算法来实现 hooks 的呢？ 实际上 Preact 提供了`options`对象来对 Preact diff 进行扩展，options 类似于 Preact 生命周期钩子，在 diff 过程中被调用(为了行文简洁，上面的代码我忽略掉了)。例如:
 
 <!-- prettier-ignore-start -->
 ```jsx
@@ -765,7 +773,7 @@ export function diff(/*...*/) {
 
 ### useState
 
-先从 useState 开始:
+先从最常用的 useState 开始:
 
 <!-- prettier-ignore-start -->
 ```js
@@ -808,7 +816,7 @@ let currentIndex; // 保存当前hook的索引
 let currentComponent;
 
 // ⚛️render 钩子, 在组件开始渲染之前调用
-// 因为preact是同步递归向下渲染的，而且Javascript是单线程的，所以可以安全地引用当前正在渲染的组件实例
+// 因为Preact是同步递归向下渲染的，而且Javascript是单线程的，所以可以安全地引用当前正在渲染的组件实例
 options.render = vnode => {
   currentComponent = vnode._component; // 保存当前正在渲染的组件
   currentIndex = 0;                    // 开始渲染时index重置为0
@@ -951,7 +959,7 @@ options.diffed = vnode => {
 
 文章篇幅很长，主要是太多代码了, 我自己也不喜欢看这种文章，所以没期望读者会看到这里. 后面文章再想办法改善改善. 谢谢你阅读到这里。
 
-本期的主角本身是一个小而美的视图框架，没有其他技术栈. 这里就安利一下 preact 作者[developit](https://github.com/developit)的另外一些小而美的库吧.
+本期的主角本身是一个小而美的视图框架，没有其他技术栈. 这里就安利一下 Preact 作者[developit](https://github.com/developit)的另外一些小而美的库吧.
 
 - [Workerize](https://github.com/developit/workerize) 优雅地在 webWorker 中执行和调用程序
 - [microbundle](https://github.com/developit/microbundle) 零配置的库打包工具
@@ -959,7 +967,7 @@ options.diffed = vnode => {
 - [mitt](https://github.com/developit/mitt) 200byte 的 EventEmitter
 - [dlv](https://github.com/developit/dlv) 安全地访问深嵌套的对象属性，类似于 lodash 的 get 方法
 - [snarkdown](https://github.com/developit/snarkdown) 1kb 的 markdown parser
-- [unistore](https://github.com/developit/unistore) 简洁类 Redux 状态容器，支持 react 和 preact
+- [unistore](https://github.com/developit/unistore) 简洁类 Redux 状态容器，支持 React 和 Preact
 - [stockroom](https://github.com/developit/stockroom) 在 webWorker 支持状态管理器
 
 ## 扩展
