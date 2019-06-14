@@ -9,6 +9,7 @@ categories: 前端
 - [减少渲染的节点](#减少渲染的节点)
   - [1️⃣ 减少不必要的嵌套](#1️⃣-减少不必要的嵌套)
   - [2️⃣ 虚拟列表](#2️⃣-虚拟列表)
+  - [3️⃣ 惰性渲染](#3️⃣-惰性渲染)
 - [避免重新渲染](#避免重新渲染)
   - [**1️⃣ 简化 props**](#1️⃣-简化-props)
   - [2️⃣**不变的事件处理器**](#2️⃣不变的事件处理器)
@@ -17,7 +18,7 @@ categories: 前端
   - [5️⃣**使用[recompose](https://github.com/acdlite/recompose) 精细化比对**.](#5️⃣使用recomposehttpsgithubcomacdliterecompose-精细化比对)
 - [精细化渲染](#精细化渲染)
   - [1️⃣ 响应式数据的精细化渲染](#1️⃣-响应式数据的精细化渲染)
-  - [减少不必要的 Context, 关键数据、共享数据](#减少不必要的-context-关键数据共享数据)
+  - [2️⃣ 减少不必要的 Context](#2️⃣-减少不必要的-context)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -74,6 +75,16 @@ categories: 前端
 
 - [Creating more efficient React views with windowing](https://bvaughn.github.io/forward-js-2017/#/0/0)
 - [Rendering large lists with react-window](https://addyosmani.com/blog/react-window/)
+
+<br/>
+
+### 3️⃣ 惰性渲染
+
+惰性渲染的初衷本质上和虚表一样，也就是说我们只在必要时才去渲染对应的节点。
+
+举个典型的例子，我们常用Tab组件，我们没有必要一开始就将所有Tab的panel都渲染出来，而是等到该Tab被激活时才去惰性渲染。
+
+还有很多场景会用到惰性渲染，例如模态弹窗，下拉列表，折叠组件等等。这里就不举具体的代码例子了，留给读者去思考.
 
 <br/>
 <br/>
@@ -275,7 +286,7 @@ const store = observable({
 
 export const List = observer(() => {
   const list = store.list;
-  console.log('List渲染')
+  console.log('List渲染');
   return (
     <div className="list-container">
       <ul>
@@ -285,14 +296,20 @@ export const List = observer(() => {
             {console.log('render', i.id)}
             <span className="list-item-name">{i.name} </span>
             <span className="list-item-value">{i.value} </span>
-            <button className="list-item-increment" onClick={() => {i.value++; console.log('递增')}}>
+            <button
+              className="list-item-increment"
+              onClick={() => {
+                i.value++;
+                console.log('递增');
+              }}
+            >
               递增
             </button>
             <button
               className="list-item-increment"
               onClick={() => {
                 if (idx < list.length - 1) {
-                console.log('移位')
+                  console.log('移位');
                   let t = list[idx];
                   list[idx] = list[idx + 1];
                   list[idx + 1] = t;
@@ -328,7 +345,13 @@ export const ListItem = observer(props => {
       {/* 假设这是一个复杂的组件 */}
       <span className="list-item-name">{item.name} </span>
       <span className="list-item-value">{item.value} </span>
-      <button className="list-item-increment" onClick={() => {item.value++; console.log('递增')}}>
+      <button
+        className="list-item-increment"
+        onClick={() => {
+          item.value++;
+          console.log('递增');
+        }}
+      >
         递增
       </button>
       <button className="list-item-increment" onClick={() => onShiftDown(item)}>
@@ -343,7 +366,7 @@ export const List = observer(() => {
   const handleShiftDown = useCallback(item => {
     const idx = list.findIndex(i => i.id === item.id);
     if (idx !== -1 && idx < list.length - 1) {
-      console.log('移位')
+      console.log('移位');
       let t = list[idx];
       list[idx] = list[idx + 1];
       list[idx + 1] = t;
@@ -351,7 +374,7 @@ export const List = observer(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  console.log('List 渲染')
+  console.log('List 渲染');
 
   return (
     <div className="list-container">
@@ -365,13 +388,15 @@ export const List = observer(() => {
 });
 ```
 
-效果很明显, list-item递增只会重新渲染本身; 而移位只会重新渲染List， 因为列表项没有变动, 所以下级list-item也不需要重新渲染:
+效果很明显, list-item 递增只会重新渲染本身; 而移位只会重新渲染 List， 因为列表项没有变动, 所以下级 list-item 也不需要重新渲染:
 
 <center>
   <img src="/images/09/list-demo2.png"  width="380"/>
 </center>
 
-### 减少不必要的 Context, 关键数据、共享数据
+### 2️⃣ 减少不必要的 Context
+
+关键数据、共享数据
 
 formStore 例子
 
