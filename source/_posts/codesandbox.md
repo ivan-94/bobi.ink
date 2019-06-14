@@ -18,6 +18,7 @@ categories: 前端
   - [Packager](#packager)
   - [Transpilation](#transpilation)
   - [Evaluation](#evaluation)
+- [技术地图](#技术地图)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -46,9 +47,9 @@ CodeSandbox 的作者 Ives van Hoorne 也尝试过将 Webpack 移植到浏览器
 
 - Tree-shaking
 - 性能优化
-- 模式。CodeSandbox只考虑development模式，不需要考虑production
+- 模式。CodeSandbox 只考虑 development 模式，不需要考虑 production
 - 文件输出
-- 服务器通信。webpack需要和开发服务器建立一个长连接用于接收指令，例如HMR
+- 服务器通信。webpack 需要和开发服务器建立一个长连接用于接收指令，例如 HMR
 - 插件等等。
 
 CodeSandbox 的打包器使用了接近 Webpack Loader 的 API, 这样可以很容易地将 webpack 的一些 loader 移植过来.
@@ -120,25 +121,82 @@ CodeSandbox 的客户端是开源的，不然就没有本文了，它的基本�
 
 `packager -> transpilation -> evaluation`
 
-
-CodeSandbox构建分为三个阶段:
+CodeSandbox 构建分为三个阶段:
 
 - packager 包加载阶段，下载和处理所有模块依赖
 - transpilation 转译阶段，转译所有变动的代码
-- evaluation 执行阶段，使用eval执行模块代码进行预览
+- evaluation 执行阶段，使用 eval 执行模块代码进行预览
 
 下面会按照上述的步骤来描述其中的技术点
 
 ### Packager
+
+尽管 npm 是个'黑洞'，我们还是离不开它。 目前端项目的 node_modules 体积大，80%是各种开发依赖组成的. 由于 CodeSandbox 包揽了代码构建的部分，所以我们不需要`devDependencies`, 也就是说 CodeSandbox 中我们只需要按照所有实际代码需要的依赖，这可以减少成百上千的依赖下载. 所以暂且可以不用担心浏览器会扛不住.
+
+CodeSandbox 的打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所有依赖都打包到一个文件中，并创建一个 `manifest` 文件(如下图), webpack 运行时可以根据 manifest 中的模块索引(例如`__webpack_require__('../node_modules/react/index.js')`)来加载 dll 中的模块。
+
+![](/images/08/webpack-dll-manifest.png)
+
+基于这个思想, CodeSandbox 构建了自己的在线打包工具, 具体思路如下:
+
+![](流程图)
+
+简而言之，CodeSandbox 客户端只是简单构建一个由依赖和版本号组成的`Combination`, 再拿这个 Combination 到服务器请求。服务器会根据 Combination 来缓存打包结果，如果没有命中缓存，则进行打包. **打包首先使用`yarn`来下载所有依赖，为了剔除 npm 模块中多余的文件，服务端还遍历了所有依赖的入口文件(package.json#main), 解析 AST 中的 require 语句，递归解析被 require 模块，最终形成一个依赖图**. 也就是 Manifest 文件，它的结构大概如下:
+
+```js
+{
+  // 模块内容
+  "contents": {
+    "/node_modules/react/index.js": {
+      "content": "'use strict';↵↵if ....", // 代码内容
+      "requires": [                        // 依赖的其他模块
+        "./cjs/react.development.js",
+      ],
+    },
+    "/node_modules/react-dom/index.js": {/*..*/},
+    "/node_modules/react/package.json": {/*...*/},
+    //...
+  },
+  // 模块具体安装版本号
+  "dependencies": [{name: "@babel/runtime", version: "7.3.1"}, {name: "csbbust", version: "1.0.0"},/*…*/],
+  // 模块别名, 比如将react作为preact-compat的别名
+  "dependencyAliases": {},
+  // 依赖的依赖, 即间接依赖信息. 这些信息可以从yarn.lock获取
+  "dependencyDependencies": {
+    "object-assign": {
+      "entries": ["object-assign"], // 模块入口
+      "parents": ["react", "prop-types", "scheduler", "react-dom"], // 父模块
+      "resolved": "4.1.1",
+      "semver": "^4.1.1",
+    }
+    //...
+  }
+}
+```
+Serverless 思想
+
+值得一提的是CodeSandbox的Packager后端使用了Serverless(基于AWS Lambda)，基于ServerLess的架构让Packager服务更具伸缩性，可以灵活地应付高并发的场景。使用Serverless之后Packager的响应时间显著提高，而且费用也下去了。
+
+回退方案
+
+500MB limit from AWS Lambda
 
 npm 依赖的模块
 
 - 包信息获取 https://unpkg.com/antd@3.17.0/?meta 这个会递归返回该包的所有目录信息
 - 具体文件获取 https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js
 - 包信息的缓存：Service worker
-Manifest 机制，和 webpack 的 DLL 差价的 Manifest 一样
+  Manifest 机制，和 webpack 的 DLL 差价的 Manifest 一样
+
+开源
 
 流程图
+
+<br/>
+
+---
+
+<br/>
 
 ### Transpilation
 
@@ -153,6 +211,9 @@ TranspiledModule 已转译的模块, 真正负责模块的转译工作
 - 子模块 什么是子模块
 
 依赖树的建立
+
+父子关系，比如一个模块 A 被模块 B 依赖，那么 B 就是 A 的 parent
+
 静态资源处理
 代码分隔
 多进程转译
@@ -160,11 +221,18 @@ TranspiledModule 已转译的模块, 真正负责模块的转译工作
 
 ### Evaluation
 
+虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks(即合并成一个文件，如果没有代码分隔的话)。
+
+CodeSandbox 会使用`eval`来执行入口文件。这个过程更像是 Node 环境代码执行过程。
+
 执行过程
 HMR
 
+## 技术地图
 
 ## 扩展
 
 - [Creating a parallel, offline, extensible, browser based bundler for CodeSandbox](https://hackernoon.com/how-i-created-a-parallel-offline-extensible-browser-based-bundler-886db508cc31)
 - [year of CodeSandbox - Ives van Hoorne aka @CompuIves at @ReactEurope 2018](https://www.youtube.com/watch?v=qURPenhndYA)
+- [How we make npm packages work in the browser](https://hackernoon.com/how-we-make-npm-packages-work-in-the-browser-announcing-the-new-packager-6ce16aa4cee6)
+- [codesandbox/dependency-packager](https://github.com/codesandbox/dependency-packager)
