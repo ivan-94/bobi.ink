@@ -220,6 +220,8 @@ return (
 
 不可变数据可以让状态变得可预测，也让 shouldComponentUpdate '浅比较'变得更可靠和高效. 笔者在[React 组件设计实践总结 04 - 组件的思维](https://juejin.im/post/5cdc2f54e51d453b0c35930d#heading-8)介绍过不可变数据，有兴趣读者可以看看.
 
+相关的工具有[Immutable.js](https://github.com/facebook/immutable-js)、[Immer](https://github.com/mweststrate/immer)、immutability-helper 以及 seamless-immutable。
+
 ### 4️⃣**简化 state**
 
 **不是所有状态都应该放在组件的 state 中**. 例如缓存数据。按照我的原则是：如果需要组件响应它的变动, 或者需要渲染到视图中的数据才应该放到 state 中。这样可以避免不必要的数据变动导致组件重新渲染.
@@ -453,13 +455,13 @@ export function ThemeProvider(props) {
 
 // 顺便暴露useTheme, 让外部必须直接使用Context
 export function useTheme() {
-  return useContext(Context)
+  return useContext(Context);
 }
 ```
 
-现在theme变动就不会重新渲染整个组件树，因为props.children由外部传递进来，并没有发生变动。
+现在 theme 变动就不会重新渲染整个组件树，因为 props.children 由外部传递进来，并没有发生变动。
 
 ## 扩展
 
-利用好 React 性能分析工具
-react freeze
+- [Optimizing Performance](https://react.docschina.org/docs/optimizing-performance.html) React 官方文档，最好的教程, 利用好 React 的性能分析工具。
+- [Twitter Lite and High Performance React Progressive Web Apps at Scale](https://medium.com/@paularmstrong/twitter-lite-and-high-performance-react-progressive-web-apps-at-scale-d28a00e780a3) 看看 Twitter 如何优化的
