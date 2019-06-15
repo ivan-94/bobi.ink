@@ -18,7 +18,7 @@ categories: 前端
   - [5️⃣**使用[recompose](https://github.com/acdlite/recompose) 精细化比对**.](#5️⃣使用recomposehttpsgithubcomacdliterecompose-精细化比对)
 - [精细化渲染](#精细化渲染)
   - [1️⃣ 响应式数据的精细化渲染](#1️⃣-响应式数据的精细化渲染)
-  - [2️⃣ 减少不必要的 Context](#2️⃣-减少不必要的-context)
+  - [2️⃣ 不要滥用 Context](#2️⃣-不要滥用-context)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -82,7 +82,7 @@ categories: 前端
 
 惰性渲染的初衷本质上和虚表一样，也就是说我们只在必要时才去渲染对应的节点。
 
-举个典型的例子，我们常用Tab组件，我们没有必要一开始就将所有Tab的panel都渲染出来，而是等到该Tab被激活时才去惰性渲染。
+举个典型的例子，我们常用 Tab 组件，我们没有必要一开始就将所有 Tab 的 panel 都渲染出来，而是等到该 Tab 被激活时才去惰性渲染。
 
 还有很多场景会用到惰性渲染，例如模态弹窗，下拉列表，折叠组件等等。这里就不举具体的代码例子了，留给读者去思考.
 
@@ -394,13 +394,70 @@ export const List = observer(() => {
   <img src="/images/09/list-demo2.png"  width="380"/>
 </center>
 
-### 2️⃣ 减少不必要的 Context
+### 2️⃣ 不要滥用 Context
 
-关键数据、共享数据
+笔者也看过不少滥用 Context API 的例子。说到底还是没有处理好‘状态的作用域问题’.
 
-formStore 例子
+首先要理解 Context API 的更新特点，**它是可以穿透`React.memo`或者`shouldComponentUpdate`的比对的，也就是说，一旦 Context 的 Value 变动，所有依赖该 Context 的组件会全部 forceUpdate**.
 
-数据作用域
+**这个和 Mobx 和 Vue 的响应式系统不同，Context API 并不能细粒度地检测哪些组件依赖哪些状态，所以说上节提到的‘精细化渲染’组件模式，在 Context 这里就成为了‘反模式’**. 所以说使用 Context API 要遵循一下原则:
+
+<br/>
+
+- **明确状态作用域, Context 只放置必要的，关键的，被大多数组件所共享的状态**。比较典型的是鉴权状态
+
+  举一个简单的例子:
+
+  <center>
+    <img src="/images/09/use-context1.png" width="400"/>
+  </center>
+
+  <center>
+    <img src="/images/09/use-context2.png" width="650"/>
+  </center>
+
+- **粗粒度地订阅 Context**
+
+  如下图. 细粒度的 Context 订阅会导致不必要的重新渲染, 所以这里推荐粗粒度的订阅，比如在父级订阅 Context，然后再通过 props 传递给下级。
+
+  <center>
+    <img src="/images/09/context-vs-props.png" width="600"/>
+  </center>
+
+<br/>
+
+另外程墨 Morgan 在[避免 React Context 导致的重复渲染](https://zhuanlan.zhihu.com/p/50336226)一文中也提到 ContextAPI 的一个陷阱:
+
+```jsx
+<Context.Provider
+  value={{ theme: this.state.theme, switchTheme: this.switchTheme }}
+>
+  <div className="App">
+    <Header />
+    <Content />
+  </div>
+</Context.Provider>
+```
+
+上面的组件会在 state 变化时重新渲染整个组件树，至于为什么留给读者去思考。所以我们一般都不会裸露地使用 Context.Provider, 而是封装为独立的 Provider 组件:
+
+```jsx
+export function ThemeProvider(props) {
+  const [theme, switchTheme] = useState(redTheme);
+  return (
+    <Context.Provider value={{ theme, switchTheme }}>
+      {props.children}
+    </Context.Provider>
+  );
+}
+
+// 顺便暴露useTheme, 让外部必须直接使用Context
+export function useTheme() {
+  return useContext(Context)
+}
+```
+
+现在theme变动就不会重新渲染整个组件树，因为props.children由外部传递进来，并没有发生变动。
 
 ## 扩展
 
