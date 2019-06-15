@@ -30,7 +30,7 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
   - [1️⃣ 不变的事件处理器](#1️⃣-不变的事件处理器)
   - [2️⃣ 不可变数据](#2️⃣-不可变数据)
   - [3️⃣ 简化 state](#3️⃣-简化-state)
-  - [4️⃣ 使用 recompose 精细化比对](#4️⃣-使用-recompose-精细化比对)
+  - [4️⃣ 使用recompose精细化比对](#4️⃣-使用recompose精细化比对)
 - [精细化渲染](#精细化渲染)
   - [0️⃣ 响应式数据的精细化渲染](#0️⃣-响应式数据的精细化渲染)
   - [1️⃣ 不要滥用 Context](#1️⃣-不要滥用-context)
@@ -56,7 +56,7 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 ### 1️⃣ 减少不必要的嵌套
 
 <center>
- <img src="/images/09/styled-components.png" />
+ <img src="https://bobi.ink/images/09/styled-components.png" />
 </center>
 
 我们团队是重度的 `styled-components` 用户，**其实大部分情况下我们都不需要这个玩意**，比如纯静态的样式规则，以及需要重度性能优化的场景。除了性能问题，另外一个困扰我们的是它带来的节点嵌套地狱(如上图)。
@@ -74,13 +74,13 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 虚拟列表只渲染当前视口可见元素:
 
 <center>
- <img src="/images/09/vl.png" width="500" />
+ <img src="https://bobi.ink/images/09/vl.png" width="500" />
 </center>
 
 虚拟列表渲染性能对比:
 
 <center>
- <img src="/images/09/vl-compare.png" width="500" />
+ <img src="https://bobi.ink/images/09/vl-compare.png" width="500" />
 </center>
 
 虚拟列表常用于以下组件场景:
@@ -140,7 +140,7 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 下面是一个典型的例子, 为了判断列表项是否处于激活状态，这里传入了一个当前激活的 id:
 
   <center>
-    <img src="/images/09/list.png" width="500" />
+    <img src="https://bobi.ink/images/09/list.png" width="500" />
   </center>
 
 这是一个非常糟糕的设计，一旦激活 id 变动，所有列表项都会重新刷新. 更好的解决办法是使用类似`actived`这样的布尔值 prop. actived 现在只有两种变动情况，也就是说激活 id 的变动，最多只有两个组件需要重新渲染.
@@ -278,7 +278,7 @@ return (
 
 <br/>
 
-### 4️⃣ 使用 recompose 精细化比对
+### 4️⃣ 使用recompose精细化比对
 
 尽管 hooks 出来后，recompose 宣称不再更新了，但还是不影响我们使用 recompose 来控制`shouldComponentUpdate`方法, 比如它提供了以下方法来精细控制应该比较哪些 props:
 
@@ -298,12 +298,12 @@ return (
 
 ## 精细化渲染
 
-所谓精细化渲染指的是**只有一个数据来源导致组件重新渲染**, 比如说 A 只依赖于 a 数据，那么只有在 a 数据变动时才渲染 A, 其他状态变化不应该影响组件 A。
+所谓精细化渲染指的是**只有一个数据来源导致组件重新渲染**, 比如说 A 只依赖于 a 数据，那么只有在 a 数据变动时才渲染 A, 其他状态变化不应该影响组件A。
 
 Vue 和 Mobx 宣称自己性能好的一部分原因是它们的'响应式系统', **它允许我们定义一些‘响应式数据’，当这些响应数据变动时，依赖这些响应式数据视图就会重新渲染**. 来看看 Vue 官方是如何描述的:
 
 <center>
-  <img src="/images/09/vue-compare.png" width="500"/>
+  <img src="https://bobi.ink/images/09/vue-compare.png" width="500"/>
 </center>
 
 <br/>
@@ -312,16 +312,16 @@ Vue 和 Mobx 宣称自己性能好的一部分原因是它们的'响应式系统
 
 **大部分情况下，响应式数据可以实现视图精细化的渲染, 但它还是不能避免开发者写出低效的程序**. **本质上还是因为组件违背‘单一职责’**.
 
-举个例子，现在有一个 MyComponent 组件，依赖于 A、B、C 三个数据源，来构建一个 vdom 树。现在的问题是什么呢？现在只要 A、B、C 任意一个变动，那么 MyComponent 整个就会重新渲染:
+举个例子，现在有一个 MyComponent 组件，依赖于 A、B、C 三个数据源，来构建一个vdom树。现在的问题是什么呢？现在只要 A、B、C 任意一个变动，那么 MyComponent 整个就会重新渲染:
 
 <center>
-  <img src="/images/09/my-component1.png" width="300" />
+  <img src="https://bobi.ink/images/09/my-component1.png" width="300" />
 </center>
 
 更好的做法是让组件的职责更单一，精细化地依赖响应式数据，或者说对响应式数据进行‘隔离’. 如下图, A、B、C 都抽取各自的组件中了，现在 A 变动只会渲染 A 组件本身，而不会影响父组件和 B、C 组件:
 
 <center>
-  <img src="/images/09/my-component2.png"  width="480"/>
+  <img src="https://bobi.ink/images/09/my-component2.png"  width="480"/>
 </center>
 
 <br/>
@@ -389,7 +389,7 @@ export const List = observer(() => {
 上述的例子是存在性能问题的，单个 list-item 的递增和移位都会导致整个列表的重新渲染:
 
 <center>
-  <img src="/images/09/list-demo.png"  width="380"/>
+  <img src="https://bobi.ink/images/09/list-demo.png"  width="380"/>
 </center>
 
 原因大概能猜出来吧? 对于 Vue 或者 Mobx 来说，**一个组件的渲染函数就是一个依赖收集的上下文**。上面 List 组件渲染函数内'访问'了所有的列表项数据，那么 Vue 或 Mobx 就会认为你这个组件依赖于所有的列表项，这样就导致，只要任意一个列表项的属性值变动就会重新渲染整个 List 组件。
@@ -451,7 +451,7 @@ export const List = observer(() => {
 效果很明显, list-item 递增只会重新渲染本身; 而移位只会重新渲染 List， 因为列表项没有变动, 所以下级 list-item 也不需要重新渲染:
 
 <center>
-  <img src="/images/09/list-demo2.png"  width="380"/>
+  <img src="https://bobi.ink/images/09/list-demo2.png"  width="380"/>
 </center>
 
 <br/>
@@ -459,11 +459,11 @@ export const List = observer(() => {
 
 ### 1️⃣ 不要滥用 Context
 
-**其实 Context 的用法和响应式数据正好相反**。笔者也看过不少滥用 Context API 的例子, 说到底还是没有处理好‘状态的作用域问题’.
+**其实Context的用法和响应式数据正好相反**。笔者也看过不少滥用 Context API 的例子, 说到底还是没有处理好‘状态的作用域问题’.
 
 首先要理解 Context API 的更新特点，**它是可以穿透`React.memo`或者`shouldComponentUpdate`的比对的，也就是说，一旦 Context 的 Value 变动，所有依赖该 Context 的组件会全部 forceUpdate**.
 
-**这个和 Mobx 和 Vue 的响应式系统不同，Context API 并不能细粒度地检测哪些组件依赖哪些状态，所以说上节提到的‘精细化渲染’组件模式，在 Context 这里就成为了‘反模式’**.
+**这个和 Mobx 和 Vue 的响应式系统不同，Context API 并不能细粒度地检测哪些组件依赖哪些状态，所以说上节提到的‘精细化渲染’组件模式，在 Context 这里就成为了‘反模式’**. 
 
 总结一下使用 Context API 要遵循一下原则:
 
@@ -474,21 +474,19 @@ export const List = observer(() => {
   举一个简单的例子:
 
   <center>
-    <img src="/images/09/use-context1.png" width="400"/>
+    <img src="https://bobi.ink/images/09/use-context1.png" width="400"/>
   </center>
 
   <center>
-    <img src="/images/09/use-context2.png" width="650"/>
+    <img src="https://bobi.ink/images/09/use-context2.png" width="650"/>
   </center>
-
-  扩展：Context其实有个实验性或者说非公开的选项`observedBits`, 可以用于控制ContextConsumer是否需要更新. 详细可以看这篇文章<[ObservedBits: React Context的秘密功能](https://zhuanlan.zhihu.com/p/51073183)>. 不过不推荐在实际项目中使用，而且这个API也比较难用，不如直接上mobx。
 
 - **粗粒度地订阅 Context**
 
   如下图. 细粒度的 Context 订阅会导致不必要的重新渲染, 所以这里推荐粗粒度的订阅. 比如在父级订阅 Context，然后再通过 props 传递给下级。
 
   <center>
-    <img src="/images/09/context-vs-props.png" width="600"/>
+    <img src="https://bobi.ink/images/09/context-vs-props.png" width="600"/>
   </center>
 
 <br/>
@@ -527,31 +525,6 @@ export function useTheme() {
 ```
 
 现在 theme 变动就不会重新渲染整个组件树，因为 props.children 由外部传递进来，并没有发生变动。
-
-**其实上面的代码还有另外一个比较难发现的陷阱(官方文档也有[提到](https://zh-hans.reactjs.org/docs/context.html#caveats))**:
-
-```jsx
-export function ThemeProvider(props) {
-  const [theme, switchTheme] = useState(redTheme);
-  return (
-    {/* 👇 💣这里每一次渲染ThemeProvider, 都会创建一个新的value(即使theme和switchTheme没有变动),
-        从而导致强制渲染所有依赖该Context的组件 */}
-    <Context.Provider value={{ theme, switchTheme }}>
-      {props.children}
-    </Context.Provider>
-  );
-}
-```
-
-所以**传递给 Context 的 value 最好做一下缓存**:
-
-```jsx
-export function ThemeProvider(props) {
-  const [theme, switchTheme] = useState(redTheme);
-  const value = useMemo(() => ({ theme, switchTheme }), [theme]);
-  return <Context.Provider value={value}>{props.children}</Context.Provider>;
-}
-```
 
 <br/>
 <br/>
