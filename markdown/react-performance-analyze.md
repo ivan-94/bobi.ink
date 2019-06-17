@@ -31,6 +31,7 @@ categories: 前端
   - [props 变动检测](#props-变动检测)
   - [mobx 变动检测](#mobx-变动检测)
   - [Context 变更检测](#context-变更检测)
+  - [React Devtool 的 Interactions](#react-devtool-的-interactions)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -42,6 +43,8 @@ categories: 前端
 > 推荐点击 Preview 面板的`Open In New Window`, 或者直接点击该[链接](https://igz9h.codesandbox.io/)，在线动手实践
 
 <iframe src="https://codesandbox.io/embed/react-performance-analyze-demo-igz9h?autoresize=1&fontsize=14" title="React-Performance-Analyze-Demo" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+[![Edit React-Performance-Analyze-Demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-performance-analyze-demo-igz9h?fontsize=14)
 
 <br/>
 <br/>
@@ -150,7 +153,7 @@ categories: 前端
 
 <br>
 
-④现在使用 Profiler 来分析一下 PureList 的渲染过程:
+④ 现在使用 Profiler 来分析一下 PureList 的渲染过程:
 
 ![](https://bobi.ink/images/10/profile-demo.png)
 
@@ -179,8 +182,9 @@ React 使用标准的`User Timing API`(所有支持该标准的浏览器都可�
 - 可以测量分析底层 DOM 的绘制、布局、合成等细节。方便定位浏览器性能问题
 
 其实 Performance 是一个通用的性能检测工具，所以其细节不在本文讨论访问。 详细参考
+
 - [Profiling React performance with React 16 and Chrome Devtools](https://calibreapp.com/blog/react-performance-profiling-optimization/)
-- [Chrome官方的Performance使用文档](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
+- [Chrome 官方的 Performance 使用文档](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
 
 <br/>
 
@@ -205,7 +209,7 @@ OK, 我们通过分析工具已经知道我们的应用存在哪些问题了，�
 
 **那么对于一个’纯组件‘来说，一般会有下面这些因素都可能导致组件重新渲染**:
 
-- **props + state** 毫无疑问. 这里我们只需要关注**来源于外部的 props**. 内部state变动一般是人为触发的，比较容易发现
+- **props + state** 毫无疑问. 这里我们只需要关注**来源于外部的 props**. 内部 state 变动一般是人为触发的，比较容易发现
 - **Mobx observable value**. 如果访问了 mobx 传进来的响应式数据，就会建立一个状态依赖关系，这个相对于 props 和 context 来说是隐式的，检测它的变动我们可能需要利用 mobx 提供的一些工具
 - **Context**。 Context 的 value 的变更会强制重新渲染组件
 
@@ -219,7 +223,7 @@ OK, 我们通过分析工具已经知道我们的应用存在哪些问题了，�
 
 ![](https://bobi.ink/images/10/wdyu.png)
 
-后面也有人借鉴 why-did-you-update 写了个[why-did-you-render](https://github.com/welldone-software/why-did-you-render). 不过笔者还是不看好这些通过猴补丁扩展 React 的实现，依赖于React的内部实现细节，维护成本太高了，跟不上 React 更新基本就废了.
+后面也有人借鉴 why-did-you-update 写了个[why-did-you-render](https://github.com/welldone-software/why-did-you-render). 不过笔者还是不看好这些通过猴补丁扩展 React 的实现，依赖于 React 的内部实现细节，维护成本太高了，跟不上 React 更新基本就废了.
 
 如果你现在使用 hook 的话，自己手写一个也很简单, 这个 idea 来源于[use-why-did-you-update](https://github.com/devhubapp/devhub/blob/master/packages/components/src/hooks/use-why-did-you-update.ts):
 
@@ -262,7 +266,7 @@ const Counter = React.memo(props => {
 });
 ```
 
-如果是类组件，可以在`componentDidUpdate`使用类似上面的方式来比较props
+如果是类组件，可以在`componentDidUpdate`使用类似上面的方式来比较 props
 
 <br/>
 
@@ -302,7 +306,7 @@ class CounterStore {
 }
 ```
 
-Ok 有了上面的约定，现在可以在控制台(通过mobx-logger)或者 [Mobx开发者工具](https://github.com/mobxjs/mobx-devtools)中跟踪 Mobx 响应式数据的变动了。
+Ok 有了上面的约定，现在可以在控制台(通过 mobx-logger)或者 [Mobx 开发者工具](https://github.com/mobxjs/mobx-devtools)中跟踪 Mobx 响应式数据的变动了。
 
 ![](https://bobi.ink/images/10/mobx-devtool.png)
 
@@ -328,7 +332,7 @@ export const ListItem = observer(props => {
 
 Ok, 如果排除了 props 和 mobx 数据变更还会重新渲染，那么 100%是 Context 导致的，因为一旦 Context 数据变动，组件就会被强制渲染。笔者在[浅谈 React 性能优化的方向](https://juejin.im/post/5d045350f265da1b695d5bf2#heading-14)提到了 ContextAPI 的一些陷阱。先排除一下是否是这些原因导致的.
 
-现在并没有合适的跟踪 context 变动的机制，我们可以采取像上文的`useWhyDidYouUpdate`一样的方式来比对Context的值：
+现在并没有合适的跟踪 context 变动的机制，我们可以采取像上文的`useWhyDidYouUpdate`一样的方式来比对 Context 的值：
 
 ```jsx
 function useIsContextUpdate(contexts: object = {}) {
@@ -363,7 +367,51 @@ useIsContextUpdate({
 });
 ```
 
-好了行文结束，如果觉得可以就点个👍吧
+<br>
+<br>
+
+### React Devtool 的 Interactions
+
+这是 React Devtool 的一个实验性功能，Interactions 翻译为中文是‘交互’？这个东西目的其实就是为了跟踪‘什么导致了更新’，也就是我们上面说的变动检测。React希望提供一个通用的API给开发者或第三方工具，方便开发者直观地定位更新的原因:
+
+![](https://bobi.ink/images/10/interaction.png)
+
+上图表示在记录期间跟踪到了四个交互，以及交互触发的时间和耗时。因为还是一个Idea阶段，所以我们就挑选一些API代码随便看看：
+
+```jsx
+/** 跟踪状态变更 **/
+import { unstable_trace as trace } from "scheduler/tracing";
+
+class MyComponent extends Component {
+  handleLoginButtonClick = event => {
+    // 跟踪setState
+    trace("Login button click", performance.now(), () => {
+      this.setState({ isLoggingIn: true });
+    });
+  };
+
+  // render ...
+}
+
+/** 跟踪异步操作 **/
+import {
+  unstable_trace as trace,
+  unstable_wrap as wrap
+} from "scheduler/tracing";
+
+trace("Some event", performance.now(), () => {
+  setTimeout(
+    wrap(() => {
+      // Do some async work
+    })
+  );
+});
+
+/** 跟踪初始化渲染 **/
+trace("initial render", performance.now(), () => render(<Application />));
+```
+
+好了行文结束，如果觉得可以就点个 👍 吧
 
 ## 扩展
 
