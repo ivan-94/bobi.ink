@@ -238,6 +238,40 @@ TranspiledModule 已转译的模块, 真正负责模块的转译工作
 多进程转译
 流程图
 
+[worker-loader](https://github.com/webpack-contrib/worker-loader)将指定模块封装为Worker对象。让Worker更容易使用:
+
+主进程代码:
+
+```js
+// App.js
+import Worker from './file.worker.js';
+
+const worker = new Worker();
+
+worker.postMessage({ a: 1 });
+worker.onmessage = function (event) {};
+
+worker.addEventListener("message", function (event) {});
+```
+
+workder代码:
+
+```js
+// Worker.js
+const _ = require('lodash')
+
+const obj = { foo: 'foo' }
+
+_.has(obj, 'foo')
+
+// Post data to parent thread
+self.postMessage({ foo: 'foo' })
+
+// Respond to message from parent thread
+self.addEventListener('message', (event) => console.log(event))
+```
+
+
 ### Evaluation
 
 虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks(即合并成一个文件，如果没有代码分隔的话)。
