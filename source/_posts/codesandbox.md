@@ -47,9 +47,11 @@ CodeSandbox 的作者 Ives van Hoorne 也尝试过将 Webpack 移植到浏览器
 
 - Tree-shaking
 - 性能优化
+- 代码分割
 - 模式。CodeSandbox 只考虑 development 模式，不需要考虑 production
 - 文件输出
 - 服务器通信。webpack 需要和开发服务器建立一个长连接用于接收指令，例如 HMR
+- 静态文件处理(如图片), 这些图片需要上传到Codesandbox的服务器
 - 插件等等。
 
 CodeSandbox 的打包器使用了接近 Webpack Loader 的 API, 这样可以很容易地将 webpack 的一些 loader 移植过来.
@@ -274,12 +276,99 @@ self.addEventListener('message', (event) => console.log(event))
 
 ### Evaluation
 
-虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks(即合并成一个文件，如果没有代码分隔的话)。
+虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks文件. 
 
-CodeSandbox 会使用`eval`来执行入口文件。这个过程更像是 Node 环境代码执行过程。
+`Transpilation`从`入口文件`开始转译, 再分析文件的模块导入规则，递归转译依赖的模块. 到`Evaluation`阶段，CodeSandbox已经构建出了一个完整的**依赖图**. 现在要把应用跑起来
 
-执行过程
-HMR
+![](/images/08/dependency-graph.png)
+
+Evaluation的原理也比较简单，和Transpilation一样，也是从入口文件开始: 使用`eval`执行入口文件，如果执行过程中调用了`require`，则递归eval被依赖的模块。
+
+如果你了解过Node的模块导入原理，你可以很容易理解这个过程：
+
+![](/images/08/evaluation.png)
+
+- ① 首先要初始化html，找到`index.html`文件，将document.body.innerHTML设置为html模板的body内容. 
+- ② 注入外部资源。用户可以自定义一些外部静态文件，例如css和js，这些需要append到head中
+- ③ evaluate 入口模块
+- ④ 所有模块都会被转译成CommonJS模块规范。所以需要模拟这个模块环境。大概看一下代码:
+
+  ```js
+  // 实现require方法
+  function require(path: string) {
+    // ... 拦截一些特殊模块
+
+    // 在Manager对象中查找模块
+    const requiredTranspiledModule = manager.resolveTranspiledModule(
+      path,
+      localModule.path
+    );
+
+    // 模块缓存, 如果存在缓存则说明不需要重新执行
+    const cache = requiredTranspiledModule.compilation;
+  
+    return cache
+      ? cache.exports
+      // 🔴递归evaluate
+      : manager.evaluateTranspiledModule(requiredTranspiledModule, transpiledModule);
+  }
+
+  // 实现require.resolve
+  require.resolve = function resolve(path: string) {
+    return manager.resolveModule(path, localModule.path).path
+  };
+
+  // 模拟一些全局变量
+  const globals = {};
+  globals.__dirname = pathUtils.dirname(this.module.path);
+  globals.__filename = this.module.path;
+
+  // 🔴放置执行结果，即CommonJS的module对象
+  this.compilation = {
+    id: this.getId(),
+    exports: {},
+  };
+
+  // 🔴eval
+  const exports = evaluate(
+    this.source.compiledCode,
+    require,
+    this.compilation,
+    manager.envVariables,
+    globals
+  );
+  ```
+
+- ⑤ 使用eval来执行模块。同样看看代码:
+  
+  ```js
+  export default function(code, require, module, env = {}, globals = {}) {
+    const exports = module.exports;
+    const global = g;
+    const process = buildProcess(env);
+    g.global = global;
+    const allGlobals = {
+      require,
+      module,
+      exports,
+      process,
+      setImmediate: requestFrame,
+      global,
+      ...globals,
+    };
+
+    const allGlobalKeys = Object.keys(allGlobals);
+    const globalsCode = allGlobalKeys.length ? allGlobalKeys.join(', ') : '';
+    const globalsValues = allGlobalKeys.map(k => allGlobals[k]);
+    // 🔴将代码封装到一个函数下面，全局变量以函数形式传入 
+    const newCode = `(function evaluate(` + globalsCode + `) {` + code + `\n})`;
+    (0, eval)(newCode).apply(this, globalsValues);
+
+    return module.exports;
+  }
+  ```
+
+Ok！到这里Evaluation就解释完了，实际的代码比这里要复杂得多，比如HMR(hot module replacement)支持, 有兴趣的读者，可以自己去看CodeSandbox的源码.
 
 ## 技术地图
 
