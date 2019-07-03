@@ -1,6 +1,6 @@
 ---
-title: '[技术地图] CodeSandbox 如何工作? 上篇'
-date: 2019/6/10
+title: "[技术地图] CodeSandbox 如何工作? 上篇"
+date: 2019/6/20
 categories: 前端
 ---
 
@@ -9,19 +9,6 @@ categories: 前端
 相似的产品有很多，例如[`codepen`](https://codepen.io/pen)、[JSFiddle](https://jsfiddle.net)、[WebpackBin](https://webpackbin-prod.firebaseapp.com)(已废弃). Codesandbox 则更加强大，可以视作是浏览器端的 webpack 运行环境, 在 V3 版本已经支持 VsCode 模式，支持 Vscode 的插件和 Vim 模式、还有主题.
 
 而且 CodeSandbox 支持离线运行(PWA)。基本上可以接近本地 VSCode 的编程体验. 有 iPad 的同学，也可以尝试基于它来进行开发。所以快速的原型开发我一般会直接使用 CodeSandbox
-
-<!-- TOC -->
-
-- [基本架构](#基本架构)
-- [基本目录结构](#基本目录结构)
-- [项目构建](#项目构建)
-  - [Packager](#packager)
-  - [Transpilation](#transpilation)
-  - [Evaluation](#evaluation)
-- [技术地图](#技术地图)
-- [扩展](#扩展)
-
-<!-- /TOC -->
 
 ## 基本架构
 
@@ -47,9 +34,11 @@ CodeSandbox 的作者 Ives van Hoorne 也尝试过将 Webpack 移植到浏览器
 
 - Tree-shaking
 - 性能优化
+- 代码分割
 - 模式。CodeSandbox 只考虑 development 模式，不需要考虑 production
 - 文件输出
 - 服务器通信。webpack 需要和开发服务器建立一个长连接用于接收指令，例如 HMR
+- 静态文件处理(如图片), 这些图片需要上传到 Codesandbox 的服务器
 - 插件等等。
 
 CodeSandbox 的打包器使用了接近 Webpack Loader 的 API, 这样可以很容易地将 webpack 的一些 loader 移植过来.
@@ -57,14 +46,14 @@ CodeSandbox 的打包器使用了接近 Webpack Loader 的 API, 这样可以很�
 来看看 Create-react-app 的实现(查看[源码](https://github.com/codesandbox/codesandbox-client/blob/84972fd027fe36c53652c22f6775e1e6d3c51145/packages/app/src/sandbox/eval/presets/create-react-app/index.js#L1)):
 
 ```jsx
-import stylesTranspiler from '../../transpilers/style';
-import babelTranspiler from '../../transpilers/babe';
+import stylesTranspiler from "../../transpilers/style";
+import babelTranspiler from "../../transpilers/babe";
 // ...
-import sassTranspiler from '../../transpilers/sass';
+import sassTranspiler from "../../transpilers/sass";
 // ...
 const preset = new Preset(
-  'create-react-app',
-  ['web.js', 'js', 'json', 'web.jsx', 'jsx', 'ts', 'tsx'],
+  "create-react-app",
+  ["web.js", "js", "json", "web.jsx", "jsx", "ts", "tsx"],
   {
     hasDotEnv: true,
     setup: manager => {
@@ -73,14 +62,14 @@ const preset = new Preset(
       };
       preset.registerTranspiler(
         module =>
-          /\.(t|j)sx?$/.test(module.path) && !module.path.endsWith('.d.ts'),
+          /\.(t|j)sx?$/.test(module.path) && !module.path.endsWith(".d.ts"),
         [
           {
             transpiler: babelTranspiler,
-            options: babelOptions,
-          },
+            options: babelOptions
+          }
         ],
-        true,
+        true
       );
       preset.registerTranspiler(
         module => /\.svg$/.test(module.path),
@@ -88,14 +77,14 @@ const preset = new Preset(
           { transpiler: svgrTranspiler },
           {
             transpiler: babelTranspiler,
-            options: babelOptions,
-          },
+            options: babelOptions
+          }
         ],
-        true,
+        true
       );
       // ...
-    },
-  },
+    }
+  }
 );
 ```
 
@@ -115,7 +104,7 @@ CodeSandbox 的客户端是开源的，不然就没有本文了，它的基本�
   - codesandbox-browserfs: 这是一个浏览器端的‘文件系统’，模拟了 NodeJS 的文件系统 API，支持在本地或从多个后端服务中存储或获取文件.
 ```
 
-## 项目构建
+## 项目构建过程
 
 构建阶段
 
@@ -139,9 +128,11 @@ CodeSandbox 的打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所�
 
 基于这个思想, CodeSandbox 构建了自己的在线打包工具, 具体思路如下:
 
-![](流程图)
+![流程图](https://bobi.ink/images/08/packager1.png)
 
-简而言之，CodeSandbox 客户端只是简单构建一个由依赖和版本号组成的`Combination`, 再拿这个 Combination 到服务器请求。服务器会根据 Combination 来缓存打包结果，如果没有命中缓存，则进行打包. **打包首先使用`yarn`来下载所有依赖，为了剔除 npm 模块中多余的文件，服务端还遍历了所有依赖的入口文件(package.json#main), 解析 AST 中的 require 语句，递归解析被 require 模块，最终形成一个依赖图**. 也就是 Manifest 文件，它的结构大概如下:
+简而言之，CodeSandbox 客户端只是简单构建一个由依赖和版本号组成的`Combination`(标识符), 再拿这个 Combination 到服务器请求。服务器会根据 Combination 来缓存打包结果，如果没有命中缓存，则进行打包.
+
+**打包首先使用`yarn`来下载所有依赖，为了剔除 npm 模块中多余的文件，服务端还遍历了所有依赖的入口文件(package.json#main), 解析 AST 中的 require 语句，递归解析被 require 模块，最终形成一个依赖图**. 也就是 Manifest 文件，它的结构大概如下:
 
 ```js
 {
@@ -173,24 +164,31 @@ CodeSandbox 的打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所�
   }
 }
 ```
+
 Serverless 思想
 
-值得一提的是CodeSandbox的Packager后端使用了Serverless(基于AWS Lambda)，基于ServerLess的架构让Packager服务更具伸缩性，可以灵活地应付高并发的场景。使用Serverless之后Packager的响应时间显著提高，而且费用也下去了。
+值得一提的是 CodeSandbox 的 Packager 后端使用了 Serverless(基于 AWS Lambda)，基于 ServerLess 的架构让 Packager 服务更具伸缩性，可以灵活地应付高并发的场景。使用 Serverless 之后 Packager 的响应时间显著提高，而且费用也下去了。
+
+<br/>
 
 回退方案
 
-500MB limit from AWS Lambda
+AWS Lambda 有 500MB 的空间限制. 后来作者开发了新的构建器，把包管理的步骤放置到浏览器端。和上面的打包方式结合着使用。来看看它是怎么处理的:
 
-npm 依赖的模块
+![流程图](https://bobi.ink/images/08/packager2.png)
 
-- 包信息获取 https://unpkg.com/antd@3.17.0/?meta 这个会递归返回该包的所有目录信息
-- 具体文件获取 https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js
+Codesandbox 并不会将 package.json 中所有的包都下载下来，而是惰性的去加载。比如在转译入口 js 时，发现 react 这个模块没有在本地缓存模块队列中，这时候就会到远程将它下载回来，然后接着转译。
+
+也就是说，因为在转译阶段静态分析模块的依赖，所以不需要将整个模块从 npm 下载回来，节省了网络传输的成本.
+
+CodeSandbox 通过 unpkg.com 或 cdn.jsdelivr.net 来获取模块的信息的文件下载:
+
+- 获取 package.json: https://unpkg.com/react@latest/package.json
+- 包目录结构获取: https://unpkg.com/antd@3.17.0/?meta 这个会递归返回该包的所有目录信息
+- 具体文件获取: https://unpkg.com/react@16.8.6/cjs/react.production.min.js 或者 https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js
+
 - 包信息的缓存：Service worker
   Manifest 机制，和 webpack 的 DLL 差价的 Manifest 一样
-
-开源
-
-流程图
 
 <br/>
 
@@ -200,15 +198,28 @@ npm 依赖的模块
 
 ### Transpilation
 
-基本对象
+讲完 Packager 现在来看一下 Transpilation, 在这个阶段对源代码进行转译，以便可以被浏览器执行。CodeSandbox 的整个编译器是在一个单独的 iframe 中运行的：
 
-Manager 负责管理模块信息和进行转移以及求值
-Manifest 如上
-Module 模块信息, 模块信息，包含代码, 路径已经依赖模块
-TranspiledModule 已转译的模块, 真正负责模块的转译工作
+<center>
+  <img src="https://bobi.ink/images/08/editor-vs-compiler.png" />
+</center>
 
-- ModuleSource 模块源码，包含 sourcemap 和转译后的代码
-- 子模块 什么是子模块
+Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Compiler，这里面会携带 Module+template. Module 中包含所有源代码内容和其路径，其中还包含 package.json, Compiler 会根据 package.json 来读取 npm 依赖;
+
+template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定义了一些 loader 规则，来转译不同类型的文件。 这些 template 目前的预定义的.
+
+**基本对象**
+
+在详细介绍 Transpilation 之前先大概看一些基本对象，以及这些对象之间的关系：
+
+![](https://bobi.ink/images/08/baseobj.png)
+
+- Manager 这是 Sandbox 的核心对象，负责管理配置信息(Preset)、项目依赖(Manifest)、以及维护项目所有依赖的模块(TranspilerModule)
+- Manifest 通过上述的 Packager 我们知道，Manifest 维护所有依赖的 npm 模块信息
+- Preset 一个项目构建模板，例如 vue-cli、create-react-app. 配置了项目文件的转译规则。
+- Transpiler 等价于 webpack 的 loader，负责对指定类型的文件进行转译。例如 bable、typescript、pug、sass 等等
+- WorkerTranspiler 这是 Transpiler 的子类，使用一个多个 Worker 来执行转译任务，从而提高转译的性能
+- TranspiledModule 表示模块本身。这里面维护转译的结果、代码执行的结果、依赖的模块信息，负责具体模块的转译(调用 Transpiler)和执行
 
 依赖树的建立
 
@@ -219,14 +230,137 @@ TranspiledModule 已转译的模块, 真正负责模块的转译工作
 多进程转译
 流程图
 
+[worker-loader](https://github.com/webpack-contrib/worker-loader)将指定模块封装为 Worker 对象。让 Worker 更容易使用:
+
+主进程代码:
+
+```js
+// App.js
+import Worker from "./file.worker.js";
+
+const worker = new Worker();
+
+worker.postMessage({ a: 1 });
+worker.onmessage = function(event) {};
+
+worker.addEventListener("message", function(event) {});
+```
+
+workder 代码:
+
+```js
+// Worker.js
+const _ = require("lodash");
+
+const obj = { foo: "foo" };
+
+_.has(obj, "foo");
+
+// Post data to parent thread
+self.postMessage({ foo: "foo" });
+
+// Respond to message from parent thread
+self.addEventListener("message", event => console.log(event));
+```
+
 ### Evaluation
 
-虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks(即合并成一个文件，如果没有代码分隔的话)。
+虽然称为打包器(bundler), 但是 CodeSandbox 并不会进行打包，也就是说他不会像 Webpack 一样，将所有的模块都打包合并成 chunks 文件.
 
-CodeSandbox 会使用`eval`来执行入口文件。这个过程更像是 Node 环境代码执行过程。
+`Transpilation`从`入口文件`开始转译, 再分析文件的模块导入规则，递归转译依赖的模块. 到`Evaluation`阶段，CodeSandbox 已经构建出了一个完整的**依赖图**. 现在要把应用跑起来
 
-执行过程
-HMR
+![](https://bobi.ink/images/08/dependency-graph.png)
+
+Evaluation 的原理也比较简单，和 Transpilation 一样，也是从入口文件开始: 使用`eval`执行入口文件，如果执行过程中调用了`require`，则递归 eval 被依赖的模块。
+
+如果你了解过 Node 的模块导入原理，你可以很容易理解这个过程：
+
+![](https://bobi.ink/images/08/evaluation.png)
+
+- ① 首先要初始化 html，找到`index.html`文件，将 document.body.innerHTML 设置为 html 模板的 body 内容.
+- ② 注入外部资源。用户可以自定义一些外部静态文件，例如 css 和 js，这些需要 append 到 head 中
+- ③ evaluate 入口模块
+- ④ 所有模块都会被转译成 CommonJS 模块规范。所以需要模拟这个模块环境。大概看一下代码:
+
+  ```js
+  // 实现require方法
+  function require(path: string) {
+    // ... 拦截一些特殊模块
+
+    // 在Manager对象中查找模块
+    const requiredTranspiledModule = manager.resolveTranspiledModule(
+      path,
+      localModule.path
+    );
+
+    // 模块缓存, 如果存在缓存则说明不需要重新执行
+    const cache = requiredTranspiledModule.compilation;
+
+    return cache
+      ? cache.exports
+      : // 🔴递归evaluate
+        manager.evaluateTranspiledModule(
+          requiredTranspiledModule,
+          transpiledModule
+        );
+  }
+
+  // 实现require.resolve
+  require.resolve = function resolve(path: string) {
+    return manager.resolveModule(path, localModule.path).path;
+  };
+
+  // 模拟一些全局变量
+  const globals = {};
+  globals.__dirname = pathUtils.dirname(this.module.path);
+  globals.__filename = this.module.path;
+
+  // 🔴放置执行结果，即CommonJS的module对象
+  this.compilation = {
+    id: this.getId(),
+    exports: {}
+  };
+
+  // 🔴eval
+  const exports = evaluate(
+    this.source.compiledCode,
+    require,
+    this.compilation,
+    manager.envVariables,
+    globals
+  );
+  ```
+
+- ⑤ 使用 eval 来执行模块。同样看看代码:
+
+  ```js
+  export default function(code, require, module, env = {}, globals = {}) {
+    const exports = module.exports;
+    const global = g;
+    const process = buildProcess(env);
+    g.global = global;
+    const allGlobals = {
+      require,
+      module,
+      exports,
+      process,
+      setImmediate: requestFrame,
+      global,
+      ...globals
+    };
+
+    const allGlobalKeys = Object.keys(allGlobals);
+    const globalsCode = allGlobalKeys.length ? allGlobalKeys.join(", ") : "";
+    const globalsValues = allGlobalKeys.map(k => allGlobals[k]);
+    // 🔴将代码封装到一个函数下面，全局变量以函数形式传入
+    const newCode = `(function evaluate(` + globalsCode + `) {` + code + `\n})`;
+    (0, eval)(newCode).apply(this, globalsValues);
+
+    return module.exports;
+  }
+  ```
+
+Ok！到这里 Evaluation 就解释完了，实际的代码比这里要复杂得多，比如 HMR(hot module replacement)支持, 有兴趣的读者，可以自己去看 CodeSandbox 的源码.
 
 ## 技术地图
 
