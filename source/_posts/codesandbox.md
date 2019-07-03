@@ -228,9 +228,100 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
 ![](/images/08/compiler.png)
 
 - 配置阶段： CodeSandbox 目前只支持限定的几种应用模板，例如 vue-cli、create-react-app。不同模板之间目录结构的约定是不一样的，例如入口文件和 html 模板文件。另外文件处理的规则也不一样，比如 vue-cli 需要处理`.vue`文件。所有配置阶段会创建 Preset 对象，确定入口文件等等
-- 依赖下载阶段： 即Packager阶段，下载项目的所有依赖，生成Manifest对象
-- 变动计算阶段：根据Editor传递过来的源代码，计算新增、更新、移除的模块
+- 依赖下载阶段： 即 Packager 阶段，下载项目的所有依赖，生成 Manifest 对象
+- 变动计算阶段：根据 Editor 传递过来的源代码，计算新增、更新、移除的模块。
 - 转译阶段：真正开始转译了，首先重新转译上个阶段计算出来的需要更新的模块。接着从入口文件作为出发点，转译和构建新的依赖图。注意这里不会重新转译没有变化的模块以及其子模块
+
+具体模块的转译工具是由 TranspiledModule 驱动的：
+
+![](/images/08/transpiled-module.png)
+
+来看看大概的代码：
+
+```js
+  async transpile(manager: Manager) {
+    // 已转译
+    if (this.source)  return this
+    // 避免重复转译, 一个模块只转译一次
+    if (manager.transpileJobs[this.getId()]) return this;
+    manager.transpileJobs[this.getId()] = true;
+
+    // ...重置状态 
+
+    // 从Preset获取Transpiler列表
+    const transpilers = manager.preset.getLoaders(this.module, this.query);
+
+    for (let i = 0; i < transpilers.length; i += 1) {
+      const transpilerConfig = transpilers[i];
+      // 构建LoaderContext，见下文
+      const loaderContext = this.getLoaderContext(
+        manager,
+        transpilerConfig.options || {}
+      );
+
+      // 调用Transpiler转译源代码
+      const {
+        transpiledCode,
+        sourceMap,
+      } = await transpilerConfig.transpiler.transpile(code, loaderContext); // eslint-disable-line no-await-in-loop
+
+      if (this.errors.length) {
+        throw this.errors[0];
+      }
+    }
+
+    this.logWarnings();
+
+    const sourceEqualsCompiled = code === this.module.code;
+    const sourceURL = `//# sourceURL=${location.origin}${this.module.path}${
+      this.query ? `?${this.hash}` : ''
+    }`;
+
+    // Add the source of the file by default, this is important for source mapping
+    // errors back to their origin
+    code = `${code}\n${sourceURL}`;
+
+    this.source = new ModuleSource(
+      this.module.path,
+      code,
+      finalSourceMap,
+      sourceEqualsCompiled
+    );
+
+    if (
+      this.previousSource &&
+      this.previousSource.compiledCode !== this.source.compiledCode
+    ) {
+      // 重置模块执行结果
+      this.resetCompilation();
+    }
+
+    await Promise.all(
+      this.asyncDependencies.map(async p => {
+        try {
+          const tModule = await p;
+          this.dependencies.add(tModule);
+          tModule.initiators.add(this);
+        } catch (e) {
+          /* let this handle at evaluation */
+        }
+      })
+    );
+    this.asyncDependencies = [];
+
+    // 递归转译依赖的模块
+    await Promise.all(
+      flattenDeep([
+        ...Array.from(this.transpilationInitiators).map(t =>
+          t.transpile(manager)
+        ),
+        ...Array.from(this.dependencies).map(t => t.transpile(manager)),
+      ])
+    );
+
+    return this;
+  }
+```
 
 依赖树的建立
 
