@@ -25,7 +25,11 @@ Codesandbox 则更加强大，可以视作是浏览器端的 webpack 运行环�
     - [在线打包服务](#在线打包服务)
     - [回退方案](#回退方案)
   - [Transpilation](#transpilation)
-  - [BabelTranspiler](#babeltranspiler)
+    - [基本对象](#基本对象)
+    - [Manager](#manager)
+    - [TranspiledModule](#transpiledmodule)
+    - [Transpiler](#transpiler)
+    - [BabelTranspiler](#babeltranspiler)
   - [Evaluation](#evaluation)
 - [技术地图](#技术地图)
 - [扩展](#扩展)
@@ -277,47 +281,72 @@ CodeSandbox 通过 `unpkg.com` 或 `cdn.jsdelivr.net` 来获取模块的信息�
 
 ### Transpilation
 
-讲完 Packager 现在来看一下 Transpilation, 在这个阶段对源代码进行转译，以便可以被浏览器执行。CodeSandbox 的整个编译器是在一个单独的 iframe 中运行的：
+讲完 Packager 现在来看一下 Transpilation, 这个阶段**从应用的入口文件开始, 对源代码进行转译, 解析AST，找出下级依赖模块，然后递归转译，最终形成一个'依赖图'**:
+
+<center>
+  <img src="/images/08/transpile-dependency-graph.png" />
+</center>
+
+
+CodeSandbox 的整个转译器是在一个单独的 iframe 中运行的：
 
 <center>
   <img src="/images/08/editor-vs-compiler.png" />
 </center>
 
-Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Compiler，这里面会携带 Module+template. Module 中包含所有源代码内容和其路径，其中还包含 package.json, Compiler 会根据 package.json 来读取 npm 依赖;
+Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Compiler，这里面会携带 `Module+template`
 
-template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定义了一些 loader 规则，来转译不同类型的文件。 这些 template 目前的预定义的.
-
-**基本对象**
-
-在详细介绍 Transpilation 之前先大概看一些基本对象，以及这些对象之间的关系：
-
-![](/images/08/baseobj.png)
-
-- Manager 这是 Sandbox 的核心对象，负责管理配置信息(Preset)、项目依赖(Manifest)、以及维护项目所有依赖的模块(TranspilerModule)
-- Manifest 通过上述的 Packager 我们知道，Manifest 维护所有依赖的 npm 模块信息
-- Preset 一个项目构建模板，例如 vue-cli、create-react-app. 配置了项目文件的转译规则。
-- Transpiler 等价于 webpack 的 loader，负责对指定类型的文件进行转译。例如 bable、typescript、pug、sass 等等
-- WorkerTranspiler 这是 Transpiler 的子类，使用一个多个 Worker 来执行转译任务，从而提高转译的性能
-- TranspiledModule 表示模块本身。这里面维护转译的结果、代码执行的结果、依赖的模块信息，负责具体模块的转译(调用 Transpiler)和执行
+- **Module** 中包含所有源代码内容和其路径，其中还包含 package.json, Compiler 会根据 package.json 来读取 npm 依赖;
+- **template** 表示 Compiler 的 Preset，例如`create-react-app`、`vue-cli`, 定义了一些 loader 规则，用来转译不同类型的文件, 另外preset也决定了应用的模板和入口文件。 通过上文我们知道, 这些 template 目前的预定义的.
 
 <br>
 
-现在来看看整体的转译流程：
+#### 基本对象
 
-![](/images/08/compiler.png)
+在详细介绍 Transpilation 之前先大概看一些基本对象，以及这些对象之间的关系：
 
-- 配置阶段： CodeSandbox 目前只支持限定的几种应用模板，例如 vue-cli、create-react-app。不同模板之间目录结构的约定是不一样的，例如入口文件和 html 模板文件。另外文件处理的规则也不一样，比如 vue-cli 需要处理`.vue`文件。所有配置阶段会创建 Preset 对象，确定入口文件等等
-- 依赖下载阶段： 即 Packager 阶段，下载项目的所有依赖，生成 Manifest 对象
-- 变动计算阶段：根据 Editor 传递过来的源代码，计算新增、更新、移除的模块。
-- 转译阶段：真正开始转译了，首先重新转译上个阶段计算出来的需要更新的模块。接着从入口文件作为出发点，转译和构建新的依赖图。注意这里不会重新转译没有变化的模块以及其子模块
+<center>
+ <img src="/images/08/baseobj.png" />
+</center>
 
-具体模块的转译工具是由 TranspiledModule 驱动的：
+- **Manager** 这是 Sandbox 的核心对象，负责管理配置信息(Preset)、项目依赖(Manifest)、以及维护项目所有模块(TranspilerModule)
+- **Manifest** 通过上文的 Packager 我们知道，Manifest 维护所有依赖的 npm 模块信息
+- **TranspiledModule** 表示模块本身。这里面维护转译的结果、代码执行的结果、依赖的模块信息，负责驱动具体模块的转译(调用 Transpiler)和执行
+- **Preset** 一个项目构建模板，例如 `vue-cli`、`create-react-app`. 配置了项目文件的转译规则, 以及应用的目录结构(入口文件)
+- **Transpiler** 等价于 webpack 的 loader，负责对指定类型的文件进行转译。例如 bable、typescript、pug、sass 等等
+- **WorkerTranspiler** 这是 Transpiler 的子类，调度一个 Worker池来执行转译任务，从而提高转译的性能
 
-![](/images/08/transpiled-module.png)
+<br>
 
-来看看大概的代码：
+#### Manager
 
-```js
+Manager是一个管理者的角色，从大局上把控整个转译和执行的流程. 现在来看看整体的转译流程：
+
+<center>
+ <img src="/images/08/compiler.png" />
+</center>
+
+大局上基本上可以划分为以下四个阶段:
+
+- **配置阶段**：配置阶段会创建 Preset 对象，确定入口文件等等. CodeSandbox 目前只支持限定的几种应用模板，例如 vue-cli、create-react-app。不同模板之间目录结构的约定是不一样的，例如入口文件和 html 模板文件。另外文件处理的规则也不一样，比如 vue-cli 需要处理`.vue`文件。
+- **依赖下载阶段**： 即 Packager 阶段，下载项目的所有依赖，生成 Manifest 对象
+- **变动计算阶段**：根据 Editor 传递过来的源代码，计算新增、更新、移除的模块。
+- **转译阶段**：真正开始转译了，首先重新转译上个阶段计算出来的需要更新的模块。接着从入口文件作为出发点，转译和构建新的依赖图。这里不会重复转译没有变化的模块以及其子模块
+
+<br>
+<br>
+
+#### TranspiledModule
+
+TranspiledModule用于管理某个具体的模块，这里面会维护转译和运行的结果、模块的依赖信息，并驱动模块的转译和执行：
+
+<center>
+ <img src="/images/08/transpiled-module.png" />
+</center>
+
+TranspiledModule 会从Preset中获取转换当前模块的Transpiler列表的，调用Transpiler对源代码进行转译，转译的过程中会解析AST，分析模块导入语句, 收集新的依赖; 当模块转译完成后，会递归转译依赖列表。 来看看大概的代码：
+
+```ts
   async transpile(manager: Manager) {
     // 已转译
     if (this.source)  return this
@@ -327,18 +356,19 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
 
     // ...重置状态 
 
-    // 从Preset获取Transpiler列表
+    // 🔴从Preset获取Transpiler列表
     const transpilers = manager.preset.getLoaders(this.module, this.query);
 
+    // 🔴 链式调用Transpiler
     for (let i = 0; i < transpilers.length; i += 1) {
       const transpilerConfig = transpilers[i];
-      // 构建LoaderContext，见下文
+      // 🔴构建LoaderContext，见下文
       const loaderContext = this.getLoaderContext(
         manager,
         transpilerConfig.options || {}
       );
 
-      // 调用Transpiler转译源代码
+      // 🔴调用Transpiler转译源代码
       const {
         transpiledCode,
         sourceMap,
@@ -351,29 +381,7 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
 
     this.logWarnings();
 
-    const sourceEqualsCompiled = code === this.module.code;
-    const sourceURL = `//# sourceURL=${location.origin}${this.module.path}${
-      this.query ? `?${this.hash}` : ''
-    }`;
-
-    // Add the source of the file by default, this is important for source mapping
-    // errors back to their origin
-    code = `${code}\n${sourceURL}`;
-
-    this.source = new ModuleSource(
-      this.module.path,
-      code,
-      finalSourceMap,
-      sourceEqualsCompiled
-    );
-
-    if (
-      this.previousSource &&
-      this.previousSource.compiledCode !== this.source.compiledCode
-    ) {
-      // 重置模块执行结果
-      this.resetCompilation();
-    }
+    // ...
 
     await Promise.all(
       this.asyncDependencies.map(async p => {
@@ -388,7 +396,7 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
     );
     this.asyncDependencies = [];
 
-    // 递归转译依赖的模块
+    // 🔴递归转译依赖的模块
     await Promise.all(
       flattenDeep([
         ...Array.from(this.transpilationInitiators).map(t =>
@@ -402,9 +410,12 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
   }
 ```
 
-TranspiledModule 会从Preset中获取转换当前模块的Transpiler列表的，调用Transpiler对源代码进行转译，转译的过程中会收集新的依赖，当模块转译完成后，递归转译依赖列表。
+<br>
+<br>
 
-Transpiler等价于webpack的loader，配置以及基本API也和webpack(查看[webpack的loader API](https://webpack.docschina.org/api/loaders/))大概保持一致，比如链式传递. 来看一下Transpiler的基本定义：
+#### Transpiler
+
+Transpiler等价于webpack的loader，它配置方式以及基本API也和webpack(查看[webpack的loader API](https://webpack.docschina.org/api/loaders/))大概保持一致，比如链式转译和loader-context. 来看一下Transpiler的基本定义：
 
 ```ts
 export default abstract class Transpiler {
@@ -432,10 +443,12 @@ export default abstract class Transpiler {
 }
 ```
 
+<br>
+
 Transpiler的接口很简单，`transpile`接受两个参数: 
 
 - `code`即源代码.
-- `loaderContext` 可以用来访问一下上下文信息，比如Transpiler的配置， 模块查找，注册依赖等等。大概外形如下:
+- `loaderContext` 由TranspiledModule提供, 可以用来访问一下转译上下文信息，比如Transpiler的配置、 模块查找、注册依赖等等。大概外形如下:
   
   ```ts
   export type LoaderContext = {
@@ -463,6 +476,9 @@ Transpiler的接口很简单，`transpile`接受两个参数:
   };
   ```
 
+<br>
+<br>
+
 先从简单的开始，来看看JSON模块的Transpiler实现：
 
 ```ts
@@ -479,15 +495,17 @@ class JSONTranspiler extends Transpiler {
 }
 ```
 
-为了提高转译的效率，Codesandbox利用Worker来进行多进程转译，多Worker的调度工作由`WorkerTranspiler`完成，这是Transpiler的子类，维护了一个Worker池。Babel、Typescript、Sass这类复杂的转译任务都是使用多进程的：
+#### BabelTranspiler
 
-![](/images/08/transpiler.png)
+并不是所有模块都像JSON这么简单，比如Typescript和Babel。 为了提高转译的效率，Codesandbox会利用Worker来进行多进程转译，多Worker的调度工作由`WorkerTranspiler`完成，这是Transpiler的子类，维护了一个Worker池。Babel、Typescript、Sass这类复杂的转译任务都是使用多进程的：
+
+<center>
+ <img src="/images/08/transpiler.png"/>
+</center>
 
 <br>
 
-### BabelTranspiler
-
-其中比较典型的实现是BabelTranspiler, 在Sandbox启动时就会预先马上fork三个worker，来提高启动的速度, WorkerTranspiler会优先使用这三个worker来初始化Worker池：
+其中比较典型的实现是BabelTranspiler, 在Sandbox启动时就会预先fork三个worker，来提高转译启动的速度, BabelTranspiler会优先使用这三个worker来初始化Worker池：
 
 ```ts
 // 使用worker-loader fork三个loader，用于处理babel编译
@@ -498,6 +516,8 @@ for (let i = 0; i < 3; i++) {
   window.babelworkers.push(new BabelWorker());
 }
 ```
+
+<br>
 
 这里面使用到了webpack的[worker-loader](https://github.com/webpack-contrib/worker-loader), 将指定模块封装为 Worker 对象。让 Worker 更容易使用:
 
@@ -532,13 +552,23 @@ self.postMessage({ foo: "foo" });
 self.addEventListener("message", event => console.log(event));
 ```
 
-具体的流程如下:
+<br>
 
-![](/images/08/babel-transpiler.png)
+BabelTranpiler具体的流程如下:
+
+<center>
+<img src="/images/08/babel-transpiler.png" />
+</center>
 
 WorkerTranspiler会维护`空闲的Worker队列`和一个`任务队列`, 它的工作就是驱动Worker来消费任务队列。具体的转译工作在Worker中进行：
 
-![](/images/08/babel-worker.png)
+<center>
+<img src="/images/08/babel-worker.png" />
+</center>
+
+<br>
+
+---
 
 <br>
 
