@@ -6,44 +6,76 @@ categories: 前端
 
 这期来关注一下[`Codesandbox`](https://codesandbox.io), 这是一个浏览器端的沙盒运行环境，支持多种流行的构建模板，例如 create-react-app, vue-cli。 可以用于快速原型开发、DEMO 展示、Bug 还原等等.
 
-相似的产品有很多，例如[`codepen`](https://codepen.io/pen)、[JSFiddle](https://jsfiddle.net)、[WebpackBin](https://webpackbin-prod.firebaseapp.com)(已废弃). Codesandbox 则更加强大，可以视作是浏览器端的 webpack 运行环境, 在 V3 版本已经支持 VsCode 模式，支持 Vscode 的插件和 Vim 模式、还有主题.
+相似的产品有很多，例如[`codepen`](https://codepen.io/pen)、[JSFiddle](https://jsfiddle.net)、[WebpackBin](https://webpackbin-prod.firebaseapp.com)(已废弃). 
 
+Codesandbox 则更加强大，可以视作是浏览器端的 webpack 运行环境, 在 V3 版本已经支持 VsCode 模式，支持 Vscode 的插件和 Vim 模式、还有主题. 
 而且 CodeSandbox 支持离线运行(PWA)。基本上可以接近本地 VSCode 的编程体验. 有 iPad 的同学，也可以尝试基于它来进行开发。所以快速的原型开发我一般会直接使用 CodeSandbox
 
-## 基本架构
+<br>
 
-![](/images/08/codesandbox.png)
+**目录**
 
-笔者对 CodeSandbox 的第一印象是这玩意是运行在服务器的吧？比如 create-react-app 要运行起来需要 node 环境，需要通过 npm 安装一大堆依赖，然后通过 webpack 进行打包，还要运行一个开发服务器才能在浏览器跑起来.
+<!-- TOC -->
 
-实际上 CodeSandbox 打包和运行并不依赖于服务器, 它是完全在浏览器进行的. 大概的结构如下:
+- [引](#引)
+- [基本目录结构](#基本目录结构)
+- [项目构建过程](#项目构建过程)
+  - [Packager](#packager)
+    - [WebpackDllPlugin](#webpackdllplugin)
+    - [在线打包服务](#在线打包服务)
+    - [回退方案](#回退方案)
+  - [Transpilation](#transpilation)
+  - [BabelTranspiler](#babeltranspiler)
+  - [Evaluation](#evaluation)
+- [技术地图](#技术地图)
+- [扩展](#扩展)
+
+<!-- /TOC -->
+
+<br>
+<br>
+
+
+## 引
 
 <center>
- <img src="/images/08/codesandbox-arch.png" width="400" />
+  <img src="/images/08/codesandbox.png" width="800" />
 </center>
 
-- **Editor** 编辑器。主要用于修改文件，这里集成了 Vscode, 文件变动后会通知 Preview 进行编译. 计划下一篇文章会介绍这一块.
-- **Preview** 运行结果展示。**Preview 在一个单独的 iframe 中运行, 负责代码的转译(Transpiler)和运行(Evalation)**
-- **Packager** 包管理器。负责拉取和缓存 npm 依赖
+<br>
 
-CodeSandbox 的作者 Ives van Hoorne 也尝试过将 Webpack 移植到浏览器上运行，因为现在几乎所有的 CLI 都是使用 webpack 进行构建的，如果能将 webpack 移植到浏览器上, 可以利用 Webpack 强大的生态环境和转译机制(loader/plugin)，也可以低成本兼容各种 CLI.
+笔者对 CodeSandbox 的第一印象是这玩意是运行在服务器的吧？ 比如 `create-react-app` 要运行起来需要 node 环境，需要通过 npm 安装一大堆依赖，然后通过 webpack 进行打包，然后运行一个开发服务器才能在浏览器跑起来.
 
-然而 Webpack 太重了，压缩过后的大小就得 3.5MB，这还算勉强可以接受，但是要在浏览器端模拟 Node 运行环境，这个成本太高了，得不偿失。
+**实际上 CodeSandbox 打包和运行并不依赖于服务器, 它是完全在浏览器进行的**. 大概的结构如下:
 
-所以 CodeSandbox 决定自己造个打包器，这个打包器更轻量，并且针对 CodeSandbox 平台进行优化, 比如 CodeSandbox 只关心开发环境的代码构建, 跟 Webpack 相比裁剪掉了以下特性:
+<center>
+ <img src="/images/08/codesandbox-arch.png" width="600" />
+</center>
+
+- **Editor**: 编辑器。主要用于修改文件，CodeSandbox这里集成了 `VsCode`, 文件变动后会通知 `Sandbox` 进行转译. 计划会有文章专门介绍CodeSandbox的编辑器实现
+- **Sandbox**: 代码运行器。**Sandbox 在一个单独的 iframe 中运行, 负责代码的转译(Transpiler)和运行(Evalation)**
+- **Packager** 包管理器。类似于yarn和npm，负责拉取和缓存 npm 依赖
+
+<br>
+
+CodeSandbox 的作者 [Ives van Hoorne](https://twitter.com/CompuIves) 也尝试过将 `Webpack` 移植到浏览器上运行，因为现在几乎所有的 CLI 都是使用 webpack 进行构建的，如果能将 webpack 移植到浏览器上, 可以利用 Webpack 强大的生态系统和转译机制(loader/plugin)，低成本兼容各种 CLI.
+
+然而 Webpack 太重了😱，压缩过后的大小就得 3.5MB，这还算勉强可以接受吧；更大的问题是要在浏览器端模拟 Node 运行环境，这个成本太高了，得不偿失。
+
+所以 CodeSandbox 决定自己造个打包器，这个打包器更轻量，并且针对 CodeSandbox 平台进行优化. 比如 CodeSandbox 只关心开发环境的代码构建, 目标就是能跑起来就行了, 跟 Webpack 相比裁剪掉了以下特性:
 
 - Tree-shaking
 - 性能优化
 - 代码分割
-- 模式。CodeSandbox 只考虑 development 模式，不需要考虑 production
-- 文件输出
-- 服务器通信。webpack 需要和开发服务器建立一个长连接用于接收指令，例如 HMR
-- 静态文件处理(如图片), 这些图片需要上传到 Codesandbox 的服务器
-- 插件等等。
+- 生产模式。CodeSandbox 只考虑 development 模式，不需要考虑 production一些特性，比如代码压缩，优化
+- 文件输出. 不需要打包成chunk
+- 服务器通信。webpack 需要和开发服务器建立一个长连接用于接收指令，例如 HMR. 而Sandbox直接原地转译和运行
+- 静态文件处理(如图片). 这些图片需要上传到 Codesandbox 的服务器
+- 插件机制等等。
 
-CodeSandbox 的打包器使用了接近 Webpack Loader 的 API, 这样可以很容易地将 webpack 的一些 loader 移植过来.
+所以可以认为CodeSandbox是一个简化版的Webpack. 针对浏览器环境进行了优化，比如使用worker来进行并行转译.
 
-来看看 Create-react-app 的实现(查看[源码](https://github.com/codesandbox/codesandbox-client/blob/84972fd027fe36c53652c22f6775e1e6d3c51145/packages/app/src/sandbox/eval/presets/create-react-app/index.js#L1)):
+CodeSandbox 的打包器使用了接近 `Webpack Loader` 的 API, 这样可以很容易地将 webpack 的一些 loader 移植过来. 举个例子，下面是 `create-react-app` 的实现(查看[源码](https://github.com/codesandbox/codesandbox-client/blob/84972fd027fe36c53652c22f6775e1e6d3c51145/packages/app/src/sandbox/eval/presets/create-react-app/index.js#L1)):
 
 ```jsx
 import stylesTranspiler from "../../transpilers/style";
@@ -51,6 +83,7 @@ import babelTranspiler from "../../transpilers/babe";
 // ...
 import sassTranspiler from "../../transpilers/sass";
 // ...
+
 const preset = new Preset(
   "create-react-app",
   ["web.js", "js", "json", "web.jsx", "jsx", "ts", "tsx"],
@@ -88,51 +121,92 @@ const preset = new Preset(
 );
 ```
 
-因此，目前你使用 CodeSandbox 内置的 Preset, 不支持像 webpack 一样进行配置, 个人觉得这个是符合 CodeSandbox 定位的，这是一个快速的原型开发工具，你还折腾 webpack 干嘛？
+可以看出, CodeSandbox的preset和webpack的配置长的差不多. **不过, 目前你只能使用 CodeSandbox 预定义的 Preset, 不支持像 webpack 一样进行配置, 个人觉得这个是符合 CodeSandbox 定位的，这是一个快速的原型开发工具，你还折腾 webpack 干嘛？**
+
+目前支持这些Preset:
+
+<center>
+ <img src="/images/08/presets.png" width="600" />
+</center>
+
+<br>
+
+---
+
+<br>
 
 ## 基本目录结构
 
 CodeSandbox 的客户端是开源的，不然就没有本文了，它的基本目录结构如下:
 
-```shell
-- packages
-  - app CodeSandbox应用
-    - app 包含编辑器
-    - embed 网页内嵌运行 codesandbox
-    - sandbox 运行沙盒，在这里执行代码构建和预览，相当于一个缩略版的 webpack. 运行在单独的 iframe 中
-  - codesandbox-api: 封装了统一的协议，用于 sandbox 和 editor 之间通信(基于postmessage)
-  - codesandbox-browserfs: 这是一个浏览器端的‘文件系统’，模拟了 NodeJS 的文件系统 API，支持在本地或从多个后端服务中存储或获取文件.
-```
+- **packages**
+  - **app** CodeSandbox应用
+    - **app** 编辑器实现
+    - **embed** 网页内嵌运行 codesandbox
+    - **sandbox** 运行沙盒，在这里执行代码构建和预览，相当于一个缩略版的 webpack. 运行在单独的 iframe 中
+  - **common** 放置通用的组件、工具方法、资源
+  - **codesandbox-api**: 封装了统一的协议，用于 sandbox 和 editor 之间通信(基于postmessage)
+  - **codesandbox-browserfs**: 这是一个浏览器端的‘文件系统’，模拟了 NodeJS 的文件系统 API，支持在本地或从多个后端服务中存储或获取文件.
+  - **react-sandpack**: codesandbox公开的SDK，可以用于自定义自己的codesandbox
+
+[源码在这](https://github.com/codesandbox/codesandbox-client)
+
+<br>
+
+---
+
+<br>
 
 ## 项目构建过程
 
-构建阶段
-
 `packager -> transpilation -> evaluation`
 
-CodeSandbox 构建分为三个阶段:
+Sandbox 构建分为三个阶段:
 
-- packager 包加载阶段，下载和处理所有模块依赖
-- transpilation 转译阶段，转译所有变动的代码
-- evaluation 执行阶段，使用 eval 执行模块代码进行预览
+- **Packager** 包加载阶段，下载和处理所有npm模块依赖
+- **Transpilation** 转译阶段，转译所有变动的代码
+- **Evaluation** 执行阶段，使用 `eval` 执行模块代码进行预览
 
 下面会按照上述的步骤来描述其中的技术点
 
+<br>
+<br>
+
 ### Packager
 
-尽管 npm 是个'黑洞'，我们还是离不开它。 目前端项目的 node_modules 体积大，80%是各种开发依赖组成的. 由于 CodeSandbox 包揽了代码构建的部分，所以我们不需要`devDependencies`, 也就是说 CodeSandbox 中我们只需要按照所有实际代码需要的依赖，这可以减少成百上千的依赖下载. 所以暂且可以不用担心浏览器会扛不住.
+尽管 npm 是个'黑洞'，我们还是离不开它。 其实大概分析一下前端项目的 `node_modules`，80%是各种开发依赖组成的. 由于 CodeSandbox 已经包揽了代码构建的部分，所以我们并不需要`devDependencies`, 也就是说 **在CodeSandbox 中我们只需要安装所有实际代码运行需要的依赖，这可以减少成百上千的依赖下载. 所以暂且不用担心浏览器会扛不住**.
 
-CodeSandbox 的打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所有依赖都打包到一个文件中，并创建一个 `manifest` 文件(如下图), webpack 运行时可以根据 manifest 中的模块索引(例如`__webpack_require__('../node_modules/react/index.js')`)来加载 dll 中的模块。
+<br>
 
-![](/images/08/webpack-dll-manifest.png)
+#### WebpackDllPlugin
 
-基于这个思想, CodeSandbox 构建了自己的在线打包工具, 具体思路如下:
+CodeSandbox 的依赖打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所有依赖都打包到一个`dll`文件中，并创建一个 `manifest` 文件(如下图). Webpack 转译时或者 运行时可以根据 manifest 中的模块索引(例如`__webpack_require__('../node_modules/react/index.js')`)来加载 dll 中的模块。
 
-![流程图](/images/08/packager1.png)
+`WebpackDllPlugin`在运行或转译之前预先对依赖的进行转译，这样可以提高构建的速度，因为不需要对这些依赖进行重复转译:
 
-简而言之，CodeSandbox 客户端只是简单构建一个由依赖和版本号组成的`Combination`(标识符), 再拿这个 Combination 到服务器请求。服务器会根据 Combination 来缓存打包结果，如果没有命中缓存，则进行打包.
+<center>
+  <img src="/images/08/dll.png" width="600" />
+</center>
 
-**打包首先使用`yarn`来下载所有依赖，为了剔除 npm 模块中多余的文件，服务端还遍历了所有依赖的入口文件(package.json#main), 解析 AST 中的 require 语句，递归解析被 require 模块，最终形成一个依赖图**. 也就是 Manifest 文件，它的结构大概如下:
+manifest文件
+
+<center>
+  <img src="/images/08/webpack-dll-manifest.png" width="600" />
+</center>
+
+<br>
+
+#### 在线打包服务
+
+基于这个思想, CodeSandbox 构建了自己的在线打包服务, 和WebpackDllPlugin不一样的是，CodeSandbox在服务端构建Manifest文件。 具体思路如下:
+
+<center>
+ <img src="/images/08/packager1.png" width="800" />
+</center>
+
+简而言之，CodeSandbox 客户端拿到`package.json`之后，将`dependencies`转换为一个由依赖和版本号组成的`Combination`(标识符, 例如`v1/combinations/babel-runtime@7.3.1&csbbust@1.0.0&react@16.8.4&react-dom@16.8.4&react-router@5.0.1&react-router-dom@5.0.1&react-split-pane@0.1.87.json`), 再拿这个 Combination 到服务器请求。服务器会根据 Combination 作为缓存键来缓存打包结果，如果没有命中缓存，则进行打包.
+
+**打包实际上还是使用`yarn`来下载所有依赖，为了剔除 npm 模块中多余的文件，服务端还遍历了所有依赖的入口文件(package.json#main), 解析 AST 中的 require 语句，递归解析被 require 模块. 最终形成一个依赖图, 只保留必要的文件**. 最终输出 Manifest 文件，它的结构大概如下:
 
 ```js
 {
@@ -165,30 +239,35 @@ CodeSandbox 的打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会将所�
 }
 ```
 
-Serverless 思想
+<br>
 
-值得一提的是 CodeSandbox 的 Packager 后端使用了 Serverless(基于 AWS Lambda)，基于 ServerLess 的架构让 Packager 服务更具伸缩性，可以灵活地应付高并发的场景。使用 Serverless 之后 Packager 的响应时间显著提高，而且费用也下去了。
+> **Serverless 思想**
+> <br>
+> 值得一提的是 CodeSandbox 的 Packager 后端使用了 Serverless(基于 AWS Lambda)，基于 Serverless 的架构让 Packager 服务更具伸缩性，可以灵活地应付高并发的场景。使用 Serverless 之后 Packager 的响应时间显著提高，而且费用也下去了。
+
+> Packager 也是开源的, [围观](https://github.com/codesandbox/dependency-packager)
 
 <br/>
 
-回退方案
+#### 回退方案
 
-AWS Lambda 有 500MB 的空间限制. 后来作者开发了新的构建器，把包管理的步骤放置到浏览器端。和上面的打包方式结合着使用。来看看它是怎么处理的:
+AWS Lambda函数是有某些限制的, 比如`/tmp`最多只能有 500MB 的空间. 尽管大部分依赖打包不会超过这个限额, 为了增强可靠性, Packager还有回退方案.
 
-![流程图](/images/08/packager2.png)
+后来CodeSanbox作者开发了新的Sandbox，支持把包管理的步骤放置到浏览器端, 和上面的打包方式结合着使用。原理也比较简单: **在转译一个模块时，如果发现模块依赖的npm模块未找到，则惰性从远程下载回来**. 来看看它是怎么处理的:
+
+<center>
+ <img src="/images/08/packager2.png" width="900" />
+</center>
 
 Codesandbox 并不会将 package.json 中所有的包都下载下来，而是惰性的去加载。比如在转译入口 js 时，发现 react 这个模块没有在本地缓存模块队列中，这时候就会到远程将它下载回来，然后接着转译。
 
-也就是说，因为在转译阶段静态分析模块的依赖，所以不需要将整个模块从 npm 下载回来，节省了网络传输的成本.
+也就是说，因为在转译阶段会静态分析模块的依赖，只需要将真正依赖的文件下载回来，而不需要将整个npm包下载回来，节省了网络传输的成本.
 
-CodeSandbox 通过 unpkg.com 或 cdn.jsdelivr.net 来获取模块的信息的文件下载:
+CodeSandbox 通过 `unpkg.com` 或 `cdn.jsdelivr.net` 来获取模块的信息以及下载文件, 例如
 
-- 获取 package.json: https://unpkg.com/react@latest/package.json
-- 包目录结构获取: https://unpkg.com/antd@3.17.0/?meta 这个会递归返回该包的所有目录信息
-- 具体文件获取: https://unpkg.com/react@16.8.6/cjs/react.production.min.js 或者 https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js
-
-- 包信息的缓存：Service worker
-  Manifest 机制，和 webpack 的 DLL 差价的 Manifest 一样
+- 获取 package.json: `https://unpkg.com/react@latest/package.json`
+- 包目录结构获取: `https://unpkg.com/antd@3.17.0/?meta` 这个会递归返回该包的所有目录信息
+- 具体文件下载: `https://unpkg.com/react@16.8.6/cjs/react.production.min.js` 或者 `https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js`
 
 <br/>
 
