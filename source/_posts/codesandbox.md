@@ -323,16 +323,104 @@ template 表示 Compiler 的 preset，例如`create-react-app`、`vue-cli`, 定�
   }
 ```
 
-依赖树的建立
+TranspiledModule 会从Preset中获取转换当前模块的Transpiler列表的，调用Transpiler对源代码进行转译，转译的过程中会收集新的依赖，当模块转译完成后，递归转译依赖列表。
 
-父子关系，比如一个模块 A 被模块 B 依赖，那么 B 就是 A 的 parent
+Transpiler等价于webpack的loader，配置以及基本API也和webpack(查看[webpack的loader API](https://webpack.docschina.org/api/loaders/))大概保持一致，比如链式传递. 来看一下Transpiler的基本定义：
 
-静态资源处理
-代码分隔
-多进程转译
-流程图
+```ts
+export default abstract class Transpiler {
+  initialize() {}
 
-[worker-loader](https://github.com/webpack-contrib/worker-loader)将指定模块封装为 Worker 对象。让 Worker 更容易使用:
+  dispose() {}
+
+  cleanModule(loaderContext: LoaderContext) {}
+
+  // 🔴 代码转换
+  transpile(
+    code: string,
+    loaderContext: LoaderContext
+  ): Promise<TranspilerResult> {
+    return this.doTranspilation(code, loaderContext);
+  }
+
+  // 🔴 抽象方法，由具体子类实现
+  abstract doTranspilation(
+    code: string,
+    loaderContext: LoaderContext
+  ): Promise<TranspilerResult>;
+
+  // ...
+}
+```
+
+Transpiler的接口很简单，`transpile`接受两个参数: 
+
+- `code`即源代码.
+- `loaderContext` 可以用来访问一下上下文信息，比如Transpiler的配置， 模块查找，注册依赖等等。大概外形如下:
+  
+  ```ts
+  export type LoaderContext = {
+    // 🔴 信息报告
+    emitWarning: (warning: WarningStructure) => void;
+    emitError: (error: Error) => void;
+    emitModule: (title: string, code: string, currentPath?: string, overwrite?: boolean, isChild?: boolean) => TranspiledModule;
+    emitFile: (name: string, content: string, sourceMap: SourceMap) => void;
+    // 🔴 配置信息
+    options: {
+      context: string;
+      config?: object;
+      [key: string]: any;
+    };
+    sourceMap: boolean;
+    target: string;
+    path: string;
+    addTranspilationDependency: (depPath: string, options?: { isAbsolute?: boolean; isEntry?: boolean; }) => void;
+    resolveTranspiledModule: ( depPath: string, options?: { isAbsolute?: boolean; ignoredExtensions?: Array<string>; }) => TranspiledModule;
+    resolveTranspiledModuleAsync: ( depPath: string, options?: { isAbsolute?: boolean; ignoredExtensions?: Array<string>; }) => Promise<TranspiledModule>;
+     // 🔴 依赖收集
+    addDependency: ( depPath: string, options?: { isAbsolute?: boolean; isEntry?: boolean; }) => void;
+    addDependenciesInDirectory: ( depPath: string, options?: { isAbsolute?: boolean; isEntry?: boolean; }) => void;
+    _module: TranspiledModule;
+  };
+  ```
+
+先从简单的开始，来看看JSON模块的Transpiler实现：
+
+```ts
+class JSONTranspiler extends Transpiler {
+  doTranspilation(code: string) {
+    const result = `
+      module.exports = JSON.parse(${JSON.stringify(code || '')})
+    `;
+
+    return Promise.resolve({
+      transpiledCode: result,
+    });
+  }
+}
+```
+
+为了提高转译的效率，Codesandbox利用Worker来进行多进程转译，多Worker的调度工作由`WorkerTranspiler`完成，这是Transpiler的子类，维护了一个Worker池。Babel、Typescript、Sass这类复杂的转译任务都是使用多进程的：
+
+![](/images/08/transpiler.png)
+
+<br>
+
+### BabelTranspiler
+
+其中比较典型的实现是BabelTranspiler, 在Sandbox启动时就会预先马上fork三个worker，来提高启动的速度, WorkerTranspiler会优先使用这三个worker来初始化Worker池：
+
+```ts
+// 使用worker-loader fork三个loader，用于处理babel编译
+import BabelWorker from 'worker-loader?publicPath=/&name=babel-transpiler.[hash:8].worker.js!./eval/transpilers/babel/worker/index.js';
+
+window.babelworkers = [];
+for (let i = 0; i < 3; i++) {
+  window.babelworkers.push(new BabelWorker());
+}
+```
+
+这里面使用到了webpack的[worker-loader](https://github.com/webpack-contrib/worker-loader), 将指定模块封装为 Worker 对象。让 Worker 更容易使用:
 
 主进程代码:
 
@@ -364,6 +452,16 @@ self.postMessage({ foo: "foo" });
 // Respond to message from parent thread
 self.addEventListener("message", event => console.log(event));
 ```
+
+具体的流程如下:
+
+![](/images/08/babel-transpiler.png)
+
+WorkerTranspiler会维护`空闲的Worker队列`和一个`任务队列`, 它的工作就是驱动Worker来消费任务队列。具体的转译工作在Worker中进行：
+
+![](/images/08/babel-worker.png)
+
+<br>
 
 ### Evaluation
 
