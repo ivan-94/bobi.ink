@@ -671,7 +671,21 @@ Evaluation 的原理也比较简单，和 Transpilation 一样，也是从入口
 
 Ok！到这里 Evaluation 就解释完了，实际的代码比这里要复杂得多，比如 HMR(hot module replacement)支持, 有兴趣的读者，可以自己去看 CodeSandbox 的源码.
 
+<br>
+
+----
+
+<br>
+
 ## 技术地图
+
+一不小心又写了一篇长文，按照以往的经验，这又是一篇无人问津的文章, 后面还是尽量避免吧。
+
+- worker-loader: 将指定模块封装为Worker
+- babel: JavaScript代码转译，支持ES, Flow, Typescript
+- browserfs: 在浏览器中模拟Node环境
+- localForage: 客户端存储库，优先使用(IndexedDB or WebSQL)这些异步存储方案，提供类LocalStorage的接口
+- lru-cache: least-recently-used缓存
 
 ## 扩展
 
