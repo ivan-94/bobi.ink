@@ -28,11 +28,11 @@ Javascript 的类型检查器主要有[Typescript](https://www.typescriptlang.or
 
 > React 组件类型检查依赖于`@types/react`和`@types/react-dom`
 
-> 直接上手使用试用 <br/> [![Edit typescript-react-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/5vx5wwmkvx?fontsize=14)
+> 直接上手使用试用 <br> [![Edit typescript-react-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/5vx5wwmkvx?fontsize=14)
 
 **目录**
 
-<!-- TOC -->
+
 
 - [系列引言](#系列引言)
 - [类型检查](#类型检查)
@@ -64,23 +64,23 @@ Javascript 的类型检查器主要有[Typescript](https://www.typescriptlang.or
     - [9️⃣ **开启 strict 模式**](#9️⃣-开启-strict-模式)
   - [扩展资料](#扩展资料)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 1. 函数组件
 
 React Hooks 出现后, 函数组件有了更多出镜率. 由于函数组件只是普通函数, 它非常容易进行类型声明
 
-<br/>
+<br>
 
 #### 1️⃣ **使用`ComponentNameProps` 形式命名 Props 类型, 并导出**
 
-<br/>
+<br>
 
 #### 2️⃣ **优先使用`FC`类型来声明函数组件**
 
@@ -117,7 +117,7 @@ export function MyComponent(props: MyComponentProps) {
 }
 ```
 
-<br/>
+<br>
 
 #### 3️⃣ **不要直接使用`export default`导出组件**.
 
@@ -137,7 +137,7 @@ export default function Foo(props: {}) {
 }
 ```
 
-<br/>
+<br>
 
 #### 4️⃣ **默认 props 声明**
 
@@ -197,7 +197,7 @@ Hello.defaultProps = { name: 'TJ' };
 Hello.defaultProps = { name: 'TJ' } as Partial<HelloProps>;
 ```
 
-<br/>
+<br>
 
 #### 5️⃣ **泛型函数组件**
 
@@ -229,7 +229,7 @@ function Test() {
 }
 ```
 
-<br/>
+<br>
 
 #### 6️⃣ **子组件声明**
 
@@ -262,7 +262,7 @@ Layout.Footer = (props: PropsWithChildren<LayoutFooterProps>) => {
 </Layout>;
 ```
 
-<br/>
+<br>
 
 #### 7️⃣ **Forwarding Refs**
 
@@ -323,11 +323,11 @@ const Test: FC<{}> = props => {
 };
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2. 类组件
 
@@ -411,13 +411,13 @@ export class Counter extends React.Component<CounterProps, State> {
 }
 ```
 
-<br/>
+<br>
 
 #### 2️⃣ **使用`static defaultProps`定义默认 props**
 
 Typescript [3.0](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#support-for-defaultprops-in-jsx)开始支持对使用 defaultProps 对 JSX props 进行推断, 在 defaultProps 中定义的 props 可以不需要'?'可选操作符修饰. 代码如上 👆
 
-<br/>
+<br>
 
 #### 3️⃣ **子组件声明**
 
@@ -434,7 +434,7 @@ export class Layout extends React.Component<LayoutProps> {
 }
 ```
 
-<br/>
+<br>
 
 #### 4️⃣ **泛型**
 
@@ -444,11 +444,11 @@ export class List<T> extends React.Component<ListProps<T>> {
 }
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3. 高阶组件
 
@@ -541,11 +541,11 @@ export const withTheme: HOC<ThemeProps> = Component => props => {
   - 无法推断 ref 引用组件的类型, 需要显式声明.
 - 高阶组件类型报错很难理解
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 4. Render Props
 
@@ -571,11 +571,11 @@ export const ThemeConsumer = (props: ThemeConsumerProps) => {
 </ThemeConsumer>;
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 5. Context
 
@@ -627,11 +627,11 @@ export function useTheme() {
 }
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 6. 杂项
 
@@ -650,7 +650,7 @@ export const EventDemo: FC<{}> = props => {
 };
 ```
 
-<br/>
+<br>
 
 #### 2️⃣ **内置事件处理器的类型**
 
@@ -691,7 +691,7 @@ export const EventDemo: FC<{}> = props => {
 };
 ```
 
-<br/>
+<br>
 
 #### 3️⃣ **自定义组件暴露事件处理器类型**
 
@@ -723,7 +723,7 @@ export const Upload: FC<UploadProps> = props => {
 };
 ```
 
-<br/>
+<br>
 
 #### 4️⃣ **获取原生元素 props 定义**
 
@@ -762,13 +762,13 @@ const Test = () => {
 };
 ```
 
-<br/>
+<br>
 
 #### 5️⃣ **不要使用 PropTypes**
 
 有了 Typescript 之后可以安全地约束 Props 和 State, 没有必要引入 React.PropTypes, 而且它的表达能力比较弱
 
-<br/>
+<br>
 
 #### 6️⃣ **styled-components**
 
@@ -790,7 +790,7 @@ const NewHeader = styled(Header)<{ customColor: string }>`
 
 了解更多[styled-components 和 Typescript](https://www.styled-components.com/docs/api#typescript)
 
-<br/>
+<br>
 
 #### 7️⃣ **为没有提供 Typescript 声明文件的第三方库自定义模块声明**
 
@@ -809,7 +809,7 @@ declare module 'awesome-react-component' {
 
 了解更多[如何定义声明文件](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html)
 
-<br/>
+<br>
 
 #### 8️⃣ **为文档生成做好准备**
 
@@ -849,11 +849,11 @@ export class Column extends Component<ColumnProps, {}> {
 
 为了真正把 Typescript 用起来, 应该始终开启 strict 模式, 避免使用 any 类型声明.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 扩展资料
 

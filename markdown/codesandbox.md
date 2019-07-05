@@ -16,7 +16,7 @@ CodeSandbox 则更加强大，可以视作是浏览器端的 Webpack 运行环�
 
 **目录**
 
-<!-- TOC -->
+
 
 - [引](#引)
 - [基本目录结构](#基本目录结构)
@@ -35,7 +35,7 @@ CodeSandbox 则更加强大，可以视作是浏览器端的 Webpack 运行环�
 - [技术地图](#技术地图)
 - [扩展](#扩展)
 
-<!-- /TOC -->
+
 
 <br>
 <br>
@@ -43,9 +43,7 @@ CodeSandbox 则更加强大，可以视作是浏览器端的 Webpack 运行环�
 
 ## 引
 
-<center>
-  <img src="https://bobi.ink/images/08/codesandbox.png" width="800" />
-</center>
+![](https://bobi.ink/images/08/codesandbox.png)
 
 <br>
 
@@ -53,9 +51,7 @@ CodeSandbox 则更加强大，可以视作是浏览器端的 Webpack 运行环�
 
 **实际上 CodeSandbox 打包和运行并不依赖于服务器, 它是完全在浏览器进行的**. 大概的结构如下:
 
-<center>
- <img src="https://bobi.ink/images/08/codesandbox-arch.png" width="600" />
-</center>
+![](https://bobi.ink/images/08/codesandbox-arch.png)
 
 - **Editor**: 编辑器。主要用于修改文件，CodeSandbox这里集成了 `VsCode`, 文件变动后会通知 `Sandbox` 进行转译. 计划会有文章专门介绍CodeSandbox的编辑器实现
 - **Sandbox**: 代码运行器。**Sandbox 在一个单独的 iframe 中运行, 负责代码的转译(Transpiler)和运行(Evalation)**. 如最上面的图，左边是Editor，右边是Sandbox
@@ -133,9 +129,7 @@ const preset = new Preset(
 
 目前支持这些Preset:
 
-<center>
- <img src="https://bobi.ink/images/08/presets.png" width="600" />
-</center>
+![](https://bobi.ink/images/08/presets.png)
 
 <br>
 
@@ -206,15 +200,11 @@ CodeSandbox 的依赖打包方式受 `WebpackDllPlugin` 启发，DllPlugin 会�
 
 Webpack 转译时或者 运行时可以根据 manifest 中的模块索引(例如`__webpack_require__('../node_modules/react/index.js')`)来加载 dll 中的模块。 因为`WebpackDllPlugin`是在运行或转译之前预先对依赖的进行转译，所以在项目代码转译阶段可以忽略掉这部分依赖代码，这样可以提高构建的速度(真实场景对npm依赖进行Dll打包提速效果并不大):
 
-<center>
-  <img src="https://bobi.ink/images/08/dll.png"  />
-</center>
+![](https://bobi.ink/images/08/dll.png)
 
 manifest文件
 
-<center>
-  <img src="https://bobi.ink/images/08/webpack-dll-manifest.png" width="500" />
-</center>
+![](https://bobi.ink/images/08/webpack-dll-manifest.png)
 
 <br>
 
@@ -222,9 +212,7 @@ manifest文件
 
 基于这个思想, CodeSandbox 构建了自己的在线打包服务, 和WebpackDllPlugin不一样的是，CodeSandbox是在服务端预先构建Manifest文件的, 而且不区分Dll和manifest文件。 具体思路如下:
 
-<center>
- <img src="https://bobi.ink/images/08/packager1.png" width="800" />
-</center>
+![](https://bobi.ink/images/08/packager1.png)
 
 简而言之，CodeSandbox 客户端拿到`package.json`之后，将`dependencies`转换为一个由依赖和版本号组成的`Combination`(标识符, 例如 [`v1/combinations/babel-runtime@7.3.1&csbbust@1.0.0&react@16.8.4&react-dom@16.8.4&react-router@5.0.1&react-router-dom@5.0.1&react-split-pane@0.1.87.json`](https://d1jyvh0kxilfa7.cloudfront.net/v1/combinations/babel-runtime@7.3.1%2Bcsbbust@1.0.0%2Breact@16.8.4%2Breact-dom@16.8.4%2Breact-router@5.0.1%2Breact-router-dom@5.0.1%2Breact-split-pane@0.1.87.json)), 再拿这个 Combination 到服务器请求。服务器会根据 Combination 作为缓存键来缓存打包结果，如果没有命中缓存，则进行打包.
 
@@ -279,9 +267,7 @@ AWS Lambda函数是有局限性的, 比如`/tmp`最多只能有 500MB 的空间.
 
 后来CodeSanbox作者开发了新的Sandbox，支持把包管理的步骤放置到浏览器端, 和上面的打包方式结合着使用。原理也比较简单: **在转译一个模块时，如果发现模块依赖的npm模块未找到，则惰性从远程下载回来**. 来看看它是怎么处理的:
 
-<center>
- <img src="https://bobi.ink/images/08/packager2.png" />
-</center>
+![](https://bobi.ink/images/08/packager2.png)
 
 在回退方案中CodeSandbox 并不会将 package.json 中所有的包都下载下来，而是在模块查找失败时，惰性的去加载。比如在转译入口文件时，发现 react 这个模块没有在本地缓存模块队列中，这时候就会到远程将它下载回来，然后接着转译。
 
@@ -293,26 +279,22 @@ CodeSandbox 通过 `unpkg.com` 或 `cdn.jsdelivr.net` 来获取模块的信息�
 - 包目录结构获取: `https://unpkg.com/antd@3.17.0/?meta` 这个会递归返回该包的所有目录信息
 - 具体文件下载: `https://unpkg.com/react@16.8.6/cjs/react.production.min.js` 或者 `https://cdn.jsdelivr.net/npm/@babel/runtime@7.3.1/helpers/interopRequireDefault.js`
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### Transpilation
 
 讲完 Packager 现在来看一下 Transpilation, 这个阶段**从应用的入口文件开始, 对源代码进行转译, 解析AST，找出下级依赖模块，然后递归转译，最终形成一个'依赖图'**:
 
-<center>
-  <img src="https://bobi.ink/images/08/transpile-dependency-graph.png" />
-</center>
+![](https://bobi.ink/images/08/transpile-dependency-graph.png)
 
 
 CodeSandbox 的整个转译器是在一个单独的 iframe 中运行的：
 
-<center>
-  <img src="https://bobi.ink/images/08/editor-vs-compiler.png" />
-</center>
+![](https://bobi.ink/images/08/editor-vs-compiler.png)
 
 Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Compiler，这里面会携带 `Module+template`
 
@@ -325,9 +307,7 @@ Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Co
 
 在详细介绍 Transpilation 之前先大概看一些基本对象，了解这些对象之间的关系：
 
-<center>
- <img src="https://bobi.ink/images/08/baseobj.png" />
-</center>
+![](https://bobi.ink/images/08/baseobj.png)
 
 - **Manager** 这是 Sandbox 的核心对象，负责管理配置信息(Preset)、项目依赖(Manifest)、以及维护项目所有模块(TranspilerModule)
 - **Manifest** 通过上文的 Packager 我们知道，Manifest 维护所有依赖的 npm 模块信息
@@ -342,9 +322,7 @@ Editor 负责变更源代码，源代码变更会通过 postmessage 传递给 Co
 
 Manager是一个管理者的角色，从大局上把控整个转译和执行的流程. 现在来看看整体的转译流程：
 
-<center>
- <img src="https://bobi.ink/images/08/compiler.png" />
-</center>
+![](https://bobi.ink/images/08/compiler.png)
 
 大局上基本上可以划分为以下四个阶段:
 
@@ -360,9 +338,7 @@ Manager是一个管理者的角色，从大局上把控整个转译和执行的�
 
 TranspiledModule用于管理某个具体的模块，这里面会维护转译和运行的结果、模块的依赖信息，并驱动模块的转译和执行：
 
-<center>
- <img src="https://bobi.ink/images/08/transpiled-module.png" />
-</center>
+![](https://bobi.ink/images/08/transpiled-module.png)
 
 TranspiledModule 会从Preset中获取匹配当前模块的Transpiler列表的，遍历Transpiler对源代码进行转译，转译的过程中会解析AST，分析模块导入语句, 收集新的依赖; 当模块转译完成后，会递归转译依赖列表。 来看看大概的代码：
 
@@ -522,9 +498,7 @@ class JSONTranspiler extends Transpiler {
 
 并不是所有模块都像JSON这么简单，比如Typescript和Babel。 为了提高转译的效率，Codesandbox会利用Worker来进行多进程转译，多Worker的调度工作由`WorkerTranspiler`完成，这是Transpiler的子类，维护了一个Worker池。Babel、Typescript、Sass这类复杂的转译任务都是基于WorkerTranspiler实现的：
 
-<center>
- <img src="/images/08/transpiler.png"/>
-</center>
+![](/images/08/transpiler.png)
 
 <br>
 
@@ -560,15 +534,11 @@ worker.addEventListener("message", function(event) {});
 
 BabelTranpiler具体的流程如下:
 
-<center>
-<img src="https://bobi.ink/images/08/babel-transpiler.png" />
-</center>
+![](https://bobi.ink/images/08/babel-transpiler.png)
 
 WorkerTranspiler会维护`空闲的Worker队列`和一个`任务队列`, 它的工作就是驱动Worker来消费任务队列。具体的转译工作在Worker中进行：
 
-<center>
-<img src="https://bobi.ink/images/08/babel-worker.png" />
-</center>
+![](https://bobi.ink/images/08/babel-worker.png)
 
 <br>
 

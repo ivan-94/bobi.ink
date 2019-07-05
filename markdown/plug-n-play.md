@@ -17,15 +17,11 @@ categories: 前端
 
 一个简单的前端项目(_create-react-app_)的大小和文件数:
 
-<center>
-  <img src="https://bobi.ink/images/front-end-project.png" alt="frontend-project" width="400"/>
-</center>
+![](https://bobi.ink/images/front-end-project.png)
 
 而 macOS 的`/Library`目录的大小的文件数:
 
-<center>
-  <img src="https://bobi.ink/images/mac-library.png" alt="macos library" width="400"/>
-</center>
+![](https://bobi.ink/images/mac-library.png)
 
 一行`hello world`就需要安装 130MB 以上的依赖模块, 而且文件数是**32,313**. 相比之下 macOS 的`/Library`
 的空间占用 9.02GB, 文件数只是前者的两倍(**67,890**). 综上可以看出 node_modules 的特点是:
@@ -109,7 +105,7 @@ categories: 前端
 在 pnp 模式下, Yarn 不会创建 node_modules 目录, 取而代之的是一个`.png.js`文件, 这是一个 node 程序,
 这个文件包含了项目的依赖树信息, 模块查找算法, 也包含了模块查找器的 patch 代码(在 Node 环境, 覆盖 Module.\_load 方法).
 
-<br/>
+<br>
 
 使用 pnp 机制的以下**优点**:
 
@@ -123,10 +119,10 @@ categories: 前端
 > 在 Mac 下 Yarn 的安装速度非常快, 热缓存下仅需几秒. 原因是 SSD + APFS 的 Copy-on-write 机制.
 > 这使得文件的拷贝不用占用空间, 相当于创建一个链接. 所以拷贝和删除的速度非常快.
 > 但是 node_modules 复杂的目录结构和超多的文件, 仍然需要调用大量的系统调用, 这也会拖慢安装过程.
-> <br/>
+> <br>
 > 💡 如果觉得 pnp 繁琐或不可靠, 那就赶紧用上 SSD 配合支持 Copy-on-write 的文件系统.
 
-<br/>
+<br>
 
 使用 pnp 的**风险**:
 
@@ -201,7 +197,7 @@ pnp 集成无非就是重新实现现有工具的模块查找机制. 随着前�
 - [create-react-app](https://github.com/facebook/create-react-app)
 - [gastby](https://github.com/gatsbyjs/gatsby)
 
-<br/>
+<br>
 
 ### Node
 
@@ -265,11 +261,11 @@ module.exports = {
 };
 ```
 
-<br/>
+<br>
 
 总结, **`Typescript`暂时不支持**, 且近期也没有开发计划, 所以`VsCode`也别指望了. [`fork-ts-checker-webpack-plugin`](https://github.com/Realytics/fork-ts-checker-webpack-plugin/issues/181)也还没跟上. 显然 Typescript 是 pnp 的第一拦路虎
 
-<br/>
+<br>
 
 ### 其他工具
 

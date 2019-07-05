@@ -15,11 +15,11 @@ categories: 前端
 
 - **2. 优化阶段**. 优化阶段我们针对分析阶段抛出的问题进行解决，解决的方法有很多，可以参考本文的姊妹篇<[浅谈React性能优化的方向](https://juejin.im/post/5d045350f265da1b695d5bf2)>
 
-<br/>
+<br>
 
 **本文大纲**
 
-<!-- TOC -->
+
 
 - [分析器](#分析器)
   - [React Devtool](#react-devtool)
@@ -34,9 +34,9 @@ categories: 前端
   - [React Devtool 的 Interactions](#react-devtool-的-interactions)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 下面本文测试的样板代码.
 
@@ -46,8 +46,8 @@ categories: 前端
 
 [![Edit React-Performance-Analyze-Demo](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-performance-analyze-demo-igz9h?fontsize=14)
 
-<br/>
-<br/>
+<br>
+<br>
 
 ## 分析器
 
@@ -63,26 +63,20 @@ categories: 前端
 
 ① 开启高亮更新:
 
-<center>
- <img src="https://bobi.ink/images/10/hightlight-update.png" />
-</center>
+![](https://bobi.ink/images/10/hightlight-update.png)
 
 ② 运行效果如下:
 
-<center>
-  <img src="https://bobi.ink/images/10/hightlight-update.gif" />
-</center>
+![](https://bobi.ink/images/10/hightlight-update.gif)
 
 ③ 通过高亮更新，基本上可以确定哪些组件被重新渲染. 所以现在我们给 ListItem 加上 React.memo(查看 PureList 示例), 看一下效果:
 
-<center>
- <img src="https://bobi.ink/images/10/hightlight-update-pure.gif" />
-</center>
+![](https://bobi.ink/images/10/hightlight-update-pure.gif)
 
 效果非常明显，现在只有递增的 ListItem 会被更新，而且当数组排序时只有 List 组件会被刷新. 所以说‘纯组件’是 React 优化的第一张牌, 也是最有效的一张牌.
 
-<br/>
-<br/>
+<br>
+<br>
 
 #### 分析器
 
@@ -90,23 +84,17 @@ categories: 前端
 
 ① 首先选择需要收集测量信息的节点(一般默认选中根节点，有一些应用可能存在多个组件树，这时候需要手动选择):
 
-<center>
- <img src="https://bobi.ink/images/10/select-profile.png" />
-</center>
+![](https://bobi.ink/images/10/select-profile.png)
 
 ② Ok，点击 Record 开始测量
 
-<center>
- <img src="https://bobi.ink/images/10/start-record.gif" />
-</center>
+![](https://bobi.ink/images/10/start-record.gif)
 
-<br/>
+<br>
 
 ③ 看看测量的结果，先来了解一下 Profiler 面板的基本结构:
 
-<center>
- <img src="https://bobi.ink/images/10/profile-outline.png" />
-</center>
+![](https://bobi.ink/images/10/profile-outline.png)
 
 - **1️⃣ 这是一个 commit 列表**。commit 列表表示录制期间发生的 commit(可以认为是渲染) 操作，要理解 commit 的意思还需要了解 React 渲染的基本原理.
 
@@ -116,24 +104,24 @@ categories: 前端
   - **commit 阶段**。或者称为提交阶段, 在这个阶段会执行 render 阶段 diff 出来的变更请求。比如 DOM 插入、更新、删除、排序等等。在这个阶段 React 还会调用 componentDidMount 和 componentDidUpdate 生命周期函数.
 
   在 v16 之前，或者在 Preact 这些'类 React' 框架中，并不区分 render 阶段和 commit 阶段，也就说这两个阶段糅合在一起，一边 diff 一边 commit。有兴趣的读者可以看笔者之前写的[从 Preact 中了解组件和 hooks 基本原理](https://juejin.im/post/5cfa29e151882539c33e4f5e)
-  <br/>
+  <br>
 
   切换 commit:
 
   ![](https://bobi.ink/images/10/profile-commit.gif)
-  <br/>
+  <br>
 
 - **2️⃣ 选择其他图形展示形式**，例如 `Ranked 视图`，这个视图按照渲染消耗时间对组件进行排序：
 
   ![](https://bobi.ink/images/10/ranked.png)
 
-  <br/>
+  <br>
 
 - **3️⃣ 火焰图** 这个图其实就是**组件树**，Profiler 使用颜色来标记哪些组件被重新渲染。**和 commit 列表以及 Ranked 图一样，颜色在这里是有意义的，比如灰色表示没有重新渲染；从渲染消耗的时间上看的话: `黑色 > 黄色 > 蓝色`, 通过 👆Ranked 图可以直观感受到不同颜色之间的意义**
 
   ![](https://bobi.ink/images/10/profile-framegraph.gif)
 
-  <br/>
+  <br>
 
 - **4️⃣ 当前选中组件或者 Commit 的详情**, 可以查看该组件渲染时的 props 和 state
 
@@ -186,7 +174,7 @@ React 使用标准的`User Timing API`(所有支持该标准的浏览器都可�
 - [Profiling React performance with React 16 and Chrome Devtools](https://calibreapp.com/blog/react-performance-profiling-optimization/)
 - [Chrome 官方的 Performance 使用文档](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
 
-<br/>
+<br>
 
 ### 其他工具
 
@@ -195,11 +183,11 @@ React 使用标准的`User Timing API`(所有支持该标准的浏览器都可�
 - [react-addons-perf](https://reactjs.org/docs/perf.html) React v16 不支持了，不说了。老版本可用
 - [react-perf-devtool](https://github.com/nitin42/react-perf-devtool) 也不活跃了，不推荐使用
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 变动检测
 
@@ -213,7 +201,7 @@ OK, 我们通过分析工具已经知道我们的应用存在哪些问题了，�
 - **Mobx observable value**. 如果访问了 mobx 传进来的响应式数据，就会建立一个状态依赖关系，这个相对于 props 和 context 来说是隐式的，检测它的变动我们可能需要利用 mobx 提供的一些工具
 - **Context**。 Context 的 value 的变更会强制重新渲染组件
 
-<br/>
+<br>
 
 ### props 变动检测
 
@@ -268,7 +256,7 @@ const Counter = React.memo(props => {
 
 如果是类组件，可以在`componentDidUpdate`使用类似上面的方式来比较 props
 
-<br/>
+<br>
 
 ### mobx 变动检测
 
@@ -326,7 +314,7 @@ export const ListItem = observer(props => {
 
 ![mobx-trace](https://bobi.ink/images/10/mobx-trace.png)
 
-<br/>
+<br>
 
 ### Context 变更检测
 

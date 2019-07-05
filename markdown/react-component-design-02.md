@@ -14,11 +14,11 @@ categories: 前端
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
 - 05 状态管理 待更新
 
-<br/>
+<br>
 
 **目录**
 
-<!-- TOC -->
+
 
 - [1. 组件设计的基本原则](#1-组件设计的基本原则)
   - [**基本原则**](#基本原则)
@@ -52,13 +52,13 @@ categories: 前端
 - [8. 文档](#8-文档)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 1. 组件设计的基本原则
 
@@ -78,7 +78,7 @@ categories: 前端
 - 降低对其他组件的耦合. 当变更到来时可以降低对其他功能的影响, 不至于牵一发而动全身
 - 提高可复用性. 功能越单一可复用性越高, 就比如一些基础组件
 
-<br/>
+<br>
 
 ### **高质量组件的特征**
 
@@ -90,11 +90,11 @@ categories: 前端
 
 文章后续内容主要讨论实现*高内聚/低耦合*主要措施
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 2. 基本技巧
 
@@ -106,11 +106,11 @@ categories: 前端
 - 如果组件内部存在较多条件控制流, 这通常意味着需要对组件进行抽取
 - 不要过早优化. 只要求组件在当前需求下可被复用, 然后'随机应变'
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 3. 组件的分类
 
@@ -118,7 +118,7 @@ categories: 前端
 
 *容器组件和展示组件分离*是 React 开发的重要思想, 它影响的 React 应用项目的组织和架构. 下面总结一下两者的区别:
 
-<br/>
+<br>
 
 |          | 容器组件        | 展示组件 |
 | -------- | --------------- | -------- |
@@ -126,7 +126,7 @@ categories: 前端
 | 数据源   | 状态管理器/后端 | props    |
 | 组件形式 | 高阶组件        | 普通组件 |
 
-<br/>
+<br>
 
 - **展示组件**是一个只关注展示的'元件', 为了可以在多个地方被复用, 它不应该耦合'业务/功能', 或者说不应该过渡耦合. 像`antd`这类组件库提供通用组件显然就是'展示组件'
 
@@ -147,7 +147,7 @@ categories: 前端
 
   对于展示组件，我们要以一种'第三方组件库'的标准来考虑组件的设计, 减少与业务的耦合度, 考虑各种应用的场景, 设计好公开的接口.
 
-  <br/>
+  <br>
 
 - **容器组件**主要关注业务处理. 容器组件一般以'高阶组件'形式存在, 它一般 ① 从外部数据源(redux 这些状态管理器或者直接请求服务端数据)获取数据, 然后 ② 组合*展示组件*来构建完整的视图.
 
@@ -155,7 +155,7 @@ categories: 前端
 
   *容器组件*通过组合*展示组件*来构建完整视图, 但两者未必是简单的包含与被包含的关系.
 
-  <br/>
+  <br>
 
 `容器组件和展示组件的分离`可以带来好处主要是**可复用性**和**可维护性**:
 
@@ -163,15 +163,15 @@ categories: 前端
 - 展示和容器组件更好的分离，有助于更好的理解应用和 UI, 两者可以被独立地维护
 - 展示组件变得轻量(无状态/或局部状态), 更容易被测试
 
-<br/>
+<br>
 
 了解更多[Presentational and Container Components](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ 分离逻辑和视图
 
@@ -188,7 +188,7 @@ Login/
 
 上面使用了`useLogin.tsx`来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用.
 
-<br/>
+<br>
 
   <img src="https://bobi.ink/images/04/demo.png" width="300" />
 
@@ -201,36 +201,32 @@ Login/
 - Render Props
 - Context
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3️⃣ 有状态组件和无状态组件
 
 **无状态组件内部不存储状态, 完全由外部的 props 来映射**. 这类组件以函数组件形式存在, 作为低级/高复用的底层展示型组件.
 无状态组件天然就是'纯组件', 如果无状态组件的映射需要一点成本, 可以使用 React.memo 包裹避免重复渲染
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 4️⃣ 纯组件和非纯组件
 
 纯组件的'纯'来源于函数式编程. 指的是**对于一个函数而言, 给定相同的输入, 它总是返回相同的输出, 过程没有副作用, 没有额外的状态依赖**. 对应到 React 中, 纯组件指的是 props(严格上说还有 state 和 context, 它们也是组件的输入)没有变化, 组件的输出就不会变动.
 
-<center>
-  <img src="https://bobi.ink/images/04/input-output.png" width="450" />
-</center>
+![](https://bobi.ink/images/04/input-output.png)
 
 和 React 组件的输出输出模型相比, [Cyclejs](http://cyclejs.cn)对组件输入/输出的抽象则做的更加彻底，更加‘函数式’👇。它的组件就是一个普通的函数，只有'单向'的输入和输出:
 
-<center>
-  <img src="https://bobi.ink/images/04/cyclejs.png" width="400" />
-</center>
+![](https://bobi.ink/images/04/cyclejs.png)
 
 函数式编程和组件式编程思想某种意义上是一致的, 它们都是'组合'的艺术. 一个大的函数可以有多个职责单一函数组合而成. 组件也是如此. **我们将一个大的组件拆分为子组件, 对组件做更细粒度的控制, 保持它们的纯净性, 让它们的职责更单一, 更独立. 这带来的好处就是可复用性, 可测试性和可预测性.**
 
@@ -240,9 +236,7 @@ Login/
 
 Redux 就是一个典型的解决方案, 在 Redux 的世界里可以认为**一个复杂的组件树就是一颗状态树的映射**, 只要状态树(需要依靠不可变数据来保证状态的可预测性)不变, 组件树就不变. Redux 建议保持组件的纯净性, 将组件状态交给 Redux 和配套的异步处理工具来维护, 这样就将整个应用抽象成了一个"单向的数据流", 这是一种简单的"输入/输出"关系
 
-<center>
-  <img src="https://bobi.ink/images/04/redux.png" width="400" />
-</center>
+![](https://bobi.ink/images/04/redux.png)
 
 不管是 Cyclejs 还是 Redux，抽象是需要付出一点代价的，就比如 redux 代码可能会很罗嗦; 一个复杂的状态树, 如果缺乏良好的组织，整个应用会变得很难理解。实际上, 并不是所有场景都能够顺利/优雅通过'数据驱动'进行表达(可以看一下这篇文章[Modal.confirm 违反了 React 的模式吗？](https://zhuanlan.zhihu.com/p/54492049)), 例如文本框焦点, 或者模态框. 所以不必极端追求无副作用或者数据驱动
 
@@ -253,11 +247,11 @@ Redux 就是一个典型的解决方案, 在 Redux 的世界里可以认为**一
 - [Redesigning Redux](https://hackernoon.com/redesigning-redux-b2baee8b8a38)
 - [Cyclejs](http://cyclejs.cn/#-组件化)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 5️⃣ 按照 UI 划分为`布局组件`和`内容组件`
 
@@ -266,17 +260,15 @@ Redux 就是一个典型的解决方案, 在 Redux 的世界里可以认为**一
 
 例如下图, List/List.Item 就是布局组件，而 Input，Address 则是内容组件
 
-<center>
-  <img src="https://bobi.ink/images/04/layout-vs-content.png" lazyload width="500" />
-</center>
+![](https://bobi.ink/images/04/layout-vs-content.png)
 
 将布局从内容组件中抽取出来，分离布局和内容，可以让两者更好维护，比如布局变动不会影响内容，内容组件可以被应用不同的布局; 另一方面组件是一个自包含内聚的隔离单元, 不应该影响其外部的状态, 例如一个按钮不应该修改外部的布局, 另外也要避免影响全局的样式
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 6️⃣ 接口一致的数据录入组件
 
@@ -300,11 +292,11 @@ interface Props<T> {
 
 - 组件都是受控的. 在实际的 React 开发中, 非受控组件的场景非常少, 我认为自定义组件都可以忽略这种需求, 只提供完全受控表单组件, 避免组件自己维护缓存状态
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 4. 目录划分
 
@@ -362,11 +354,11 @@ src/
 
 - [react-boilerplate](https://github.com/react-boilerplate/react-boilerplate)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ 多页应用的目录划分
 
@@ -400,11 +392,11 @@ webpack 支持多页应用的构建, 我一般会将应用入口文件命名为`
 
 > [`html-webpack-plugin`](https://github.com/jantimon/html-webpack-plugin)4.0 开始支持注入共享 chunk. 在此之前需要通过 SplitChunksPlugin 显式定义共享的 chunk, 然后也要 html-webpack-plugin 显式注入该 chunk, 比较挫.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3️⃣ 多页应用的目录划分: monorepo 模式
 
@@ -439,11 +431,11 @@ app/               # 🔴 后台管理应用
 
 - [精读《Monorepo 的优势》](https://juejin.im/post/5cd8c1d6e51d456e55623bf2)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 4️⃣ 跨平台应用
 
@@ -480,11 +472,11 @@ src/
 
 可以通过 webpack 的`resolve.extensions`来配置扩展名补全的优先级. 早期的[antd-mobile](https://github.com/ant-design/ant-design-mobile)就是这样组织的.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 5️⃣ 跨平台的另外一种方式: taro
 
@@ -492,21 +484,19 @@ src/
 
 Taro 就这样诞生了, Taro 基于 React 的标准语法(DSL), 结合编译原理的思想, 将一套代码转换为多种终端的目标代码, 并提供一套统一的内置组件库和 SDK 来抹平多端的差异
 
-<center>
-  <img src="https://bobi.ink/images/04/taro.png" width="500" />
-</center>
+![](https://bobi.ink/images/04/taro.png)
 
 因为 Taro 使用 React 的标准语法和 API，这使得我们按照原有的 React 开发约定和习惯来开发多端应用，且只保持一套代码. 但是不要忘了抽象都是有代价的
 
-> 可以查看 Taro 官方文档[了解更多](https://github.com/NervJS/taro) <br/>
+> 可以查看 Taro 官方文档[了解更多](https://github.com/NervJS/taro) <br>
 
 > [Flutter](https://github.com/flutter/flutter)是近期比较或的跨平台方案，但是跟本文主题无关
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 5. 模块
 
@@ -514,9 +504,7 @@ Taro 就这样诞生了, Taro 基于 React 的标准语法(DSL), 结合编译原
 
 下图是一个某页面的模块导入，相当混乱，这还算可以接受，笔者还见过上千行的组件，其中模块导入语句就占一百多行. 这有一部分原因可能是 VsCode 自动导入功能导致(可以使用 tslint 规则对导入语句进行排序和分组规范)，更大的原因是这些模块缺乏组织。
 
-<center>
-  <img src="https://bobi.ink/images/04/imports.png" width="600" />
-</center>
+![](https://bobi.ink/images/04/imports.png)
 
 我觉得应该创建严格的模块边界，**一个模块只有一个统一的'出口'**。例如一个复杂的组件:
 
@@ -568,7 +556,7 @@ export { ComplexPage as default } from './ComplexPage';
 import ComplexPage, { ComplexPageProps, User, XXX } from '../ComplexPage';
 ```
 
-<br/>
+<br>
 
 这条规则也可以用于组件库. 在 webpack 的 Tree-shaking 特性还不成熟之前， 我们都使用了各种各样的技巧来实现`按需导入`. 例如[`babel-plugin-import`](https://github.com/ant-design/babel-plugin-import)或直接子路径导入:
 
@@ -611,11 +599,11 @@ import { hide } from './utils/sdk'; // webview sdk 提供的的某个方法
 - LoginPage 和访问 HomePage
 - LoginPage 可以访问 utils/sdk
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ `Named export` vs `default export`
 
@@ -637,7 +625,7 @@ import { hide } from './utils/sdk'; // webview sdk 提供的的某个方法
 
 - 一个模块支持多个`named export`
 
-<br/>
+<br>
 
 **再看一下`default export`有什么优点?**:
 
@@ -715,11 +703,11 @@ export * from './Foo';
 export * from './Bar';
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3️⃣ 避免循环依赖
 
@@ -758,11 +746,11 @@ import {SomeType} from './types'
 ...
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 4️⃣ 相对路径不要超过两级
 
@@ -801,11 +789,11 @@ import { hide } from '~/utils/dom';
 - 对于 Typescript 可以配置[paths](https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping)选项;
 - 对于 babel 可以使用[`babel-plugin-module-resolver`](https://www.npmjs.com/package/babel-plugin-module-resolver)插件来转换为相对路径
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 6. 拆分
 
@@ -817,11 +805,11 @@ import { hide } from '~/utils/dom';
 
 当然这种方式只是暂时让 render 方法看起来没有那么复杂, 它并没有拆分组件本身, 所有输入和状态依然聚集在一个组件下面. 所以通常拆分 render 方法只是重构的第一步: 随着组件越来越复杂, 表现为文件越来越长, 笔者一般将 300 行作为一个阈值, **超过 300 行则说明需要对这个组件进进一步拆分**
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ 拆分为组件
 
@@ -851,11 +839,11 @@ public render() {
 2. 纯逻辑拆分: 按照`逻辑和视图分离`的原则, 将逻辑控制部分抽离到 hooks 或高阶组件中
 3. 逻辑和渲染拆分: 将相关的视图和逻辑抽取出去形成一个独立的组件, 这是更为彻底的拆分方式, 贯彻单一职责原则.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 7. 组件划分示例
 
@@ -863,9 +851,7 @@ public render() {
 
 本节通过一个简单的应用讲述划分组件的过程. 这是某政府部门的服务申报系统, 一共由四个页面组成:
 
-<center>
-  <img src="https://bobi.ink/images/04/demo-all.png" width="800" />
-</center>
+![](https://bobi.ink/images/04/demo-all.png)
 
 ### 1️⃣ 划分页面
 
@@ -881,11 +867,11 @@ src/
     index.tsx     # 根组件, 一般在这里定义路由
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ 划分基础 UI 组件
 
@@ -932,11 +918,11 @@ CreatePage
 
   <img src="https://bobi.ink/images/04/PreviewPage.png" width="400" />
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3️⃣ 设计组件的状态
 
@@ -968,11 +954,11 @@ CreatePage
 </Steps>
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 8. 文档
 
@@ -985,11 +971,11 @@ CreatePage
 
 [React 示例](https://storybooks-official.netlify.com). 由于篇幅原因, Storybook 就不展开细节, 有兴趣的读者可以参考官方文档.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 扩展
 

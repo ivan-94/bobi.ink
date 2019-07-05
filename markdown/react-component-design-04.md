@@ -14,11 +14,11 @@ categories: 前端
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
 - 05 状态管理 待更新
 
-<br/>
+<br>
 
 **目录**
 
-<!-- TOC -->
+
 
 - [1. 高阶组件](#1-高阶组件)
 - [2. Render Props](#2-render-props)
@@ -33,13 +33,13 @@ categories: 前端
 - [11. 组件规范](#11-组件规范)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 1. 高阶组件
 
@@ -156,11 +156,11 @@ React 的[文档](https://react.docschina.org/docs/higher-order-components.html)
 
 - 命名: 一般以 with\*命名, 如果携带参数, 则以 create\*命名
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 2. Render Props
 
@@ -210,11 +210,11 @@ React 并没有限定任何 props 的类型, 所以 props 也可以是函数形�
 
 > 官方[文档](https://react.docschina.org/docs/render-props.html)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 3. 使用组件的方式来抽象业务逻辑
 
@@ -293,11 +293,11 @@ render() {
 
 这里面有一个要点：我们将一个业务抽象为了一个组件后，业务逻辑有了和组件一样的生命周期。**现在组件内部只需关心自身的逻辑，比如只关心资源请求和释放(即 How)，而何时进行，什么条件进行(即 When)则由父级来决定**, 这样就符合了单一职责原则。 上面的例子父级通过 JSX 的条件渲染就可以动态控制锁定, 比之前的实现简单了很多
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 4. hooks 取代高阶组件
 
@@ -318,7 +318,7 @@ hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'
     - 将状态逻辑从组件中脱离, 让他可以被单独的测试和复用.
     - hooks 可以在组件之间共享, 不会影响组件的结构
 
-    <br/>
+    <br>
 
 - 2. **复杂的组件难以理解**: 复杂组件的特点是有一大堆分散的状态逻辑和副作用. 例如每个生命周期函数常常包含一些互不相关的逻辑, 这些互不相关的逻辑会慢慢变成面条式的代码, 但是你发现很难再对它们进行拆解, 更别说测试它们
 
@@ -328,7 +328,7 @@ hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'
   - 此前的解决方法: 高阶组件和 Render Props 或者状态管理器. 分割抽离逻辑和 UI, 切割成更小粒度的组件
   - hooks 如何解决: Hooks 允许您根据相关部分(例如设置订阅或获取数据)将一个组件分割成更小的函数，而不是强制基于生命周期方法进行分割。你还可以选择使用一个 reducer 来管理组件的本地状态，以使其更加可预测
 
-    <br/>
+    <br>
 
 - 3. 基于 class 的组件对机器和用户都不友好:
 
@@ -338,7 +338,7 @@ hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在'
   - hooks 如何解决: 函数式组件
   - 新的问题: 你要了解闭包
 
-<br/>
+<br>
 
 Hooks 带来的**新东西**: **hook 旨在让组件的内部逻辑组织成可复用的更小单元，这些单元各自维护一部分组件‘状态和逻辑’**。
 
@@ -346,27 +346,27 @@ Hooks 带来的**新东西**: **hook 旨在让组件的内部逻辑组织成可�
 图片来源于twitter([@sunil Pai](https://twitter.com/threepointone/status/1056594421079261185/photo/1?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1056594421079261185&ref_url=https%3A%2F%2Fmedium.com%2Fmedia%2Fe55e7bcbf2d4912af7e539a2646388e2%3FpostId%3Dfdbde8803889))
 
 - **一种新的组件编写方式**. 和此前基于 class 或纯函数组件的开发方式不太一样, hook 提供了更简洁的 API 和代码复用机制, 这使得组件代码变得更简短. 例如 👆 上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲([90% Cleaner React](https://www.youtube.com/watch?v=wXLf18DsV-I)).
-  <br/>
+  <br>
 - **更细粒度的状态控制(useState)**. 以前一个组件只有一个 setState 集中式管理组件状态, **现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元. 这意味着不同的 hook 可以维护自己的状态**.
-  <br/>
+  <br>
 - **不管是 hook 还是组件，都是普通函数**.
 
   - **从某种程度上看组件和 hooks 是同质的(都包含状态和逻辑)**. 统一使用函数形式开发, 这使得你不需要在类、高阶组件或者 renderProps 上下文之间切换, 降低项目的复杂度. 对于 React 的新手来说，各种高阶组件、render props 各种概念拉高了学习曲线
   - **函数是一种最简单的代码复用单元, 最简单也意味着更灵活**。相比组件的 props，函数的传参更加灵活； 函数也更容易进行组合, hooks 组合其他 hook 或普通函数来实现复杂逻辑.
   - **本质上讲，hooks 就是给函数带来了状态的概念**
-    <br/>
+    <br>
 
 - **高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖)**.
-  <br/>
+  <br>
 - **更容易进行逻辑和视图分离**. hooks 天然隔离 JSX, 视图和逻辑之间的界限比较清晰, 这使得 hooks 可以更专注组件的行为.
-  <br/>
+  <br>
 - **淡化组件生命周期概念, 将本来分散在多个生命周期的相关逻辑聚合起来**
-  <br/>
+  <br>
 - **一点点'响应式编程'的味道**, 每个 hooks 都包含一些状态和副作用，这些数据可以在 hooks 之间传递流动和响应， 见下文
-  <br/>
+  <br>
 - **跨平台的逻辑复用**. 这是我自己开的脑洞, React hooks 出来之后[尤雨溪](https://github.com/yyx990803)就推了一个[vue-hooks](https://github.com/yyx990803/vue-hooks)试验项目, 如果后面发展顺利, hooks 是可能被用于跨框架复用?
 
-<br/>
+<br>
 
 一个**示例**: 无限加载列表
 
@@ -402,7 +402,7 @@ function useHook(options) {
 
 自定义 hook 和函数组件的代码结构基本一致, 所以有时候**hooks 写着写着原来越像组件, 组件写着写着越像 hooks. 我觉得可以认为组件就是一种特殊的 hook, 只不过它输出 Virtual DOM**.
 
-<br/>
+<br>
 
 一些**注意事项**:
 
@@ -410,7 +410,7 @@ function useHook(options) {
 - 只能从 React 的函数组件中调用 hooks
 - 自定义 hooks 使用 use\*命名
 
-<br/>
+<br>
 
 总结 hooks 的**常用场景**:
 
@@ -435,11 +435,11 @@ function useHook(options) {
 - [Making Sense of React Hooks](https://medium.com/@dan_abramov/making-sense-of-react-hooks-fdbde8803889)
 - [React hooks: not magic, just arrays](https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 5. hooks 实现`响应式`编程
 
@@ -500,7 +500,7 @@ class TodoView extends React.Component {
   - Observable 数组并非真正的数组. 比如 antd 的 Table 组件就不认 mobx 的数组, 需要传入到组件之间使用 slice 进行转换
   - 向一个已存在的 observable 对象中添加属性不会被自动捕获
 
-<br/>
+<br>
 
 于是 hooks 出现了, 它让组件的状态管理变得更简单直接, 而且它的思想也很接近 mobx 响应式编程哲学:
 
@@ -569,11 +569,11 @@ function App(props: { foo: number }) {
 }
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 6. 类继承也有用处
 
@@ -651,11 +651,11 @@ export default class Label extends Overlay<LabelProps> {
 
 当然这个不是唯一的解决方法, 使用高阶组件和 hooks 同样能够实现. 只不过对于原本就采用面向对象范式组织的库, 使用继承方式会更加好理解
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 7. 模态框管理
 
@@ -856,11 +856,11 @@ const Demo: FC<{}> = props => {
 - [react-confirm](https://github.com/haradakunihiko/react-confirm)
 - [How to use React’s new Context API to easily manage modals](https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81) 基于 Context 的方案
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 8. 使用 Context 进行依赖注入
 
@@ -910,11 +910,11 @@ export default MyContextProvider
 
 - [避免 React Context 导致的重复渲染](https://zhuanlan.zhihu.com/p/50336226)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 9. 不可变的状态
 
@@ -935,17 +935,15 @@ export default MyContextProvider
 
 笔者比较喜欢 immer，没有什么心智负担, 按照 JS 习惯的对象操作方式就可以实现不可变数据。
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 10. React-router: URL 即状态
 
-<center>
- <img src="https://bobi.ink/images/04/static-router.png" width="300" />
-</center>
+![](https://bobi.ink/images/04/static-router.png)
 
 传统的路由主要用于区分页面, 所以一开始前端路由设计也像后端路由(也称为**静态路由**)一样, 使用对象配置方式, 给不同的 url 分配不同的页面组件, 当应用启动时, 在路由配置表中查找匹配 URL 的组件并渲染出来.
 
@@ -1014,11 +1012,11 @@ const DetailPage = props => {
 - [React Router 哲学](https://react-router.docschina.org/core/guides/philosophy)
 - [聊聊 React Router v4 的设计思想](https://juejin.im/post/5986d1456fb9a03c3f405bd2)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 11. 组件规范
 

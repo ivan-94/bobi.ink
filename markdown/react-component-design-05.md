@@ -10,7 +10,7 @@ categories: 前端
 
 所以模仿[<<内核恐慌>>](https://kernelpanic.fm)的口号: "想看的人看，不想看的人就别看"
 
-<br/>
+<br>
 
 **系列目录**
 
@@ -20,11 +20,11 @@ categories: 前端
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
 - [05 状态管理](/2019/05/20/react-component-design-05/)
 
-<br/>
+<br>
 
 **文章目录**
 
-<!-- TOC -->
+
 
 - [状态管理](#状态管理)
 - [你不需要状态管理](#你不需要状态管理)
@@ -35,7 +35,7 @@ categories: 前端
 - [其他状态管理方案](#其他状态管理方案)
 - [扩展阅读](#扩展阅读)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -51,9 +51,7 @@ categories: 前端
 
 状态管理最基础的解决方式就是分层，也就是说和传统的 `MV*` 模式没有本质区别, 主流状态管理的主要结构基本都是这样的:
 
-<center>
- <img src="https://bobi.ink/images/04/mvc.png" width="500" />
-</center>
+![](https://bobi.ink/images/04/mvc.png)
 
 他们基本都包含这些特点:
 
@@ -61,7 +59,7 @@ categories: 前端
 - **约束状态的变更**。Redux 要求通过`dispatch+reducer`, mobx 要求数据变更函数使用`action`装饰或放在[`flow`](https://mobx.js.org/best/actions.html)函数中，目的就是让状态的变更根据可预测性
 - **单向数据流**。数据流总是按照 Store -> View -> Store 这样的方式流动, 简化数据流
 
-<br/>
+<br>
 
 但是, React 的状态管理方案太多了，选择这些方案可能会让人抓狂，你需要权衡很多东西:
 
@@ -113,27 +111,21 @@ categories: 前端
 
 例如: 简单的使用 Context API 来做状态管理:
 
-<center>
-  <img src="https://bobi.ink/codes/context-api-vuex.png" width="600" />
-</center>
+![](https://bobi.ink/codes/context-api-vuex.png)
 
 最近 hooks 用得比较爽(参考上一篇文章: [组件的思维](https://juejin.im/post/5cdc2f54e51d453b0c35930d))，我就想配合 Context API 做一个状态管理器, 后来发现早就有人这么干了： [unstated-next](https://github.com/jamiebuilds/unstated-next), 代码只有 38 行(Hooks+Context)，接口非常简单:
 
-<center>
- <img src="https://bobi.ink/images/04/unstated.png" width="750"/>
-</center>
+![](https://bobi.ink/images/04/unstated.png)
 
 依赖于 hooks 本身灵活的特性，我们可以用它来做很多东西, 仅限于想象力. 例如异步数据获取:
 
-<center>
- <img src="https://bobi.ink/codes/useTodoList.png" width="750"/>
-</center>
+![](https://bobi.ink/codes/useTodoList.png)
 
 抑或者实现 Redux 的核心功能:
 
 <iframe src="https://codesandbox.io/embed/w1plr?fontsize=14" title="redux hooks" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-<br/>
+<br>
 
 总结一下使用 hooks 作为状态管理器的优点:
 
@@ -145,7 +137,7 @@ categories: 前端
 - 强类型
 - 基于Context API更容易实现模块化(或者分形)
 
-<br/>
+<br>
 
 需要注意的地方
 
@@ -158,7 +150,7 @@ categories: 前端
 
 **所以 Context+ Hooks 可以用于满足简单的状态管理需求, 对于复杂的状态管理需求还是需要用上 Redux、Mobx 这类专业的状态管理器.**
 
-<br/>
+<br>
 
 其他类似的方案
 
@@ -184,16 +176,14 @@ Redux 是学习 React 绕不过的一个框架. 尽管 Redux 的代码只有一�
 
 本文不打算深入介绍 Redux 的相关实践， 社区上面有非常多的教程，官方文档也非常详尽. 这里会介绍 Redux 的主要架构和核心思想，以及它的适用场景.
 
-<center>
-  <img src="https://bobi.ink/images/04/redux-design.png" width="700" />
-</center>
+![](https://bobi.ink/images/04/redux-design.png)
 
 Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是什么，才能明白它为什么要这么设计. 在我看来 Redux 主要为了解决以下两个问题:
 
 1. **可预测状态**
 2. **简化应用数据流**
 
-<br/>
+<br>
 
 其实这也是 `flux` 的初衷, 只是有些它有些东西没做好. 明白 Redux 的初衷，现在来看看它的设计就会清晰很多
 
@@ -201,9 +191,7 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   - 可以简化应用数据流. 解决传统多 model 模型数据流混乱问题(比如一个 model 可以修改其他 model，一个 view 受到多个 model 驱动)，让数据变动变得可预测可调试
 
-    <center>
-     <img src="https://bobi.ink/images/04/traditional-model.png" width="400"/>
-    </center>
+    ![](https://bobi.ink/images/04/traditional-model.png)
 
   - 同构化应用开发
   - 方便调试
@@ -220,7 +208,7 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
   可以说 Redux 的核心概念就是 reducer，然而这是一个纯函数。为了实现复杂的副作用，redux 提供了类似 Koa 的中间件机制，实现各种副作用. 比如异步请求. 除此之外，可以利用中间件机制，实现通用的业务模式， 减少代码重复。
 - **Devtool** -> 可预测。通过开发者工具可以可视化数据流
 
-<br/>
+<br>
 
 **什么时候应该使用 Redux?**
 
@@ -237,15 +225,13 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 - 外置状态
 - ...
 
-<br/>
+<br>
 
 **最佳实践**
 
 个人觉得[react-boilerplate](https://github.com/react-boilerplate/react-boilerplate/blob/master/docs/general/introduction.md)是最符合官方‘最佳实践’的项目模板. 它的应用工作流如下:
 
-<center>
- <img src="https://bobi.ink/images/04/redux-workflow.png " width="600"/>
-</center>
+![](https://bobi.ink/images/04/redux-workflow.png )
 
 特性:
 
@@ -285,11 +271,11 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
   reducers.js        # 🔴 根reducers, 合并所有'页面状态'和'全局状态'(如router， language， global(例如用户鉴权信息))
 ```
 
-<br/>
+<br>
 
 **🤬 开始吐槽!**
 
-<br/>
+<br>
 
 - **一，Redux 核心库很小，只提供了 dispatch 和 reducer 机制，对于各种复杂的副作用处理 Redux 通过提供中间件机制外包出去**。社区有很多解决方案，redux-promise, redux-saga, redux-observable... 查看 Redux 的[生态系统](https://redux.js.org/introduction/ecosystem#actions).
 
@@ -301,7 +287,7 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   在出现选择困难症时，还是看看别人怎么选择，比如比较有影响力的团队或者流行的开源项目(如 dva，rematch)，选取一个折中方案, 后续有再慢慢深入研究. **对于 Redux 目前比较流行的组合就是: `immer+saga+reselect`**
 
-  <br/>
+  <br>
 
 - **二，太多模板代码**。比如上面的 react-boilerplate, 涉及五个文件, 需要定义各种 Action Type、Action、 Reducer、Saga、Select. 所以即便想进行一个小的状态变化也需要更改好几个地方:
 
@@ -309,15 +295,11 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   笔者个人更喜欢类似 Vuex 这种`Ducks`风格的组织方式，将模块下的 action，saga，reducer 和 mapper 都组织在一个文件下面:
 
-  <center>
-   <img src="https://bobi.ink/codes/redux-ducks.png" width="600" />
-  </center>
+  ![](https://bobi.ink/codes/redux-ducks.png)
 
   Redux 的二次封装框架基本采用类似的风格, 如[`rematch`](https://github.com/rematch/rematch)
 
-  <center>
-   <img src="https://bobi.ink/images/04/rematch.png" width="800" />
-  </center>
+  ![](https://bobi.ink/images/04/rematch.png)
 
   这些二次封装框架一般做了以下优化(其实可以当做是 Vuex 的优点)，来提升 Redux 的开发体验:
 
@@ -329,11 +311,11 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
   - **简化 reducer**。Redux 内置了 combineReducers 来复合多个 reducer，在 reducer 内部我们一般使用 switch 语句来接收 action 和处理数据变动, 其实写起来非常啰嗦. **Vuex 和这些封装框架不约而同使用了 key/value 形式**, 更为简洁明了
   - **简化 view 层的 connect 接口**。如简化 mapProps，mapDispatch 这些代码写起来也比较繁琐
 
-  <br/>
+  <br>
 
 - **三，强制不可变数据**。前面文章也提到过 setState 很啰嗦，为了保证状态的不可变性最简单的方式是使用对象展开或者数组展开操作符, 再复杂点可以上 Immutable.js, 这需要一点学习成本. 好在现在有 immer，可以按照 Javascript 的对象操作习惯来实现不可变数据
 
-  <br/>
+  <br>
 
 - **四，状态设计**。
 
@@ -354,12 +336,12 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   所以说 Redux 没那么简单, 当然 80%的 Web 应用也不需要这么复杂.
 
-  <br/>
+  <br>
 
 - **五，不方便 Typescript 类型化**。不管是 redux 还是二次封装框架都不是特别方便 Typescript 进行类型推导，尤其是在加入各种扩展后。你可能需要显式注解很多数据类型
 
   扩展: [react-redux-typescript-guide](https://github.com/piotrwitek/react-redux-typescript-guide#redux---typing-patterns), [rematch & Typescript](https://rematch.gitbooks.io/rematch/docs/recipes/typescript.html)
-  <br/>
+  <br>
 
 - **六，不是分形(Fractal)**
 
@@ -367,16 +349,12 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   前面文章也提到过‘分离逻辑和视图’和‘分离容器组件和展示组件’，这两个规则都来自于 Redux 的最佳实践。**Redux 就是一个'非分形的架构'，如下图，在这种简单的‘横向分层'下, 视图和逻辑(或状态)可以被单独复用，但在 Redux 中却很难将二者作为一个整体的组件来复用**:
 
-    <center>
-    <img src="https://bobi.ink/images/04/redux-and-dumb.png" width="400" />
-    </center>
+    ![](https://bobi.ink/images/04/redux-and-dumb.png)
     _集中化的 Store，再通过 Connect 机制可以让状态在整个应用范围内被复用；Dumb 组件抽离的状态和行为，也容易被复用_
 
   现在假设你需要将单个 container 抽离成独立的应用，单个 container 是无法独立工作的。**在分形的架构下，一个‘应用’有更小的‘应用’组成，‘应用’内部有自己的状态机制，单个应用可以独立工作，也可以作为子应用**. 例如 Redux 的鼻祖 Elm 的架构:
 
-    <center>
-    <img src="https://bobi.ink/images/04/elm.jpg" width="500" />
-    </center>
+    ![](https://bobi.ink/images/04/elm.jpg)
     _Store的结构和应用的结构保持一致, 每个 Elm 组件也是一个 Elm 应用，包含完整的Action、Update、Model和View. 使得单独的应用可以被复用_
 
   **Redux 不是分形和 Redux 本身的定位有关，它是一个纯粹的状态管理器，不涉及组件的视图实现，所以无法像 elm 和 cyclejs 一样形成一个完整的应用闭环**。 其实可以发现 react 组件本身就是分形的，组件原本就是状态和视图的集合.
@@ -385,7 +363,7 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 
   个人感觉到页面这个级别的分化刚刚好，比如方便分工。比如最近笔者就有这样一个项目, 我们需要将一个原生 Windows 客户端转换成 electron 实现，限于资源问题，这个项目涉及到两个团队之间协作. 对于这个项目应用 Store 就是一个接口层，Windows 团队负责在这里维护状态和实现业务逻辑，而我们前端团队则负责展示层. 这样一来 Windows 不需要学习 React 和视图展示，我们也不需要关系他们复杂的业务逻辑(底层还是使用 C++, 暴露部分接口给 node)
 
-<br/>
+<br>
 
 **七，可能还有性能问题**
 
@@ -394,13 +372,13 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 - [我为什么从 Redux 迁移到了 Mobx](https://tech.youzan.com/mobx_vs_redux/)
 - [Mobx 与 Redux 的性能对比](https://zhuanlan.zhihu.com/p/52625410)
 
-<br/>
+<br>
 
 总结
 
 本节主要介绍的 Redux 设计的动机，以及围绕着这个动机一系列设计, 再介绍了 Redux 的一些缺点和最佳实践。Redux 的生态非常繁荣，如果是初学者或不想折腾还是建议使用 Dva 或 rematch 这类二次封装框架，这些框架通常就是 Redux 一些最佳实践的沉淀, 减少折腾的时间。当然这只是个开始，组织一个大型项目你还有很多要学的。
 
-<br/>
+<br>
 
 扩展阅读
 
@@ -415,11 +393,11 @@ Redux 的主要结构如上，在此之前你先要搞清楚 Redux 的初衷是�
 - [Redux 官方文档](https://redux.js.org/introduction/getting-started)
 - [redux 三重境](https://zhuanlan.zhihu.com/p/26485702)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## Mobx
 
@@ -438,13 +416,11 @@ Mobx 提供了一个类似 Vue 的响应式系统，相对 Redux 来说 Mobx 的
 
 - **数据变更**. mobx 推荐在 `action/flow(异步操作)` 中对数据进行变更，action 可以认为是 Redux 中的 dispatch+reducer 的合体。在严格模式下 mobx 会限制只能在 action 函数中进行变更，这使得状态的变更可被追溯。**推荐在 flow 函数中隔离副作用，这个东西和 Redux-saga 差不多，通过 generator 来进行异步操作和副作用隔离**
 
-<br/>
+<br>
 
 上面就是 Mobx 的核心概念。举一个简单的例子：
 
-<center>
-<img src="https://bobi.ink/codes/mobx-demo.png" width="650" />
-</center>
+![](https://bobi.ink/codes/mobx-demo.png)
 
 但是**Mobx 不是一个框架**，它不会像 Redux 一样告诉你如何去组织代码，在哪存储状态或者如何处理事件, 也没有最佳实践。好处是你可以按照自己的喜好组件项目，比如按照 Redux(Vuex)方式，也可以使用面向对象方式组织; 坏处是如果你没有相关经验, 会不知所措，不知道如何组织代码
 
@@ -472,7 +448,7 @@ src/
   index.tsx
 ```
 
-<br/>
+<br>
 
 **领域对象**
 
@@ -507,7 +483,7 @@ export default class Order {
 }
 ```
 
-<br/>
+<br>
 
 **Store**
 
@@ -594,7 +570,7 @@ class RootStore {
 - **无数据快照**，无法实现时间回溯，这是 Redux 的强项，但大部分的应用不需要这个功能; 另外可以通过 mobx-state-tree 实现
 - **无法 hot-reload**
 
-<br/>
+<br>
 
 还有一些 mobx 本身的问题, 这些问题在上一篇文章也提过, 另外可以看这篇文章([Mvvm 前端数据流框架精讲](https://mp.weixin.qq.com/s?__biz=MjM5MDI3MjA5MQ==&mid=2697266952&idx=2&sn=a3389d1db237c2b23f523061da3b2359)):
 
@@ -605,25 +581,21 @@ class RootStore {
   - Observable 数组并非真正的数组. 比如 antd 的 Table 组件就不认 mobx 的数组, 需要传入到组件之间使用 slice 进行转换
   - 向一个已存在的 observable 对象中添加属性不会被自动捕获
 
-<br/>
+<br>
 
 `MV*` 只是 Mobx 的其中一种主流组织方式, 很多文章在讨论 Redux 和 mobx 时往往会沦为**函数式和面向对象**之争，然后就下结论说 Redux 更适合大型项目，**下这种结论最主要的原因是 Redux 有更多约束(only one way to do it), 适合项目的演进和团队协作, 而不在于函数式和面向对象**。当然函数式和面向对象范式都有自己擅长的领域，例如函数式适合数据处理和复杂数据流抽象，而面向对象适合业务模型的抽象, 所以不要一竿子打死.
 
 换句话说适不适合大型项目是项目组织问题, Mobx 前期并没有提出任何解决方案和最佳实践。这不后来其作者也开发了[mobx-state-tree](https://github.com/mobxjs/mobx-state-tree)这个神器，作为 MobX 官方提供的状态模型构建库，MST 吸收了 Redux 等工具的优点，**旨在结合不可变数据/函数式(transactionality, traceability and composition)和可变数据/面向对象(discoverability, co-location and encapsulation)两者的优点**， 提供了很多诸如数据镜像(time travel)、hot reload、action middleware、集成 redux-devtools 以及强类型(Typescript + 运行时检查(争议点))等很有用的特性, 其实它更像是后端 ActiveRecord 这类 ORM 工具, 构建一个对象图。
 
-<center>
-  <img src="https://bobi.ink/images/04/immutable-vs-mutable.png" width="500" />
-</center>
+![](https://bobi.ink/images/04/immutable-vs-mutable.png)
 
 典型的代码：
 
-<center>
-  <img src="https://bobi.ink/codes/mst.png" width="800" />
-</center>
+![](https://bobi.ink/codes/mst.png)
 
 限于笔者对 MST 实践不多，而且文章篇幅已经很长，所以就不展开了，后续有机会再分享分享。
 
-<br/>
+<br>
 
 还是得下一个结论, 选择 Mobx 还是 Redux? 这里还是引用来自[MobX vs Redux: Comparing the Opposing Paradigms - React Conf 2017 纪要](https://zhuanlan.zhihu.com/p/25989654)的结论:
 
@@ -632,7 +604,7 @@ class RootStore {
 
 上述结论的主要依据是 Redux 对 action / event 作出反应，而 MobX 对 state 变化作出反应。比如当一个数据变更涉及到 Mobx 的多个 Store，可以体现出 Redux 的方式更加优雅，数据流更加清晰. 前面都详尽阐述了 Mobx 和 Redux 的优缺点，mobx 还有 MST 加持， 相信读者心里早已有自己的喜好
 
-<br/>
+<br>
 
 扩展
 
@@ -647,11 +619,11 @@ class RootStore {
 
 如果上文提到的状态管理工具都无法满足你的需要，你的项目复杂程度可能超过全国 99%的项目了. RxJS 可能可以助你一臂之力, **RxJS 非常适合复杂异步事件流的应用**，笔者在这方面实践也比较少，推荐看看[徐飞的相关文章](https://www.zhihu.com/people/sharpmaster/posts), 另外 Redux(Redux-Observable)和 Mobx 实际上也可以配合 RxJS 使用
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 其他状态管理方案
 
@@ -660,11 +632,11 @@ class RootStore {
 
 推荐这篇文章[State of React State Management for 2019](https://blog.bitsrc.io/state-of-react-state-management-in-2019-779647206bbc)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 扩展阅读
 

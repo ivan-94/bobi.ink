@@ -15,9 +15,9 @@ Preact 是 React 的缩略版, 体积非常小, 但五脏俱全. 如果你想了
 > 注意：代码有所简化，忽略掉 svg、replaceNode、context 等特性
 > 本文代码基于 Preact v10 版本
 
-<br/>
+<br>
 
-<!-- TOC -->
+
 
 - [Virtual-DOM](#virtual-dom)
 - [从 createElement 开始](#从-createelement-开始)
@@ -33,15 +33,13 @@ Preact 是 React 的缩略版, 体积非常小, 但五脏俱全. 如果你想了
 - [技术地图](#技术地图)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 ## Virtual-DOM
 
-<center>
- <img src="https://bobi.ink/images/07/vd.png" width="500"/>
-</center>
+![](https://bobi.ink/images/07/vd.png)
 
 Virtual-DOM 其实就是一颗对象树，没有什么特别的，这个对象树最终要映射到图形对象. Virtual-DOM 比较核心的是它的`diff算法`.
 
@@ -63,7 +61,7 @@ Virtual-DOM 是比较有争议性，推荐阅读[《网上都说操作真实 DOM
 
 ---
 
-<br/>
+<br>
 
 ## 从 createElement 开始
 
@@ -86,7 +84,7 @@ render(<div>hello jsx</div>, el);
 
 现在来看看`createElement`, **createElement 不过就是构造一个对象(VNode)**:
 
-<!-- prettier-ignore-start -->
+
 ```js
 // ⚛️type 节点的类型，有DOM元素(string)和自定义组件，以及Fragment, 为null时表示文本节点
 export function createElement(type, props, children) {
@@ -106,7 +104,7 @@ export function createVNode(type, props, key, ref) {
   return { type, props, key, ref, /* ... 忽略部分内置字段 */ constructor: undefined };
 }
 ```
-<!-- prettier-ignore-end -->
+
 
 通过 JSX 和组件, 可以构造复杂的对象树:
 
@@ -120,11 +118,11 @@ render(
 );
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## Component 的实现
 
@@ -134,7 +132,7 @@ render(
 
 Preact 的自定义组件是基于 Component 类实现的. 对组件来说最基本的就是状态的维护, 这个通过 setState 来实现:
 
-<!-- prettier-ignore-start -->
+
 ```js
 function Component(props, context) {}
 
@@ -156,13 +154,13 @@ Component.prototype.setState = function(update, callback) {
   }
 };
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 `enqueueRender` 将组件放进一个异步的批执行队列中，这样可以归并频繁的 setState 调用，实现也非常简单:
 
-<!-- prettier-ignore-start -->
+
 ```js
 let q = [];
 // 异步调度器，用于异步执行一个回调
@@ -185,15 +183,15 @@ function process() {
     if (p._dirty) p.forceUpdate(false); // false表示不要强制更新，即不要忽略shouldComponentUpdate
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 Ok, 上面的代码可以看出 `setState` 本质上是调用 `forceUpdate` 进行组件重新渲染的，来往下挖一挖 forceUpdate 的实现.
 
 > 这里暂且忽略 diff, **将 diff 视作一个黑盒，他就是一个 DOM 映射器, 像上面说的 diff 接收两棵 VNode 树, 以及一个 DOM 挂载点, 在比对的过程中它可以会创建、移除或更新组件和 DOM 元素，触发对应的生命周期方法**.
 
-<!-- prettier-ignore-start -->
+
 ```js
 Component.prototype.forceUpdate = function(callback) { // callback放置渲染完成后的回调
   let vnode = this._vnode, dom = this._vnode._dom, parentDom = this._parentDom;
@@ -211,13 +209,13 @@ Component.prototype.forceUpdate = function(callback) { // callback放置渲染�
   if (callback) callback();
 };
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 在看看 `render` 方法, 实现跟 forceUpdate 差不多, 都是调用 diff 算法来执行 DOM 更新，只不过由外部指定一个 DOM 容器:
 
-<!-- prettier-ignore-start -->
+
 ```js
 // 简化版
 export function render(vnode, parentDom) {
@@ -228,23 +226,21 @@ export function render(vnode, parentDom) {
   commitRoot(mounts, vnode);
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 梳理一下上面的流程:
 
-<center>
-  <img src="https://bobi.ink/images/07/setState.png" width="800" />
-</center>
+![](https://bobi.ink/images/07/setState.png)
 
 到目前为止没有看到组件的其他功能，如初始化、生命周期函数。这些特性在 diff 函数中定义，也就是说在组件挂载或更新的过程中被调用。下一节就会介绍 diff
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## diff 算法
 
@@ -252,7 +248,7 @@ export function render(vnode, parentDom) {
 
 为了简化程序 Preact 的实现将 diff 和 DOM 杂糅在一起, 但逻辑还是很清晰，看下目录结构就知道了:
 
-<br/>
+<br>
 
 ```shell
 src/diff
@@ -261,11 +257,9 @@ src/diff
 └── props.js    # 比对两个DOM节点的props
 ```
 
-<center>
-  <img src="https://bobi.ink/images/07/diff.png" width="600" />
-</center>
+![](https://bobi.ink/images/07/diff.png)
 
-<br/>
+<br>
 
 在深入 diff 程序之前，先看一下基本的对象结构, 方便后面理解程序流程. 先来看下 VNode 的外形:
 
@@ -293,19 +287,17 @@ interface VNode<P = {}> {
 }
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### diffChildren
 
 先从最简单的开始, 上面已经猜出 diffChildren 用于比对两个 VNode 列表.
 
-<center>
-  <img src="https://bobi.ink/images/07/diffChildren-base.png" width="600" />
-</center>
+![](https://bobi.ink/images/07/diffChildren-base.png)
 
 如上图, 首先这里需要维护一个表示当前插入位置的变量 oldDOM, 它一开始指向 DOM childrenNode 的第一个元素, 后面每次插入更新或插入 newDOM，都会指向 newDOM 的下一个兄弟元素.
 
@@ -315,7 +307,7 @@ interface VNode<P = {}> {
 
 来详细看看源码:
 
-<!-- prettier-ignore-start -->
+
 ```jsx
 export function diffChildren(
   parentDom,         // children的父DOM元素
@@ -387,43 +379,37 @@ export function diffChildren(
     if (oldChildren[i] != null) unmount(oldChildren[i], ancestorComponent);
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 配图理解一下 diffChilrend 的调用过程:
 
-<center>
-  <img src="https://bobi.ink/images/07/diffChildren.png" width="600" />
-</center>
+![](https://bobi.ink/images/07/diffChildren.png)
 
-<br/>
+<br>
 
 总结一下流程图
 
-<center>
-  <img src="https://bobi.ink/images/07/diffChildren-process.png" width="800" />
-</center>
+![](https://bobi.ink/images/07/diffChildren-process.png)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### diff
 
 diff 用于比对两个 VNode 节点. diff 函数比较冗长, 但是这里面并没有特别复杂逻辑，主要是一些自定义组件生命周期的处理。所以先上流程图，代码不感兴趣可以跳过.
 
-<center>
-  <img src="https://bobi.ink/images/07/diff-process.png" width="800" />
-</center>
+![](https://bobi.ink/images/07/diff-process.png)
 
-<br/>
+<br>
 
 源代码解析：
 
-<!-- prettier-ignore-start -->
+
 ```jsx
 export function diff(
   parentDom,         // 父DOM节点
@@ -558,23 +544,21 @@ export function diff(
   return newVNode._dom;
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### diffElementNodes
 
 比对两个 DOM 元素, 流程非常简单:
 
-<center>
-  <img src="https://bobi.ink/images/07/diffElementNodes-process.png" width="600" />
-</center>
+![](https://bobi.ink/images/07/diffElementNodes-process.png)
 
-<!-- prettier-ignore-start -->
+
 ```js
 function diffElementNodes(dom, newVNode, oldVNode, mounts, ancestorComponent) {
   // ...
@@ -613,19 +597,19 @@ function diffElementNodes(dom, newVNode, oldVNode, mounts, ancestorComponent) {
   return dom;
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### diffProps
 
 diffProps 用于更新 DOM 元素的属性
 
-<!-- prettier-ignore-start -->
+
 ```jsx
 export function diffProps(dom, newProps, oldProps, isSvg) {
   let i;
@@ -644,13 +628,13 @@ export function diffProps(dom, newProps, oldProps, isSvg) {
       setProperty(dom, i, null, oldProps[i], isSvg);
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 diffProps 实现比较简单，就是遍历一下属性有没有变动，有变动则通过 setProperty 设置属性。对于失效的 props 也会通过 setProperty 置空。这里面稍微有点复杂的是 setProperty. 这里涉及到事件的处理, 命名的转换等等:
 
-<!-- prettier-ignore-start -->
+
 ```js
 function setProperty(dom, name, value, oldValue, isSvg) {
   if (name === 'style') {
@@ -702,7 +686,7 @@ function setProperty(dom, name, value, oldValue, isSvg) {
   }
 }
 ```
-<!-- prettier-ignore-end -->
+
 
 OK 至此 Diff 算法介绍完毕，其实这里面的逻辑并不是特别复杂, 当然 Preact 只是一个极度精简的框架，React 复杂度要高得多，尤其 React Fiber 重构之后。你也可以把 Preact 当做 React 的历史回顾，有兴趣再深入了解 React 的最新架构。
 
@@ -710,7 +694,7 @@ OK 至此 Diff 算法介绍完毕，其实这里面的逻辑并不是特别复�
 
 ---
 
-<br/>
+<br>
 
 ## Hooks 的实现
 
@@ -729,11 +713,11 @@ function Foo() {
 }
 ```
 
-<br/>
+<br>
 
 那 Preact 是如何扩展 diff 算法来实现 hooks 的呢？ 实际上 Preact 提供了`options`对象来对 Preact diff 进行扩展，options 类似于 Preact 生命周期钩子，在 diff 过程中被调用(为了行文简洁，上面的代码我忽略掉了)。例如:
 
-<!-- prettier-ignore-start -->
+
 ```jsx
 export function diff(/*...*/) {
   // ...
@@ -767,15 +751,15 @@ export function diff(/*...*/) {
 }
 // ...
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 ### useState
 
 先从最常用的 useState 开始:
 
-<!-- prettier-ignore-start -->
+
 ```js
 export function useState(initialState) {
   // ⚛️OK只是数组，没有Magic，每个hooks调用都会递增currenIndex, 从当前组件中取出状态
@@ -802,13 +786,13 @@ export function useState(initialState) {
   return hookState._value; // [state, dispatch]
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 从代码可以看到，关键在于`getHookState`的实现
 
-<!-- prettier-ignore-start -->
+
 ```js
 import { options } from 'preact';
 
@@ -848,17 +832,15 @@ function getHookState(index) {
   return hooks._list[index];
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 大概的流程如下:
 
-<center>
-  <img src="https://bobi.ink/images/07/useState.png" width="800" />
-</center>
+![](https://bobi.ink/images/07/useState.png)
 
-<br/>
+<br>
 
 ### useEffect
 
@@ -887,11 +869,11 @@ export function useLayoutEffect(callback, args) {
 }
 ```
 
-<br/>
+<br>
 
 看看如何触发 effect. useEffect 和上面看到的`enqueueRender`差不多，放进一个异步队列中，由`requestAnimationFrame`进行调度，批量处理:
 
-<!-- prettier-ignore-start -->
+
 ```js
 // 这是一个类似于上面提到的异步队列
 afterPaint = component => {
@@ -932,9 +914,9 @@ function invokeEffect(hook) {
   if (typeof result === 'function') hook._cleanup = result;
 }
 ```
-<!-- prettier-ignore-end -->
 
-<br/>
+
+<br>
 
 再看看如何触发 LayoutEffect, 很简单，在 diff 完成后触发, 这个过程是同步的.
 
@@ -951,9 +933,7 @@ options.diffed = vnode => {
 
 👌，hooks 基本原理基本了解完毕, 最后还是用一张图来总结一下吧。
 
-<center>
-  <img src="https://bobi.ink/images/07/hooks.png" width="800" />
-</center>
+![](https://bobi.ink/images/07/hooks.png)
 
 ## 技术地图
 

@@ -6,15 +6,13 @@ categories: 前端
 
 这是一个新开的'实验性'文章系列，如其名‘技术地图’，这个系列计划剖析一些前端开源项目，可能会探讨这些项目的**设计和组织**、整理他们使用到**技术栈**。 首先拿`vue-cli`小试牛刀，再决定后续要不要继续这个系列.
 
-<br/>
+<br>
 
 我一直在思考我们编程主要在做什么？我们有一大部分工作就是选择各种工具/库/框架，来黏合业务. 工具和场景越匹配、原理了解越多，运用越娴熟，我们效率可能就越高. 这种说法很有争议，就像`程序=算法+数据结构`不能完全表达现今的软件工程一样, 说我们的工作就是堆砌工具，黏合业务, 一定程度上有自贬的意思。 但这确实是大部分程序员的真实写照。
 
 这系列文章其实有点类似于 github 上面的`Awesome`项目. 这些 Awesome 项目就是一个**生态展览馆**, 里面项目琳琅满目. 因为数量太多了，而且缺少评分机制，大部分情况我们不可能一个个去查看，很难从中选择符合需求的项目(当然你带着明确的目的，且目标范围非常小，可能比较有用)。
 
-<center>
-<img src="https://bobi.ink/images/05/awesome.png" width="400" />
-</center>
+![](https://bobi.ink/images/05/awesome.png)
 
 是否可以尝试换个角度，**选取一些有趣的开源项目，看看它是怎么应用这些工具的, 有序的罗列出来? 对于有相同场景的项目, 参考或者模仿价值可能会更大一些**. 这些开源项目就是巨人，站在巨人肩膀上显然省事多了
 
@@ -22,11 +20,11 @@ categories: 前端
 
 我也希望读者同我交流反馈，共同学习和进步。
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## vue-cli
 
@@ -34,9 +32,7 @@ categories: 前端
 
 **CLI 也是这个指导思想下的产物**, 例如通过它提供的 CLI，可以在[15 分钟内构建一个简易的博客](https://ruby-china.github.io/rails-guides/getting_started.html), 可以通过 CLI 启动服务器和 REPL、生成项目脚手架、生成代码文件、路由、数据库迁移等等:
 
-<center>
-  <img src="https://bobi.ink/images/05/rails-cli.png" width="500">
-</center>
+![](https://bobi.ink/images/05/rails-cli.png)
 
 Rails 的很多设计在那个年代就是就是一个明星(闪瞎 PHP、JSP、 ASP..., 想想要配置各种服务器，各种 xml 文件)，它的很多设计模式深刻影响了后面的 web 框架，比如 Django、Laravel, 甚至很多模仿 Rails 命名的，如 Sails、Grails.
 
@@ -54,7 +50,7 @@ Rails 对于前端开发影响也很深远，比如在 Nodejs 出来之前，Rai
 
 > 没有用 Ruby/Rails 工作过, 默默写了个 Ruby China 小程序(微信搜`Ruby CN`)，算是感恩回馈社区吧
 
-<br/>
+<br>
 
 Ok, 忍不住吹了一波 Rails, 回到正题.
 
@@ -66,7 +62,7 @@ vue-cli-ui 是我想写这系列文章的动机之一. 前阵子用了一下`vue
 
 后来 vue-cli 汲取着前者的很多优点，把这块做大做优了(看来 vue 很擅长做这些事情). 我们可以来对比一下这些工具:
 
-<br/>
+<br>
 
 |              | Vue CLI                                                                              | create-react-app                                                         | parcel                                                                         |
 | ------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -80,7 +76,7 @@ vue-cli-ui 是我想写这系列文章的动机之一. 前阵子用了一下`vue
 | 可升级性     | 支持升级 cli-service, 插件需要单独升级, 插件需要遵循语义化版本. 太多插件存在升级风险 | 支持升级 react-script, 官方维护，且强约定基本可以保障向下兼容            | 支持升级 parcel-bundler                                                        |
 | UI           | 图形化管理是 CLI 的特色之一                                                          | -                                                                        | -                                                                              |
 
-<br/>
+<br>
 
 通过上面的对比，可以看出 **vue-cli 是一个扩展性非常强的构建工具，以致于它不仅限于 Vue，也可以用来构建 React 甚至其他前端框架**。
 
@@ -90,33 +86,31 @@ vue-cli-ui 是我想写这系列文章的动机之一. 前阵子用了一下`vue
 
 vue-cli 也是一个'渐进式'的 cli，vue-cli 提供了默认的 preset，但不阻止你对其进行扩展. vue-cli 的扩展接口也非常简洁(合理, 不多不少), 还有 UI 管理界面，可视化管理项目的配置和插件，用户体验很棒，计划在下一篇文章介绍 vue ui. 唯一比较不舒服的是如果滥用这种扩展性，装 N 多插件，而且插件之间还存在依赖关系时，也会成为升级维护的负担.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 基本设计
 
 注意，本文不是 vue-cli 的教程，最好的教程是[官方文档](https://cli.vuejs.org/zh/dev-guide/plugin-dev.html#prompts).
 
-<br/>
+<br>
 
 ### 目录结构
 
 下面是 vue-cli 的基本目录结构. 大部分大型的前端项目都使用 lerna 实现 mono-repo 模式, 然后统一分发到 npm. 这种模式有利于项目模块组织
 
-<center>
-  <img src="https://bobi.ink/images/05/vue-cli-struct.png" width="700" />
-</center>
+![](https://bobi.ink/images/05/vue-cli-struct.png)
 
-<br/>
+<br>
 
 ### **分离 CLI 层和 Service 层**
 
 这个设计是借鉴`create-react-app`的, CLI 层只是一些基础的命令一般不需要频繁升级，而且是全局安装; 而 Service 层是多变的, 作为项目的局部依赖，不应该硬编码在 CLI 里面. CLI 和 Service 的职责划分如下:
 
-<br/>
+<br>
 
 - CLI: 用于项目创建和管理
 
@@ -131,18 +125,16 @@ vue-cli 也是一个'渐进式'的 cli，vue-cli 提供了默认的 preset，但
   - 集成 webpack 构建环境，**Service 本身只有一个插件机制, 所有构建相关逻辑都由内置插件和外部插件提供**
   - 内置插件(命令): serve, build, inspect
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### **插件系统**
 
 vue-cli 提供了类似 babel、eslint 的插件机制。
 
-<center>
-  <img src="https://bobi.ink/images/05/plugins.png" width="400" />
-</center>
+![](https://bobi.ink/images/05/plugins.png)
 
-<br/>
+<br>
 
 #### **插件**
 
@@ -171,15 +163,13 @@ vue-cli 提供了类似 babel、eslint 的插件机制。
     - 注入 service 命令
     - 扩展和修改 webpack 配置. vue-cli 通过`webpack-chain`和`webpack-merge`来实现 webpack 可配置化
 
-<br/>
+<br>
 
 一个简单的插件结构是这样子的:
 
-<center>
-  <img src="https://bobi.ink/codes/vue-plugin.png" width="600" />
-</center>
+![](https://bobi.ink/codes/vue-plugin.png)
 
-<br/>
+<br>
 
 #### **preset**
 
@@ -191,33 +181,29 @@ vue-cli 提供了类似 babel、eslint 的插件机制。
 
 尽管目前 vue 也提供了`vue upgrade`对插件进行升级，这个是基于语义化版本约定的, 且当插件之间存在依赖关系时, 不排除升级存在风险. 尤其对于团队项目还是推荐有统一地管理这些插件, 实现傻瓜化的升级。 实际上这种 'babel 式'的 preset 是可以通过 vue-plugin 实现和转发的。
 
-<br/>
+<br>
 
 #### **配置**
 
 vue 支持在 package.json 的 `vue` 字段或`vue.config.js`中进行配置。这里可以对 Service 核心功能和插件进行配置, 也可以直接修改 webpack 配置. 另外部分构建行为是通过环境变量进行影响的，这些可以通过`.env.*`文件进行配置
 
-<br/>
+<br>
 
 ### **基本流程**
 
 现在来看看一个 vue-cli 内部的基本流程, Service 的插件实现是 vue-cli 比较有意思的点. 以`vue serve`为例:
 
-<center>
-  <img src="/images/05/vue-cli.png"/>
-</center>
+![](/images/05/vue-cli.png)
 
 Service 对象是 vue-cli 的核心对象，负责管理和应用插件，所有命令和 webpack 配置都是以插件的形式存在:
 
-<center>
-  <img src="https://bobi.ink/images/05/vue-service-struct.png" width="700" />
-</center>
+![](https://bobi.ink/images/05/vue-service-struct.png)
 
 **首先划分为配置阶段和运行阶段**。 配置阶段 vue-cli 会加载配置文件，并查找和应用所有插件。将 PluginAPI 实例和项目配置传递给插件运行时, 插件运行时通过 PluginAPI 注入命令(registerCommand)和 扩展 webpack 配置(chainWebpack, configureWebpack).
 
 运行阶段则根据用户传入的命令名调用插件注入命令。在命令实现函数中，可以调用 resolveWebpackConfig()来生成最终的 webpack 配置。以 serve 命令为例，获取到 webpackConfig 后会创建一个 webpack 编译器，并开启 webpack-dev-server 开发服务器.
 
-<br/>
+<br>
 
 ## 技术地图
 

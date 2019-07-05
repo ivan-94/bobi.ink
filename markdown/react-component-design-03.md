@@ -14,11 +14,11 @@ CSS 是前端开发的重要组成部分，但是它并不完美，本文主要�
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
 - 05 状态管理 待更新
 
-<br/>
+<br>
 
 **目录**
 
-<!-- TOC -->
+
 
 - [1. 认识 CSS 的局限性](#1-认识-css-的局限性)
   - [1️⃣ 全局性](#1️⃣-全局性)
@@ -53,19 +53,17 @@ CSS 是前端开发的重要组成部分，但是它并不完美，本文主要�
   - [3️⃣ 使用stylelint进行样式规范检查](#3️⃣-使用stylelint进行样式规范检查)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
+
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 1. 认识 CSS 的局限性
 
-<center>
- <img src="https://bobi.ink/images/04/vjeux-speak.png" alt="vjeux-speak" width="500" />
-</center>
+![](https://bobi.ink/images/04/vjeux-speak.png)
 
 2014 年[vjeux](https://github.com/vjeux)一个 [speak](https://speakerd.s3.amazonaws.com/presentations/2e15908049bb013230960224c1b4b8bd/css-in-javascript.pdf) 深刻揭示的原生 CSS 的一些局限性. 虽然它有些争议, 对于开发者来说更多的是启发. 至从那之后出现了很多 `CSS-in-js` 解决方案.
 
@@ -75,7 +73,7 @@ CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模
 
 解决的方向: 生成唯一的类名; shadow dom; 内联样式; Vue-scoped 方案
 
-<br/>
+<br>
 
 ### 2️⃣ 依赖
 
@@ -85,7 +83,7 @@ CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模
 
 解决的方向: 之前文章提到组件是一个内聚单元, 样式应该是和组件绑定的. 最基本的解决办法是使用类似 BEM 命名规范来避免组件之间的命名冲突, 再通过创建优于复用, 组合优于继承的原则, 来避免组件间样式耦合;
 
-<br/>
+<br>
 
 ### 3️⃣ 无用代码的移除
 
@@ -95,7 +93,7 @@ CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模
 
 解决的方向: 如果样式的依赖比较明确，则可以安全地移除无用代码
 
-<br/>
+<br>
 
 ### 4️⃣ 压缩
 
@@ -105,7 +103,7 @@ CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模
 
 解决的方向: 由工具来转换或创建类名
 
-<br/>
+<br>
 
 ### 5️⃣ 常量共享
 
@@ -113,7 +111,7 @@ CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模
 
 解决的方向: CSS-in-js
 
-<br/>
+<br>
 
 ### 6️⃣ CSS 解析方式的不确定性
 
@@ -121,11 +119,11 @@ CSS 规则的加载顺序是很重要的, 他会影响属性应用的优先级, 
 
 解决方向：避免使用全局样式，组件样式隔离；样式加载和组件生命周期绑定
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 2. 组件的样式管理
 
@@ -142,11 +140,11 @@ interface ButtonProps {
 
 这两个属性应该是每个展示型组件应该暴露的 props, 其他嵌套元素也要考虑支持配置样式, 例如 footerClassName, footerStyle.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 2️⃣ 避免使用内联 CSS
 
@@ -160,11 +158,11 @@ interface ButtonProps {
 
 > 社区上有许多 CSS-in-js 方案是基于内联 CSS 的, 例如 Radium, 它使用 JS 添加事件处理器来模拟伪类, 另外也媒体查询和动画. 不过不是所有东西都可以通过 JS 模拟, 比如伪元素. 所以这类解决方案用得比较少
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 3️⃣ 使用 CSS-in-js
 
@@ -186,7 +184,7 @@ interface ButtonProps {
 
 > 推荐这篇文章: [Stop using css-in-javascript for web development](https://medium.com/@gajus/stop-using-css-in-javascript-for-web-development-fa32fb873dcc), styled-components 可以基本覆盖所有 CSS 的使用场景:
 
-<br/>
+<br>
 
 #### 0. 基本用法
 
@@ -203,7 +201,7 @@ const Input = styled.input.attrs({
 })``;
 ```
 
-<br/>
+<br>
 
 #### 1. 样式扩展
 
@@ -224,7 +222,7 @@ const TomatoButton = styled(Button)`
 `;
 ```
 
-<br/>
+<br>
 
 #### 2. mixin 机制
 
@@ -258,7 +256,7 @@ const Box = styled.div`
 `;
 ```
 
-<br/>
+<br>
 
 #### 3. 类 SCSS 的语法
 
@@ -307,7 +305,7 @@ const Example = styled(Component)`
 `;
 ```
 
-**引用其他组件**<br/>
+**引用其他组件**<br>
 
 由于 styled-components 的类名是自动生成的, 所以不能直接在选择器中声明他们, 但可以在模板字符串中引用其他组件:
 
@@ -325,7 +323,7 @@ const Icon = styled.svg`
 `;
 ```
 
-<br/>
+<br>
 
 #### 5. JS 带来的动态性
 
@@ -364,7 +362,7 @@ const Container = styled.div`
 
 > SCSS 也提供了很多内置工具方法, 比如颜色的处理, 尺寸的计算. styled-components 提供了一个类似的 js 库: [polished](https://github.com/styled-components/polished)来满足这部分需求, 另外还集成了常用的 mixin, 如 clearfix. 通过 babel 插件可以在编译时转换为静态代码, 不需要运行时.
 
-<br/>
+<br>
 
 #### 6. 绑定组件的`全局样式`
 
@@ -384,7 +382,7 @@ const GlobalStyle = createGlobalStyle`
 </React.Fragment>
 ```
 
-<br/>
+<br>
 
 #### 7. Theme 机制及 Theme 对象的设计
 
@@ -431,7 +429,7 @@ bootstrap 将这些配置项有很高的参考意义. 组件可以认为是 UI �
 
 styled-components 的 Theme 使用的是`React Context` API, 官方文档有详尽的描述, 这里就不展开了. 点击这里[了解更多](https://www.styled-components.com/docs/advanced#theming), 另外在[这里](https://www.styled-components.com/docs/api#typescript)了解如何在 Typescript 中声明 theme 类型
 
-<br/>
+<br>
 
 #### 8. 提升开发体验
 
@@ -447,7 +445,7 @@ const Thing = styled.div`
 
 详见[Tooling](https://www.styled-components.com/docs/tooling#babel-macro)
 
-<br/>
+<br>
 
 #### 9. 了解 styled-components 的局限性
 
@@ -463,13 +461,13 @@ const Thing = styled.div`
 
 ![styled-components benchmark](https://bobi.ink/images/04/styled-benchmark.png)
 
-<br/>
+<br>
 
 #### 10. 一些开发规范
 
 - 避免无意义的组件名. 避免类似`Div`, `Span`这类直接照搬元素名的无意义的组件命名
 
-<br/>
+<br>
 
 - 在一个文件中定义 styled-components 组件. 对于比较简单的组件, 一般会在同一个文件中定义 styled-components 组件就行了. 下面是典型组件的文件结构:
 
@@ -506,7 +504,7 @@ const Thing = styled.div`
   export default Steps;
   ```
 
-<br/>
+<br>
 
 - 考虑导出 styled-components 组件, 方便上级组件设置样式
 
@@ -527,7 +525,7 @@ const Thing = styled.div`
   `;
   ```
 
-<br/>
+<br>
 
 #### 11. 其他 CSS-in-js 方案
 
@@ -553,31 +551,31 @@ CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段�
 
 - [CSS-in-JS 101: All you need to know](https://github.com/stereobooster/css-in-js-101)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案
 
 如果是作为第三方组件库形式开发, 个人觉得不应该耦合各种 CSS-in-js/CSS-module. 不能强求你的组件库使用者耦合这些技术栈, 而且部分技术是需要构建工具支持的. 建议使用原生 CSS 或者将 SCSS/Less 这些预处理工具作为增强方案
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 5️⃣ 优先使用原生 CSS
 
 笔者的项目大部分都是使用`styled-components`, 但对于部分极致要求性能的组件, 一般我会回退使用原生 CSS, 再配合 BEM 命名规范. 这种最简单方式, 能够满足大部分需求.
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 6️⃣ 选择合适自己团队的技术栈
 
@@ -600,11 +598,11 @@ CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段�
 
 综上所述, CSS-in-js 和 CSS 方案各有适用场景. 比如对于组件库, 如 antd 则选择了 Preprocessor 方案; 对于一般应用笔者建议使用 CSS-in-js 方案, 它学习成本很低, 并且`There's Only One Way To Do It` 没有太多心智负担, 不需要学习冗杂的方法论, 代码相对比较可控; 另外它还支持跨平台, 在 ReactNative 下, styled-components 是更好的选择. 而 CSS 方案, 对于大型应用要做到有组织有纪律和规划化, 需要花费较大的精力, 尤其是团队成员能力不均情况下, 很容易失控
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 7️⃣ 使用 svgr 转换 svg 图标
 
@@ -629,14 +627,14 @@ const App = () => (
 
 了解[更多](https://www.smooth-code.com/open-source/svgr/docs/webpack/)
 
-> antd 3.9 之后使用 svg 图标[代替了 font 图标](https://ant.design/components/icon-cn/#SVG-图标) <br/>
+> antd 3.9 之后使用 svg 图标[代替了 font 图标](https://ant.design/components/icon-cn/#SVG-图标) <br>
 > 对比[SVG vs Image, SVG vs Iconfont](https://aotu.io/notes/2018/11/23/SVG_vs_Image_vs_iconfont/index.html)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ### 8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件
 
@@ -670,11 +668,11 @@ em 可以让`Switch`这类固定比例的组件的样式可以更容易的被配
 - [Understanding and Using rem Units in CSS](https://www.sitepoint.com/understanding-and-using-rem-units-in-css/)
 - [Rem 布局的原理解析](https://www.zhihu.com/column/p/30413803)
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 3. 规范
 
@@ -697,11 +695,11 @@ em 可以让`Switch`这类固定比例的组件的样式可以更容易的被配
 
 ### 3️⃣ 使用stylelint进行样式规范检查
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 扩展
 

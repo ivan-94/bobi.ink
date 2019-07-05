@@ -6,7 +6,7 @@ categories: 前端
 
 本文来源于公司内部的一次闪电分享，稍作润色分享出来。主要讨论 React 性能优化的主要方向和一些小技巧。**如果你觉得可以，请多点赞，鼓励我写出更精彩的文章**🙏。
 
-<br/>
+<br>
 
 React 渲染性能优化的三个方向，其实也适用于其他软件开发领域，这三个方向分别是:
 
@@ -14,11 +14,11 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 - **利用缓存**。-> 对应到 React 中就是**如何避免重新渲染，利用函数式编程的 memo 方式来避免组件重新渲染**
 - **精确重新计算的范围**。 对应到 React 中就是**绑定组件和状态关系, 精确判断更新的'时机'和'范围'. 只重新渲染'脏'的组件，或者说降低渲染范围**
 
-<br/>
+<br>
 
 **目录**
 
-<!-- TOC -->
+
 
 - [减少渲染的节点/降低渲染计算量(复杂度)](#减少渲染的节点降低渲染计算量复杂度)
   - [0️⃣ 不要在渲染函数都进行不必要的计算](#0️⃣-不要在渲染函数都进行不必要的计算)
@@ -37,28 +37,26 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
   - [1️⃣ 不要滥用 Context](#1️⃣-不要滥用-context)
 - [扩展](#扩展)
 
-<!-- /TOC -->
 
-<br/>
-<br/>
+
+<br>
+<br>
 
 ## 减少渲染的节点/降低渲染计算量(复杂度)
 
 首先从计算的量上下功夫，减少节点渲染的数量或者降低渲染的计算量可以显著的提高组件渲染性能。
 
-<br/>
+<br>
 
 ### 0️⃣ 不要在渲染函数都进行不必要的计算
 
 比如不要在渲染函数(render)中进行数组排序、数据转换、订阅事件、创建事件处理器等等. **渲染函数中不应该放置太多副作用**
 
-<br/>
+<br>
 
 ### 1️⃣ 减少不必要的嵌套
 
-<center>
- <img src="https://bobi.ink/images/09/styled-components.png" />
-</center>
+![](https://bobi.ink/images/09/styled-components.png)
 
 我们团队是重度的 `styled-components` 用户，**其实大部分情况下我们都不需要这个玩意**，比如纯静态的样式规则，以及需要重度性能优化的场景。除了性能问题，另外一个困扰我们的是它带来的节点嵌套地狱(如上图)。
 
@@ -66,7 +64,7 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 
 **一般不必要的节点嵌套都是滥用高阶组件/RenderProps 导致的。所以还是那句话‘只有在必要时才使用 xxx’**。 有很多种方式来代替高阶组件/RenderProps，例如优先使用 props、React Hooks
 
-<br/>
+<br>
 
 ### 2️⃣ 虚拟列表
 
@@ -74,15 +72,11 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 
 虚拟列表只渲染当前视口可见元素:
 
-<center>
- <img src="https://bobi.ink/images/09/vl.png" width="500" />
-</center>
+![](https://bobi.ink/images/09/vl.png)
 
 虚拟列表渲染性能对比:
 
-<center>
- <img src="https://bobi.ink/images/09/vl-compare.png" width="500" />
-</center>
+![](https://bobi.ink/images/09/vl-compare.png)
 
 虚拟列表常用于以下组件场景:
 
@@ -103,8 +97,8 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 - [Creating more efficient React views with windowing](https://bvaughn.github.io/forward-js-2017/#/0/0)
 - [Rendering large lists with react-window](https://addyosmani.com/blog/react-window/)
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### 3️⃣ 惰性渲染
 
@@ -116,23 +110,21 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 
 这里就不举具体的代码例子了，留给读者去思考.
 
-<br/>
+<br>
 
 ### 4️⃣ 选择合适的样式方案
 
-<center>
-  <img src="https://bobi.ink/images/09/style-compare.png" width="500" />
-</center>
+![](https://bobi.ink/images/09/style-compare.png)
 
 如图(图片来源于[THE PERFORMANCE OF STYLED REACT COMPONENTS](https://blog.primehammer.com/the-performance-of-styled-react-components/)), 这个图片是17年的了，但是大抵的趋势还是这样。
 
 所以在样式运行时性能方面大概可以总结为：`CSS > 大部分CSS-in-js > inline style`
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## 避免重新渲染
 
@@ -143,7 +135,7 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 
 另外这些措施也可以帮助你更容易地优化组件重新渲染:
 
-<br/>
+<br>
 
 ### 0️⃣ 简化 props
 
@@ -152,15 +144,13 @@ React 渲染性能优化的三个方向，其实也适用于其他软件开发�
 
 下面是一个典型的例子, 为了判断列表项是否处于激活状态，这里传入了一个当前激活的 id:
 
-  <center>
-    <img src="https://bobi.ink/images/09/list.png" width="500" />
-  </center>
+  ![](https://bobi.ink/images/09/list.png)
 
 这是一个非常糟糕的设计，一旦激活 id 变动，所有列表项都会重新刷新. 更好的解决办法是使用类似`actived`这样的布尔值 prop. actived 现在只有两种变动情况，也就是说激活 id 的变动，最多只有两个组件需要重新渲染.
 
 **简化的 props 更容易理解, 且可以提高组件缓存的命中率**
 
-<br/>
+<br>
 
 ### 1️⃣ 不变的事件处理器
 
@@ -185,7 +175,7 @@ class MyComponent extends Component {
 }
 ```
 
-  <br/>
+  <br>
 
 ② 即使现在使用`hooks`，我依然会**使用`useCallback`来包装事件处理器**，尽量给下级组件暴露一个静态的函数:
 
@@ -228,7 +218,7 @@ function MyComp(props) {
 }
 ```
 
-<br/>
+<br>
 
 ③**设计更方便处理的 Event Props**. 有时候我们会被逼的不得不使用箭头函数来作为事件处理器：
 
@@ -274,8 +264,8 @@ return (
 );
 ```
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### 2️⃣ 不可变数据
 
@@ -283,13 +273,13 @@ return (
 
 相关的工具有[Immutable.js](https://github.com/facebook/immutable-js)、[Immer](https://github.com/mweststrate/immer)、immutability-helper 以及 seamless-immutable。
 
-<br/>
+<br>
 
 ### 3️⃣ 简化 state
 
 **不是所有状态都应该放在组件的 state 中**. 例如缓存数据。按照我的原则是：**如果需要组件响应它的变动, 或者需要渲染到视图中的数据才应该放到 state 中。这样可以避免不必要的数据变动导致组件重新渲染.**
 
-<br/>
+<br>
 
 ### 4️⃣ 使用 recompose 精细化比对
 
@@ -306,8 +296,8 @@ return (
 
 其实还可以再扩展一下，比如`omitUpdateForKeys`忽略比对某些 key.
 
-<br/>
-<br/>
+<br>
+<br>
 
 ## 精细化渲染
 
@@ -315,11 +305,9 @@ return (
 
 Vue 和 Mobx 宣称自己性能好的一部分原因是它们的'响应式系统', **它允许我们定义一些‘响应式数据’，当这些响应数据变动时，依赖这些响应式数据视图就会重新渲染**. 来看看 Vue 官方是如何描述的:
 
-<center>
-  <img src="https://bobi.ink/images/09/vue-compare.png" width="500"/>
-</center>
+![](https://bobi.ink/images/09/vue-compare.png)
 
-<br/>
+<br>
 
 ### 0️⃣ 响应式数据的精细化渲染
 
@@ -327,17 +315,13 @@ Vue 和 Mobx 宣称自己性能好的一部分原因是它们的'响应式系统
 
 举个例子，现在有一个 MyComponent 组件，依赖于 A、B、C 三个数据源，来构建一个 vdom 树。现在的问题是什么呢？现在只要 A、B、C 任意一个变动，那么 MyComponent 整个就会重新渲染:
 
-<center>
-  <img src="https://bobi.ink/images/09/my-component1.png" width="300" />
-</center>
+![](https://bobi.ink/images/09/my-component1.png)
 
 更好的做法是让组件的职责更单一，精细化地依赖响应式数据，或者说对响应式数据进行‘隔离’. 如下图, A、B、C 都抽取各自的组件中了，现在 A 变动只会渲染 A 组件本身，而不会影响父组件和 B、C 组件:
 
-<center>
-  <img src="https://bobi.ink/images/09/my-component2.png"  width="480"/>
-</center>
+![](https://bobi.ink/images/09/my-component2.png)
 
-<br/>
+<br>
 
 举一个典型的例子，列表渲染:
 
@@ -397,13 +381,11 @@ export const List = observer(() => {
 });
 ```
 
-<br/>
+<br>
 
 上述的例子是存在性能问题的，单个 list-item 的递增和移位都会导致整个列表的重新渲染:
 
-<center>
-  <img src="https://bobi.ink/images/09/list-demo.png"  width="380"/>
-</center>
+![](https://bobi.ink/images/09/list-demo.png)
 
 原因大概能猜出来吧? 对于 Vue 或者 Mobx 来说，**一个组件的渲染函数就是一个依赖收集的上下文**。上面 List 组件渲染函数内'访问'了所有的列表项数据，那么 Vue 或 Mobx 就会认为你这个组件依赖于所有的列表项，这样就导致，只要任意一个列表项的属性值变动就会重新渲染整个 List 组件。
 
@@ -463,12 +445,10 @@ export const List = observer(() => {
 
 效果很明显, list-item 递增只会重新渲染本身; 而移位只会重新渲染 List， 因为列表项没有变动, 所以下级 list-item 也不需要重新渲染:
 
-<center>
-  <img src="https://bobi.ink/images/09/list-demo2.png"  width="380"/>
-</center>
+![](https://bobi.ink/images/09/list-demo2.png)
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### 1️⃣ 不要滥用 Context
 
@@ -480,19 +460,15 @@ export const List = observer(() => {
 
 总结一下使用 Context API 要遵循一下原则:
 
-<br/>
+<br>
 
 - **明确状态作用域, Context 只放置必要的，关键的，被大多数组件所共享的状态**。比较典型的是鉴权状态
 
   举一个简单的例子:
 
-  <center>
-    <img src="https://bobi.ink/images/09/use-context1.png" width="400"/>
-  </center>
+  ![](https://bobi.ink/images/09/use-context1.png)
 
-  <center>
-    <img src="https://bobi.ink/images/09/use-context2.png" width="650"/>
-  </center>
+  ![](https://bobi.ink/images/09/use-context2.png)
 
   扩展：Context其实有个实验性或者说非公开的选项`observedBits`, 可以用于控制ContextConsumer是否需要更新. 详细可以看这篇文章<[ObservedBits: React Context的秘密功能](https://zhuanlan.zhihu.com/p/51073183)>. 不过不推荐在实际项目中使用，而且这个API也比较难用，不如直接上mobx。
 
@@ -500,11 +476,9 @@ export const List = observer(() => {
 
   如下图. 细粒度的 Context 订阅会导致不必要的重新渲染, 所以这里推荐粗粒度的订阅. 比如在父级订阅 Context，然后再通过 props 传递给下级。
 
-  <center>
-    <img src="https://bobi.ink/images/09/context-vs-props.png" width="600"/>
-  </center>
+  ![](https://bobi.ink/images/09/context-vs-props.png)
 
-<br/>
+<br>
 
 另外程墨 Morgan 在[避免 React Context 导致的重复渲染](https://zhuanlan.zhihu.com/p/50336226)一文中也提到 ContextAPI 的一个陷阱:
 
@@ -566,8 +540,8 @@ export function ThemeProvider(props) {
 }
 ```
 
-<br/>
-<br/>
+<br>
+<br>
 
 ## 扩展
 

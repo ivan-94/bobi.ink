@@ -14,7 +14,7 @@ Rx 学习曲线陡峭是总所周知的, 我们接触的大部分编程语言或
 我觉得应该反过来，采取刻意学习的方式来学习 Rx, 以流的方式来思考，再将其放在现有的场景中看是否有更简洁的解决方案或化学反应.
 不得不说写 Rx 是一个比较有趣的事情。 但也要认识到 Rx 不是万金油，正如很多教程所说的 Rx 擅长复杂的异步协调，并不是所有场景都适合，一些问题有更简洁的解决方案
 
-<br/>
+<br>
 
 ## Rx 的建模过程
 
@@ -32,10 +32,10 @@ Rx 学习曲线陡峭是总所周知的, 我们接触的大部分编程语言或
 
 > 什么是业务逻辑? [wiki](https://en.wikipedia.org/wiki/Business_logic) 上这样定义:
 > **Business logic** or domain logic is that part of the program which encodes the real-world business rules that determine how data can be created, displayed, stored, and changed. It prescribes how business objects interact with one another, and enforces the routes and the methods by which business objects are accessed and updated.
-> <br/> **Business Rules** describe the operations, definitions and constraints that apply to an organization. The operations collectively form a process; every business uses these processes to form systems that get things done.
+> <br> **Business Rules** describe the operations, definitions and constraints that apply to an organization. The operations collectively form a process; every business uses these processes to form systems that get things done.
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### `② 数据流抽象`
 
@@ -79,8 +79,8 @@ Rx 的世界里面*一切皆流*, 换句话说就是**面向流编程**. 和*面
 
 这个阶段将第一个阶段的流程图转换为 Rx `弹珠图(Marble Diagrams)`表示, 弹珠图可以描述流之间关系, 表现'时间'的流逝, 让复杂的数据流更容易理解
 
-<br/>
-<br/>
+<br>
+<br>
 
 ### `③ 实现`
 
@@ -90,11 +90,11 @@ Rx 的世界里面*一切皆流*, 换句话说就是**面向流编程**. 和*面
 > 可以配合 Rxjs 官方的[操作符决策树](https://rxjs.dev/operator-decision-tree)选择合适的操作符
 
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 下面使用例子来体会 Rx 的编程思维:
 
@@ -127,11 +127,11 @@ Rx 的世界里面*一切皆流*, 换句话说就是**面向流编程**. 和*面
     .subscribe(sum => console.log(sum));
   ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## Example 2: 元素拖拽的例子
 
@@ -252,11 +252,11 @@ down$
   });
 ```
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 ## Example 3: Todos
 
@@ -408,11 +408,11 @@ todos$.pipe(debounceTime(1000)).subscribe(store => {
 
 > 更多例子: 徐飞在["RxJS 入门指引和初步应用>"](https://github.com/xufei/blog/issues/44)提到了一个"幸福人生"的例子, 挺有意思, 读者可以尝试对其进行建模
 
-<br/>
+<br>
 
 ---
 
-<br/>
+<br>
 
 
 经过上述过程, 可以深刻体会到*函数响应式编程*的**优势**:
