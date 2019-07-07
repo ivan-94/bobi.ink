@@ -12,7 +12,6 @@ socket.io
 - [WebSocket](#websocket)
 - [XHR-streaming](#xhr-streaming)
 - [EventSource](#eventsource)
-- [HtmlFile](#htmlfile)
 - [Polling](#polling)
 
 <!-- /TOC -->
@@ -198,7 +197,16 @@ evtSource.onmessage = function(e) {
 
 ![](/images/sockjs/eventsource.png)
 
-## HtmlFile
 ## Polling
+
+轮询是最粗暴，或者说最简单的‘实时’通信方案，这种方式的原理就是定期到服务器拉取消息队列，sockjs的实现方式如下:
+
+![](/images/sockjs/polling.png)
+
+sockjs的客户端向服务端发起一个消息获取请求，服务端会将当前的消息队列返回给客户端，然后关闭连接。当消息队列为空时，服务端不会立即关闭连接，而是由客户端主动超时关闭连接。
+
+当然还有一种更粗暴的：由客户端定期发起消息请求
+
+![](/images/sockjs/polling2.png)
 
 DDP
