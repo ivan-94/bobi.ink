@@ -1,5 +1,5 @@
 ---
-title: "[技术地图] 浏览器实时通信方案"
+title: "[技术地图] 你可能不知道的浏览器实时通信方案"
 date: 2019/7/7
 categories: 前端
 ---
@@ -49,6 +49,9 @@ WebSocket顾名思义. WebSocket 是浏览器中最靠近套接字的API，除�
 ## XHR-streaming
 
 XHR-streaming的原理也比较简单，就是服务器端不终止HTTP的输出流，让HTTP始终处于连接状态，当有数据需要发送给客户端时再进行写入。
+
+persistent connection
+单工(unidirectional)
 
 正常的HTTP请求处理是这样的：
 
@@ -162,6 +165,40 @@ const server = http.createServer((req, res) => {
 
 ![](/images/sockjs/xhr-stream.png)
 
+浏览器端http请求，响应则通过xhr-streaming
+
 ## EventSource
+
+[`EventSource`](https://developer.mozilla.org/zh-CN/docs/Server-sent_events/EventSource)并不是什么新鲜玩意，它就是上面讲的`XHR-streaming`, 只不过浏览器给它提供了标准的API封装和协议, 抓包一看和XHR-streaming没有太大的区别:
+
+![](/images/sockjs/eventsource.png)
+
+上面可以看到请求的`Accept`为`text/event-stream`, 且服务端写入的数据都有标准的约定, 即载荷需要这样组织:
+
+```js
+const data = `data: ${payload}\r\n\r\n`
+```
+
+实例:
+
+```js
+const evtSource = new EventSource('sse.php');
+
+evtSource.onmessage = function(e) {
+  // do something
+  // ...
+  console.log("message: " + e.data)
+
+  // 关闭流
+  evtSource.close()
+}
+```
+
+因为是标准的，浏览器调试也比较方便，不需要借助第三方抓包工具:
+
+![](/images/sockjs/eventsource.png)
+
 ## HtmlFile
 ## Polling
+
+DDP
