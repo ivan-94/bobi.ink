@@ -26,27 +26,74 @@ socket.io
 
 WebSocket其实不是本文的主角，而且网上已经有很多教程，本文的目的是介绍WebSocket之外的一些回退方案，在浏览器不支持Websocket的情况下回到这些方案.
 
-WebSocket顾名思义. WebSocket 是浏览器中最靠近套接字的API，除最初建立连接时需要借助于现有的HTTP协议，其他时候直接基于TCP完成通信。
+在此之前，先来了解一些HTTP的基础知识，毕竟WebSocket本身是借用HTTP协议的。
 
-它的接口非常简单：
+HTTP协议是基于TCP/IP之上的应用层协议，也就是说HTTP在TCP连接中进行请求和响应的， 浏览器会为每个请求建立一个TCP连接，请求等待服务端响应，服务端响应后关闭连接:
 
-我们这里通过一张图，通俗地理解一下Websocket的原理:
+![](/images/sockjs/base-http.png)
 
-复用TCP连接, 全双工
 
-如果不考虑低版本IE，基本上WebSocket不会有什么兼容性上面的顾虑，Websocket常见的一些限制
+后来人们发现为每个HTTP请求都建立一个TCP连接，太浪费资源了，能不能不要着急关闭TCP连接，而是将它利用起来。这就有了HTTP持久连接(HTTP persistent connection, 也称为HTTP keep-alive), 它利用同一个TCP连接来发送和接收多个HTTP请求/响应。持久连接的方式可以大大减少等待时间, 双方不需要重新运行TCP握手，这对前端静态资源的加载也有很大意义.
 
-1. 浏览器兼容性
-  - Safari wss下不允许使用非标准接口
-2. 心跳
-3. 一些负载均衡或代理不支持Websocket
+![](/images/sockjs/http-keep-alive.png)
 
-简单了解一些Websocket的原理
+Ok, 现在回到WebSocket, 上面我们看到每个HTTP请求都会建立TCP连接, TCP是可靠的、全双工的数据通信通道，难道我们不可以直接利用它来进行通信吗？这就是Websocket的原理! 我们这里通过一张图，通俗地理解一下Websocket的原理:
 
-进一步学习:
+![](/images/sockjs/websocket.png)
 
+通过上图可以看到，WebSocket除最初建立连接时需要借助于现有的HTTP协议，其他时候直接基于TCP完成通信。这是浏览器中最靠近套接字的API，可以实时和服务端进行全双工通信. WebSocket相比传统的浏览器的[Comet](https://en.wikipedia.org/wiki/Comet_(programming))(下文介绍)技术, 有很多优势：
+
+- 更强的实时性。基于TCP协议的全双工通信
+- 更高效。一方面是数据包相对较小，另一方面相比传统XHR-Streaming和轮询方式更加高效，不需要重复建立TCP连接
+- 更好的二进制支持. Websocket定义了二进制帧，相对HTTP，可以更轻松地处理二进制内容
+- 保持连接状态. 相比HTTP无状态的协议，WebSocket只需要在建立连接时携带认证信息，后续的通信都在这个会话内进行
+- 可以支持扩展。Websocket定义了扩展，用户可以扩展协议、实现部分自定义的子协议。如部分浏览器支持压缩等
+
+它的接口也非常简单：
+
+```js
+const ws = new WebSocket('ws://localhost:8080/socket'); 
+
+// 错误处理
+ws.onerror = (error) => { ... } 
+
+// 连接关闭
+ws.onclose = () => { ... } 
+
+// 连接建立
+ws.onopen = () => { 
+  // 向服务端发送消息
+  ws.send("ping"); 
+}
+
+// 接收服务端发送的消息
+ws.onmessage = (msg) => { 
+  if(msg.data instanceof Blob) { 
+  // 处理二进制信息
+    processBlob(msg.data);
+  } else {
+    // 处理文本信息
+    processText(msg.data); 
+  }
+}
+```
+
+本文不会深入解析Websocket的协议细节，有兴趣的读者可以看下列文章:
+
+- [WebSocket](https://zh.wikipedia.org/wiki/WebSocket)
 - [WebSocket 浅析](https://mp.weixin.qq.com/s/7aXMdnajINt0C5dcJy2USg?)
 - [阮一峰：WebSocket 教程](http://www.ruanyifeng.com/blog/2017/05/websocket.html)
+
+<br>
+
+如果不考虑低版本IE，基本上WebSocket不会有什么兼容性上面的顾虑. 下面列举了Websocket一些常见的问题, 当无法正常使用Websocket时，可以利用sockjs或者socket.io这些方案回退到传统的Comet技术方案.
+
+1. 浏览器兼容性。
+  - IE10以下不支持
+  - Safari 下不允许使用非标准接口
+2. 心跳. WebSocket本身不会维护心跳机制，一些Websocket实现在空闲一段时间会自动断开。所以sockjs这些库会帮你维护心跳
+3. 一些负载均衡或代理不支持Websocket。
+4. 会话和消息队列维护。这些不是Websocket协议的职责，而是应用的职责。sockjs会为每个Websocket连接维护一个会话，这个会话里面会维护一个消息队列，当Websocket意外断开时，不至于丢失数据
 
 <br>
 <br>
