@@ -1,5 +1,5 @@
 ---
-title: "[技术地图] 你可能不知道的浏览器实时通信方案"
+title: "你可能不知道的浏览器实时通信方案"
 date: 2019/7/7
 categories: 前端
 ---
@@ -17,7 +17,6 @@ socket.io
 - [HtmlFile](#htmlfile)
 - [Polling](#polling)
   - [长轮询(Long polling)](#长轮询long-polling)
-- [DDP](#ddp)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -295,8 +294,8 @@ sockjs的客户端向服务端发起一个消息获取请求，服务端会将�
 另外一个要点时，客户端的轮询请求只有在上一个请求连接关闭后才会重新发起。这就解决了上文的请求轰炸问题。而且服务端可以控制客户端发起请求的时序，因为在服务端未响应之前，客户端不会发送额外的请求(在超时期间内)。
 
 
-## DDP
-
 ## 扩展
 
+- [WebRTC](https://developer.mozilla.org/zh-CN/docs/Web/API/WebRTC_API) 这是浏览器的实时通信技术，它允许网络应用或者站点，在不借助中间媒介的情况下，建立浏览器之间点对点（Peer-to-Peer）的连接，实现视频流和（或）音频流或者其他任意数据的传输。
+- [metetor DDP](https://github.com/meteor/meteor/tree/devel/packages/ddp) DDP(Distributed Data Protocol), 这是一个'有状态的'实时通信协议，这个是[Meteor](https://github.com/meteor/meteor)框架的基础, 它就是使用这个协议来进行客户端和服务端通信. 他只是一个协议，而不是通信技术，比如它的底层可以基于Websocket、XHR-Streaming、长轮询甚至是WebRTC
 - [程序员怎么会不知道C10K 问题呢？ - 池建强- Medium](https://medium.com/@chijianqiang/程序员怎么会不知道-c10k-问题呢-d024cb7880f3)
