@@ -53,12 +53,12 @@ WebSocket顾名思义. WebSocket 是浏览器中最靠近套接字的API，除�
 
 ## XHR-streaming
 
-XHR-streaming的原理也比较简单，就是服务器端不终止HTTP的输出流，让HTTP始终处于连接状态，当有数据需要发送给客户端时再进行写入。
+XHR-streaming的原理也比较简单，就是服务器端不终止HTTP的输出流，让HTTP始终处于连接状态，当有数据需要发送给客户端时再进行写入数据。它的特点就是:
 
-persistent connection
-单工(unidirectional)
+- 利用持久化连接(persistent connection): 服务器不关闭输出流，连接就不会关闭
+- 单工(unidirectional): 只允许服务器向浏览器单向的推送数据
 
-正常的HTTP请求处理是这样的：
+我们正常的HTTP请求处理是这样的：
 
 ```js
 const http = require('http')
@@ -170,7 +170,9 @@ const server = http.createServer((req, res) => {
 
 ![](/images/sockjs/xhr-stream.png)
 
-浏览器端http请求，响应则通过xhr-streaming
+通过XHR-Streaming，可以允许服务端连续地发送消息，无需每次响应后再去建立一个连接, 所以它是除了Websocket之外最为高效的实时通信方案. 但它也并不是完美无缺。
+
+比如XHR-streaming连接的时间越长，浏览器会占用过多内存，而且在每一次新的数据到来时，需要对消息进行划分，剔除掉已经接收的数据. 所以sockjs对它进行了优化, sockjs默认只允许每个xhr-streaming连接输出128kb数据，超过这个大小时会关闭输出流，让浏览器重新发起请求.
 
 ## EventSource
 
