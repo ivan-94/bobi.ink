@@ -14,6 +14,7 @@ socket.io
 - [WebSocket](#websocket)
 - [XHR-streaming](#xhr-streaming)
 - [EventSource](#eventsource)
+- [HtmlFile](#htmlfile)
 - [Polling](#polling)
   - [长轮询(Long polling)](#长轮询long-polling)
 - [DDP](#ddp)
@@ -202,6 +203,25 @@ evtSource.onmessage = function(e) {
 
 ![](/images/sockjs/eventsource.png)
 
+## HtmlFile
+
+这是一种古老的‘秘术’😂，我们可能永远都不会再用到它，但是它的实现方式比较有意思，类似于JSONP这种黑科技, 所以还是值得讲一下。
+
+HtmlFile的另一个名字叫做`永久frame(forever-frame)`, 顾名思义, 浏览器会打开一个隐藏的iframe，这个iframe请求一个分块编码的html文件(Transfer-Encoding: chunked), 和XHR-Streaming一样，这个请求永远都不会结束，服务器会不断在这个文档上输出内容。**这里面的要点是浏览器会增量渲染html文件，所以服务器可以通过添加script标签在客户端执行某些代码**，先来看个抓包的实例:
+
+![](/images/sockjs/htmlfile.png)
+
+从上图可以看出:
+
+- ① 这里会给浏览器传递一个callback，通过这个callback将数据传递给父文档
+- ② 服务器每当有新的数据，就向文档追加一个`<script>`标签，script的代码就是将数据传递给callback。利用浏览器会被下载边解析HTML文档的特性，新增的script会马上被执行
+
+最后还是用流程图描述一下：
+
+![](/images/sockjs/htmlfile-progress.png)
+
+除了IE6、7以下不支持，大部分浏览器都支持这个方案，当浏览器不支持`XHR-streaming`时，可以作为备选方案。
+
 ## Polling
 
 轮询是最粗暴(或者说最简单)，也是效率最低下的‘实时’通信方案，这种方式的原理就是定期向服务器发起请求, 拉取最新的消息队列:
@@ -224,6 +244,7 @@ evtSource.onmessage = function(e) {
 sockjs的客户端向服务端发起一个消息获取请求，服务端会将当前的消息队列返回给客户端，然后关闭连接。当消息队列为空时，服务端不会立即关闭连接，而是等待指定的时间间隔，如果在这个时间间隔内没有新的消息， 则由客户端主动超时关闭连接。
 
 另外一个要点时，客户端的轮询请求只有在上一个请求连接关闭后才会重新发起。这就解决了上文的请求轰炸问题。而且服务端可以控制客户端发起请求的时序，因为在服务端未响应之前，客户端不会发送额外的请求(在超时期间内)。
+
 
 ## DDP
 
