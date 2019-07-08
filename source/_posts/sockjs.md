@@ -99,22 +99,19 @@ ws.onmessage = (msg) => {
 
 ## XHR-streaming
 
-XHR-streaming的原理也比较简单，就是服务器端不终止HTTP的输出流，让HTTP始终处于连接状态，当有数据需要发送给客户端时再进行写入数据。它的特点就是:
+XHR-streaming的原理也比较简单：**服务端使用分块传输编码(Chunked transfer encoding)的HTTP传输机制，并且服务器端不终止HTTP的输出流，让HTTP始终处于持久连接状态，当有数据需要发送给客户端时再进行写入数据**。
 
-- 利用持久化连接(persistent connection): 服务器不关闭输出流，连接就不会关闭
-- 单工(unidirectional): 只允许服务器向浏览器单向的推送数据
-
-我们正常的HTTP请求处理是这样的：
+我们先来看一下正常的HTTP请求处理是这样的：
 
 ```js
 const http = require('http')
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, {
-    'Content-Type': 'text/plain'
+    'Content-Type': 'text/plain', // 设置内容格式
+    'Content-Length': 11, // 设置内容长度
   })
-  res.write('hello world')
-  res.end() // 终止输出流
+  res.end('hello world') // 终止输出流
 })
 ```
 
@@ -122,7 +119,7 @@ const server = http.createServer((req, res) => {
 
 ![](/images/sockjs/http-req.png)
 
-现在我们不终止响应流，看会有什么情况:
+现在我们切换为分块传输编码模式， 且我们不终止响应流，看会有什么情况:
 
 ```js
 const http = require('http')
@@ -130,13 +127,14 @@ const http = require('http')
 const server = http.createServer((req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/plain'
+    // 'Content-Length': 11, // 🔴将Content-Length报头去掉，Node.js默认就是使用分块编码传输的
   })
   res.write('hello world')
-  // res.end() // 终止输出流
+  // res.end() // 🔴不终止输出流
 })
 ```
 
-我们会发现请求会一直处于Pending状态，除非出现异常、服务器关闭或显式关闭连接(比如设置超时机制)，请求是不会终止的。即使处于Pending状态客户端还是可以接收数据，不必等待请求结束:
+我们会发现请求会一直处于Pending状态(绿色下载图标)，除非出现异常、服务器关闭或显式关闭连接(比如设置超时机制)，请求是永远不会终止的。即使处于Pending状态客户端还是可以接收数据，不必等待请求结束:
 
 ![](/images/sockjs/http-pending-req.png)
 
@@ -215,6 +213,11 @@ const server = http.createServer((req, res) => {
 最后再图解一些XHR-streaming的原理:
 
 ![](/images/sockjs/xhr-stream.png)
+
+它的特点就是:
+
+- 利用持久化连接(persistent connection): 服务器不关闭输出流，连接就不会关闭
+- 单工(unidirectional): 只允许服务器向浏览器单向的推送数据
 
 通过XHR-Streaming，可以允许服务端连续地发送消息，无需每次响应后再去建立一个连接, 所以它是除了Websocket之外最为高效的实时通信方案. 但它也并不是完美无缺。
 
