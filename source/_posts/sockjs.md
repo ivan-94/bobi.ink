@@ -115,9 +115,17 @@ const server = http.createServer((req, res) => {
 })
 ```
 
-客户端会理解接收到响应:
+客户端会立即接收到响应:
 
 ![](/images/sockjs/http-req.png)
+
+那么什么是[分块传输编码](https://zh.wikipedia.org/wiki/%E5%88%86%E5%9D%97%E4%BC%A0%E8%BE%93%E7%BC%96%E7%A0%81)呢?
+
+在HTTP/1.0的响应是必须作为一整块数据返回客户端的，这要求服务端在发送响应之前必须设置`Content-Length`, 浏览器知道数据的大小后才能确定响应的结束时间。这让服务器响应动态的内容变得非常低效，它必须等待所有动态内容生成完，再计算Content-Length, 才可以发送给客户端。如果响应的内容体积很大，需要占用很多内存空间.
+
+HTTP/1.1引入了Transfer-Encoding: chunked;报头。 它允许服务器发送给客户端应用的数据可以分为多个部分, 并以一个或多个块发送，这样服务器可以发送数据而不需要提前计算发送内容的总大小。
+
+**有了分块传输机制后，动态生成内容的服务器就可以维持HTTP长连接, 也就是说服务器响应流不结束，TCP连接就不会断开**. 
 
 现在我们切换为分块传输编码模式， 且我们不终止响应流，看会有什么情况:
 
@@ -137,6 +145,7 @@ const server = http.createServer((req, res) => {
 我们会发现请求会一直处于Pending状态(绿色下载图标)，除非出现异常、服务器关闭或显式关闭连接(比如设置超时机制)，请求是永远不会终止的。即使处于Pending状态客户端还是可以接收数据，不必等待请求结束:
 
 ![](/images/sockjs/http-pending-req.png)
+
 
 基于这个原理我们来创建一个简单的ping-pong服务器:
 
@@ -169,7 +178,9 @@ const server = http.createServer((req, res) => {
 
 ![](/images/sockjs/http-stream-ping.png)
 
-Ok! 这就是XHR-Streaming。那么Ajax怎么接收这些数据呢？ 第一种做法是在`XMLHttpRequest`的`onreadystatechange`事件中判断`readyState`是否等于`XMLHttpRequest.LOADING`；另外一种做法是在`xhr.onprogress`事件处理器中处理。下面是ping客户端实现:
+Ok! 这就是XHR-Streaming。
+
+那么Ajax怎么接收这些数据呢？ 第一种做法是在`XMLHttpRequest`的`onreadystatechange`事件中判断`readyState`是否等于`XMLHttpRequest.LOADING`；另外一种做法是在`xhr.onprogress`事件处理器中处理。下面是ping客户端实现:
 
 ```js
 function listen() {
@@ -216,7 +227,7 @@ const server = http.createServer((req, res) => {
 
 它的特点就是:
 
-- 利用持久化连接(persistent connection): 服务器不关闭输出流，连接就不会关闭
+- 利用分块传输编码机制实现持久化连接(persistent connection): 服务器不关闭响应流，连接就不会关闭
 - 单工(unidirectional): 只允许服务器向浏览器单向的推送数据
 
 通过XHR-Streaming，可以允许服务端连续地发送消息，无需每次响应后再去建立一个连接, 所以它是除了Websocket之外最为高效的实时通信方案. 但它也并不是完美无缺。
