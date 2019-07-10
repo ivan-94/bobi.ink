@@ -394,4 +394,5 @@ HtmlFile的另一个名字叫做`永久帧(forever-frame)`, 顾名思义, 浏览
 
 - [WebRTC](https://developer.mozilla.org/zh-CN/docs/Web/API/WebRTC_API) 这是浏览器的实时通信技术，它允许网络应用或者站点，在不借助中间媒介的情况下，建立浏览器之间点对点（Peer-to-Peer）的连接，实现视频流和（或）音频流或者其他任意数据的传输。
 - [metetor DDP](https://github.com/meteor/meteor/tree/devel/packages/ddp) DDP(Distributed Data Protocol), 这是一个'有状态的'实时通信协议，这个是[Meteor](https://github.com/meteor/meteor)框架的基础, 它就是使用这个协议来进行客户端和服务端通信. 他只是一个协议，而不是通信技术，比如它的底层可以基于Websocket、XHR-Streaming、长轮询甚至是WebRTC
+- [Server-Sent Events 教程](https://www.ruanyifeng.com/blog/2017/05/server-sent_events.html)
 - [程序员怎么会不知道C10K 问题呢？ - 池建强- Medium](https://medium.com/@chijianqiang/程序员怎么会不知道-c10k-问题呢-d024cb7880f3)
