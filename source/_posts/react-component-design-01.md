@@ -14,7 +14,7 @@ categories: 前端
 - [02 组件的组织](/2019/05/11/react-component-design-02/)
 - [03 样式的管理](/2019/05/14/react-component-design-03/)
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
-- 05 状态管理 待更新
+- [05 状态管理](/2019/05/20/react-component-design-05/)
 
 ## 类型检查
 
@@ -44,6 +44,7 @@ Javascript 的类型检查器主要有[Typescript](https://www.typescriptlang.or
     - [5️⃣ **泛型函数组件**](#5️⃣-泛型函数组件)
     - [6️⃣ **子组件声明**](#6️⃣-子组件声明)
     - [7️⃣ **Forwarding Refs**](#7️⃣-forwarding-refs)
+    - [8️⃣ **配合高阶组件使用**](#8️⃣-配合高阶组件使用)
   - [2. 类组件](#2-类组件)
     - [1️⃣ **继承 Component 或 PureComponent**](#1️⃣-继承-component-或-purecomponent)
     - [2️⃣ **使用`static defaultProps`定义默认 props**](#2️⃣-使用static-defaultprops定义默认-props)
@@ -229,6 +230,14 @@ function Test() {
 }
 ```
 
+如果要配合高阶组件使用可以这样子声明:
+
+```tsx
+export const List = React.memo(props => {
+  return <div />;
+}) as (<T>(props: ListProps<T>) => React.ReactElement)
+```
+
 <br/>
 
 #### 6️⃣ **子组件声明**
@@ -321,6 +330,36 @@ const Test: FC<{}> = props => {
     </div>
   );
 };
+```
+
+#### 8️⃣ **配合高阶组件使用**
+
+经常看到新手写出这样的代码:
+
+```tsx
+// Foo.tsx
+const Foo: FC<FooProps> = props => {/* .. */})
+export default React.memo(Foo)
+
+// 使用
+// Demo.tsx
+import { Foo } from './Foo' // -> 这里面误使用命名导入语句，导致React.memo没有起作用
+```
+
+所以笔者一般这样子组织:
+
+```tsx
+// Foo.tsx
+const Foo: FC<FooProps> = React.memo(props => {/* .. */}))
+export default Foo
+```
+
+上面的代码还是有一个缺陷, 即你在React开发者工具看到的节点名称是这样的`<Memo(wrappedComponent)></Memo(wrappedComponent)>`, 只是因为React Babel插件无法从匿名函数中推导出displayName导致的. 解决方案是显式添加displayName:
+
+```tsx
+const Foo: FC<FooProps> = React.memo(props => {/* .. */}))
+Foo.displayName = 'Foo'
+export default Foo
 ```
 
 <br/>

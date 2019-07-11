@@ -12,7 +12,7 @@ categories: 前端
 - [02 组件的组织](/2019/05/11/react-component-design-02/)
 - [03 样式的管理](/2019/05/14/react-component-design-03/)
 - [04 组件的思维](/2019/05/15/react-component-design-04/)
-- 05 状态管理 待更新
+- [05 状态管理](/2019/05/20/react-component-design-05/)
 
 <br>
 

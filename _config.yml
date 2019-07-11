@@ -6,7 +6,7 @@
 title: Bobi.ink
 subtitle:
 description: Personal blog by Ivan
-keywords: Blog,FrontEnd,React,Javascript
+keywords: Blog,FrontEnd,React,Javascript,Typescript
 author: Ivan
 language: zh
 timezone:
@@ -50,7 +50,7 @@ highlight:
 # order_by: Posts order. (Order by date descending by default)
 index_generator:
   path: ''
-  per_page: 10
+  per_page: 50
   order_by: -date
   
 # Category & Tag

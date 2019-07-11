@@ -6,7 +6,7 @@ projects_url: http://github.com/ivan-94
 
 customize:
     gravatar:
-        email: 
+        email: carney520@hotmail.com
     logo:
         enabled: true
         width: 50
@@ -24,7 +24,7 @@ customize:
       apple:
         url: /images/apple-touch-icon.png
         gravator: false
-    show_all_posts: false
+    show_all_posts: true
     post_count: 10
     highlight: pojoaque
 
