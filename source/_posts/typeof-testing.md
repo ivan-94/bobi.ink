@@ -107,9 +107,13 @@ An acceptance test is performed by the client and verifies whether the end to en
 
 It is the last phase of the testing, after which the software goes into production. This is also called User Acceptance Testing (UAT).
 
-**[验收测试](https://www.softwaretestinghelp.com/what-is-acceptance-testing/)由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及功能是否是满足最终用户的需求**。只有当所有的特性和功能按照期望的运行，客户才会接受软件。
+**[验收测试](https://www.softwaretestinghelp.com/what-is-acceptance-testing/)通常是部署软件之前的最后一个测试操作, 也成为交付测试, 由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及功能是否是满足最终用户的需求**。只有当所有的特性和功能按照期望的运行，客户才会接受软件
 
 这是测试的最后阶段，在验收测试之后，软件将投入生产环境. 所以它也叫用户验收测试(UAT)
+
+![](/images/typeof-testing/accept.png)
+
+举个例子，验收测试就相当于收快递, 包裹是软件、你就是客户，是验收方，如果货物不符合你的要求，是要退货的。
 
 <br>
 
@@ -119,15 +123,23 @@ The name itself suggests that this testing is performed on an ad-hoc basis i.e. 
 
 Ad-hoc testing is an informal way of finding defects and can be performed by anyone in the project. It is difficult to identify defects without a test case but sometimes it is possible that defects found during ad-hoc testing might not have been identified using existing test cases.
 
-Ad-hoc中文应该理解为临时的意思。顾名思义，这种测试是在临时基础上进行的。即没有参考测试用例、没有针对该测试的任何计划和文档。Ad-hoc测试的目的就是**通过执行随意的流程或任意的功能来找出应用的缺陷和问题**
+Ad-hoc中文应该理解为临时的意思。顾名思义，这种测试是在临时基础上进行的, 有时候也成为随机测试。即没有参考测试用例、没有针对该测试的任何计划和文档。Ad-hoc测试的目的就是**通过执行随意的流程或任意的功能来找出应用的缺陷和问题**
 
-Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。尽管没有测试用例很难识别缺陷，但是有些时候在Ad-hoc测试期间发现的缺陷可能无法使用现有的测试用例来识别, 也就是说它一般用来发现‘意外’的缺陷
+Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。尽管没有测试用例很难识别缺陷，但是有些时候在Ad-hoc测试期间发现的缺陷可能无法使用现有的测试用例来识别, **也就是说它一般用来发现‘意外’的缺陷**.
+
+<br>
 
 ## 4) Accessibility Testing
 
 The aim of accessibility testing is to determine whether the software or application is accessible for disabled people or not. Here disability means deaf, color blind, mentally disabled, blind, old age and other disabled groups. Various checks are performed such as font size for visually disabled, color and contrast for color blindness etc.
 
-可访问性测试的目的是确定软件或应用程序是否可供残疾人使用。残疾是指聋人，色盲，智障人士，失明者，老年人和其他残疾人群体。这里会执行各种检查，例如针对视觉残疾的字体大小测试，针对色盲的颜色和对比度测试等等。
+**可访问性测试的目的是确定软件或应用程序是否可供残疾人使用**。残疾是指聋人，色盲，智障人士，失明者，老年人和其他残疾人群体。这里会执行各种检查，例如针对视觉残疾的字体大小测试，针对色盲的颜色和对比度测试等等。
+
+不同平台、不同应用类型对可访问性支持情况不太一样，比如iOS相比其他操作系统则更重视可访问, 国外比国内更重视可访问性。
+
+![](/images/typeof-testing/acs.png)
+
+<br>
 
 ## 5) Beta Testing
 
@@ -139,25 +151,28 @@ Usually, this testing is typically done by end-users or others. It is the final 
 
 So end user actually uses the software and shares the feedback to the company. Company then takes necessary action before releasing the software to the worldwide.
 
-Beta测试是一种正式的软件测试类型，面向客户. 例如iOS在Beta版才开发公测。在将产品发布到实际最终用户的市场之前，在真实的环境中执行。
+上文Alpha测试已经提及Beta测试, **Beta测试是一种正式的软件测试类型，在将产品发布到市场或者实际最终用户之前，由客户在真实的应用环境中执行**。
 
-执行Beta测试目的是确保软件或产品中没有重大故障，并且满足最终用户的业务需求。当客户接受软件时，Beta测试成功。
+执行Beta测试目的是确保软件或产品中没有重大故障，并且满足最终用户的业务需求。当客户接受软件时，Beta测试才算通过。
 
-通常，此类测试由最终用户或其他人完成。这是在将应用发布作为商业用途之前完成的最终测试。通常，发布的软件或产品的Beta版本仅限于特定区域中的特定数量的用户。
+通常，此类测试由最终用户或其他人完成。这是在将应用发布作为商业用途之前完成的最终测试。通常，发布的软件或产品的Beta版本仅限于特定区域中的特定数量的用户。 
+所以最终用户实际使用软件后会将一些问题反馈给公司。公司可以在全面发布之前采取必要的措施。
 
-所以最终用户实际使用软件后会将一些问题反馈给公司。公司可以在全面发布之前采取必要的性能。
+Beta测试在正式版本之前也可能会迭代进行多次.
 
-Beta测试在正式版本之前也可能迭代多次
+<br>
 
 ## 6) Back-end Testing
 
 Whenever an input or data is entered on front-end application, it stores in the database and the testing of such database is known as Database Testing or Backend testing. There are different databases like SQL Server, MySQL, and Oracle etc. Database testing involves testing of table structure, schema, stored procedure, data structure and so on.
 
-前端应用输入的数据，会存储在数据库，所以针对数据库的这类测试称为**数据库测试或者后端测试**. 市面有不同的数据库，如SQL Server，MySQL和Oracle等。数据库测试涉及表结构，模式，存储过程，数据结构等。
+前端应用输入的数据，一般都会存储在数据库，所以针对数据库的这类测试称为**数据库测试或者后端测试**. 市面有不同的数据库，如SQL Server，MySQL和Oracle等。数据库测试会涉及表结构，模式，存储过程，数据结构等。
 
 In back-end testing GUI is not involved, testers are directly connected to the database with proper access and testers can easily verify data by running a few queries on the database. There can be issues identified like data loss, deadlock, data corruption etc during this back-end testing and these issues are critical to fixing before the system goes live into the production environment
 
-后端测试不会涉及GUI，测试人员通过某些手段直接连接到数据库，从而可以容易地运行一些数据库请求来验证数据。通过后端测试可以发现一些数据库问题，比如数据丢失、死锁、数据损坏。这些问题在系统投入生产环境之前进行修复至关重要
+后端测试一般不会涉及GUI，测试人员通过某些手段直接连接到数据库，从而可以容易地运行一些数据库请求来验证数据。通过后端测试可以发现一些数据库问题，比如数据丢失、死锁、数据损坏。这些问题在系统投入生产环境之前进行修复至关重要
+
+<br>
 
 #7) Browser Compatibility Testing
 
@@ -165,19 +180,33 @@ It is a subtype of Compatibility Testing (which is explained below) and is perfo
 
 Browser Compatibility Testing is performed for web applications and it ensures that the software can run with the combination of different browser and operating system. This type of testing also validates whether web application runs on all versions of all browsers or not.
 
-这是兼容性测试的子类型，由测试团队
+这是兼容性测试的子类型，由测试团队执行. **浏览器兼容测试主要针对Web应用，用于确保软件可以在不同浏览器或操作系统中运行; 或者验证Web应用程序是否支持在浏览器的所有版本上运行, 以确定应用最终兼容的范围**.
 
-浏览器兼容测试主要针对Web应用，用于确保软件可以在不同浏览器或操作系统中运行。此类测试还验证Web应用程序是否支持在浏览器的所有版本上运行。
+浏览器兼容测试是前端开发者绕不开的坑。
+
+我们有很多策略来应对浏览器兼容性，比如渐进增强或者优雅降级, 还有制定浏览器兼容规范; 
+
+为了抚平浏览器之间的差异，我们会使用各种特性检测工具(Modernizr), 还有各种polyfill(CSS Normaliz, polyfill/shim, css-autoprefixer); 
+
+当然为了测试跨浏览器，还要一些辅助工具，例如[BrowserStack](https://www.browserstack.com/), 对于我们这些小团队，只能下一堆Portable 浏览器，手工测试了。
+
+- [Cross-Browser Compatibility](http://frontend.turing.io/lessons/module-2/cross-browser-compat.html)
+
+<br>
 
 ## 8) Backward Compatibility Testing
 
  It is a type of testing which validates whether the newly developed software or updated software works well with older version of the environment or not.
 
-向后兼容测试, 用于验证新开发或更新的软件是否能在旧版本的环境中运行。
 
 Backward Compatibility Testing checks whether the new version of the software works properly with file format created by older version of the software; it also works well with data tables, data files, data structure created by older version of that software. If any of the software is updated then it should work well on top of the previous version of that software.
 
-向后兼容测试会检查新版软件是否可以正确地处理旧版本软件创建的文件格式。例如新版的Office 2016是否可以打开2012创建的文件。同理也可以检查旧版本软件创建的数据表、数据文件、数据结构。 任何软件更新应该在先前版本之上良好地运行
+
+**向后兼容测试, 用于验证新开发或更新的软件是否能在旧版本的环境中运行**。
+
+向后兼容测试会检查新版软件是否可以正确地处理旧版本软件创建的文件格式。例如新版的Office 2016是否可以打开2012创建的文件。同理也可以检查新版本是否可以兼容旧版本软件创建的数据表、数据文件、数据结构、配置文件。 任何软件更新应该在先前版本的基础之上良好地运行
+
+<br>
 
 ## 9) Black Box Testing
 
@@ -185,9 +214,17 @@ Backward Compatibility Testing checks whether the new version of the software wo
 
 Detailed information about the advantages, disadvantages, and types of Black box testing can be seen here.
 
-黑盒测试不考虑软件的内部系统设计， 它基于需求和功能进行测试。
+![](/images/typeof-testing/black-box.png)
+
+黑盒测试不考虑软件的内部系统设计，它基于需求和功能进行测试, 只关心系统的输入/输出以及功能流程。 
+
+换句话说**黑盒测试从用户的角度出发针对软件界面、功能及外部结构进行测试，而不考虑程序内部逻辑结构**.
+
+黑盒测试下面有很多子类，例如集成测试、系统测试、大部分非功能性测试
 
 关于黑盒测试的优缺点，以及测试类型可以看[这里](https://www.softwaretestinghelp.com/black-box-testing/)
+
+<br>
 
 ## 10) Boundary Value Testing
 
@@ -197,41 +234,72 @@ Boundary value Testing is performed for checking if defects exist at boundary va
 
 If testing requires a test range of numbers from 1 to 500 then Boundary Value Testing is performed on values at 0, 1, 2, 499, 500 and 501.
 
-边界值测试, 测试应用处于边界条件(boundary level)的行为。
+**边界值测试, 测试应用处于边界条件(boundary level)的行为**。很多边界条件程序是很难考虑周到的，所以才有一个专门的测试类型来验证这种情况
 
-边界值测试检查应用处于边界值时是否存在缺陷。边界值测试通常用于测试不同范围的数字, 每个范围都有一个上下边界，边界测试针对这些边界值进行测试。
+边界值测试检查应用处于边界值时是否存在缺陷。边界值测试通常用于测试不同范围的数字, 每个范围都有一个上下边界，边界测试则是针对这些边界值进行测试。 比如数字范围为1-500, 那么边界值测试会在这些值上进行验证: 0、1、2、499、500、501
 
-比如数字范围为1-500, 那么边界值测试会在这些值上进行验证: 0、1、2、499、500、501
+<br>
 
 ## 11) Branch Testing
 
 It is a type of white box testing and is carried out during unit testing. Branch Testing, the name itself suggests that the code is tested thoroughly by traversing at every branch.
 
-这是白盒测试的子类型，在单元测试中实施. 顾名思义，分支测试表示遍历程序的所有分支进行彻底.
+这是白盒测试的子类型，在单元测试中实施. 顾名思义，分支测试表示测试要覆盖程序的各种条件分支, 避免遗漏缺陷。分支覆盖是单元测试覆盖率的一个指标之一
+
+<br>
 
 ## 12) Comparison Testing
 
 Comparison of a product's strength and weaknesses with its previous versions or other similar products is termed as Comparison Testing.
 
-比较测试，将产品的优点和弱点与旧版本或者同类产品进行比较
+比较测试，将产品的优点和弱点与旧版本或者同类(竞品)产品进行比较.
+
+比如类似王自如这种数码评测栏目，评测一个手机或者其他数码产品时，一般会横向和友商产品进行比较，有时候也会纵向和上一代产品比较. 
+
+还有一种比较典型的例子就是和行业的领导者比较，比如我们做IM的，会经常和微信比较: '你这个应用的启动速度怎么比微信慢这么多?'
+
+<br>
 
 ## 13) Compatibility Testing
 
 It is a testing type in which it validates how software behaves and runs in a different environment, web servers, hardware, and network environment. Compatibility testing ensures that software can run on a different configuration, different database, different browsers, and their versions. Compatibility testing is performed by the testing team.
 
-兼容性测试用于验证在不同环境、web服务器、硬件、网络条件下的行为。兼容性测试确保软件可以在不同的配置、不同的数据库、不同的浏览器，以及它们不同的版本下运行。兼容性测试有测试团队实施
+这是一个大类, **兼容性测试用于验证应用在不同环境、web服务器、硬件、网络条件下的行为**。兼容性测试确保软件可以在不同的配置、不同的数据库、不同的浏览器，以及它们不同的版本下运行。兼容性测试由测试团队实施
+
+<br>
 
 ## 14) Component Testing
 
 It is mostly performed by developers after the completion of unit testing. Component Testing involves testing of multiple functionalities as a single code and its objective is to identify if any defect exists after connecting those multiple functionalities with each other.
 
-组件测试(此组件非GUI组件)，一般有开发者在完成单元测试后执行。组件测试将多个功能组合起来作为单一的整体进行测试，目的是发现多个功能在相互连接起来之后的缺陷。
+[组件测试](https://www.guru99.com/component-testing.html)(此组件非GUI组件, 取组合测试可能更好理解一点)，一般也称为模块测试(Module Testing), 一般由开发者在完成单元测试后执行。组件测试将多个功能组合起来作为单一的整体进行测试，目的是发现多个功能在相互连接起来之后的缺陷。
+
+组件测试可大可小，小到函数级别或者类级别的组合，大可以大到几个单独的页面、模块、子系统的组合。
+
+![](/images/typeof-testing/comp.png)
+
+举一个前端例子，将多个页面路由组合起来，测试它们的流程跳转，就属于组件测试。
+
+<br>
 
 ## 15) End-to-End Testing
 
 Similar to system testing, End-to-end testing involves testing of a complete application environment in a situation that mimics real-world use, such as interacting with a database, using network communications, or interacting with other hardware, applications, or systems if appropriate.
 
-端到端测试，类似于系统测试，端到端测试在模拟的完整真实应用环境下测试，比如和数据库交互、使用网络通信、或者在适当的情况下和其他硬件、应用、系统进行交互
+端到端测试也是一种黑盒测试类型，类似于系统测试. **端到端测试在模拟的、完整的、真实应用环境下模拟真实用户对应用进行测试，比如应用会和数据库交互、会使用网络通信、或者在适当的情况下和其他硬件、应用、系统进行交互**.
+
+当应用是分布式系统或者需要和其他外部系统协同时，端到端测试扮演着非常重要的角色, 它可以全面检查以确保软件在不同平台和环境产品能准确地交互。端到端测试有以下目的:
+
+- 确保应用可以和外部系统之间良好的协调。对于前端来说，是确保页面和后端之间良好协调
+- 检查从源系统到目标系统的所有系统流
+- 从最终用户角度验证需求
+- 识别异构环境中的问题
+
+前端也有很多自动化的端到端测试工具，比如nightwatch，通过它们可以模拟用户对页面进行操作，从而检验整个应用流程是否正常和符合需求。
+
+因为和系统测试很相似，所以他们也被经常拿来[比较](https://www.softwaretestinghelp.com/system-vs-end-to-end-testing/)
+
+<br>
 
 ## 16) Equivalence Partitioning
 
@@ -242,12 +310,13 @@ The aim of this testing is to remove redundant test cases within a specific grou
 
 Suppose, application accepts values between -10 to +10 so using equivalence partitioning the values picked up for testing are zero, one positive value, one negative value. So the Equivalence Partitioning for this testing is: -10 to -1, 0, and 1 to 10.
 
-// FIXME: 没理解
-等价划分, 这是一种黑盒测试的测试技术. 通过等价划分，可以筛选出一组分组，从分组中筛选一些值或者数字进行测试，期望分组的所有值都可以生成相同的输出
+等价划分, 这是一种黑盒测试的测试技术. **通过等价划分，可以将所有的输入数据合理地划分为多个分组，我们只需在每个分组中取一个数据作为测试的输入条件, 这样可以实现用少量代表性的测试数据取得较好的测试结果**.
 
-这个测试的目的是在不导致缺陷的情况下，移除指定分组的重复的用例
+所以说这个测试的目的: 是在不导致缺陷的前提下，移除指定分组中的重复的用例, 简化测试的工作
 
-比如，应用接受-10到+10之间的值，使用等价分区为测试筛选的值为0，负值，正值，所以此测试的等价分区为：-10到-1， 0, 1到10
+比如一个程序应用接受-10到+10之间的值，使用等价分区方法可以划分为三个分组: 0、负值、正值. 接下来的测试只需从这个三个分组中取一个成员进行测试, 而不需要-10到+10每个成员都测试一遍.
+
+<br>
 
 ## 17) Example Testing
 
