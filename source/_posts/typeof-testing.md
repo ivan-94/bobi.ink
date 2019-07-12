@@ -1,6 +1,6 @@
 ---
 title: "这些软件测试的类型你都知道?"
-date: 2019/7/7
+date: 2019/7/10
 categories: 前端
 ---
 
@@ -70,7 +70,34 @@ Alpha testing is carried out at the end of the software development phase but be
 
 Alpha测试一般在开发的末段且在Beta测试之前进行。在这个测试过程中会驱动开发进行一些小(minor)的设计变动. Alpha测试一般在开发者网站进行，即只对开发者或内部用户开放，可以为此类测试创建内部虚拟用户环境。
 
-实例
+<br>
+
+一般大型的软件项目都有规范化的软件版本周期:
+
+![](/images/typeof-testing/alpha-testing.png)
+
+- **Pre-alpha**: 有时候软件会在Alpha或Beta版本前先发布Pre-alpha版本, 相比Alpha和Beta，这是一个功能不完整的版本
+- **Alpha**: Alpha版本功能还没完善，需要进一步测试。Alpha版本通常会送到开发软件的组织或某群体中的软件测试者作内部测试。
+- **Beta**: 一般Beta版本会包含所有功能，但可能又有一些Bug，需要调试反馈。 Beta版本是软件最早对外公开的软件版本，由公众（通常为公司外的第三方开发者和业余玩家）参与测试。
+- **Release Candidate(rc)**: 发布候选版本，如果没有出现问题则可发布成为正式的版本。这个版本包含完整且比较稳定的功能
+
+举一个典型的例子, 最近把我坑得有点惨的iOS13的发布计划:
+
+```shell
+June 3: iOS 13 beta 1 and first look at WWDC 2019                 # -> WWDC后就可以装的，相当于pre-alpha或Alpha阶段吧
+June 17: iOS 13 beta 2 launched for developers
+June 24: iOS 13 public beta release date for adventurous testers  # -> 公开Beta版本，相当于上面说的Beta阶段
+July 3: iOS 13 developer beta 3 launch with some new features     
+July 8: iOS 13 public beta 2 release date
+Early September 2019: iOS 13 Golden Master (final dev beta)       # -> 九月初，该发最终Beta版本，相当于进入RC阶段了
+Mid-September 2019: iOS 13 likely to launch with new 2019 iPhones # -> 正式版本
+```
+
+<br>
+
+现在很多开源项目，已经淡化了软件的版本周期，变成一种持续(Continuous)的、常态化的行为, 例如Firefox:
+
+![](/images/typeof-testing/firefox.png)
 
 <br>
 
