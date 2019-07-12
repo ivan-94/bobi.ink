@@ -11,17 +11,17 @@ What are the different Types of Software Testing?
 
 We, as testers are aware of the various types of Software Testing such as Functional Testing, Non-Functional Testing, Automation Testing, Agile Testing, and their sub-types etc.
 
-我们作为测试了解多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、自动测试、敏捷测试、以及它们的各种子类型.
+我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、自动测试、敏捷测试、以及它们的各种子类型.
 
 Each of us would have come across several types of testing in our testing journey. We might have heard some and we might have worked on some, but not everyone has knowledge about all the testing types.
 
-在我们的测试过程中会接触多各种测试类型, 我们可能听说或者使用过某些测试类型，但不是每个人都了解所有的测试类型.
+尽管在我们的测试过程中会接触多各种测试类型, 或者我们可能听说某些测试类型，但是没人敢说精通所有的测试类型.
 
-![](/images/typeof-tesing/Types-of-Testing1.jpg)
+![](/images/typeof-testing/Types-of-Testing1.jpg)
 
 Each type of testing has its own features, advantages, and disadvantages as well. However, in this article, I have covered mostly each and every type of software testing which we usually use in our day to day testing life.
 
-每个测试类型都有自己的特点、优势和劣势。然而，这边文章，我将覆盖大多数..
+每个测试类型都有自己的特点、优势和劣势。所以我写这篇文章，科普我们今天最常用到的测试类型. 来吧!
 
 Let’s go and have a look at them.
 
@@ -58,7 +58,7 @@ Given below is the list of some common types of Software Testing:
 Let's see more details about these testing types.
 来看看这些测试类型的细节
 
-![](/images/typeof-tesings/Types-of-Software-Testing.jpg)
+![](/images/typeof-testing/Types-of-Software-Testing.jpg)
 
 ## 1) Alpha 测试
 
@@ -66,9 +66,13 @@ It is the most common type of testing used in the Software industry. The objecti
 
 Alpha testing is carried out at the end of the software development phase but before the Beta Testing. Still, minor design changes may be made as a result of such testing. Alpha testing is conducted at the developer’s site. In-house virtual user environment can be created for this type of testing.
 
-这是软件工程中最常见的测试类型。它的目标就是尽可能地在发布到市场或交付给用户之前找出所有的问题和缺陷。
+**[Alpha测试](https://www.softwaretestinghelp.com/what-is-alpha-testing-beta-testing/)这是软件工程中最常见的测试类型。它的目标就是尽可能地在发布到市场或交付给用户之前找出所有的问题和缺陷**。
 
-Alpha测试一般在开发的末段、在Beta测试之前进行。在这个测试过程中会驱动一些小(minor)的设计变动. Alpha测试一般在开发者网站进行，可以为此类测试创建内部虚拟用户环境。
+Alpha测试一般在开发的末段且在Beta测试之前进行。在这个测试过程中会驱动开发进行一些小(minor)的设计变动. Alpha测试一般在开发者网站进行，即只对开发者或内部用户开放，可以为此类测试创建内部虚拟用户环境。
+
+实例
+
+<br>
 
 ## 2) Acceptance Testing
 
@@ -76,9 +80,11 @@ An acceptance test is performed by the client and verifies whether the end to en
 
 It is the last phase of the testing, after which the software goes into production. This is also called User Acceptance Testing (UAT).
 
-验收测试由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及是否是最终用户需要的。只有当所有的特性和功能按照期望的运行，客户才会接受软件。
+**[验收测试](https://www.softwaretestinghelp.com/what-is-acceptance-testing/)由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及功能是否是满足最终用户的需求**。只有当所有的特性和功能按照期望的运行，客户才会接受软件。
 
 这是测试的最后阶段，在验收测试之后，软件将投入生产环境. 所以它也叫用户验收测试(UAT)
+
+<br>
 
 ## 3) Ad-hoc Testing
 
@@ -88,7 +94,7 @@ Ad-hoc testing is an informal way of finding defects and can be performed by any
 
 Ad-hoc中文应该理解为临时的意思。顾名思义，这种测试是在临时基础上进行的。即没有参考测试用例、没有针对该测试的任何计划和文档。Ad-hoc测试的目的就是**通过执行随意的流程或任意的功能来找出应用的缺陷和问题**
 
-Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。尽管没有测试用例很难识别缺陷，但是有些时候可能在Ad-hoc测试期间发现的缺陷无法使用现有的测试用例来识别。也就是说它一般用来发现‘意外’的缺陷
+Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。尽管没有测试用例很难识别缺陷，但是有些时候在Ad-hoc测试期间发现的缺陷可能无法使用现有的测试用例来识别, 也就是说它一般用来发现‘意外’的缺陷
 
 ## 4) Accessibility Testing
 
