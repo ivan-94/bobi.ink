@@ -439,6 +439,17 @@ Load testing helps to find the maximum capacity of the system under specific loa
 
 负载测试有助于查找特定负载下系统的最大容量以及导致软件性能下降的任何原因。可以使用JMeter，LoadRunner，WebLoad，Silk执行程序等工具执行负载测试。
 
+![](/images/typeof-testing/perf.png)
+
+负载测试经常和性能测试、压力测试、稳定性等测试联系在一起。如上图(来源于淘宝性能白皮书). 其中TPS(Transation Per Second)指的是每秒钟系统可以处理的交易或事务的数量; Server Resource指的是系统资源占有.
+
+- **性能测试**. 主要位于a-b之间. 在系统设计初期就会规划一个预期目标, 比如给定资源Ax，a点就是性能期望值。也就是说在给定固定资源Ax的情况下，如果TPS可以达到a点甚至更高，就说明系统性能达到或者好于预期. **通过性能测试可以验证系统的处理能力有没有达到预期**
+- **负载测试**. 位于b-c之间。对系统不断增加并发请求，直到系统的某项或者多项指标达到安全的临界值，如上图中的c，这个c就是所谓的最大负载量。后面再增加请求压力，系统的处理能力不但不能提高，返回会下降. **通过压力测试可以得出系统最大的安全负载值**
+- **压力测试**. 位于c-d之间。在超过安全负载的情况下，继续对系统增加压力，直到达到崩溃点, 即上图的c. **通过压力测试可以得出系统的最大承受能力**
+- **稳定性测试**. 位于a-d之间。在a、b、c、d不同的点(代表特定的硬件、软件和网络环境)，让系统运行一段较长的时间，**检测系统在不同条件下的系统运行的稳定性**。
+
+另外也推荐阅读<<大型网站技术架构>>这本书
+
 <br>
 
 ## 28) Monkey Testing
@@ -446,7 +457,6 @@ Load testing helps to find the maximum capacity of the system under specific loa
 Monkey testing is carried out by a tester assuming that if the monkey uses the application then how random input, values will be entered by the Monkey without any knowledge or understanding of the application.
 
 ![](/images/typeof-testing/monkey-testing.jpg)
-
 
 猴子测试是由测试人员进行的，即把自己当成猴子，在没有任何知识背景或者理解应用前提下，随意输入和操作。
 
@@ -463,15 +473,25 @@ Monkey Testing is performed randomly and no test cases are scripted and it is no
 
 Mutation Testing is a type of white box testing in which the source code of one of the program is changed and verifies whether the existing test cases can identify these defects in the system. The change in the program source code is very minimal so that it does not impact the entire application, only the specific area having the impact and the related test cases should able to identify those errors in the system.
 
-可变性测试是一种白盒测试，首先将其中一个程序的源代码被更改，并验证现有测试用例是否可以识别系统中的这些缺陷。这样可以反过来验证你的测试用例是否有效.
+变异测试(或者说可变性测试)是一种白盒测试，这是一种和单元测试反着来的测试类型。
+
+![](/images/typeof-testing/mut.png)
+
+**通常单元测试的思路是通过测试用例来验证代码是否有效可靠，而变异测试是反过来. 它首先更改其中一个程序的源代码，再跑单元测试，如果单元测试通过则可能说明测试用例没有效果，或者测试用例没有覆盖到这处代码变异**. 
+
+所以说变异测试可以反过来验证你的测试用例是否有效, 还有可以帮助我们找出一些无法被当前测试所防止的潜在错误.
+
+<br>
 
 ## 30) Negative Testing
 
  Testers having the mindset of “attitude to break” and using negative testing they validate that if system or application breaks. A negative testing technique is performed using incorrect data, invalid data or input. It validates that if the system throws an error of invalid input and behaves as expected.
 
-否定测试， 测试者要具有“打破”常规的态度，来验证系统或应用是否可被打断。否定测试会使用不正确的数据、无效数据或输入来进行验证。它验证系统是否可以识别异常情况，并按预期运行。
+否定测试，和乐观路线测试相反, 它要求测试者要具有“打破”常规的态度，考虑各种异常情况, 使用各种邪恶的👿、不怀好意、不合法的操作来测试系统。否定测试会使用不正确的数据、无效数据或输入来进行验证。它验证系统是否可以识别异常情况，并按预期运行。
 
-#31) Non-Functional Testing
+<br>
+
+## 31) Non-Functional Testing
 
 It is a type of testing for which every organization having a separate team which usually called as Non-Functional Test (NFT) team or Performance team.
 
@@ -479,25 +499,29 @@ Non-functional testing involves testing of non-functional requirements such as L
 
 It should not take much time to load any page or system and should sustain during peak load.
 
-这是一种测试，每个组织都有一个独立的团队，通常称为非功能测试（NFT）团队或性能团队。
+每个大型的组织都有一个独立的团队，通常称为非功能测试（NFT）团队或性能团队。
 
 非功能性测试涉及测试非功能性需求，如负载测试、压力测试、安全性、容量，恢复测试等等. NFT测试的目标是确保软件或应用程序的响应时间是否满足业务需求。
 
-加载任何页面或系统都不应该花费太多时间，并且在负载峰值期间应该维持良好运行状态。
+例如加载任何页面或系统都不应该花费太多时间，并且在负载峰值期间应该维持良好运行状态。
 
-#32) Performance Testing
+<br>
+
+## 32) Performance Testing
 
 This term is often used interchangeably with ‘stress' and ‘load' testing. Performance Testing is done to check whether the system meets the performance requirements. Different performance and load tools are used to do this testing.
 
-这个术语通常与“压力”和“负载”测试互换使用。性能测试用于检查系统是否满足性能要求。使用不同的性能和加载工具来执行此测试。
+这个术语通常与“压力”和“负载”测试互换使用。性能测试用于检查系统是否满足性能要求。它会使用不同的性能和负载工具来执行此测试。
 
-#33) Recovery Testing
+TODO: 基准测试
 
-恢复测试用于验证应用或系统中崩溃或灾难中恢复的程度.
+<br>
 
-恢复测试确定系统是否能够在灾难发生后继续运行。
+## 33) Recovery Testing
 
-比如应用通过网络电缆接收数据，突然断开了网络电缆的连接, 过一段时间，再插上网线. 系统应该开始恢复由于网络电缆拔出而丢失连接的数据
+恢复测试用于验证应用或系统中崩溃或灾难中恢复的程度. 确定系统是否能够在灾难发生后继续运行。
+
+比如应用通过网络电缆接收数据，突然断开了网络电缆的连接, 过一段时间，再插上网线, 系统应该开始恢复由于网络电缆拔出而丢失连接的数据
 
 It is a type of testing which validates that how well the application or system recovers from crashes or disasters.
 
@@ -505,7 +529,9 @@ Recovery testing determines if the system is able to continue the operation afte
 
 Sometime later, plug the network cable; then the system should start receiving data from where it lost the connection due to network cable unplugged.
 
-#34) Regression Testing
+<br>
+
+## 34) Regression Testing
 
 Testing an application as a whole for the modification in any module or functionality is termed as Regression Testing. It is difficult to cover all the system in Regression Testing, so typically automation testing tools are used for these types of testing.
 
