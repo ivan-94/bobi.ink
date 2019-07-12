@@ -60,6 +60,8 @@ Let's see more details about these testing types.
 
 ![](/images/typeof-testing/Types-of-Software-Testing.jpg)
 
+## 0) A/B测试
+
 ## 1) Alpha 测试
 
 It is the most common type of testing used in the Software industry. The objective of this testing is to identify all possible issues or defects before releasing it into the market or to the user.
@@ -314,6 +316,8 @@ Suppose, application accepts values between -10 to +10 so using equivalence part
 
 所以说这个测试的目的: 是在不导致缺陷的前提下，移除指定分组中的重复的用例, 简化测试的工作
 
+![](/images/typeof-testing/part.png)
+
 比如一个程序应用接受-10到+10之间的值，使用等价分区方法可以划分为三个分组: 0、负值、正值. 接下来的测试只需从这个三个分组中取一个成员进行测试, 而不需要-10到+10每个成员都测试一遍.
 
 <br>
@@ -322,7 +326,11 @@ Suppose, application accepts values between -10 to +10 so using equivalence part
 
 It means real-time testing. Example testing includes the real-time scenario, it also involves the scenarios based on the experience of the testers.
 
-意味着实时测试。实例测试包含了实时场景、另外还涉及基于测试人员经验的场景。
+实例测试意味着实时测试。实例测试包含了实时场景、另外还涉及基于测试人员经验的场景。
+
+> 🤔 这里不是特别能理解这个测试类型，所以贴上原文。知道的告诉我呀
+
+<br>
 
 ## 18) Exploratory Testing
 
@@ -332,17 +340,25 @@ During exploratory testing, it is advisable to keep a track of what flow you hav
 
 An exploratory testing technique is performed without documentation and test cases.
 
-探索性测试是由测试团队进行的非正式测试。此测试的目的是探索应用并查找应用中存在的缺陷。此测试期间有时可以发现的重大甚至可能导致系统故障的缺陷
+![](/images/typeof-testing/explorer.png)
 
-在探索性测试期间，建议记忆记录好测试的流程，以及开始该流程之前的活动, 方便复现bug
+探索性测试有点类似于Ad-Hoc测试. 探索性测试是由测试团队进行的非正式测试。此测试的目的是探索应用并查找应用中存在的缺陷。像探险一样，在测试期间是有一定几率发现的重大、甚至可能导致系统故障的缺陷.
 
-探索测试不需要任何文档和测试用例
+在探索性测试期间，建议跟踪记录好测试的流程、以及开始该流程之前的活动记录, 方便复现bug.
+
+探索测试不需要任何文档和测试用例.
+
+<br>
 
 ## 20) Functional Testing
 
 This type of testing ignores the internal parts and focuses only on the output to check if it is as per the requirement or not. It is a Black-box type testing geared to the functional requirements of an application. For detailed information about Functional Testing click here.
 
-功能测试会忽略内部实现而关注组件的输出，目的是验证是否符合需求，这是一种面向功能需求的黑盒测试类型。关于功能测试的细节请看[这里](https://www.softwaretestinghelp.com/guide-to-functional-testing/)
+功能测试是一个大类, 又称为行为测试，  **功能测试会忽略内部实现而关注组件的输出，目的是验证是否符合需求，这是一种面向功能需求的黑盒测试类型**。关于功能测试的细节请看[这里](https://www.softwaretestinghelp.com/guide-to-functional-testing/)
+
+功能测试是相对非功能测试而言的, 功能测试需要关心功能或者业务，需要定制化；而非功能测试则是通用的，比如压力测试、负载测试，这些测试都有通用的工具来支持，很少需要定制化操作.
+
+<br>
 
 ## 21) Graphical User Interface (GUI) Testing
 
@@ -352,67 +368,96 @@ The GUI testing includes the size of the buttons and input field present on the 
 
 It also validates the menu of the application, after selecting different menu and menu items, it validates that the page does not fluctuate and the alignment remains same after hovering the mouse on the menu or sub-menu.
 
-GUI测试的目的是根据业务需求验证GUI。在详细设计文档和GUI模型中会提到应用期望的GUI
+GUI测试的目的是根据业务需求验证GUI。在详细设计文档和GUI模型(UI设计文档)中一般会提到应用期望的GUI.
 
-GUI测试包括屏幕上显示的按钮和输入字段的大小、表格中所有文本、表格或内容的对齐规则
+GUI测试包括测试屏幕上显示的按钮和输入字段的大小、表格中所有文本、表格或内容的对齐规则等等. 如果团队有UI设计规范，还会验证是否符合设计规范
 
-它还验证应用的菜单， 在选择不同菜单或菜单项后，验证页面是否不会抖动，并且保持对齐.
+<br>
 
 ## 22) Gorilla Testing
 
 
 Gorilla Testing is a testing type performed by a tester and sometimes by developer the as well. In Gorilla Testing, one module or the functionality in the module is tested thoroughly and heavily. The objective of this testing is to check the robustness of the application.
 
-大猩猩测试是由测试人员执行的测试类型，有时也由开发人员执行。在大猩猩测试中，对模块中的一个模块或功能进行了彻底和严格的测试。此测试的目的是检查应用程序的稳健性(robustness)
+大猩猩测试是由测试人员执行的测试类型，有时也由开发人员执行。在大猩猩测试中，对模块中的一个模块或功能进行了彻底和严格的测试。原文没有说出大猩猩测试的精髓，大猩猩测试会对一个功能或模块进行重复‘上百次’的测试, 人类根本受不了这样子的测试方式，所以大猩猩测试的另一个别名是‘令人沮丧的测试(Frustrating Testing)’
 
-#23) Happy Path Testing
+这种测试的目的是检查应用程序的稳健性(robustness)
+
+<br>
+
+## 23) Happy Path Testing
 
 The objective of Happy Path Testing is to test an application successfully on a positive flow. It does not look for negative or error conditions. The focus is only on the valid and positive inputs through which application generates the expected output.
 
 
-Happy Path Testing的目标是在正向流程上成功测试应用程序。它不会寻找负面或错误条件。重点仅在于应用程序生成预期输出的有效和正输入. 即测试正常情况，不考虑异常情况
+**乐观路线测试**的目标是在正常流程上成功测试应用。它不会考虑各种负面或异常情况。重点只关注于验证应用在有效和合法输入的条件下生成期望的输出. 
+
+比如银行付款，只考虑账户有钱的正常状态😂
+
+<br>
 
 #24) Incremental Integration Testing
 
 Incremental Integration Testing is a Bottom-up approach for testing i.e continuous testing of an application when a new functionality is added. Application functionality and modules should be independent enough to test separately. This is done by programmers or by testers.
 
 
-增量集成测试是一种自下而上的测试方法，即在添加新功能时对应用程序进行连续测试。应用程序功能和模块应足够独立，以便单独测试。这是由程序员或测试人员完成的。
+增量集成测试是一种自下而上的测试方法，即在添加新功能时立即集成应用程序进行连续测试。应用程序功能和模块应该足够独立，以便单独测试。这通常由程序员或测试人员完成。
+
+<br>
 
 #25) Install/Uninstall Testing
 
 Installation and uninstallation testing is done on full, partial, or upgrade install/uninstall processes on different operating systems under different hardware or software environment.
 
-安装和卸载测试是在不同硬件或软件环境下的不同操作系统上的进行完整\部分或升级安装/卸载测试
+安装和卸载测试是在不同硬件或软件环境下的不同操作系统上的进行完整/部分的安装、升级、卸载测试. 常用于桌面端应用
+
+<br>
 
 #26) Integration Testing
 
 Testing of all integrated modules to verify the combined functionality after integration is termed as Integration Testing. Modules are typically code modules, individual applications, client and server applications on a network, etc. This type of testing is especially relevant to client/server and distributed systems.
 
-集成测试是指将所有模块集成之后，验证合并之后的功能. 模块通常是代码模块、单个应用、网络上的客户端和服务器应用等等。这种类型的测试常用于B/S软件和分布式系统。
+集成测试是指将所有模块集成之后，验证合并后的功能. 模块通常是代码模块、单个应用、网络上的客户端和服务器应用等等。
+
+
+![](/images/typeof-testing/ingr.png)
+
+集成测试一般在单元测试之后，所以单元测试是集成测试的基础，没有进行单元测试的集成测试是不靠谱的。所以最简单的形式是：'把两个已经测试过的单元组合成一个组件，测试它们之间的接口'。也就是说**集成测试在单元测试的基础之上，将单元测试中独立的单元合并起来，验证它们的协调性, 合并后的组件又是一个新的‘单元’，这样逐步合并测试，最终形成完整的应用程序**。
+
+这种类型的测试常用于B/S软件和分布式系统。
+
+<br>
 
 #27) Load Testing
 
 It is a type of non-functional testing and the objective of Load testing is to check how much of load or maximum workload a system can handle without any performance degradation.
 
-它是一种非功能性测试，负载测试的目的是检查系统可以承受多少负载而不会降低性能, 或者最大工作负载是多少。
 
 Load testing helps to find the maximum capacity of the system under specific load and any issues that cause the software performance degradation. Load testing is performed using tools like JMeter, LoadRunner, WebLoad, Silk performer etc.
 
-负载测试有助于查找特定负载下系统的最大容量以及导致软件性能下降的任何问题。可以使用JMeter，LoadRunner，WebLoad，Silk执行程序等工具执行负载测试。
+它是一种非功能性测试，负载测试的目的是检查系统可以承受多少负载而不会降低性能, 或者说确定最大工作负载是多少。
+
+负载测试有助于查找特定负载下系统的最大容量以及导致软件性能下降的任何原因。可以使用JMeter，LoadRunner，WebLoad，Silk执行程序等工具执行负载测试。
+
+<br>
 
 ## 28) Monkey Testing
 
 Monkey testing is carried out by a tester assuming that if the monkey uses the application then how random input, values will be entered by the Monkey without any knowledge or understanding of the application.
 
+![](/images/typeof-testing/monkey-testing.jpg)
 
-猴子测试是由测试人员进行的，即把自己当成猴子，在没有任何知识背景或者理解应用前提下， 随意输入和操作。
 
-The objective of Monkey Testing is to check if an application or system gets crashed by providing random input values/data. Monkey Testing is performed randomly and no test cases are scripted and it is not necessary to
+猴子测试是由测试人员进行的，即把自己当成猴子，在没有任何知识背景或者理解应用前提下，随意输入和操作。
 
 猴子测试的目标是通过提供随机输入值/数据来检查应用程序或系统是否崩溃。 猴子是随机执行的，没有测试用例, 也没有必要了解系统的全部功能
 
+The objective of Monkey Testing is to check if an application or system gets crashed by providing random input values/data. Monkey Testing is performed randomly and no test cases are scripted and it is not necessary to
+
+
 Monkey Testing is performed randomly and no test cases are scripted and it is not necessary to be aware of the full functionality of the system.
+
+<br>
 
 ## 29) Mutation Testing
 
