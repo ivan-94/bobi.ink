@@ -6,31 +6,20 @@ categories: 前端
 
 原文链接: [Types Of Software Testing: Different Testing Types With Details](https://www.softwaretestinghelp.com/types-of-software-testing/)
 
-What are the different Types of Software Testing?
-有哪些不同的软件测试类型?
-
-We, as testers are aware of the various types of Software Testing such as Functional Testing, Non-Functional Testing, Automation Testing, Agile Testing, and their sub-types etc.
-
-我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、自动测试、敏捷测试、以及它们的各种子类型.
-
-Each of us would have come across several types of testing in our testing journey. We might have heard some and we might have worked on some, but not everyone has knowledge about all the testing types.
-
-尽管在我们的测试过程中会接触多各种测试类型, 或者我们可能听说某些测试类型，但是没人敢说精通所有的测试类型.
-
 ![](/images/typeof-testing/Types-of-Testing1.jpg)
 
-Each type of testing has its own features, advantages, and disadvantages as well. However, in this article, I have covered mostly each and every type of software testing which we usually use in our day to day testing life.
+有哪些不同的软件测试类型?
 
-每个测试类型都有自己的特点、优势和劣势。所以我写这篇文章，科普我们今天最常用到的测试类型. 来吧!
+我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、自动测试、敏捷测试、以及它们的各种子类型. 尽管在我们的测试过程中会接触很多种测试类型, 或者听说过某些测试类型，但是很少人敢说精通所有的测试类型.
 
-Let’s go and have a look at them.
+每个测试类型都有自己的特点、优势和劣势。所以我写这篇文章，科普一下我们今天最常用的测试类型.
 
-> 意翻，演绎扩展
+> 文章为意译，并且在原文的基础之上进行演绎和扩展
+
+<br>
 
 ## Different Types Of Software Testing
 
-
-Given below is the list of some common types of Software Testing:
 下面是软件测试的通用类型列表
 
 - 功能测试类型:
@@ -57,22 +46,19 @@ Given below is the list of some common types of Software Testing:
   - 一致性测试(Compliance testing)
   - 本地化测试(Localization testing)
 
-Let's see more details about these testing types.
 来看看这些测试类型的细节
 
 ![](/images/typeof-testing/Types-of-Software-Testing.jpg)
 
-## 0) A/B测试
+<br>
+
+## 0) A/B测试(A/B Testing)
 
 顾名思义， A/B测试就是准备两个(A/B)或两个以上的版本，让不同的用户来随机访问这些版本，收集各群组的用户体验数据和业务数据，最后分析、评估出最好版本，正式采用。
 
 <br>
 
-## 1) Alpha 测试
-
-It is the most common type of testing used in the Software industry. The objective of this testing is to identify all possible issues or defects before releasing it into the market or to the user.
-
-Alpha testing is carried out at the end of the software development phase but before the Beta Testing. Still, minor design changes may be made as a result of such testing. Alpha testing is conducted at the developer’s site. In-house virtual user environment can be created for this type of testing.
+## 1) Alpha测试(Alpha Testing)
 
 **[Alpha测试](https://www.softwaretestinghelp.com/what-is-alpha-testing-beta-testing/)这是软件工程中最常见的测试类型。它的目标就是尽可能地在发布到市场或交付给用户之前找出所有的问题和缺陷**。
 
@@ -109,11 +95,7 @@ Mid-September 2019: iOS 13 likely to launch with new 2019 iPhones # -> 正式版
 
 <br>
 
-## 2) Acceptance Testing
-
-An acceptance test is performed by the client and verifies whether the end to end the flow of the system is as per the business requirements or not and if it is as per the needs of the end user. Client accepts the software only when all the features and functionalities work as expected.
-
-It is the last phase of the testing, after which the software goes into production. This is also called User Acceptance Testing (UAT).
+## 2) 验收测试(Acceptance Testing)
 
 **[验收测试](https://www.softwaretestinghelp.com/what-is-acceptance-testing/)通常是部署软件之前的最后一个测试操作, 也成为交付测试, 由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及功能是否是满足最终用户的需求**。只有当所有的特性和功能按照期望的运行，客户才会接受软件
 
@@ -125,11 +107,7 @@ It is the last phase of the testing, after which the software goes into producti
 
 <br>
 
-## 3) Ad-hoc Testing
-
-The name itself suggests that this testing is performed on an ad-hoc basis i.e. with no reference to the test case and also without any plan or documentation in place for such type of testing. The objective of this testing is to find the defects and break the application by executing any flow of the application or any random functionality.
-
-Ad-hoc testing is an informal way of finding defects and can be performed by anyone in the project. It is difficult to identify defects without a test case but sometimes it is possible that defects found during ad-hoc testing might not have been identified using existing test cases.
+## 3) 临时测试(Ad-hoc Testing)
 
 Ad-hoc中文应该理解为临时的意思。顾名思义，这种测试是在临时基础上进行的, 有时候也成为随机测试。即没有参考测试用例、没有针对该测试的任何计划和文档。Ad-hoc测试的目的就是**通过执行随意的流程或任意的功能来找出应用的缺陷和问题**
 
@@ -137,9 +115,7 @@ Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。�
 
 <br>
 
-## 4) Accessibility Testing
-
-The aim of accessibility testing is to determine whether the software or application is accessible for disabled people or not. Here disability means deaf, color blind, mentally disabled, blind, old age and other disabled groups. Various checks are performed such as font size for visually disabled, color and contrast for color blindness etc.
+## 4) 可访问性测试(Accessibility Testing)
 
 **可访问性测试的目的是确定软件或应用程序是否可供残疾人使用**。残疾是指聋人，色盲，智障人士，失明者，老年人和其他残疾人群体。这里会执行各种检查，例如针对视觉残疾的字体大小测试，针对色盲的颜色和对比度测试等等。
 
@@ -149,15 +125,7 @@ The aim of accessibility testing is to determine whether the software or applica
 
 <br>
 
-## 5) Beta Testing
-
-Beta Testing is a formal type of software testing which is carried out by the customer. It is performed in the Real Environment before releasing the product to the market for the actual end users.
-
-Beta testing is carried out to ensure that there are no major failures in the software or product and it satisfies the business requirements from an end-user perspective. Beta testing is successful when the customer accepts the software.
-
-Usually, this testing is typically done by end-users or others. It is the final testing done before releasing an application for commercial purpose. Usually, the Beta version of the software or product released is limited to a certain number of users in a specific area.
-
-So end user actually uses the software and shares the feedback to the company. Company then takes necessary action before releasing the software to the worldwide.
+## 5) Beta测试(Beta Testing)
 
 上文Alpha测试已经提及Beta测试, **Beta测试是一种正式的软件测试类型，在将产品发布到市场或者实际最终用户之前，由客户在真实的应用环境中执行**。
 
@@ -170,23 +138,15 @@ Beta测试在正式版本之前也可能会迭代进行多次.
 
 <br>
 
-## 6) Back-end Testing
-
-Whenever an input or data is entered on front-end application, it stores in the database and the testing of such database is known as Database Testing or Backend testing. There are different databases like SQL Server, MySQL, and Oracle etc. Database testing involves testing of table structure, schema, stored procedure, data structure and so on.
+## 6) 后端测试(Back-end Testing)
 
 前端应用输入的数据，一般都会存储在数据库，所以针对数据库的这类测试称为**数据库测试或者后端测试**. 市面有不同的数据库，如SQL Server，MySQL和Oracle等。数据库测试会涉及表结构，模式，存储过程，数据结构等。
-
-In back-end testing GUI is not involved, testers are directly connected to the database with proper access and testers can easily verify data by running a few queries on the database. There can be issues identified like data loss, deadlock, data corruption etc during this back-end testing and these issues are critical to fixing before the system goes live into the production environment
 
 后端测试一般不会涉及GUI，测试人员通过某些手段直接连接到数据库，从而可以容易地运行一些数据库请求来验证数据。通过后端测试可以发现一些数据库问题，比如数据丢失、死锁、数据损坏。这些问题在系统投入生产环境之前进行修复至关重要
 
 <br>
 
-#7) Browser Compatibility Testing
-
-It is a subtype of Compatibility Testing (which is explained below) and is performed by the testing team.
-
-Browser Compatibility Testing is performed for web applications and it ensures that the software can run with the combination of different browser and operating system. This type of testing also validates whether web application runs on all versions of all browsers or not.
+## 7) 浏览器兼容测试(Browser Compatibility Testing)
 
 这是兼容性测试的子类型，由测试团队执行. **浏览器兼容测试主要针对Web应用，用于确保软件可以在不同浏览器或操作系统中运行; 或者验证Web应用程序是否支持在浏览器的所有版本上运行, 以确定应用最终兼容的范围**.
 
@@ -202,13 +162,7 @@ Browser Compatibility Testing is performed for web applications and it ensures t
 
 <br>
 
-## 8) Backward Compatibility Testing
-
- It is a type of testing which validates whether the newly developed software or updated software works well with older version of the environment or not.
-
-
-Backward Compatibility Testing checks whether the new version of the software works properly with file format created by older version of the software; it also works well with data tables, data files, data structure created by older version of that software. If any of the software is updated then it should work well on top of the previous version of that software.
-
+## 8) 后向兼容测试(Backward Compatibility Testing)
 
 **向后兼容测试, 用于验证新开发或更新的软件是否能在旧版本的环境中运行**。
 
@@ -216,11 +170,7 @@ Backward Compatibility Testing checks whether the new version of the software wo
 
 <br>
 
-## 9) Black Box Testing
-
- Internal system design is not considered in this type of testing. Tests are based on the requirements and functionality.
-
-Detailed information about the advantages, disadvantages, and types of Black box testing can be seen here.
+## 9) 黑盒测试(Black Box Testing)
 
 ![](/images/typeof-testing/black-box.png)
 
@@ -234,13 +184,7 @@ Detailed information about the advantages, disadvantages, and types of Black box
 
 <br>
 
-## 10) Boundary Value Testing
-
-This type of testing checks the behavior of the application at the boundary level.
-
-Boundary value Testing is performed for checking if defects exist at boundary values. Boundary value testing is used for testing a different range of numbers. There is an upper and lower boundary for each range and testing is performed on these boundary values.
-
-If testing requires a test range of numbers from 1 to 500 then Boundary Value Testing is performed on values at 0, 1, 2, 499, 500 and 501.
+## 10) 边界值测试(Boundary Value Testing)
 
 **边界值测试, 测试应用处于边界条件(boundary level)的行为**。很多边界条件程序是很难考虑周到的，所以才有一个专门的测试类型来验证这种情况
 
@@ -248,17 +192,13 @@ If testing requires a test range of numbers from 1 to 500 then Boundary Value Te
 
 <br>
 
-## 11) Branch Testing
-
-It is a type of white box testing and is carried out during unit testing. Branch Testing, the name itself suggests that the code is tested thoroughly by traversing at every branch.
+## 11) 分支测试(Branch Testing)
 
 这是白盒测试的子类型，在单元测试中实施. 顾名思义，分支测试表示测试要覆盖程序的各种条件分支, 避免遗漏缺陷。分支覆盖是单元测试覆盖率的一个指标之一
 
 <br>
 
-## 12) Comparison Testing
-
-Comparison of a product's strength and weaknesses with its previous versions or other similar products is termed as Comparison Testing.
+## 12) 比较测试(Comparison Testing)
 
 比较测试，将产品的优点和弱点与旧版本或者同类(竞品)产品进行比较.
 
@@ -268,17 +208,13 @@ Comparison of a product's strength and weaknesses with its previous versions or 
 
 <br>
 
-## 13) Compatibility Testing
-
-It is a testing type in which it validates how software behaves and runs in a different environment, web servers, hardware, and network environment. Compatibility testing ensures that software can run on a different configuration, different database, different browsers, and their versions. Compatibility testing is performed by the testing team.
+## 13) 兼容性测试(Compatibility Testing)
 
 这是一个大类, **兼容性测试用于验证应用在不同环境、web服务器、硬件、网络条件下的行为**。兼容性测试确保软件可以在不同的配置、不同的数据库、不同的浏览器，以及它们不同的版本下运行。兼容性测试由测试团队实施
 
 <br>
 
-## 14) Component Testing
-
-It is mostly performed by developers after the completion of unit testing. Component Testing involves testing of multiple functionalities as a single code and its objective is to identify if any defect exists after connecting those multiple functionalities with each other.
+## 14) 组件测试(Component Testing)
 
 [组件测试](https://www.guru99.com/component-testing.html)(此组件非GUI组件, 取组合测试可能更好理解一点)，一般也称为模块测试(Module Testing), 一般由开发者在完成单元测试后执行。组件测试将多个功能组合起来作为单一的整体进行测试，目的是发现多个功能在相互连接起来之后的缺陷。
 
@@ -290,9 +226,7 @@ It is mostly performed by developers after the completion of unit testing. Compo
 
 <br>
 
-## 15) End-to-End Testing
-
-Similar to system testing, End-to-end testing involves testing of a complete application environment in a situation that mimics real-world use, such as interacting with a database, using network communications, or interacting with other hardware, applications, or systems if appropriate.
+## 15) 端到端测试(End-to-End Testing)
 
 端到端测试也是一种黑盒测试类型，类似于系统测试. **端到端测试在模拟的、完整的、真实应用环境下模拟真实用户对应用进行测试，比如应用会和数据库交互、会使用网络通信、或者在适当的情况下和其他硬件、应用、系统进行交互**.
 
@@ -309,14 +243,7 @@ Similar to system testing, End-to-end testing involves testing of a complete app
 
 <br>
 
-## 16) Equivalence Partitioning
-
-
-It is a testing technique and a type of Black Box Testing. During this equivalence partitioning, a set of group is selected and a few values or numbers are picked up for testing. It is understood that all values from that group generate the same output.
-
-The aim of this testing is to remove redundant test cases within a specific group which generates the same output but not any defect.
-
-Suppose, application accepts values between -10 to +10 so using equivalence partitioning the values picked up for testing are zero, one positive value, one negative value. So the Equivalence Partitioning for this testing is: -10 to -1, 0, and 1 to 10.
+## 16) 等价划分(Equivalence Partitioning)
 
 等价划分, 这是一种黑盒测试的测试技术. **通过等价划分，可以将所有的输入数据合理地划分为多个分组，我们只需在每个分组中取一个数据作为测试的输入条件, 这样可以实现用少量代表性的测试数据取得较好的测试结果**.
 
@@ -328,7 +255,7 @@ Suppose, application accepts values between -10 to +10 so using equivalence part
 
 <br>
 
-## 17) Example Testing
+## 17) 实例测试(Example Testing)
 
 It means real-time testing. Example testing includes the real-time scenario, it also involves the scenarios based on the experience of the testers.
 
@@ -338,13 +265,7 @@ It means real-time testing. Example testing includes the real-time scenario, it 
 
 <br>
 
-## 18) Exploratory Testing
-
-Exploratory Testing is informal testing performed by the testing team. The objective of this testing is to explore the application and looking for defects that exist in the application. Sometimes it may happen that during this testing major defect discovered can even cause system failure.
-
-During exploratory testing, it is advisable to keep a track of what flow you have tested and what activity you did before the start of the specific flow.
-
-An exploratory testing technique is performed without documentation and test cases.
+## 18) 探索测试(Exploratory Testing)
 
 ![](/images/typeof-testing/explorer.png)
 
@@ -356,9 +277,7 @@ An exploratory testing technique is performed without documentation and test cas
 
 <br>
 
-## 20) Functional Testing
-
-This type of testing ignores the internal parts and focuses only on the output to check if it is as per the requirement or not. It is a Black-box type testing geared to the functional requirements of an application. For detailed information about Functional Testing click here.
+## 20) 功能测试(Functional Testing)
 
 功能测试是一个大类, 又称为行为测试，  **功能测试会忽略内部实现而关注组件的输出，目的是验证是否符合需求，这是一种面向功能需求的黑盒测试类型**。关于功能测试的细节请看[这里](https://www.softwaretestinghelp.com/guide-to-functional-testing/)
 
@@ -366,13 +285,7 @@ This type of testing ignores the internal parts and focuses only on the output t
 
 <br>
 
-## 21) Graphical User Interface (GUI) Testing
-
-The objective of this GUI testing is to validate the GUI as per the business requirement. The expected GUI of the application is mentioned in the Detailed Design Document and GUI mockup screens.
-
-The GUI testing includes the size of the buttons and input field present on the screen, alignment of all text, tables and content in the tables.
-
-It also validates the menu of the application, after selecting different menu and menu items, it validates that the page does not fluctuate and the alignment remains same after hovering the mouse on the menu or sub-menu.
+## 21) GUI测试(Graphical User Interface (GUI) Testing)
 
 GUI测试的目的是根据业务需求验证GUI。在详细设计文档和GUI模型(UI设计文档)中一般会提到应用期望的GUI.
 
@@ -380,10 +293,7 @@ GUI测试包括测试屏幕上显示的按钮和输入字段的大小、表格�
 
 <br>
 
-## 22) Gorilla Testing
-
-
-Gorilla Testing is a testing type performed by a tester and sometimes by developer the as well. In Gorilla Testing, one module or the functionality in the module is tested thoroughly and heavily. The objective of this testing is to check the robustness of the application.
+## 22) 大猩猩测试(Gorilla Testing)
 
 大猩猩测试是由测试人员执行的测试类型，有时也由开发人员执行。在大猩猩测试中，对模块中的一个模块或功能进行了彻底和严格的测试。原文没有说出大猩猩测试的精髓，大猩猩测试会对一个功能或模块进行重复‘上百次’的测试, 人类根本受不了这样子的测试方式，所以大猩猩测试的另一个别名是‘令人沮丧的测试(Frustrating Testing)’
 
@@ -391,10 +301,7 @@ Gorilla Testing is a testing type performed by a tester and sometimes by develop
 
 <br>
 
-## 23) Happy Path Testing
-
-The objective of Happy Path Testing is to test an application successfully on a positive flow. It does not look for negative or error conditions. The focus is only on the valid and positive inputs through which application generates the expected output.
-
+## 23) 乐观路线测试(Happy Path Testing)
 
 **乐观路线测试**的目标是在正常流程上成功测试应用。它不会考虑各种负面或异常情况。重点只关注于验证应用在有效和合法输入的条件下生成期望的输出. 
 
@@ -402,29 +309,21 @@ The objective of Happy Path Testing is to test an application successfully on a 
 
 <br>
 
-#24) Incremental Integration Testing
-
-Incremental Integration Testing is a Bottom-up approach for testing i.e continuous testing of an application when a new functionality is added. Application functionality and modules should be independent enough to test separately. This is done by programmers or by testers.
-
+## 24) 增量集成测试(Incremental Integration Testing)
 
 增量集成测试是一种自下而上的测试方法，即在添加新功能时立即集成应用程序进行连续测试。应用程序功能和模块应该足够独立，以便单独测试。这通常由程序员或测试人员完成。
 
 <br>
 
-#25) Install/Uninstall Testing
-
-Installation and uninstallation testing is done on full, partial, or upgrade install/uninstall processes on different operating systems under different hardware or software environment.
+## 25) 安装卸载测试(Install/Uninstall Testing)
 
 安装和卸载测试是在不同硬件或软件环境下的不同操作系统上的进行完整/部分的安装、升级、卸载测试. 常用于桌面端应用
 
 <br>
 
-#26) Integration Testing
-
-Testing of all integrated modules to verify the combined functionality after integration is termed as Integration Testing. Modules are typically code modules, individual applications, client and server applications on a network, etc. This type of testing is especially relevant to client/server and distributed systems.
+## 26) 集成测试(Integration Testing)
 
 集成测试是指将所有模块集成之后，验证合并后的功能. 模块通常是代码模块、单个应用、网络上的客户端和服务器应用等等。
-
 
 ![](/images/typeof-testing/ingr.png)
 
@@ -434,12 +333,7 @@ Testing of all integrated modules to verify the combined functionality after int
 
 <br>
 
-#27) Load Testing
-
-It is a type of non-functional testing and the objective of Load testing is to check how much of load or maximum workload a system can handle without any performance degradation.
-
-
-Load testing helps to find the maximum capacity of the system under specific load and any issues that cause the software performance degradation. Load testing is performed using tools like JMeter, LoadRunner, WebLoad, Silk performer etc.
+## 27) 负载测试(Load Testing)
 
 它是一种非功能性测试，负载测试的目的是检查系统可以承受多少负载而不会降低性能, 或者说确定最大工作负载是多少。
 
@@ -458,9 +352,7 @@ Load testing helps to find the maximum capacity of the system under specific loa
 
 <br>
 
-## 28) Monkey Testing
-
-Monkey testing is carried out by a tester assuming that if the monkey uses the application then how random input, values will be entered by the Monkey without any knowledge or understanding of the application.
+## 28) 猴子测试(Monkey Testing)
 
 ![](/images/typeof-testing/monkey-testing.jpg)
 
@@ -468,16 +360,9 @@ Monkey testing is carried out by a tester assuming that if the monkey uses the a
 
 猴子测试的目标是通过提供随机输入值/数据来检查应用程序或系统是否崩溃。 猴子是随机执行的，没有测试用例, 也没有必要了解系统的全部功能
 
-The objective of Monkey Testing is to check if an application or system gets crashed by providing random input values/data. Monkey Testing is performed randomly and no test cases are scripted and it is not necessary to
-
-
-Monkey Testing is performed randomly and no test cases are scripted and it is not necessary to be aware of the full functionality of the system.
-
 <br>
 
-## 29) Mutation Testing
-
-Mutation Testing is a type of white box testing in which the source code of one of the program is changed and verifies whether the existing test cases can identify these defects in the system. The change in the program source code is very minimal so that it does not impact the entire application, only the specific area having the impact and the related test cases should able to identify those errors in the system.
+## 29) 变异测试(Mutation Testing)
 
 变异测试(或者说可变性测试)是一种白盒测试，这是一种和单元测试反着来的测试类型。
 
@@ -489,21 +374,13 @@ Mutation Testing is a type of white box testing in which the source code of one 
 
 <br>
 
-## 30) Negative Testing
+## 30) 悲观测试(Negative Testing)
 
- Testers having the mindset of “attitude to break” and using negative testing they validate that if system or application breaks. A negative testing technique is performed using incorrect data, invalid data or input. It validates that if the system throws an error of invalid input and behaves as expected.
-
-否定测试，和乐观路线测试相反, 它要求测试者要具有“打破”常规的态度，考虑各种异常情况, 使用各种邪恶的👿、不怀好意、不合法的操作来测试系统。否定测试会使用不正确的数据、无效数据或输入来进行验证。它验证系统是否可以识别异常情况，并按预期运行。
+悲观测试，和乐观路线测试相反, 它要求测试者要具有“打破”常规的态度，考虑各种异常情况, 使用各种邪恶的👿、不怀好意、不合法的操作来测试系统。悲观测试会使用不正确的数据、无效数据或输入来进行验证。它验证系统是否可以识别异常情况，并按预期运行。
 
 <br>
 
-## 31) Non-Functional Testing
-
-It is a type of testing for which every organization having a separate team which usually called as Non-Functional Test (NFT) team or Performance team.
-
-Non-functional testing involves testing of non-functional requirements such as Load Testing, Stress Testing, Security, Volume, Recovery Testing etc. The objective of NFT testing is to ensure whether the response time of software or application is quick enough as per the business requirement.
-
-It should not take much time to load any page or system and should sustain during peak load.
+## 31) 非功能测试(Non-Functional Testing)
 
 每个大型的组织都有一个独立的团队，通常称为非功能测试（NFT）团队或性能团队。
 
@@ -513,9 +390,7 @@ It should not take much time to load any page or system and should sustain durin
 
 <br>
 
-## 32) Performance Testing
-
-This term is often used interchangeably with ‘stress' and ‘load' testing. Performance Testing is done to check whether the system meets the performance requirements. Different performance and load tools are used to do this testing.
+## 32) 性能测试(Performance Testing)
 
 这个术语通常与“压力”和“负载”测试互换使用。[性能测试](https://en.wikipedia.org/wiki/Software_performance_testing)用于检查系统是否满足性能要求。它会使用不同的性能和负载工具来执行此测试。
 
@@ -530,23 +405,15 @@ This term is often used interchangeably with ‘stress' and ‘load' testing. Pe
 
 <br>
 
-## 33) Recovery Testing
+## 33) 恢复测试(Recovery Testing)
 
 恢复测试用于验证应用或系统中崩溃或灾难中恢复的程度. 确定系统是否能够在灾难发生后继续运行。
 
 比如应用通过网络电缆接收数据，突然断开了网络电缆的连接, 过一段时间，再插上网线, 系统应该开始恢复由于网络电缆拔出而丢失连接的数据
 
-It is a type of testing which validates that how well the application or system recovers from crashes or disasters.
-
-Recovery testing determines if the system is able to continue the operation after a disaster. Assume that application is receiving data through the network cable and suddenly that network cable has been unplugged.
-
-Sometime later, plug the network cable; then the system should start receiving data from where it lost the connection due to network cable unplugged.
-
 <br>
 
-## 34) Regression Testing
-
-Testing an application as a whole for the modification in any module or functionality is termed as Regression Testing. It is difficult to cover all the system in Regression Testing, so typically automation testing tools are used for these types of testing.
+## 34) 回归测试(Regression Testing)
 
 在修改任意模块或者功能后，将应用作为一个整体进行测试，称为回归测试。**回归测试的目的就是验证在软件原有的功能变动后是否保持完整性**. 
 
@@ -562,16 +429,7 @@ Testing an application as a whole for the modification in any module or function
 
 <br>
 
-
-## 35) Risk-Based Testing (RBT)
-
-In Risk Based Testing, the functionalities or requirements are tested based on their priority. Risk-based testing includes testing of highly critical functionality, which has the highest impact on business and in which the probability of failure is very high.
-
-The priority decision is based on the business need, so once priority is set for all functionalities then high priority functionality or test cases are executed first followed by medium and then low priority functionalities.
-
-The low priority functionality may be tested or not tested based on the available time.
-
-The Risk-based testing is carried out if there is insufficient time available to test entire software and software needs to be implemented on time without any delay. This approach is followed only by the discussion and approval of the client and senior management of the organization.
+## 35) 基于风险的测试(Risk-Based Testing (RBT))
 
 在基于风险的测试中，功能或需求将根据其优先级进行测试。基于风险的测试会优先测试高度关键的功能，因为这些功能对业务影响最大或者故障概率非常高. 而优先级由业务需求决定，因此一旦为所有功能设置了优先级，则应该首先执行高优先级功能或测试用例，然后再执行低优先级功能。 低优先级功能可以在时间充裕时测试，或者不测试。
 
@@ -579,9 +437,7 @@ The Risk-based testing is carried out if there is insufficient time available to
 
 <br>
 
-## 36) Sanity Testing
-
-Sanity Testing is done to determine if a new software version is performing well enough to accept it for a major testing effort or not. If an application is crashing for the initial use then the system is not stable enough for further testing. Hence a build or an application is assigned to fix it.
+## 36) 完整性测试(Sanity Testing)
 
 完整性测试用于确定一个新的软件版本是否可以开始进行正式的测试，如果一个应该在一开始使用时就崩溃，那么就说明系统还不够稳定，没有必要进行下一步测试。这种情况应该打回给开发，以免浪费时间
 
@@ -593,13 +449,7 @@ Sanity Testing is done to determine if a new software version is performing well
 
 <br>
 
-## 37) Security Testing
-
-It is a type of testing performed by a special team of testers. A system can be penetrated by any hacking way.
-
-Security Testing is done to check how the software or application or website is secure from internal and external threats. This testing includes how much software is secure from the malicious program, viruses and how secure and strong the authorization and authentication processes are.
-
-It also checks how software behaves for any hackers attack and malicious programs and how software is maintained for data security after such a hacker attack.
+## 37) 安全测试(Security Testing)
 
 安全也是一个庞大的学科，而且知识每天都在更新，所以安全测试一般由特殊的安全团队执行，他们以各种黑客手段对系统进行渗透测试。
 
@@ -609,13 +459,7 @@ It also checks how software behaves for any hackers attack and malicious program
 
 <br>
 
-## 38) Smoke Testing
-
-Whenever a new build is provided by the development team then the software testing team validates the build and ensures that no major issue exists.
-
-The testing team ensures that the build is stable and a detailed level of testing is carried out further. Smoke Testing checks that no show stopper defect exists in the build which will prevent the testing team to test the application in detail.
-
-If testers find that the major critical functionality is broken down at the initial stage itself then testing team can reject the build and inform accordingly to the development team. Smoke Testing is carried out to a detailed level of any functional or regression testing.
+## 38) 冒烟测试(Smoke Testing)
 
 冒烟测试，每当开发团队提交新的构建时，软件测试团队就会先验证构建, 并确保不存在重大问题, 如果存在重大问题会直接打回开发团队.
 
@@ -625,11 +469,7 @@ If testers find that the major critical functionality is broken down at the init
 
 <br>
 
-## 39) Static Testing
-
-Static Testing is a type of testing which is executed without any code. The execution is performed on the documentation during the testing phase. It involves reviews, walkthrough, and inspection of the deliverables of the project. Static testing does not execute the code instead of the code syntax, naming conventions are checked.
-
-The static testing is also applicable for test cases, test plan, design document. It is necessary to perform static testing by the testing team as the defects identified during this type of testing are cost-effective from the project perspective.
+## 39) 静态测试(Static Testing)
 
 静态测试有点类似于代码Review，在不执行任何代码的情况下执行(也就是不运行应用)，它涉及对可交付成果审查(inspection)、review和演练(walkthrough). 比如检查代码语法、命名约定、项目组织。
 
@@ -643,17 +483,13 @@ The static testing is also applicable for test cases, test plan, design document
 
 <br>
 
-## 40) Stress Testing
-
-This testing is done when a system is stressed beyond its specifications in order to check how and when it fails. This is performed under heavy load like putting large number beyond storage capacity, complex database queries, continuous input to the system or database load.
+## 40) 压力测试(Stress Testing)
 
 **通过压力测试，模拟系统受到超出其规格的压力时失败的方式和时间, 找出系统的崩溃点**. 这个测试在高负载情况下执行的，例如存取超过容量限制的数据、执行复杂的数据库查询、连续暴力输入到系统或加载到数据库。
 
 <br>
 
-## 41) System Testing
-
-Under System Testing technique, the entire system is tested as per the requirements. It is a Black-box type testing that is based on overall requirement specifications and covers all the combined parts of a system.
+## 41) 系统测试(System Testing)
 
 系统测试在完整的集成系统上进行测试，也就是说**系统测试一般在集成测试之后进行，集成测试之后系统成为了一个整体，系统测试在这个基础上、在真实的运行环境中验证系统是否符合业务需求**。 这是一种黑盒型测试，基于总体需求规范，涵盖系统的所有组合部分。
 
@@ -678,9 +514,7 @@ Under System Testing technique, the entire system is tested as per the requireme
 
 <br>
 
-## 42) Unit Testing
-
-Testing of an individual software component or module is termed as Unit Testing. It is typically done by the programmer and not by testers, as it requires a detailed knowledge of the internal program design and code. It may also require developing test driver modules or test harnesses.
+## 42) 单元测试(Unit Testing)
 
 **测试独立的软件单元或模块称为单元测试**。它通常由开发者完成，而不是由测试人员完成，因为它需要详细了解内部程序设计和代码。
 
@@ -690,19 +524,13 @@ Testing of an individual software component or module is termed as Unit Testing.
 
 <br>
 
-## 43) Usability Testing
-
-Under Usability Testing, User-friendliness check is done. Application flow is tested to know if a new user can understand the application easily or not, Proper help documented if a user gets stuck at any point. Basically, system navigation is checked in this testing.
+## 43) 可用性测试(Usability Testing)
 
 可用性测试用于检测应用的用户友好程度(User-friendliness). 它会验证新用户受可以轻松理解应用流程，如果用户陷入麻烦，测试人员要记录好并提供帮助。可以认为可用性测试是在检查系统的导航性(navigation)
 
 <br>
 
-## 44) Vulnerability Testing
-
-The testing which involves identifying of weakness in the software, hardware and the network is known as Vulnerability Testing. Malicious programs, the hacker can take control of the system, if it is vulnerable to such kind of attacks, viruses, and worms.
-
-So it is necessary to check if those systems undergo Vulnerability Testing before production. It may identify critical defects, flaws in the security.
+## 44) 漏洞测试(Vulnerability Testing)
 
 漏洞测试，涉及识别软件、硬件和网络中的漏洞。如果漏洞容易受到攻击，或者容易受到病毒和蠕虫感染，黑客或恶意程序就可以控制系统。
 
@@ -710,21 +538,13 @@ So it is necessary to check if those systems undergo Vulnerability Testing befor
 
 <br>
 
-## 45) Volume Testing
-
-Volume testing is a type of non-functional testing performed by the performance testing team.
-
-The software or application undergoes a huge amount of data and Volume Testing checks the system behavior and response time of the application when the system came across such a high volume of data. This high volume of data may impact the system’s performance and speed of the processing time.
+## 45) 容量测试(Volume Testing)
 
 容量测试是由性能测试团队执行的一种非功能测试。容量测试会检查应用程序遇到大量的数据时的系统行为和响应时间。这种大量数据可能会影响系统的性能和处理时间的速度。
 
 <br>
 
-## 46) White Box Testing
-
-White Box testing is based on the knowledge about the internal logic of an application's code.
-
-It is also known as Glass box Testing. Internal software and code working should be known for performing this type of testing. Under these tests are based on the coverage of code statements, branches, paths, conditions etc.
+## 46) 白盒测试(White Box Testing)
 
 白盒测试基于应用程序代码的内部逻辑。它也被称为玻璃盒测试。测试人员应该知道内部软件和代码是如何工作的。上面提到的单元测试就是典型的白盒测试
 
@@ -737,7 +557,3 @@ It is also known as Glass box Testing. Internal software and code working should
 上面提到的软件测试类型只是测试中的一部分，实际有超过100种的测试类型，但是并非所有测试类型都会被所有项目使用，所以我这里只是列举一些比较常见的软件测试类型。
 
 另外不同的组织中可能会有不同的定义或过程，但是基本概念在任何地方都是相同的。当项目、需求和范围发生变化时，这些测试类型、过程及其实现方法会不断演变
-
-The above-mentioned Software Testing Types are just a part of testing. However, there is still a list of more than 100+ types of testing, but all testing types are not used in all types of projects. So I have covered some common Types of Software Testing which are mostly used in the testing life cycle.
-
-Also, there are alternative definitions or processes used in different organizations, but the basic concept is the same everywhere. These testing types, processes, and their implementation methods keep changing as and when the project, requirements, and scope changes.
