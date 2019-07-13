@@ -1,5 +1,5 @@
 ---
-title: "这些软件测试的类型你都知道?"
+title: "你需要知道的软件测试类型和常识"
 date: 2019/7/10
 categories: 前端
 ---
@@ -24,6 +24,8 @@ Each type of testing has its own features, advantages, and disadvantages as well
 每个测试类型都有自己的特点、优势和劣势。所以我写这篇文章，科普我们今天最常用到的测试类型. 来吧!
 
 Let’s go and have a look at them.
+
+> 意翻，演绎扩展
 
 ## Different Types Of Software Testing
 
@@ -511,9 +513,16 @@ It should not take much time to load any page or system and should sustain durin
 
 This term is often used interchangeably with ‘stress' and ‘load' testing. Performance Testing is done to check whether the system meets the performance requirements. Different performance and load tools are used to do this testing.
 
-这个术语通常与“压力”和“负载”测试互换使用。性能测试用于检查系统是否满足性能要求。它会使用不同的性能和负载工具来执行此测试。
+这个术语通常与“压力”和“负载”测试互换使用。[性能测试](https://en.wikipedia.org/wiki/Software_performance_testing)用于检查系统是否满足性能要求。它会使用不同的性能和负载工具来执行此测试。
 
-TODO: 基准测试
+[性能测试](https://www.softwaretestinghelp.com/introduction-to-performance-testing-loadrunner-training-tutorial-part-1/)这个范围比较大，**广义上的性能测试包括了上文提到的负载测试、压力测试、稳定性测试、容量测试等等。狭义的性能测试则是指在特定资源条件下，测试系统能否达到期望值, 也就是基线测试(Baseline Test).**
+
+总结一下性能测试的类型:
+
+- **基线测试(Baseline Test)**: 在给定的资源下，测试最佳的性能，用作后续测量的参考‘基线’。注意基线测试和基准测试是有区别的, 这么理解，基准是你想达到的，比如100短跑世界纪录，基线是你的成绩。
+- **负载测试(Load Test)**: 在预期峰值的生产负载下测量系统的性能。上文负载测试已经大概介绍了
+- **稳定性测试(Endurance Test)**: 在指定负载下，长时间测量系统的稳定性
+- **压力测试(Stress Test)**: 测试极端条件下的系统性能
 
 <br>
 
@@ -535,9 +544,22 @@ Sometime later, plug the network cable; then the system should start receiving d
 
 Testing an application as a whole for the modification in any module or functionality is termed as Regression Testing. It is difficult to cover all the system in Regression Testing, so typically automation testing tools are used for these types of testing.
 
-在修改任意模块或者功能后，将应用作为一个整体进行测试，称为回归测试。因为在回归测试中很难覆盖所有系统，通常使用自动化测试工具进行这些类型的测试。
+在修改任意模块或者功能后，将应用作为一个整体进行测试，称为回归测试。**回归测试的目的就是验证在软件原有的功能变动后是否保持完整性**. 
 
-#35) Risk-Based Testing (RBT)
+![](/images/typeof-testing/bug-fix.gif)
+
+有观点认为回归测试就是回归测试是指重复执行以前的全部或部分相同的测试工作, 其实不是不无道理。而且因为局部修改而牵一发动全身的意外在平时开发中并不少见，这种意外性就是回归测试的存在的目的.
+
+因为在回归测试中很难覆盖所有系统，通常最好使用自动化测试工具进行这些类型的测试。比如每次修改完代码，跑单元测试来确保不影响确保其他软件单元。
+
+在前端中[组件快照测试(Snapshot Testing)](https://jestjs.io/docs/en/snapshot-testing)和一些[CSS UI测试](https://github.com/HuddleEng/PhantomCSS)，都是属于回归测试类型,它们的原理都是和上一次测试生产的结果进行比对，以确保没有意外的修改:
+
+![](/images/typeof-testing/phantomcss.png)
+
+<br>
+
+
+## 35) Risk-Based Testing (RBT)
 
 In Risk Based Testing, the functionalities or requirements are tested based on their priority. Risk-based testing includes testing of highly critical functionality, which has the highest impact on business and in which the probability of failure is very high.
 
@@ -547,21 +569,27 @@ The low priority functionality may be tested or not tested based on the availabl
 
 The Risk-based testing is carried out if there is insufficient time available to test entire software and software needs to be implemented on time without any delay. This approach is followed only by the discussion and approval of the client and senior management of the organization.
 
-在基于风险的测试中，功能或需求将根据其优先级进行测试。基于风险的测试包括测试高度关键的功能，这些功能对业务影响最大，故障概率非常高
+在基于风险的测试中，功能或需求将根据其优先级进行测试。基于风险的测试会优先测试高度关键的功能，因为这些功能对业务影响最大或者故障概率非常高. 而优先级由业务需求决定，因此一旦为所有功能设置了优先级，则应该首先执行高优先级功能或测试用例，然后再执行低优先级功能。 低优先级功能可以在时间充裕时测试，或者不测试。
 
-优先级由业务需求决定，因此一旦为所有功能设置了优先级，则应该首先执行高优先级功能或测试用例，然后再执行低优先级功能。
+**基于风险的测试应该在‘不够时间来测试整个应用，但是又要按时交付软件’的情况下执行**，通常还需要客户和高级管理层的讨论和批准之后才进行
 
-低优先级功能可以在时间充裕时测试，或者不测试。
+<br>
 
-基于风险的测试应该在‘不够时间来测试整个应用，但是又要按时交付软件’的情况下执行，通常还需要客户和高级管理层的讨论和批准之后才进行
-
-#36) Sanity Testing
+## 36) Sanity Testing
 
 Sanity Testing is done to determine if a new software version is performing well enough to accept it for a major testing effort or not. If an application is crashing for the initial use then the system is not stable enough for further testing. Hence a build or an application is assigned to fix it.
 
 完整性测试用于确定一个新的软件版本是否可以开始进行正式的测试，如果一个应该在一开始使用时就崩溃，那么就说明系统还不够稳定，没有必要进行下一步测试。这种情况应该打回给开发，以免浪费时间
 
-#37) Security Testing
+以我们公司为例:
+
+在软件设计阶段，测试团队就会为编写冒烟测试用例; 开发在提交版本给测试之前会自己跑一下冒烟用例, 确保没有重大故障；将版本提交给测试团队后，测试团队就会先跑一下完整性测试，检查一下有没有重大的，影响测试进程的bug，如果有则退回开发，没有则进行冒烟测试，如果冒烟测试没有通过也会立即打回开发。顺利通过完整性测试和冒烟测试之后才会进入正式测试阶段。
+
+这么做的目的之一就是为了降低测试团队的工作负担，因为他们要对接多个开发团队的测试任务。
+
+<br>
+
+## 37) Security Testing
 
 It is a type of testing performed by a special team of testers. A system can be penetrated by any hacking way.
 
@@ -569,13 +597,15 @@ Security Testing is done to check how the software or application or website is 
 
 It also checks how software behaves for any hackers attack and malicious programs and how software is maintained for data security after such a hacker attack.
 
-安全测试一般由特殊的安全团队执行，以各种黑客手段对系统进行渗透。
+安全也是一个庞大的学科，而且知识每天都在更新，所以安全测试一般由特殊的安全团队执行，他们以各种黑客手段对系统进行渗透测试。
 
-安全测试旨在确保软件或应用或网站如何免受内部和外部威胁的侵害。这个测试包括预防恶意程序、病毒, 检验授权和身份验证过程的安全性。
+安全测试旨在确保应用或网站免受内部和外部威胁的侵害。这个测试包括预防恶意程序、病毒； 检验授权和身份验证过程的安全性。
 
-它还会检查软件对任何黑客攻击和恶意程序的反映方式，以及在此类黑客攻击后如何维护软件以保护数据安全
+它还会检查软件对任何黑客攻击和恶意程序的反应方式，以及在遭到黑客攻击后如何维护软件以保护数据安全
 
-#38) Smoke Testing
+<br>
+
+## 38) Smoke Testing
 
 Whenever a new build is provided by the development team then the software testing team validates the build and ensures that no major issue exists.
 
@@ -583,55 +613,100 @@ The testing team ensures that the build is stable and a detailed level of testin
 
 If testers find that the major critical functionality is broken down at the initial stage itself then testing team can reject the build and inform accordingly to the development team. Smoke Testing is carried out to a detailed level of any functional or regression testing.
 
-冒烟测试，每当开发团队提交新的构建时，软件测试团队就会先验证构建并确保不存在重大问题, 如果存在重大问题会直接打回开发团队.
+冒烟测试，每当开发团队提交新的构建时，软件测试团队就会先验证构建, 并确保不存在重大问题, 如果存在重大问题会直接打回开发团队.
 
-测试团队在确保构建稳定后才会进一步执行详细的测试。 冒烟检查会检查构建中是否存在中断缺陷(stopper defect)，这将阻止测试团队进一步详细测试应用程序。 即如果测试人员发现主要功能不能工作，他们会拒绝这次构建，并退回给开发团队。冒烟测试在回归测试或其他详细测试之前进行
+测试团队在确保构建稳定后才会进一步执行详细的测试。 冒烟检查会检查构建中是否存在中断缺陷(stopper defect, 即影响继续测试的缺陷)，这将阻止测试团队进一步详细测试。 即如果测试人员发现主要功能不能工作，他们会拒绝这次构建，并退回给开发团队。
 
-#39) Static Testing
+冒烟测试一般在回归测试或其他详细测试之前进行
+
+<br>
+
+## 39) Static Testing
 
 Static Testing is a type of testing which is executed without any code. The execution is performed on the documentation during the testing phase. It involves reviews, walkthrough, and inspection of the deliverables of the project. Static testing does not execute the code instead of the code syntax, naming conventions are checked.
 
 The static testing is also applicable for test cases, test plan, design document. It is necessary to perform static testing by the testing team as the defects identified during this type of testing are cost-effective from the project perspective.
 
-静态测试有点类似于代码Review，在不执行任何代码的情况下执行，它涉及对可交付成果审查(inspection)、review和演练(walkthrough). 比如检查代码语法、命名约定。
+静态测试有点类似于代码Review，在不执行任何代码的情况下执行(也就是不运行应用)，它涉及对可交付成果审查(inspection)、review和演练(walkthrough). 比如检查代码语法、命名约定、项目组织。
 
-静态测试也适用于测试用例、测试计划和设计文档. 如果在静态测试阶段发现缺陷，可以将缺陷成本降到最低。比如在设计阶段就发现问题，相比到开发阶段甚至到生产环境出现问题要好解决
+静态测试不仅适用于代码, 也适用于测试用例、测试计划和设计文档. 如果在静态测试阶段发现缺陷，可以将缺陷成本降到最低。比如在设计阶段就发现问题，相比到开发阶段甚至到生产环境出现问题要好解决
 
-#40) Stress Testing
+举前端的例子，静态测试可能包括:
+
+- 使用Lint工具对程序进行规范检查，相关的工具有ESLint、TSLint、Stylint等, 甚至Typescript这些类型检查器也可以归到这个范畴
+- 代码Review。有一些问题是无法通过Lint工具覆盖的，比如代码逻辑、异常捕获、项目组织、内存泄露等等，这些需要人工进行走查Review
+- 检查代码是否与设计一致，是否符合软件需求、概要和详细设计，这不仅可以看出代码问题，也可以反过来更早发现需求或设计是否正确。
+
+<br>
+
+## 40) Stress Testing
 
 This testing is done when a system is stressed beyond its specifications in order to check how and when it fails. This is performed under heavy load like putting large number beyond storage capacity, complex database queries, continuous input to the system or database load.
 
-通过压力测试，模拟系统受到超出其规格的压力时失败的方式和时间. 这是在高负载下执行的，例如将大量数据放在存储容量之外、执行复杂的数据库查询、暴力连续输入到系统或加载到数据库。
+**通过压力测试，模拟系统受到超出其规格的压力时失败的方式和时间, 找出系统的崩溃点**. 这个测试在高负载情况下执行的，例如存取超过容量限制的数据、执行复杂的数据库查询、连续暴力输入到系统或加载到数据库。
 
-#41) System Testing
+<br>
+
+## 41) System Testing
 
 Under System Testing technique, the entire system is tested as per the requirements. It is a Black-box type testing that is based on overall requirement specifications and covers all the combined parts of a system.
 
-在系统测试技术下，整个系统按需求进行测试. 这是一种黑盒型测试，基于总体需求规范，涵盖系统的所有组合部分。
+系统测试在完整的集成系统上进行测试，也就是说**系统测试一般在集成测试之后进行，集成测试之后系统成为了一个整体，系统测试在这个基础上、在真实的运行环境中验证系统是否符合业务需求**。 这是一种黑盒型测试，基于总体需求规范，涵盖系统的所有组合部分。
 
-#42) Unit Testing
+系统测试其实不是一个具体的测试技术，而是一个测试阶段。 这个阶段会进行很多种测试，一般公司的测试团队的工作就集中在这一块。 一般包含:
+
+- **功能测试**: 即上面讲的，从系统的整体上测试是否符合业务需求
+- **各种非功能测试**：例如恢复测试、性能测试、压力测试、安全测试等等。
+
+归纳一下**系统测试的目的**:
+
+- 确保应用**作为一个整体**可以良好地运行.
+- 确保应用符合业务需求
+- 确保应用在真实的环境可以良好地运行。比如进行一些非功能测试，验证系统的健壮性
+
+其实系统测试和上文说的端到端测试很像，它们要求系统作为一个整体进行测试。可以简单展开对比一下
+
+| | 系统测试 | 端到端测试 |
+|---|-----|------|
+|测试范围 | 一般针对被测应用本身 | 一般针对被测应用以及其依赖的其他系统。正如其名，端到端，即从一端点到另一端点。重点关注前端、后端以及中间件之间的处理流程 |
+| 测试类型 | 包含功能测试和非功能测试 | 一般涵盖所有源系统和目标系统之间的接口级别的测试 |
+| 测试时机 | 一般在集成测试之后 | 一般在系统测试之后|
+
+<br>
+
+## 42) Unit Testing
 
 Testing of an individual software component or module is termed as Unit Testing. It is typically done by the programmer and not by testers, as it requires a detailed knowledge of the internal program design and code. It may also require developing test driver modules or test harnesses.
 
-测试独立的软件单元或模块称为单元测试。它通常由开发者完成，而不是由测试人员完成，因为它需要详细了解内部程序设计和代码。
+**测试独立的软件单元或模块称为单元测试**。它通常由开发者完成，而不是由测试人员完成，因为它需要详细了解内部程序设计和代码。
 
-#43) Usability Testing
+单元测试是和我们开发者最密切相关的测试类型。它的测试对象是软件单元。**软件单元可以是一个函数/方法、一个类或者一个GUI组件等**。
 
-可用性测试用于检测应用的用户友好性(User-friendliness). 他会验证新用户受可以轻松理解应用流程，如果用户陷入麻烦，测试人员要记录好并提供帮助。可以认为可用性测试是在检查系统的导航性(navigation)
+这是一种白盒测试，所以要求由开发者自己进行，因为只有开发者才知道单元的内部实现。**单元测试一般会使用测试覆盖率来验证单元测试的完成度**. 
+
+<br>
+
+## 43) Usability Testing
 
 Under Usability Testing, User-friendliness check is done. Application flow is tested to know if a new user can understand the application easily or not, Proper help documented if a user gets stuck at any point. Basically, system navigation is checked in this testing.
 
-#44) Vulnerability Testing
+可用性测试用于检测应用的用户友好程度(User-friendliness). 它会验证新用户受可以轻松理解应用流程，如果用户陷入麻烦，测试人员要记录好并提供帮助。可以认为可用性测试是在检查系统的导航性(navigation)
+
+<br>
+
+## 44) Vulnerability Testing
 
 The testing which involves identifying of weakness in the software, hardware and the network is known as Vulnerability Testing. Malicious programs, the hacker can take control of the system, if it is vulnerable to such kind of attacks, viruses, and worms.
 
 So it is necessary to check if those systems undergo Vulnerability Testing before production. It may identify critical defects, flaws in the security.
 
-漏洞测试，涉及识别软件、硬件和网络中的弱点。如果漏洞容易受到攻击、病毒和蠕虫感染，恶意程序或黑客就可以控制系统。
+漏洞测试，涉及识别软件、硬件和网络中的漏洞。如果漏洞容易受到攻击，或者容易受到病毒和蠕虫感染，黑客或恶意程序就可以控制系统。
 
 因此有必要在投入生产环境之前检查这些系统是否存在漏洞。
 
-#45) Volume Testing
+<br>
+
+## 45) Volume Testing
 
 Volume testing is a type of non-functional testing performed by the performance testing team.
 
@@ -639,13 +714,17 @@ The software or application undergoes a huge amount of data and Volume Testing c
 
 容量测试是由性能测试团队执行的一种非功能测试。容量测试会检查应用程序遇到大量的数据时的系统行为和响应时间。这种大量数据可能会影响系统的性能和处理时间的速度。
 
-#46) White Box Testing
+<br>
+
+## 46) White Box Testing
 
 White Box testing is based on the knowledge about the internal logic of an application's code.
 
 It is also known as Glass box Testing. Internal software and code working should be known for performing this type of testing. Under these tests are based on the coverage of code statements, branches, paths, conditions etc.
 
-白盒测试基于应用程序代码的内部逻辑。它也被称为玻璃盒测试。测试人员应该知道内部软件和代码是如何工作的。
+白盒测试基于应用程序代码的内部逻辑。它也被称为玻璃盒测试。测试人员应该知道内部软件和代码是如何工作的。上面提到的单元测试就是典型的白盒测试
+
+<br>
 
 ## 总结
 
