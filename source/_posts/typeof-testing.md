@@ -64,6 +64,10 @@ Let's see more details about these testing types.
 
 ## 0) A/B测试
 
+顾名思义， A/B测试就是准备两个(A/B)或两个以上的版本，让不同的用户来随机访问这些版本，收集各群组的用户体验数据和业务数据，最后分析、评估出最好版本，正式采用。
+
+<br>
+
 ## 1) Alpha 测试
 
 It is the most common type of testing used in the Software industry. The objective of this testing is to identify all possible issues or defects before releasing it into the market or to the user.
