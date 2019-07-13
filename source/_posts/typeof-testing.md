@@ -728,15 +728,7 @@ It is also known as Glass box Testing. Internal software and code working should
 
 ## 总结
 
-| 测试类型(执行顺序) | xxx |
-|--------|-----|
-| 执行人员| xx|
-| 目的| xxx|
-| 白盒|
-|黑盒|
-| 阶段 | 设计 | 开发 | 测试 | 生产
-
-Conclusion
+![](/images/typeof-testing/all.png)
 
 上面提到的软件测试类型只是测试中的一部分，实际有超过100种的测试类型，但是并非所有测试类型都会被所有项目使用，所以我这里只是列举一些比较常见的软件测试类型。
 
