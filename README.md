@@ -42,3 +42,4 @@
   - 样式测试
   - 端到端测试
 
+- dart for typescripter
