@@ -81,7 +81,7 @@ pets.add('cat');                 // 👌 没问题
 
 dart还有另外一种常量类型: **编译时常量(compile-time constants)**, 它有以下特点:
 
-- 初始化值必须能在编译时确定, 而final的初始值是任意的。所以通常它的值是一些基本类型的字面量表达式。例如`1`、`‘2’`、`['cat']`, `{}`. 不能是一些动态的表达式, 如`const int n2 = func();`
+- 初始化值必须能在编译时确定, 而final的初始值是任意的。所以通常它的值是一些基本类型的字面量表达式。例如`1`、`‘2’`、`['cat']`, `{}`. 不能是一些动态的表达式, 如`const int n2 = func();`. 这个跟Typescript的Enum成员值是一样的
 - 值是不可变的。可以用于实现不可变数据
 - 除了可以修饰常量还可以用于修饰值. 这可以让一个值不可以变
 
@@ -93,6 +93,11 @@ const pets =  [];
 pets.add('cat');                 // ❌ 值不能被修改
 
 const int n2 = func();           // ❌ 值必须在编译时就能确定
+
+// 常量初始化表达式可以引用其他常量值
+const msPerSecond = 1000;
+const secondsUntilRetry = 5;
+const msUntilRetry = secondsUntilRetry * msPerSecond;
 ```
 
 修饰值:
@@ -106,9 +111,28 @@ pets = [];                      // 变量重新赋值
 pets.add('cat');                // 👌 OK，当前值不是不可变数据
 ```
 
-基本类型
+<br>
 
-控制流
+## 基本类型
+
+| dart 类型  | Typescript类型 | 描述      | 字面量形式 | 注意 |
+|-----------|----------------|----------|-----------|-----|
+| int       | number         | 64bit整型 |  1、 0xDEADBEEF ||
+| double       | number         | 64bit浮点型， IEEE 754标准 |  1.1、1.42e5 | |
+| bool      | boolean | 布尔值 | true、false | 条件表达式只能接受bool类型，而JS很宽松 |
+| String(注意大小写) | string |  UTF-16编码字符串 序列 |'单引号'、"双引号"、 '${expr}字符串内嵌表达式'、 `'字符串'+'连接'`、 `“”“三引号跨越多行”“”`| |
+| List<T> | Array<T> 或T[] | 数组类型 | `[1, 2]`、`[1, '2', true]` |
+| Set<T> | Set<T> | 集合类型 | `{1, 2, 3}` | JavaScript没有Set字面量形式 |
+| Map<K, V> | {[key: K]: V} | 映射类型，相当于Javascript的对象| `{a: 1, 'b': 2, 3: 3}` 等价于JS的`{[a]: 1, b: 2, 3: 3}` | 严格来说更像JS中的Map类，因为JS对象属性本质是字符或Symbol |
+数组
+
+```dart
+var list = [1, 2, 3];
+assert(list.length == 3);
+assert(list[1] == 2);
+```
+
+## 控制流
 
 函数
 
