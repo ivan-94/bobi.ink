@@ -8,6 +8,8 @@ categories: 前端
 
 > 文章为意译，并且在原文的基础之上进行演绎和扩展
 
+> 文章篇幅较长，阅读完大概20min，读完会有收获。欢迎点赞收藏关注
+
 <br>
 
 ![](https://bobi.ink/images/typeof-testing/Types-of-Testing1.jpg)

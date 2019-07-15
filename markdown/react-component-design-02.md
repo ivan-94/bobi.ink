@@ -151,7 +151,7 @@ categories: 前端
 
 - **容器组件**主要关注业务处理. 容器组件一般以'高阶组件'形式存在, 它一般 ① 从外部数据源(redux 这些状态管理器或者直接请求服务端数据)获取数据, 然后 ② 组合*展示组件*来构建完整的视图.
 
-  <img src="https://bobi.ink/images/04/container.png" width="400" />
+  ![](https://bobi.ink/images/04/container.png)
 
   *容器组件*通过组合*展示组件*来构建完整视图, 但两者未必是简单的包含与被包含的关系.
 
@@ -190,7 +190,7 @@ Login/
 
 <br>
 
-  <img src="https://bobi.ink/images/04/demo.png" width="300" />
+![](https://bobi.ink/images/04/demo.png)
 
 不仅仅是**业务逻辑**, 展示**组件逻辑**也可以分离. 例如上图, `FilePicker`和`ImagePicker`两个组件的'文件上传'逻辑是共享的, 这部分逻辑可以抽取到高阶组件或者 hooks, 甚至是 Context 中(可以统一配置文件上传行为)
 
@@ -590,7 +590,7 @@ import { hide } from './utils/sdk'; // webview sdk 提供的的某个方法
 
 最后再总结一下:
 
-  <img src="https://bobi.ink/images/04/module-boundary.png" width="600" />
+  ![](https://bobi.ink/images/04/module-boundary.png)
 
 根据模块边界原则(如上图): **一个模块可以访问兄弟(同个作用域下)、 祖先及祖先的兄弟模块**. 例如:
 
@@ -801,7 +801,7 @@ import { hide } from '~/utils/dom';
 
 当 render 方法的 JSX 结构非常复杂的时候, 首先应该尝试分离这些 JSX, 最简单的做法的就是拆分为多个子 render 方法:
 
-  <img src="https://bobi.ink/images/04/sub-render.png" width="600" />
+  ![](https://bobi.ink/images/04/sub-render.png)
 
 当然这种方式只是暂时让 render 方法看起来没有那么复杂, 它并没有拆分组件本身, 所有输入和状态依然聚集在一个组件下面. 所以通常拆分 render 方法只是重构的第一步: 随着组件越来越复杂, 表现为文件越来越长, 笔者一般将 300 行作为一个阈值, **超过 300 行则说明需要对这个组件进进一步拆分**
 
@@ -877,7 +877,7 @@ src/
 
 首先看`ListPage`
 
-  <img src="https://bobi.ink/images/04/ListPage.png" width="400" />
+  ![](https://bobi.ink/images/04/ListPage.png)
 
 ListPage 根据 UI 可以划分为下面这些组件:
 
@@ -895,7 +895,7 @@ ScrollView        # 滚动视图, 提供下拉刷新, 无限加载等功能
 
 再看看`CreatePage`
 
-  <img src="https://bobi.ink/images/04/CreatePage.png" width="400" />
+  ![](https://bobi.ink/images/04/CreatePage.png)
 
 这是一个表单填写页面, 为了提高表单填写体验, 这里划分为多个步骤; 每个步骤里有还有多个表单分组; 每个表单的结构都差不多, 左边是 label 展示, 右边是实际表单组件, 所以根据 UI 可以对组件进行这样的划分:
 
@@ -916,7 +916,7 @@ CreatePage
 
 再看一下`PreviewPage`, PreviewPage 是创建后的数据预览页面, 数据结构和页面结构和 CreatePage 差不多. 将 Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Input.Preview:
 
-  <img src="https://bobi.ink/images/04/PreviewPage.png" width="400" />
+  ![](https://bobi.ink/images/04/PreviewPage.png)
 
 <br>
 
