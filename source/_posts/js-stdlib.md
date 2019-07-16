@@ -111,16 +111,9 @@ WebAPI基本概览:
 - 其他
   - arguments
 
-这些全局基本对象数量很少, 是每个JavaScript开发者必须掌握的. 只能满足很基本开发需求, 根本不能和其他语言的标准库相比. **当然这和语言的定位也有一定关系，JavaScript最初的定位就是浏览器脚本，谁知道它现在发展得这么快？**
+这些全局基本对象数量很少, 平时我们使用的非常频繁的定时器和Console都不再此列. 这些对象是每个JavaScript开发者必须掌握的.
 
-Dart 100多KB，运行时和标准库
-
-Javascript 不等于浏览器脚本
-
-混乱:
-
-没有模块化机制
-globalThis
+这些对象只能满足很基本开发需求, 根本不能和其他语言的标准库相比. **当然这和语言的定位也有一定关系，JavaScript最初的定位就是浏览器脚本，谁知道它现在发展得这么快？**
 
 ## 什么是标准库?
 
@@ -162,47 +155,68 @@ globalThis
   - 线程
   - 协程
 
-大部分语言的核心都很小(C++除外)，我们学一门语言，大部分时间是花在标准库上，但是你会发现这些标准库一般都是大同小异，这就是为什么有经验的开发者可以很快地入手一门语言.
+大部分语言的核心都很小(C++除外)，我们学一门语言，大部分时间是花在标准库上，但是你会发现这些标准库一般都是大同小异，这就是为什么有经验的开发者可以很快地入手一门语言. 
+
+显然上面这些功能大部分在NodeJS中已经实现了，鉴于NodeJS这么广泛的使用率，NodeJS可以算是事实上的标准了
 
 ## 我们需要标准库?
 
+![](/images/js-stdlib/dep.png)
+
 显然是需要的，但是要结合当前的背景来辩证地考虑。
 
-有标准库有什么好处?
+**有标准库有什么好处?**
 
-提供通用、最优的功能，减少第三方模块依赖
-社区割裂，抚平不同运行环境的差异
-安全，npm去中心化
-体积很大, 网络加载、运行性能(C++实现)、解析消耗, 不能在多个应用之间被缓存
-选择困难症，
-优雅的标准库，是学习的榜样，如Ruby，很多教程都是钻研标准库算法和实现， Java
+- 标准库提供通用、优化的功能，减少第三方模块依赖
+- 避免社区割裂, 抚平不同运行环境的差异. 现在有NodeJS、后面有Deno，可能还会有Aeno、Beno, 尽管取代NodeJS的可能性很低，有规范化的标准库可以避免重复造轮子，不然真会学不动
+- 安全性. 近期npm投毒、删库(left-pad事件)、npm商业运作, 给社区带了不少麻烦。标准库由运行环境内置，可以避免引用第三方库导致的安全问题
+- 今天的Javascript应用会有很多依赖(node_modules hell)，打包出来的体积很大，网络加载和脚本解析需要耗费一定的资源，而且这些资源不能在多个应用之间被缓存. 一个很大的原因是npm的依赖过于零碎(比如几行代码的包)和重复(依赖不同的版本、Dead Code)，使用标准库可以减少这部分依赖
+- 选择困难症. 没有标准库，可以选择npm上的第三方库，有时候就是懒得去比较和选择
+- 优雅的标准库，是学习的榜样. 网上很多教程都是钻研标准库算法和实现的，对语言的开发者来说标准库是一块宝藏
+- 学习成本。其他语言的开发者，可以较快入手
 
-没有标准库有什么好处?
+<br>
 
-标准可能跟不上社区, 滞后
-WebComponent的遭遇,
-百花齐放，社区驱动
+**标准库可能会有什么问题?**
 
-如何设计标准库? 标准库推进进程会有什么障碍?
+- 标准可能滞后跟不上社区发展. Javascript正处于快速发展阶段，很多规范的定义是由社区驱动的，比如Promise、async/await. 跟不上社区的发展结果可能就是没人用
+- 想下WebComponent目前的境遇
+- 标准库不可能满足所有人的口味
 
-Javascript的主要战场还是浏览器, 针对浏览器端和服务端分离两个标准库?
-NodeJS已经是事实上的标准, 怎么兼容现有的生态
+<br>
 
-如何设计标准库，
+**如何设计标准库? 标准库推进进程可能会有什么障碍?**
 
-## 标准库的语言提议
+- NodeJS已经是事实上的标准, 怎么兼容现有的生态?
+- 标准库应该包含什么内容，如何保持和社区同步?
+- Javascript的主要战场还是浏览器, 标准库是否应该有一个基本版(浏览器)还有个旗舰版(服务端)?
+- 如何处理兼容性问题?
+- 如何与现有的全局对象或用户模块分离？
 
+<br>
+
+## 近期的一些尝试
+
+- [proposal-javascript-standard-library](https://github.com/tc39/proposal-javascript-standard-library) 这是一个非常早期的语言提议，定义了如何引用标准库，但是没有定义标准库的内容
+- [KV Storage: the Web's First Built-in Module](https://developers.google.com/web/updates/2019/03/kv-storage) Chrome在年初推出的实验性功能，尝试实现proposal-javascript-standard-library提议. 它通过下面方式来引用‘标准库’模块:
+
+  ```js
+  import {storage, StorageArea} from 'std:kv-storage'; // std: 前缀，和普通模块区分开来
+  ```
+
+<br>
 
 ## 总结
 
-参考文献
+本文从一个SegmentFault上的一个问题开始，对比其他语言，揭露Javascript没有标准库的窘境. 接着介绍Javascript的API结构，最后介绍什么是标准库，辩证考虑标准库的优缺点，以及推行上面可能会遇到的阻碍.
+
+Javascript发展非常快，已经不再是当初的玩具语言，相信有一天可以实现一直用一直爽.
+
+<br>
+
+## 扩展
 
 - [Brendan Eich: JavaScript standard library will stay small](https://www.infoworld.com/article/3048833/brendan-eich-javascript-standard-library-will-stay-small.html)
 - [What if we had a great standard library in JavaScript?](https://medium.com/@thomasfuchs/what-if-we-had-a-great-standard-library-in-javascript-52692342ee3f)
 - [W3C](https://www.w3.org/TR/)
 - [Web API 索引](https://developer.mozilla.org/en-US/docs/Web/API)
-https://javascript.info/browser-environment
-https://en.wikipedia.org/wiki/WHATWG
-- [HTML 5定稿了？背后还是那场闹剧](https://36kr.com/p/216973)
-- [KV Storage: the Web's First Built-in Module](https://developers.google.com/web/updates/2019/03/kv-storage)
-- [proposal-javascript-standard-library](https://github.com/tc39/proposal-javascript-standard-library)
