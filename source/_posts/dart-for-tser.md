@@ -124,6 +124,8 @@ pets.add('cat');                // 👌 OK，当前值不是不可变数据
 | List<T> | Array<T> 或T[] | 数组类型 | `[1, 2]`、`[1, '2', true]` |
 | Set<T> | Set<T> | 集合类型 | `{1, 2, 3}` | JavaScript没有Set字面量形式 |
 | Map<K, V> | {[key: K]: V} | 映射类型，相当于Javascript的对象| `{a: 1, 'b': 2, 3: 3}` 等价于JS的`{[a]: 1, b: 2, 3: 3}` | 严格来说更像JS中的Map类，因为JS对象属性本质是字符或Symbol |
+| Symbol | symbol | 用于表示操作符或标识符 | `#+`(操作符)、`#radix`(标识符), `#1`(❌不是标识符) | TODO: 差异 |
+
 数组
 
 ```dart
@@ -134,7 +136,75 @@ assert(list[1] == 2);
 
 ## 控制流
 
-函数
+## 函数
+
+**基本形式**
+
+```dart
+ReturnType name(ParamType param) { // function name(param: ParamType): ReturnType {
+  return something;                //  return something
+}                                  // }
+```
+
+函数的返回值和参数值的类型注释是可选的，Dart默认使用dynamic类型.
+
+**'箭头'函数**
+
+如果函数体
+
+```dart
+// 省略函数体花括号
+bool isNoble(int atomicNumber) => _nobleGases[atomicNumber] != null; //
+// 更接近JS的箭头函数
+var compare = (int a, int b) => a > b; // let compare = (a: number, b: number) => a > b
+var compare = (int a, int b) => {return a > b}; // ❌，箭头函数箭头后面只能跟表达式
+```
+
+### **函数参数**
+
+***🆕命名参数**
+
+dart支持命名参数, 对Typescript来说只是对象+展开操作符的语法糖:
+
+```dart
+void enableFlags(String name, {bool bold, bool hidden}) {...} // function enableFlags(name: string, {bold, hidden}: {bold?: boolean, hidden?: boolean} = {}) {...}
+```
+
+- ① 命名参数默认是可选的
+- ② 命名参数只能是最后一个参数
+
+必传的命名参数:
+
+TODO: 怎么导入meta模块
+
+```dart
+Scrollbar({Key key, @required Widget child})
+```
+
+命名参数调用：可以省略花括号
+
+```dart
+enableFlags('name', bold: true, hidden: false); // enableFlags('name', {bold: true, hidden: false});
+```
+
+***可选参数**
+
+使用方括号包含说明参数可选
+
+```dart
+String foo(String bar, [String baz, int bazz]) // foo(bar: string, baz?: string): string
+```
+
+- 可选参数只能在最后，且在命名参数之前
+
+***默认值**
+
+```dart
+// 命名参数
+void enableFlags({bool bold = false, bool hidden = false}) {...}  // function enableFlags({bold = false, hidden = false}: {bold?: boolean, hidden?: boolean} = {}) {...}
+// 普通变量
+String say(String from, String msg, [String device = 'carrier pigeon', String mood]) {...} // function say(from: string, msg: string, device: string = 'carrier pigeon', mood?: string) {}
+```
 
 - 签名
 - 监听函数
