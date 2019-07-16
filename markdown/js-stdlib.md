@@ -18,13 +18,13 @@ categories: 前端
 
 ## 现有的Javascript API结构
 
-![](/images/js-stdlib/outline.png)
+![](https://bobi.ink/images/js-stdlib/outline.png)
 
 如上图, Javascript其实是有一层比较薄全局的、通用的、**标准的**、核心的API层，即`标准内置对象`，这是一些语言核心的内置对象，可以全局访问。关键的是这些是标准的，它们在[ECMAScript规范](https://tc39.es/ecma262/#sec-global-object)中被定义. 在这个基础之上，不同的运行环境拓展了自己的API。
 
 以浏览器为例:
 
-![](/images/js-stdlib/brw.png)
+![](https://bobi.ink/images/js-stdlib/brw.png)
 
 浏览器端的Web API是一个非常复杂API集合，上图总结了一下基本就包含两块东西:
 
@@ -33,7 +33,7 @@ categories: 前端
 
 WebAPI基本概览:
 
-![](/images/js-stdlib/webAPI.png)
+![](https://bobi.ink/images/js-stdlib/webAPI.png)
 
 如果你有留心查看MDN文档下面的规范引用，你会发现有些规范引用了[W3C](https://www.w3.org/TR/), 有些则引用了[WHATWG](https://html.spec.whatwg.org/multipage/). 到底谁说了算?
 
@@ -41,7 +41,6 @@ WebAPI基本概览:
 
 相对而言, 语言层则由ECMAScript规范定义的，比较独立, 近些年成果也比较显著.
 
-<br>
 
 ### 标准内置对象层主要包含这些东西
 
@@ -111,7 +110,6 @@ WebAPI基本概览:
 - 其他
   - arguments
 
-这些全局基本对象数量很少, 是每个JavaScript开发者必须掌握的. 只能满足很基本开发需求, 根本不能和其他语言的标准库相比.
 
 Dart 100多KB，运行时和标准库
 
@@ -122,9 +120,11 @@ Javascript 不等于浏览器脚本
 没有模块化机制
 globalThis
 
-## 我们需要标准库?
+## 标准的内置对象
 
 浏览器、Node、Worker
+
+我们需要标准库?
 
 安全，npm去中心化
 
@@ -138,9 +138,6 @@ globalThis
 如何设计标准库，Javascript的主要战场还是浏览器, NodeJS已经是事实上的标准
 
 ## 标准库的语言提议
-
-
-## 总结
 
 参考文献
 
