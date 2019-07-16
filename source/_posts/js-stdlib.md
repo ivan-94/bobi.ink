@@ -124,18 +124,29 @@ globalThis
 
 ## 我们需要标准库?
 
-浏览器、Node、Worker
+显然是需要的，但是要结合当前的背景来辩证地考虑。
 
+有标准库有什么好处?
+
+提供通用、最优的功能，减少第三方模块依赖
+社区割裂，抚平不同运行环境的差异
 安全，npm去中心化
-
-社区割裂
-
+网络加载、运行性能(C++实现)、解析消耗
+选择困难症，
 优雅的标准库，是学习的榜样，如Ruby，很多教程都是钻研标准库算法和实现， Java
 
-网络加载
-选择困难症，WebComponent的遭遇,
+没有标准库有什么好处?
+
+标准可能跟不上社区, 滞后
+WebComponent的遭遇,
 百花齐放，社区驱动
-如何设计标准库，Javascript的主要战场还是浏览器, NodeJS已经是事实上的标准
+
+如何设计标准库? 标准库推进进程会有什么障碍?
+
+Javascript的主要战场还是浏览器, 针对浏览器端和服务端分离两个标准库?
+NodeJS已经是事实上的标准, 怎么兼容现有的生态
+
+如何设计标准库，
 
 ## 标准库的语言提议
 
@@ -145,6 +156,7 @@ globalThis
 参考文献
 
 - [Brendan Eich: JavaScript standard library will stay small](https://www.infoworld.com/article/3048833/brendan-eich-javascript-standard-library-will-stay-small.html)
+- [What if we had a great standard library in JavaScript?](https://medium.com/@thomasfuchs/what-if-we-had-a-great-standard-library-in-javascript-52692342ee3f)
 - [W3C](https://www.w3.org/TR/)
 - [Web API 索引](https://developer.mozilla.org/en-US/docs/Web/API)
 https://javascript.info/browser-environment
