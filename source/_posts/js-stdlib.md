@@ -20,9 +20,78 @@ categories: 前端
 
 ![](/images/js-stdlib/outline.png)
 
-如上图, Javascript其实是有一层比较薄全局的、通用的、标准的、核心的API层，即`标准内置对象`，这是一些语言核心的内置对象，可以全局访问。在这个基础之上，不同的运行环境拓展了自己的API。
+如上图, Javascript其实是有一层比较薄全局的、通用的、**标准的**、核心的API层，即`标准内置对象`，这是一些语言核心的内置对象，可以全局访问。关键的是这些是标准的，它们在[ECMAScript规范](https://tc39.es/ecma262/#sec-global-object)中被定义.
+
+在这个基础之上，不同的运行环境拓展了自己的API。
 
 标准内置对象层主要包含这些东西:
+
+- 特殊值
+  - Infinity
+  - NaN
+  - undefined
+  - null
+  - globalThis
+- 函数
+  - eval()
+  - uneval() 
+  - isFinite()
+  - isNaN()
+  - parseFloat()
+  - parseInt()
+  - decodeURI()
+  - decodeURIComponent()
+  - encodeURI()
+  - encodeURIComponent()
+- 基础对象
+  - Object
+  - Function
+  - Boolean
+  - Symbol
+  - Error
+  - EvalError
+  - InternalError 
+  - RangeError
+  - ReferenceError
+  - SyntaxError
+  - TypeError
+  - URIError
+- 数值和时间
+  - Number
+  - BigInt
+  - Math
+  - Date
+- 文本处理
+  - String
+  - RegExp
+- 索引容器
+  - Array
+  - 'TypedArray'
+- 键值容器
+  - Map
+  - Set
+  - WeakMap
+  - WeakSet
+- 结构化数据
+  - ArrayBuffer
+  - SharedArrayBuffer 
+  - Atomics 
+  - DataView
+  - JSON
+- 控制抽象化对象
+  - Promise
+  - Generator
+  - GeneratorFunction
+  - AsyncFunction 
+- 反射
+  - Reflect
+  - Proxy
+- 国际化
+  - Intl
+- WebAssembly
+- 其他
+  - arguments
+
 
 Dart 100多KB，运行时和标准库
 
