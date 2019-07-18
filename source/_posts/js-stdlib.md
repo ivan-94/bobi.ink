@@ -6,15 +6,19 @@ categories: 前端
 
 最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：一个初学者试图在浏览器中导入Node.js的net模块。结果就是在控制台打印后是一个空对象。
 
-对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？这里经过[webpack处理](http://webpack.docschina.org/configuration/node/#其他-node-js-核心库-node-js-core-libraries-)所以变成了一个空对象，更好的处理应该是抛出异常.
+对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些node模块经过[webpack处理](http://webpack.docschina.org/configuration/node/#其他-node-js-核心库-node-js-core-libraries-), 所以变成了一个空对象，更好的处理应该是抛出异常.
 
-对于这些刚入门Javascript的或者从其他语言切换过来的，他们压根就没有概念，比如Python、Ruby、Java、Dart这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，都可以统一使用这套标准库。
+**仔细反思一下，对于这些刚入门Javascript的或者从其他语言切换过来的，他们压根就没有概念，比如Python、Ruby、Java这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，都可以统一使用这套标准库。而Javascript目前的现状就是不同的运行环境API结构是割裂的**。
 
-反过来Javascript这门十几天开发出来的，专供浏览器的语言，当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。因为这个背景, Javascript很多年没有走出浏览器玩具语言这个范围，这既是劣势，也是优势, 现在没任何语言能撼动Javascript的在浏览器中的地位。我想很多人跟我当初一样将浏览器提供的Web API等于Javascript的标准库，正如当年那些把JQuery当成Javascript的人.
+Javascript这门十几天开发出来的、专供浏览器的语言，可能当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。**因为这个背景, Javascript不具备独立性，它深度依赖于浏览器这个运行环境, 处于一种给浏览器打辅助的角色**, 所以Javascript很多年没有走出浏览器玩具语言这个范围. 当然这既是劣势，也是优势, 现在没任何语言能撼动Javascript在浏览器中的地位。
 
-直到NodeJS的出现，Javascript才走出浏览器约束，延伸到服务器领域。NodeJS也定义了很多模块来支撑服务器的开发, 如fs、os、Buffer、net。但是这些不是标准的、也就是说NodeJS !== Javascript.
+我想很多人跟我当初一样**将浏览器提供的Web API等价于Javascript的标准库, 比如`console.log`、`setTimeout`**(下文会介绍这些功能都不在Javascript规范里面). 正如当年那些把JQuery当成Javascript的人.
 
-再到后来，学不动了，NodeJS原作者吐槽了一通NodeJS，又搞出了一个[Deno](https://deno.land), 它也会有自己标准库，会定义自己的文件系统、网络API。它的名称就是Deno，所以这些API也不可能和NodeJS兼容。Ok，现在回到文章开始那个问题，说不定哪天又有人尝试在浏览器引用Deno的模块？
+直到NodeJS的出现，Javascript才走出浏览器约束，延伸到服务器领域, 不再是一个'沙盒语言'。NodeJS定义了很多模块来支撑服务端的开发, 如fs、os、Buffer、net。但是这些和WebAPI一样不是标准的、也就是说**NodeJS !== Javascript**.
+
+再到后来，学不动了，NodeJS原作者吐槽了一通NodeJS，又搞出了一个[Deno](https://deno.land), 它也会有自己标准库，会定义自己的文件系统、网络API。从名字上就暗示着这些API不可能和NodeJS兼容。Ok，现在回到文章开始那个问题，如果deno发展起来，说不定哪天又有人尝试在浏览器引用Deno的模块？
+
+<br>
 
 ## 现有的Javascript API结构
 
