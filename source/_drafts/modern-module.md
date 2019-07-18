@@ -195,28 +195,30 @@ For websites already generating HTML on the server in response to each request, 
 
 对于那些已经在服务器为每个请求都生成HTML的网站来说，用户代理嗅探是一个比较有效的解决方案
 
-## Option 3: Penalize older browsers 抛弃旧版本的浏览器
+## Option 3: Penalize older browsers 不考虑旧版本浏览器
 
 The ill-effects of the module/nomodule pattern are seen in old versions of Chrome, Firefox and Safari - browser versions with very limited usage, since users are automatically updated to the latest version. This doesn't hold true for Edge 16-18, but there is hope: new versions of Edge will use a Chromium-based renderer that doesn't suffer from this issue.
 
-对`module/nomodule模式`支持比较差的主要是一个旧版本的Chrome、Firefox和Safari. 但是浏览器的版本范围通常比较窄，因为用户会自动升级到最新的版本。这个不适用于Edge 16-18, 但还有希望： 新版本的Edge会使用基于Chromium的渲染器，可以不受该问题的影响
+对于`module/nomodule模式`支持比较差(即双重加载)的主要是一些旧版本的Chrome、Firefox和Safari. 幸运的是浏览器的版本范围通常是比较窄，因为用户会自动升级到最新的版本。Edge 16-18是例外, 但还有希望： 新版本的Edge会使用基于Chromium的渲染器，可以不受该问题的影响
 
 It might be perfectly reasonable for some applications to accept this as a trade-off: you get to deliver modern code to 90% of browsers, at the expense of some extra bandwidth on older browsers. Notably, none of the User Agents suffering from this over-fetching issue have significant mobile market share - so those bytes are less likely to be coming from an expensive mobile plan or through a device with a slow processor.
 
-
-对于某些应用程序来说，接受这一点作为权衡取舍可能是完全合理的：你可以在90％的浏览器中提供现代代码，旧浏览器则需要付出的额外带宽。值得注意的是，没有任何遭受这种过度吸引问题的用户代理具有显着的移动市场份额 - 因此这些字节不太可能来自昂贵的移动计划或通过具有慢处理器的设备。
+对于某些应用程序来说，接受这一点妥协是完全合理的：你可以在90％的浏览器中提供现代代码，旧浏览器则需要付出的额外带宽(即双重加载)。值得注意的是，占据移动端市场主要市场份额的用户代理不会遭受双重加载问题，所以这些流量不太可能来自于低速或者高昂流量费的手机。
 
 If you're building a site where your users are primarily on mobile or recent browsers, the simplest form of the module/nomodule pattern will work for the vast majority of your users. Just be sure to include the Safari 10.1 fix if you have usage from slightly older iOS devices.
 
+如果你的网站用户主要使用移动设备或较新版本的浏览器，那么最简单的`module/nomodule`模式将适用于你的绝大多数用户, 其他用户就不考虑了，反正也是可以跑起来的。
+
 ```html
-<!-- polyfill `nomodule` in Safari 10.1: -->  
+<!-- 修复Safari 10.1 不支持 `nomodule` 问题: -->  
 <script type=module>  
 !function(e,t,n){!("noModule"in(t=e.createElement("script")))&&"onbeforeload"in t&&(n=!1,e.addEventListener("beforeload",function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()},!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove())}(document)
 </script>
 
-<!-- 90+% of browsers: -->  
+<!-- 适用于90+% 的浏览器: -->  
 <script src=modern.js type=module></script>
 
+<!-- 部分支持module但是不支持nomodule的浏览器，也会加载下面脚本，范围可能很小，我们可以选择忽略它们: -->  
 <!-- IE, Edge <16, Safari <10.1, old desktop: -->  
 <script src=legacy.js nomodule async defer></script>  
 ```
@@ -225,30 +227,52 @@ If you're building a site where your users are primarily on mobile or recent bro
 
 ## Option 4: Use conditional bundles
 
+使用条件包
+
 One clever approach here is to use nomodule to conditionally load bundles containing code that isn't needed in modern browsers, such as polyfills. With this approach, the worst-case is that the polyfills are loaded or possibly even executed (in Safari 10.1), but the effect is limited to "over-polyfilling". Given that the current prevailing approach is to load and execute polyfills in all browsers, this can be a net improvement.
 
+一个很巧妙的方式是使用`nomodule`来**条件加载**那些现代浏览器不需要的代码， 例如polyfills。通过这种方法，最坏的情况就是polyfill和bundle都会被加载(例如Safari 10.1)，但这毕竟是少数。鉴于目前通行的一般的做法就是在所有浏览器中一致同仁地加载polyfills，条件polyfills可以避免这种情况。
+
+```html
 <!-- newer browsers won't load this bundle: -->  
 <script nomodule src="polyfills.js"></script>
 
 <!-- all browsers load this one: -->  
 <script src="/bundle.js"></script>  
+```
+
 Angular CLI can be configured to use this approach for polyfills, as demonstrated by Minko Gechev. After reading about this approach, I realized we could switch the automatic polyfill injection in preact-cli to use it - this PR shows how easy it can be to adopt the technique.
+
+Angular CLI支持配置这种方式来加载polyfill, 查看[Minko Gechev的代码示例](https://blog.mgechev.com/2019/02/06/5-angular-cli-features/#conditional-polyfill-serving).
+了解了这种方式之后，我决定在preact-cli中支持自动polyfill注入，你可以查看这个[PR](https://github.com/preactjs/preact-cli/pull/833/files)
 
 For those using Webpack, there's a handy plugin for html-webpack-plugin that makes it easy to add nomodule to polyfill bundles.
 
-What should you do?
-The answer depends on your use-case. If you're building a client-side application and your app's HTML payload is little more than a <script>, you might find Option 1 to be compelling. If you're building a server-rendered website and can afford the caching impact, Option 2 could be for you. If you're using universal rendering, the performance benefits offered by preload scanning might be very important, and you look to Option 3 or Option 4. Choose what fits your architecture.
-
-Personally, I tend to make the decision to optimize for faster parse times on mobile rather than the download cost on some desktop browsers. Mobile users experience parsing and data costs as actual expenses - battery drain and data fees - whereas desktop users don't tend to have these constraints. Plus, it's optimizing for the 90% - for the stuff I work on, most users are on modern and/or mobile browsers.
+如果你使用Webpack，这里有一个html-webpack-plugin[插件](https://github.com/swimmadude66/webpack-nomodule-plugin)可以方便地为polyfill包添加`nomodule`
 
 <br>
 
-Further Reading
+## What should you do?
 
-Interested in diving deeper into this space? Here's some places to start digging:
+我应该怎么做
 
-There's some great additional context on Phil's webpack-esnext-boilerplate.
 
-Ralph implemented module/nomodule in Next.js, and is working on solving these issues there.
+The answer depends on your use-case. If you're building a client-side application and your app's HTML payload is little more than a <script>, you might find Option 1 to be compelling. If you're building a server-rendered website and can afford the caching impact, Option 2 could be for you. If you're using universal rendering, the performance benefits offered by preload scanning might be very important, and you look to Option 3 or Option 4. Choose what fits your architecture.
 
-Thanks to Phil, Shubhie, Alex, Houssein, Ralph and Addy for the feedback.
+答案取决于你的使用场景。如果你的应用只有客户端渲染, 而且你的HTML不超过一个`<script>`，选项1比较合适；如果你的应用使用服务端渲染，而且可以接受缓存问题，那么可以选择选项2；如果你开发的是同构应用，预加载的功能可能对你很重要，这是你可以考虑选项3和4. 选择和你们的架构匹配的选项.
+
+Personally, I tend to make the decision to optimize for faster parse times on mobile rather than the download cost on some desktop browsers. Mobile users experience parsing and data costs as actual expenses - battery drain and data fees - whereas desktop users don't tend to have these constraints. Plus, it's optimizing for the 90% - for the stuff I work on, most users are on modern and/or mobile browsers.
+
+就我个人而言，相比在一个桌面端浏览器下载成本，我更倾向于优化移动设备解析时间. 移动用户体验会受到数据解析、流量费用，电池消耗等因素的影响，而桌面用户往往不需要考虑这些东西。
+另外这些优化适用于90%的用户，就我工作面对的大部分用户都是使用现代或移动浏览器的。
+
+<br>
+
+## 扩展阅读
+
+有兴趣继续深入？可以从下面的文章开始挖掘：
+
+- Phil的[webpack-esnext-boilerplate](https://github.com/philipwalton/webpack-esnext-boilerplate/issues/1)的一些附加的背景.
+- Ralph[在Next.js中实现module/nomodule](https://github.com/zeit/next.js/pull/7704), 努力解决了上面的问题.
+
+感谢[Phil](https://twitter.com/philwalton), [Shubhie](https://twitter.com/shubhie), [Alex](https://twitter.com/atcastle), [Houssein](https://twitter.com/hdjirdeh), [Ralph](https://twitter.com/Janicklas) 以及 [Addy](https://twitter.com/addyosmani) 的反馈.
