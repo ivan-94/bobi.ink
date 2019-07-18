@@ -138,7 +138,7 @@ Here's what this solution might look like in prod:
 It's also be pointed out that the set of browsers supporting JS Modules is quite similar to those that support <link rel=preload>. For some websites, it might make sense to use <link rel=preload as=script crossorigin> rather than relying on modulepreload. This may have performance drawbacks, since classic script preloading doesn't spread parsing work out over time as well as modulepreload.
 
 
-还要指出的是，支持JS模块的浏览器集与支持<link rel = preload>的浏览器非常相似。对于某些网站，使用<link rel = preload as = script crossorigin>而不是依赖于modulepreload可能是有意义的。这可能有性能上的缺点，因为经典脚本预加载不会随着时间的推移而扩展解析工作以及模块预加载。
+还要指出的是，支持JS模块的浏览器一般也支持`<link rel = preload>`。对于某些网站，相比依靠`modulepreload`, 使用`<link rel = preload as = script crossorigin>`可能更有意义。这可能有性能上的缺点，因为传统的脚本预加载不会项`modulepreload`一样随着时间的推移而去展开解析工作。
 
 ## Option 2: User Agent Sniffing
 
@@ -167,8 +167,9 @@ While this approach is versatile, it comes with some severe implications:
 One way to address these limitations is to combine the module/nomodule pattern with User Agent differentiation in order to avoid sending multiple bundle versions in the first place. This approach still reduces cacheability of the page, but allows for effective preloading, since the server generating our HTML knows whether to use modulepreload or preload.
 
 
-解决这些限制的一种方法是将模块/模块模式与用户代理区分相结合，以避免首先发送多个软件包版本。这种方法仍然会降低页面的可缓存性，但允许有效的预加载，因为生成HTML的服务器知道是使用modulepreload还是preload
+解决这些限制的一种方法是将`module/nomodule模式`与用户代理区分结合起来，以避免首先发送多个软件包版本。这种方法仍然会降低页面的可缓存性，但可以有效地触发预加载，因为生成HTML的服务器知道是使用modulepreload还是preload
 
+```js
 function renderPage(request, response) {  
   let html = `<html><head>...`;
 
@@ -188,17 +189,26 @@ function renderPage(request, response) {
 
   response.end(html);
 }
+```
 
 For websites already generating HTML on the server in response to each request, this can be an effective solution for modern script loading.
 
-## Option 3: Penalize older browsers
+对于那些已经在服务器为每个请求都生成HTML的网站来说，用户代理嗅探是一个比较有效的解决方案
+
+## Option 3: Penalize older browsers 抛弃旧版本的浏览器
 
 The ill-effects of the module/nomodule pattern are seen in old versions of Chrome, Firefox and Safari - browser versions with very limited usage, since users are automatically updated to the latest version. This doesn't hold true for Edge 16-18, but there is hope: new versions of Edge will use a Chromium-based renderer that doesn't suffer from this issue.
 
+对`module/nomodule模式`支持比较差的主要是一个旧版本的Chrome、Firefox和Safari. 但是浏览器的版本范围通常比较窄，因为用户会自动升级到最新的版本。这个不适用于Edge 16-18, 但还有希望： 新版本的Edge会使用基于Chromium的渲染器，可以不受该问题的影响
+
 It might be perfectly reasonable for some applications to accept this as a trade-off: you get to deliver modern code to 90% of browsers, at the expense of some extra bandwidth on older browsers. Notably, none of the User Agents suffering from this over-fetching issue have significant mobile market share - so those bytes are less likely to be coming from an expensive mobile plan or through a device with a slow processor.
+
+
+对于某些应用程序来说，接受这一点作为权衡取舍可能是完全合理的：你可以在90％的浏览器中提供现代代码，旧浏览器则需要付出的额外带宽。值得注意的是，没有任何遭受这种过度吸引问题的用户代理具有显着的移动市场份额 - 因此这些字节不太可能来自昂贵的移动计划或通过具有慢处理器的设备。
 
 If you're building a site where your users are primarily on mobile or recent browsers, the simplest form of the module/nomodule pattern will work for the vast majority of your users. Just be sure to include the Safari 10.1 fix if you have usage from slightly older iOS devices.
 
+```html
 <!-- polyfill `nomodule` in Safari 10.1: -->  
 <script type=module>  
 !function(e,t,n){!("noModule"in(t=e.createElement("script")))&&"onbeforeload"in t&&(n=!1,e.addEventListener("beforeload",function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()},!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove())}(document)
@@ -209,6 +219,9 @@ If you're building a site where your users are primarily on mobile or recent bro
 
 <!-- IE, Edge <16, Safari <10.1, old desktop: -->  
 <script src=legacy.js nomodule async defer></script>  
+```
+
+<br>
 
 ## Option 4: Use conditional bundles
 
@@ -227,6 +240,8 @@ What should you do?
 The answer depends on your use-case. If you're building a client-side application and your app's HTML payload is little more than a <script>, you might find Option 1 to be compelling. If you're building a server-rendered website and can afford the caching impact, Option 2 could be for you. If you're using universal rendering, the performance benefits offered by preload scanning might be very important, and you look to Option 3 or Option 4. Choose what fits your architecture.
 
 Personally, I tend to make the decision to optimize for faster parse times on mobile rather than the download cost on some desktop browsers. Mobile users experience parsing and data costs as actual expenses - battery drain and data fees - whereas desktop users don't tend to have these constraints. Plus, it's optimizing for the 90% - for the stuff I work on, most users are on modern and/or mobile browsers.
+
+<br>
 
 Further Reading
 
