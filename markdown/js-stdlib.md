@@ -6,15 +6,19 @@ categories: 前端
 
 最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：一个初学者试图在浏览器中导入Node.js的net模块。结果就是在控制台打印后是一个空对象。
 
-对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？这里经过[webpack处理](http://webpack.docschina.org/configuration/node/#其他-node-js-核心库-node-js-core-libraries-)所以变成了一个空对象，更好的处理应该是抛出异常.
+对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些node模块经过[webpack处理](http://webpack.docschina.org/configuration/node/#其他-node-js-核心库-node-js-core-libraries-), 所以变成了一个空对象，更好的处理应该是抛出异常.
 
-对于这些刚入门Javascript的或者从其他语言切换过来的，他们压根就没有概念，比如Python、Ruby、Java、Dart这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，都可以统一使用这套标准库。
+**仔细反思一下，对于这些刚入门Javascript的或者从其他语言切换过来的，他们压根就没有概念，比如Python、Ruby、Java这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，都可以统一使用这套标准库。而Javascript目前的现状就是不同的运行环境API结构是割裂的**。
 
-反过来Javascript这门十几天开发出来的，专供浏览器的语言，当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。因为这个背景, Javascript很多年没有走出浏览器玩具语言这个范围，这既是劣势，也是优势, 现在没任何语言能撼动Javascript的在浏览器中的地位。我想很多人跟我当初一样将浏览器提供的Web API等于Javascript的标准库，正如当年那些把JQuery当成Javascript的人.
+Javascript这门十几天开发出来的、专供浏览器的语言，可能当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。**因为这个背景, Javascript不具备独立性，它深度依赖于浏览器这个运行环境, 处于一种给浏览器打辅助的角色**, 所以Javascript很多年没有走出浏览器玩具语言这个范围. 当然这既是劣势，也是优势, 现在没任何语言能撼动Javascript在浏览器中的地位。
 
-直到NodeJS的出现，Javascript才走出浏览器约束，延伸到服务器领域。NodeJS也定义了很多模块来支撑服务器的开发, 如fs、os、Buffer、net。但是这些不是标准的、也就是说NodeJS !== Javascript.
+我想很多人跟我当初一样**将浏览器提供的Web API等价于Javascript的标准库, 比如`console.log`、`setTimeout`**(下文会介绍这些功能都不在Javascript规范里面). 正如当年那些把JQuery当成Javascript的人.
 
-再到后来，学不动了，NodeJS原作者吐槽了一通NodeJS，又搞出了一个[Deno](https://deno.land), 它也会有自己标准库，会定义自己的文件系统、网络API。它的名称就是Deno，所以这些API也不可能和NodeJS兼容。Ok，现在回到文章开始那个问题，说不定哪天又有人尝试在浏览器引用Deno的模块？
+直到NodeJS的出现，Javascript才走出浏览器约束，延伸到服务器领域, 不再是一个'沙盒语言'。NodeJS定义了很多模块来支撑服务端的开发, 如fs、os、Buffer、net。但是这些和WebAPI一样不是标准的、也就是说**NodeJS !== Javascript**.
+
+再到后来，学不动了，NodeJS原作者吐槽了一通NodeJS，又搞出了一个[Deno](https://deno.land), 它也会有自己标准库，会定义自己的文件系统、网络API。从名字上就暗示着这些API不可能和NodeJS兼容。Ok，现在回到文章开始那个问题，如果deno发展起来，说不定哪天又有人尝试在浏览器引用Deno的模块？
+
+<br>
 
 ## 现有的Javascript API结构
 
@@ -41,6 +45,7 @@ WebAPI基本概览:
 
 相对而言, 语言层则由ECMAScript规范定义的，比较独立, 近些年成果也比较显著.
 
+<br>
 
 ### 标准内置对象层主要包含这些东西
 
@@ -110,40 +115,122 @@ WebAPI基本概览:
 - 其他
   - arguments
 
+这些全局基本对象数量很少, 平时我们使用的非常频繁的定时器和Console都不再此列. 这些对象是每个JavaScript开发者必须掌握的.
 
-Dart 100多KB，运行时和标准库
+这些对象只能满足很基本开发需求, 根本不能和其他语言的标准库相比. **当然这和语言的定位也有一定关系，JavaScript最初的定位就是浏览器脚本，谁知道它现在发展得这么快？**
 
-Javascript 不等于浏览器脚本
+## 什么是标准库?
 
-混乱:
+标准库是什么没有一个规范化的定义，按照Wiki的说法标准库就是**该语言在不同实现中都按例提供的库**, 比如Ruby官方实现和基于JVM的JRuby都应该按照规范实现标准库。 **标准库怎么设计，需要包含什么内容取决于语言各自秉持的哲学和定位**。 我认为标准库应该有以下特征:
 
-没有模块化机制
-globalThis
+- 标准化的，有规范明确定义它的内容和行为
+- 内容经过仔细雕琢和挑选，可以覆盖大部分使用场景或者符合的语言定位
+- 可选的、按需导入. 标准库不是全局的，需要通过模块导入, 非强制性使用
 
-## 标准的内置对象
+至于标准库需要包含什么内容，可以参考其他语言的实现。比如：
 
-浏览器、Node、Worker
+- [go](https://golang.org/pkg/)
+- [ruby](http://ruby-doc.org/stdlib-2.6.3/)
+- [python](https://docs.python.org/3/library/index.html)
 
-我们需要标准库?
+大概分析一下，它们标准库大致都有这些内容：
 
-安全，npm去中心化
+- 网络协议
+- 文件系统
+  - 文件系统
+  - 流
+  - 标准输入输出
+  - 二进制处理
+- 算法
+  - 密码算法
+  - 编码
+  - 压缩、归档
+  - 排序
+  - 数学
+  - 字符串、文本
+- 数据结构, 例如树、堆、队列等等
+- 数据持久化和序列化. 比如JSON序列化，二进制序列化，数据库操作等等
+- 调试/辅助
+- 单元测试
+- 文档处理
+- 设计模式. 标准库中经常会携带(或辅助设计)该语言的最佳实践和设计模式, 例如go中的context, Ruby中的singleton
+- 国际化
+- 时间、日期
+- 操作系统
+  - 命令行
+  - 环境变量
+  - 系统资源
+- 并发
+  - 进程
+  - 线程
+  - 协程
+- 语言底层原语
 
-社区割裂
+大部分语言的核心都很小(C++除外)，我们学一门语言，大部分时间是花在标准库上，但是你会发现这些标准库一般都是大同小异，这就是为什么有经验的开发者可以很快地入手一门语言. 
 
-优雅的标准库，是学习的榜样，如Ruby，很多教程都是钻研标准库算法和实现， Java
+显然上面这些功能大部分在NodeJS中已经实现了，鉴于NodeJS这么广泛的使用率，NodeJS可以算是事实上的标准了
 
-网络加载
-选择困难症，WebComponent的遭遇,
-百花齐放，社区驱动
-如何设计标准库，Javascript的主要战场还是浏览器, NodeJS已经是事实上的标准
+## 我们需要标准库?
 
-## 标准库的语言提议
+![](https://bobi.ink/images/js-stdlib/dep.png)
 
-参考文献
+显然是需要的，但是要结合当前的背景来辩证地考虑。
+
+**有标准库有什么好处?**
+
+- 标准库提供通用、定义良好、优化的功能和行为，减少第三方模块依赖, 而且第三方库很难保证质量
+- 避免社区割裂, 抚平不同运行环境的差异. 现在有NodeJS、后面有Deno，可能还会有Aeno、Beno, 尽管取代NodeJS的可能性很低，有规范化的标准库可以避免重复造轮子，不然真会学不动
+- 安全性. 近期npm投毒、删库(left-pad事件)、npm商业运作, 给社区带了不少麻烦。标准库由运行环境内置，可以避免引用第三方库导致的安全问题
+- 今天的Javascript应用会有很多依赖(node_modules hell)，打包出来的体积很大，网络加载和脚本解析需要耗费一定的资源，而且这些资源不能在多个应用之间被缓存. 一个很大的原因是npm的依赖过于零碎(比如几行代码的包)和重复(依赖不同的版本、Dead Code)，使用标准库可以减少这部分依赖
+- 选择困难症. 没有标准库，可以选择npm上的第三方库，有时候就是懒得去比较和选择
+- 优雅的标准库，是学习的榜样. 网上很多教程都是钻研标准库算法和实现的，对语言的开发者来说标准库是一块宝藏
+- 学习成本。其他语言的开发者，可以较快入手
+
+<br>
+
+**标准库可能会有什么问题?**
+
+- 标准可能滞后跟不上社区发展. Javascript正处于快速发展阶段，很多规范的定义是由社区驱动的，比如Promise、async/await. 跟不上社区的发展结果可能就是没人用
+- 想下WebComponent目前的境遇
+- 标准库不可能满足所有人的口味
+
+<br>
+
+**如何设计标准库? 标准库推进进程可能会有什么障碍?**
+
+- NodeJS已经是事实上的标准, 怎么兼容现有的生态?
+- 标准库应该包含什么内容，如何保持和社区同步?
+- 如何把控标准库内容的尺度? 最小化的标准库容易被维护和升级，就可能出现没什么卵用的情况；最大化的标准库，例如Java的标准库，几乎包含了所有的东西，开发者可以快速开发一个东西, 但是过了几年很多API就会变得过时，一般为了保持向下兼容，这些API会一直像一根刺一样卡在那里，另一个非常典型的反例就是PHP的标准库，这里可以看到各种风格的API. 而且标准库是跟随语言发布的，如果你的项目中使用了过时的API，又想升级语言版本，就需要重构项目。而使用第三方库则可能可以保持不动。
+- Javascript的主要战场还是浏览器, 标准库是否应该有一个基本版(浏览器或者一些操作系统抽象的运行环境)还有个旗舰版(服务端), 或者只提供一个跨越所有平台的标准库?
+- 如何处理兼容性问题?
+- 如何与现有的全局对象或用户模块分离？
+
+<br>
+
+## 近期的一些尝试
+
+- [proposal-javascript-standard-library](https://github.com/tc39/proposal-javascript-standard-library) 这是一个非常早期的语言提议，定义了如何引用标准库(built-in modules)，但是没有定义标准库的内容
+- [KV Storage: the Web's First Built-in Module](https://developers.google.com/web/updates/2019/03/kv-storage) Chrome在年初推出的实验性功能，尝试实现proposal-javascript-standard-library提议. 它通过下面方式来引用‘标准库’模块:
+
+  ```js
+  import {storage, StorageArea} from 'std:kv-storage'; // std: 前缀，和普通模块区分开来
+  ```
+
+<br>
+
+## 总结
+
+本文从一个SegmentFault上的一个问题开始，对比其他语言，揭露Javascript没有标准库的窘境. 接着介绍Javascript的API结构，最后介绍什么是标准库，辩证考虑标准库的优缺点，以及推行上面可能会遇到的阻碍.
+
+Javascript发展非常快，已经不再是当初的玩具语言，相信有一天可以实现一直用一直爽.
+
+<br>
+
+## 扩展
 
 - [Brendan Eich: JavaScript standard library will stay small](https://www.infoworld.com/article/3048833/brendan-eich-javascript-standard-library-will-stay-small.html)
+- [What if we had a great standard library in JavaScript?](https://medium.com/@thomasfuchs/what-if-we-had-a-great-standard-library-in-javascript-52692342ee3f)
+- [The JavaScript Standard Library](https://www.i-programmer.info/news/167-javascript/12608-the-javascript-standard-library.html)
 - [W3C](https://www.w3.org/TR/)
 - [Web API 索引](https://developer.mozilla.org/en-US/docs/Web/API)
-https://javascript.info/browser-environment
-https://en.wikipedia.org/wiki/WHATWG
-- [HTML 5定稿了？背后还是那场闹剧](https://36kr.com/p/216973)
+- [Explain Like I'm Five: What's a standard library?](https://dev.to/sloan/explain-like-im-five-whats-a-standard-library-4gi)
