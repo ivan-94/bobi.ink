@@ -4,7 +4,7 @@ date: 2019/7/17
 categories: 前端
 ---
 
-原文地址: [Modern Script Loading](https://jasonformat.com/modern-script-loading/), 文章作者是Preact作者[Jason Miller](https://jasonformat.com/modern-script-loading/)
+原文地址: [Modern Script Loading](https://jasonformat.com/modern-script-loading/), 文章作者是Preact作者[Jason Miller](https://twitter.com/_developit)
 
 <br>
 
@@ -67,7 +67,7 @@ Ok，为了兼容旧浏览器, [module/nomodule pattern](https://philipwalton.co
 <script nomodule src="/legacy.js"></script>  
 ```
 
-然而现实总是给你当头一棒，它没我们期望的那么简单直接。上述基于HTML的加载方式在**[Edge和Safari中会被同时加载](https://gist.github.com/jakub-g/5fc11af85a061ca29cc84892f1059fec)**!
+然而现实总是给你当头一棒，它没我们期望的那么简单直接。上述基于HTML的加载方式在[**Edge和Safari中会被同时加载**](https://gist.github.com/jakub-g/5fc11af85a061ca29cc84892f1059fec)!
 
 <br>
 
