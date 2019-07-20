@@ -18,7 +18,7 @@ categories: 前端
   - [持续集成](#持续集成)
 - [技术栈规范](#技术栈规范)
 - [浏览器兼容规范](#浏览器兼容规范)
-- [版本库规范](#版本库规范)
+- [项目组织规范](#项目组织规范)
 - [编码规范](#编码规范)
 - [文档规范](#文档规范)
 - [UI设计规范](#ui设计规范)
@@ -240,9 +240,165 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
 
 <br>
 
-## 版本库规范
+## 项目组织规范
+
+项目组织规范定义了如何组织一个前端项目, 例如项目的命名、项目的文件结构、版本号规范等等。尤其对于开源项目，规范化的项目组织就更重要了。
+
+一个典型的项目组织规范如下:
+
+- **README.md**: 项目说明, 这个最重要。你必须在这里提供关于项目的关键信息或者提供相关信息的入口.
+- **CHANGELOG.md**: 放置每个版本的变动内容, 通常要描述每个版本变更的内容。方便使用者确定应该使用哪个版本. 关于CHANGELOG的规范可以参考[keep a changelog](https://keepachangelog.com/en/1.0.0/)
+- **package.json**: 前端项目必须. 描述当前的版本、**可用的命令**、包名、依赖、环境约束、项目配置等信息.
+- **.gitignore**: 忽略不必要的文件，避免将自动生成的文件提交到版本库
+- **.gitattributes**: git配置，有一些跨平台差异的行为可能需要在这里配置一下，如换行规则
+- **docs/**: 项目的细化文档, 可选.
+- **examples/**: 项目的示例代码，可选.
+- **build**: 项目工具类脚本放置在这里，非必须。如果使用统一构建工具，则没有这个目录
+- **dist/**: 项目构建结果输出目录
+- **src/**: 源代码目录
+- **__tests__/**: 单元测试目录. 按照[Jest](http://jestjs.io)规范, `__tests__`目录通常和被测试的模块在同一个父目录下, 例如:
+
+  ```shell
+  /src
+    __tests__/
+      index.ts
+      a.ts
+    index.ts
+    a.ts
+  ```
+
+- **tests**: 全局的测试目录，通常放应用的集成测试或E2E测试等用例
+
+**对于开源项目通常还包括这些目录**:
+
+- **LICENSE**: 说明项目许可
+- **.github**: 开源贡献规范和指南
+  - CONTRIBUTING: 贡献指南, 这里一般会说明贡献的规范、以及项目的基本组织、架构等信息
+  - CODE_OF_CONDUCT: 行为准则
+  - COMMIT_CONVENTION: 提交信息规范，上文已经提及
+  - ISSUE_TEMPLATE: Issue的模板，github可以自动识别这个模板
+  - PULL_REQUEST_TEMPLATE: PR模板
+
+任意一个优秀的开源项目都可以是你的老师，例如[React](https://github.com/facebook/react)、[Vue](https://github.com/vuejs/vue)...
+
+<br>
+
+上面只是一个通用的项目组织规范，具体源代码如何组织还取决于你们使用的技术栈和团队喜好。网上有很多教程，具体可以搜索`怎么组织XX项目`. 总结一下项目组织主要有三种风格:
+
+- **Rails-style**: 按照文件的类型划分为不同的目录，例如`components`、`constants`、 `typings`、`views`. 这个来源于Ruby-on-Rails框架，它按照MVC架构来划分不同的类型，典型的目录结构如下:
+  
+  ```shell
+    app
+      models # 模型
+      views # 视图
+      controllers # 控制器
+      helpers # 帮助程序
+      assets  # 静态资源
+    config     # 配置
+      application.rb
+      database.yml
+      routes.rb      # 路由控制
+      locales        # 国际化配置
+      environments/
+    db        # 数据库相关
+  ```
+  
+- **Domain-style**:  按照一个功能特性或业务创建单独的文件夹，包含多种类型的文件或目录. 比如一个典型的Redux项目，所有项目的文件就近放置在同一个目录下:
+
+  ```shell
+  Todos/
+    components/
+    actions.js
+    actionTypes.js
+    constants.js
+    index.js
+    model.js
+    reducer.js
+    selectors.js
+    style.css
+  index.js
+  rootReducer.js
+  ```
+
+- **Ducks-style**: 优点类似于Domain-style，不过更彻底, 它通常将相关联的元素定义在一个文件下。Vue的单文件组件就是一个典型的例子，除此之外Vuex也是使用这种风格:
+
+  ```vue
+  <template>
+    <div id="app">
+      <h1>My Todo App!</h1>
+      <TodoList/>
+    </div>
+  </template>
+
+  <script>
+  import TodoList from './components/TodoList.vue'
+
+  export default {
+    components: {
+      TodoList
+    }
+  }
+  </script>
+
+  <style lang="scss">
+  @import './variables.scss';
+  /* ... */
+  </style>
+  ```
+
+大部分情况下, 我们都是使用混合两种方式的目录结构，例如:
+
+```shell
+src/
+  components/      # 🔴 项目通用的‘展示组件’
+    Button/
+      index.tsx    # 组件的入口, 导出组件
+      Groups.tsx   # 子组件
+      loading.svg  # 静态资源
+      style.css    # 组件样式
+    ...
+    index.ts       # 到处所有组件
+  containers/      # 🔴 包含'容器组件'和'页面组件'
+    LoginPage/     # 页面组件, 例如登录
+      components/  # 页面级别展示组件，这些组件不能复用与其他页面组件。
+        Button.tsx # 组件未必是一个目录形式，对于一个简单组件可以是一个单文件形式. 但还是推荐使用目录，方便扩展
+        Panel.tsx
+      reducer.ts   # redux reduces
+      useLogin.ts  # (可选)放置'逻辑', 按照👆分离逻辑和视图的原则，将逻辑、状态处理抽取到hook文件
+      types.ts     # typescript 类型声明
+      style.css
+      logo.png
+      message.ts
+      constants.ts
+      index.tsx
+    HomePage/
+    ...
+    index.tsx      # 🔴应用根组件
+  hooks/           # 🔴可复用的hook
+    useList.ts
+    usePromise.ts
+  ...
+  index.tsx        # 应用入口, 在这里使用ReactDOM对跟组件进行渲染
+  stores.ts        # redux stores
+  contants.ts      # 全局常量
+```
+
+框架官方很少会去干预项目的组织方式，读者可以参考下面这些资源来建立自己项目组织规范:
+
+- [React组件设计实践总结02 - 组件的组织](https://juejin.im/post/5cd8fb916fb9a03218556fc1#heading-11)
+- [Redux 常见问题：代码结构](https://link.juejin.im/?target=http%3A%2F%2Fcn.redux.js.org%2Fdocs%2Ffaq%2FCodeStructure.html)
+- [react-boilerplate](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Freact-boilerplate%2Freact-boilerplate)
+- [vuex 项目结构](https://vuex.vuejs.org/zh/guide/structure.html)
+
+<br>
+
 ## 编码规范
+
+- [vue-style-guide](https://vue.docschina.org/v2/style-guide/)
+
 ## 文档规范
+
+文档中心
 
 <br>
 
@@ -281,6 +437,7 @@ Review
 SEO优化测试
 
 ## 前后端协作规范
+
 接口规范
   接口测试
 文档规范
@@ -301,3 +458,5 @@ SEO优化测试
 定期的专题分享
 
 ## 示例
+
+大家有什么要补充的可以在下方评论
