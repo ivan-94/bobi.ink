@@ -26,7 +26,7 @@ categories: 前端
 - [前后端协作规范](#前后端协作规范)
 - [基础库规范](#基础库规范)
 - [新成员培训/知识管理](#新成员培训知识管理)
-- [示例](#示例)
+- [反馈](#反馈)
 
 <!-- /TOC -->
 
@@ -479,10 +479,154 @@ src/
 
 ## 文档规范
 
+文档对于项目开发和维护以及学习、重构、知识管理非常重要。
+
+<br>
+
+**建立文档中心**
+
+我们公司是做IM的，所以之前我们使用自己的通讯工具来分享文档，这种方式有很大问题:
+
+1. 如果没有存档习惯，比如后端的API文档，因为由后端维护，一般不会主动去存档。这样文档就可能丢失，而且通讯工具是不会永久保存你的文档的。当丢失文件就需要和文档维护者索要
+2. 糟糕的是文档维护者也是自己手动在本地存档的，这样导致的问题是如果工作转交，其他开发者需要花费一点时间来查找
+3. 每一次文档更新要重新发一份, 这很麻烦，而且可能出现漏发的情况导致, 前后不一致.
+4. 关于文档的学习、有意义的讨论记录无法归档, 这也是'知识'。
+
+上面介绍的是一种非常原始的文档共享方式，很多小团队就是这么干的。
+
+**对于项目本身的文档建议放置在项目版本库里面，跟随项目代码进行迭代, 当我们在检索或跟踪文档的历史记录时，这种方式是最方便的**。
+
+然而很多应用是跨越多个团队的，每个团队都会有自己的文档输出(比如需求文档、系统设计文档、API文档、配置文档等等)，而且通常也不会在一个版本库里。这时候文档就比较分散。所以一个统一的文档中心是很有必要。
+
+我们公司现在选择的方案是`Git+Markdown`，也就是说所有的文档都放置在一个git版本库下。之前也考虑过商业的方案，譬如[石墨文档](https://shimo.im/welcome)、[腾讯文档](https://docs.qq.com), 当管理层并不信任这些服务。大概的组织如下:
+
+```shell
+规范/
+A应用/
+  产品/
+  设计/
+  API文档/
+  测试/
+  其他/
+B应用/
+```
+
+Git版本库(例如Gitlab)有很多优势，例如历史记录跟踪、版本化、问题讨论(可以关联issue、或者提交)、多人协作、搜索、权限管理(针对不同的版本库或分组为不同人员设置权限)等等。
+
+`Git+Markdown`可以满足开发者的大部分需求。但是Git最擅长的是处理纯文本文件、对于二进制是无能为力的，无法针对这些类型的文档进行在线预览和编辑。
+
+而且`Git+Markdown`并不能满足多样化的文档处理需求，比如思维导图、图表、表格、PPT、白板等需求. 毕竟它不是专业的文档处理工具。所以对于产品、设计人员这些富文档需求场景，通常会按照传统方式或者更专业的工具对文档进行管理.
+
+<br>
+
+**文档格式**
+
+毫无疑问，对于开发者来说，[Markdown](https://zh.wikipedia.org/wiki/Markdown)是最适合的、最通用的文档格式。支持在线预览和变更历史跟踪。下面这些工具可以提高Markdown的开发效率:
+
+- 可视化编辑器
+  - **Visual Code**: 大部分代码编辑都支持Markdown编辑和预览
+  - [**Mou**](https://link.jianshu.com/?t=http://mouapp.com/): Mac下的老牌编辑器
+  - [**typora**](https://typora.io): 跨平台的Markdown编辑器，推荐
+- **markdownlint**: 编码检查器
+- 扩展(Visual Studio Code):
+  - **Markdown All in One**: All you need to write Markdown (keyboard shortcuts, table of contents, auto preview and more)
+  - **Markdown TOC**: markdown 目录生成，我最常用的markdown插件
+- 图表绘制工具:
+  - [**drawio**](https://www.draw.io) 基于Web的图表绘制工具、也有离线客户端
+  - **KeyNote/PPT** 临时绘图也不错
+
+<br>
+
+**定义文档的模板**
+
+关于如何写好文档，很难通过标准或规范来进行约束，因为它的主观性比较强, 好的文档取决于编辑者的逻辑总结能力、表达能力、以及有没有站在读者的角度去思考问题。
+
+所以大部分可以情况下，我们为不同类型的文档提供一个模板，通过模板来说明一个文档需要包含哪些内容, 对文档的编写者进行引导.
+
+例如一个API文档可能需要这些内容:
+
+- 接口的索引
+- 接口的版本、变更记录
+- 用法和整体描述, 认证鉴权等等
+- 描述具体的接口
+  - 功能说明
+  - 方法名称或者URI
+  - 参数和返回值定义
+  - 调用示例
+  - 注意事项等等
+
+具体规范内容因团队而异，这里点到为止.
+
+扩展:
+
+- [中文技术文档的写作规范](https://github.com/ruanyf/document-style-guide/blob/master/docs/reference.md)
+
+<br>
+
+**代码即文档**
+
+现在有很多种工具支持从代码中解析和生成文档, 这可以给开发者简化很多文档维护的工作。
+
+举个例子，我们经常会遇到修改了代码，但是文档忘记没有同步的情况。通过‘代码即文档’的方式至少可以保持文档的同步更新；另外很多工具会分析代码的数据类型，自动帮我们生成参数和返回值定义，这也可以减少很多文档编写工作以及出错率。
+
+比如可以通过下面注释方式来生成组件文档:
+
+```jsx
+import * as React from 'react';
+import { Component } from 'react';
+
+/**
+ * Props注释
+ */
+export interface ColumnProps extends React.HTMLAttributes<any> {
+  /** prop1 description */
+  prop1?: string;
+  /** prop2 description */
+  prop2: number;
+  /**
+   * prop3 description
+   */
+  prop3: () => void;
+  /** prop4 description */
+  prop4: 'option1' | 'option2' | 'option3';
+}
+
+/**
+ * 对组件进行注释
+ */
+export class Column extends Component<ColumnProps, {}> {
+  render() {
+    return <div>Column</div>;
+  }
+}
+```
+
+相关的工具有:
+
+- API文档
+  - Typescript
+    - [tsdoc](https://github.com/microsoft/tsdoc) Typescript官方的注释文档标准
+    - [typedoc](https://github.com/TypeStrong/typedoc) 基于tsdoc标准的文档生成器
+  - Javascript
+    - [jsdoc](https://github.com/jsdoc/jsdoc) Javascript文档注释标准和生成器
+- 后端接口文档
+  - [Swagger](https://swagger.io) Restful接口文档规范
+  - GraphQL: 这个有很多工具，例如[graphiql](https://github.com/graphql/graphiql), 集成了Playground和文档，很先进
+  - [Easy Mock](https://easy-mock.com/login) 一个可视化，并且能快速生成模拟数据的服务
+- 组件文档
+  - [StoryBook](https://storybook.js.org) 通用的组件开发、测试、文档工具
+  - React
+    - [Docz](http://docz.site)
+    - [Styleguidist](https://github.com/styleguidist/react-styleguidist)
+  - Vue
+    - [vue-styleguidist](https://github.com/vue-styleguidist/vue-styleguidist)
+    - 有更好的工具请评论告诉我
+
+文档格式
+
 知识管理很重要, 有效地管理文档
 文档中心 存档，不要用IM传输
 RFC
-文档格式
 
 <br>
 
@@ -542,7 +686,6 @@ SEO优化测试
 定期的专题分享
 
 
-## 示例
+## 反馈
 
-
-大家有什么要补充的可以在下方评论
+大家有什么要补充的可以在下方评论, 谢谢！
