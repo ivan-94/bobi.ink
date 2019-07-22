@@ -164,7 +164,16 @@ TODO:
 前端技术栈规范主要包含下面这些类型:
 
 - 编程语言
-- UI框架及其配套生态, 以及备选方案
+- UI框架及其配套生态, 以及备选方案。其背后的生态非常庞大:
+  - UI框架
+  - 路由
+  - 状态管理
+  - 组件库
+  - 国际化
+  - 动画
+  - 服务端渲染
+  - 脚手架、CLI工具
+  - 组件测试
 - 样式. 包含了命名规范、预处理器、方法论等等
 - QA. 包含了测试、Lint、格式化工具
 - 项目构建工具流. 例如webpack、vue-cli
@@ -404,6 +413,15 @@ src/
 - [Redux 常见问题：代码结构](https://link.juejin.im/?target=http%3A%2F%2Fcn.redux.js.org%2Fdocs%2Ffaq%2FCodeStructure.html)
 - [react-boilerplate](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Freact-boilerplate%2Freact-boilerplate)
 - [vuex 项目结构](https://vuex.vuejs.org/zh/guide/structure.html)
+
+**脚手架和项目模板**
+
+如果团队可以将项目结构规范确定下来，可以创建自己的脚手架工具或者项目模板，快速初始化一个项目。更甚的，可以通过‘生成器’，来生成代码模板。
+
+相关资源
+- yeoman
+- plop
+- babel-code-generator
 
 <br>
 
