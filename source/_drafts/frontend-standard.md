@@ -518,6 +518,7 @@ Code Review是比较难以推行的，不过这个也要看你们团队的情况
 
 - [Code Review最佳实践](https://mp.weixin.qq.com/s?__biz=MzIwMTQwNTA3Nw==&mid=400946871&idx=1&sn=5a125337833768d705f9d87ba8cd9fff&scene=1&srcid=0104FLyeXIS6N0EShgDseIfI&key=41ecb04b051110031290b34976240e650f0169d239c89f125162a89c8d3412f2087198612e71fd7685cae9eebe08e295&ascene=0&uin=MTYyMDMzMTAwMA%3D%3D&devicetype=iMac+MacBookPro11%2C5+OSX+OSX+10.10.5+build(14F1509)&version=11020201&pass_ticket=dc5bBckt1XSthRKTIsukYHIcAvKfv0jninbMlYQ5TWnE6XS%2FrRkdHKlJjNTI2Wsg)
 - [是否要做Code Review？与BAT资深架构师争论之后的思考](https://juejin.im/post/5c9740ba6fb9a071090d6a37)
+- [一些Code Review工具](https://richardcao.me/2016/09/30/Talk-About-Codereview/)
 
 ## 文档规范
 
@@ -726,12 +727,49 @@ export class Column extends Component<ColumnProps, {}> {
 
 ## 测试规范
 
+测试是保障代码质量的重要手段，但是很少有人原因在这里花太多时间。比如笔者，我很少会去给业务代码和组件写单元测试，除非自己对代码非常没有信心。 但是对于一些底层、共享的代码模块还是有测试的必要的。
+
+我在[不知道测试什么？这些是你需要知道的软件测试类型和常识](https://juejin.im/post/5d2c515d6fb9a07ead5a2bbe)文章中，列举了一些开发者需要关注的测试类型和常识, 如果按照测试的阶段进行分类，大概是这样子的:
+
+![](/images/frontend-standard/testing.png)
+
+其中前端开发者需要关注的主要有以下几种测试类型:
+
+- **单元测试**: 对独立的软件模块进行测试
+  - **UI组件测试**: 包括了快照(Snapshot)测试
+- **集成测试**: 在单元测试的基础上，将模块组合起来，测试它们的组合性
+- **E2E测试**: 在完整、真实的运行环境下模拟真实用户对应用进行测试。**主要测试前端和后端的协调性**
+- **兼容性测试**: 上面提到了浏览器兼容规范，在将版本提交给测试之前，需要确保能符合兼容性要求
+- **性能测试**: 测试和分析是否存在性能问题
+- **其他**:
+  - 安全测试
+  - SEO测试
+
+对于小团队来说，可实施性比较高的是单元测试和兼容测试，所以重点关注单元测试. 对于小团队来说整个软件开发流程可能没有那么规范，比如很难部署一个完整的端对端测试环境，这些都不是前端团队可以操作的范围、自动化测试很难推行。但是可以逐步进行开展。
+
+**测试的流程**
+
+首先要定义一个合适的软件测试流程, 合适的测试流程可以降低开发和测试团队之间的沟通协作成本、提高测试效率。例如我们团队目前的测试流程:
+
+![](/images/frontend-standard/test-proc.png)
+
+**单元测试**
+
+TODO:
+测什么
+怎么写好测试
+怎么衡量测试
+
 单元测试
 安全测试
 性能测试
 异常监控
 统计分析
 SEO优化测试
+
+**前端测试的相关资源**
+
+<br>
 
 ## 前后端协作规范
 
