@@ -429,6 +429,9 @@ src/
 - 规范
   - [JavaScript Standard Style](https://standardjs.com/readme-zhcn.html#why-should-i-use-javascript-standard-style)零配置的、‘标准’的Javascript编码规范. 底层基于Eslint。目前不支持Typescript
   - [Airbnb JavaScript Style Guide() {](https://github.com/airbnb/javascript) Airbnb的编码规范，业界标杆
+- 类型检查. 暂时将它们归类到这里，因为它们同属于[‘静态测试’](https://juejin.im/post/5d2c515d6fb9a07ead5a2bbe#heading-39)
+  - [Typescript](https://www.typescriptlang.org) Javascript语言的超集，这是一门‘新’的语言，而不是简单的类型检查器. 不过**它也支持[原生Javascript的类型检查](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)**
+  - [Flow](https://flow.org) Facebook出品的类型检查器，语法和Typescript类似. 个人推荐使用Typescript
 
 <br>
 
@@ -482,6 +485,39 @@ src/
 - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react)
 
 <br>
+
+**Code Review**
+
+上述的Lint工具和类型检查器, 可以约束代码风格、避免低级的语法错误。但是即使通过上面的Lint和类型检查，代码也未必是‘好代码’。
+
+**很多代码设计的‘最佳实践’是无法通过具象化的自动化工具或文档覆盖的, 这时候，经验或者群体智慧就派上用场了**. 比如Code Review阶段会检查这些东西:
+
+- 编程原则、设计思想. 例如符合SOLID原则? 是否足够DRY？接口设计是否简洁易扩展、
+- 模块耦合、代码重复
+- 代码健壮性。是否存在内存泄露、是否线程安全、是否有潜在性能问题和异常、错误是否被处理
+- 代码的性能和效率。
+- 是否有没有考虑到的场景？
+
+如果你们是第一次推行Code Review, 可以建立一个检查列表，对照着进行检查。熟练后，心中自然无码。
+
+Code Review有很多好处，比如：
+
+- Code Review可以让其他成员都熟悉代码。这样保证其他人都可以较快地接手你的工作，或者帮你解决某些问题
+- 提高代码质量。毫无疑问. 一方面是*主动性*的代码质量提升，比如你的代码需要被人Review，会自觉尽量的提高代码质量；另一方面，其他成员可以检查提交方的代码质量
+- 检查或提高新成员的编程水平。培养新人时，由于不信任它们提交的代码，我们会做一次Review检查代码是否过关。另一方面这是一次真实的案例讲解, 可以较快提高他们的能力
+
+Code Review有两种方式: 一个提交时、一个是定时
+
+- 提交时. 大部分开源项目采用这种方式。通俗讲就是Pull Request。只有代码通过测试、和其他成员的Review才可以合进正式版本库。这种方式也称为‘阻塞式’代码检查，一般配合GitFlow使用。
+- 定时. 在项目完结后、项目的某个里程碑、或者固定的时间(每天、每个星期..). 团队成员聚在一起，回顾自己写的代码, 让其他成员进行审查
+
+Code Review是比较难以推行的，不过这个也要看你们团队的情况，向我们钱少活多的团队，很少的时间去立马去兼顾其他成员的代码. 所以这时候定时Review会更有用，看起来更‘节省时间’. 
+而提交时Review则可以针对新人，比如你不信任他们的代码或者需要希望帮助他们提高能力。
+
+扩展
+
+- [Code Review最佳实践](https://mp.weixin.qq.com/s?__biz=MzIwMTQwNTA3Nw==&mid=400946871&idx=1&sn=5a125337833768d705f9d87ba8cd9fff&scene=1&srcid=0104FLyeXIS6N0EShgDseIfI&key=41ecb04b051110031290b34976240e650f0169d239c89f125162a89c8d3412f2087198612e71fd7685cae9eebe08e295&ascene=0&uin=MTYyMDMzMTAwMA%3D%3D&devicetype=iMac+MacBookPro11%2C5+OSX+OSX+10.10.5+build(14F1509)&version=11020201&pass_ticket=dc5bBckt1XSthRKTIsukYHIcAvKfv0jninbMlYQ5TWnE6XS%2FrRkdHKlJjNTI2Wsg)
+- [是否要做Code Review？与BAT资深架构师争论之后的思考](https://juejin.im/post/5c9740ba6fb9a071090d6a37)
 
 ## 文档规范
 
@@ -690,7 +726,6 @@ export class Column extends Component<ColumnProps, {}> {
 
 ## 测试规范
 
-Review
 单元测试
 安全测试
 性能测试
@@ -702,6 +737,7 @@ SEO优化测试
 
 接口规范
   接口测试
+Mock
 文档规范
 
 ## 基础库规范
@@ -718,7 +754,6 @@ SEO优化测试
 鼓励写技术博客，建立自己的团队博客
 鼓励参与开源项目
 定期的专题分享
-
 
 ## 反馈
 
