@@ -185,12 +185,12 @@ TODO:
 - 开发工具
 - 后端开发框架
 - 工具库
+- 开发/调试工具
 - 等等
 
 下面是我们团队的[技术栈规范](https://github.com/GDJiaMi/frontend-standards/blob/master/tech-stack.md)截图：
 
 ![](/images/frontend-standard/tech-stack.png)
-
 
 当然，对于团队而言也要鼓励学习新的技术、淘汰旧的技术栈。因为一般而言， 新的技术/解决方案，是为了更高的生产力而诞生的。当团队容纳一个新的技术选型需要考虑以下几点：
 
@@ -836,10 +836,6 @@ export class Column extends Component<ColumnProps, {}> {
 
 <br>
 
-**异常监控**
-
-跑在客户端、需要上报、筛选、过滤、sourcemap
-
 **日志**
 
 对于前端来说，日志也不是毫无意义。尤其是在**生产现场**调试代码时，可贵的控制台日志可以帮助你快速找到异常的线索. 
@@ -852,9 +848,41 @@ export class Column extends Component<ColumnProps, {}> {
 - 只记录关键信息, 这些信息可以帮助你诊断问题
 - ...
 
-debug 库
+扩展资源
+
+- [debug](https://github.com/visionmedia/debug) 适合Node.js和浏览器的debug日志工具, 支持动态开启日志打印
+- [vConsole](https://github.com/Tencent/vConsole) 移动端调试利器
 
 <br>
+
+**异常监控**
+
+因为程序跑在不受控的环境， 所以对于客户端应用来说，异常监控在生产环境是非常重要的，它可以收集各种意料之外生产环境问题，帮助开发者快速定位异常。
+
+异常监控通常会通过三种方式来收集异常数据:
+
+1. 全局捕获。例如使用window.onerror, 或者`unhandledrejection`
+2. 主动上报。在try/catch中主动上报. 
+3. 用户反馈。比如弹窗让用户填写反馈信息.
+
+和日志一样，**不是所有‘异常’都应该上报给异常监控系统，譬如一些预料之内的‘异常’**，比如用户输入错误、鉴权失败、网络错误等等. 异常监控主要用来上报一些意料之外的、或者致命性的异常.
+
+要做好前端的异常监控其实并不容易，它需要处理这些东西:
+
+- 浏览器兼容性。
+- 碎片收集(breadcrumbs)。 收集‘灾难’现场的一些线索，这些线索对问题诊断很重要。例如当前用户信息、版本、运行环境、打印的日志、函数调用栈等等
+- 调用栈的转换。通常在浏览器运行的压缩优化过的代码，这种调用栈基本没什么可读性，通常需要通过SourceMap映射到原始代码. 可以使用这个库: [source-map](https://github.com/mozilla/source-map#sourcemapconsumer)
+- 数据的聚合。后端监控系统需要对前端上报的信息进行分析和聚合
+
+对于小团队未必有能力开发这一套系统，所以推荐使用一些第三方工具。例如
+
+- [Sentry](https://sentry.io/welcome/) 🔥免费基本够用
+- [FunDebug](https://www.fundebug.com/price) 付费增强
+
+扩展:
+
+- [前端异常监控解决方案研究](https://cdc.tencent.com/2018/09/13/frontend-exception-monitor-research/)
+- [搭建前端监控系统](https://www.cnblogs.com/warm-stranger/p/9417084.html)
 
 ## 前后端协作规范
 
