@@ -885,6 +885,8 @@ export class Column extends Component<ColumnProps, {}> {
 - [前端异常监控解决方案研究](https://cdc.tencent.com/2018/09/13/frontend-exception-monitor-research/)
 - [搭建前端监控系统](https://www.cnblogs.com/warm-stranger/p/9417084.html)
 
+<br>
+
 ## 前后端协作规范
 
 前端是Web的一个细分领域，往往不能脱离后端而存在。所以前后端协作占前端开发工作很大比例.
@@ -926,19 +928,59 @@ export class Column extends Component<ColumnProps, {}> {
 - 接口版本化，保持向下兼容。就像我们上文的‘语义化版本规范’说的，对于后端来说，API就是公共的接口，尤其是公共暴露的接口，更应该有一个版本号，来说明当前描述的接口做了什么变动，是否向下兼容。
   现在前端代码可能会在客户端被缓存，例如小程序。如果后端做了break change，就会影响这部分用户。
 
+<br>
+
 **接口文档规范**
 
-文档
+后端通过接口文档向前端暴露接口相关的信息。这些信息必须包含：
 
-不一致问题
+- 版本号
+- 文档描述
+- 服务的入口. 例如基本路径
+- 测试服务器. 可选
+- 简单使用示例
+- 安全和认证
+- 具体接口定义
+  - 方法名称或者URL
+  - 方法描述
+  - 请求参数及其描述，必须说明类型(数据类型、是否可选等)
+  - 响应参数及其描述, 必须说明类型(数据类型、是否可选等)
+  - 可能的异常情况、错误代码、以及描述
+  - 请求示例，可选
+
+人工维护导致的问题:
+
+上面提到了‘代码即文档’的概念。如果可以从代码或者规范文档(例如OpenAPI这类API描述规范)中生成接口文档，可以解决实现和文档不一致问题, 同时也可以减少文档编写和维护的投入.
+
+<br>
 
 **接口测试与模拟**
 
-接口规范
-接口文档规范
-接口测试
-并行开发
-  Mock
+为了做到高效率前后端并行开发，接口的测试与模拟是必要的。
+
+- 前端要求后端在联调之前，需要测试验证好自己的接口是否可以正常工作。而不是在联调期间，把前端当‘接口测试员’，阻塞接口联调进度
+- 另外前端需要在后端接口未准备好之前，通过接口模拟的方式，来编写业务逻辑代码。
+
+针对接口测试与模拟，存在下图这样一个理想的模型:
+
+![](/images/frontend-standard/api-mock.png)
+
+一切从定义良好的接口文档出发，生成`Mock Server`和`Mock Client`, Mock Server给前端提供模拟数据，而Mock Client则辅助后端对它们的接口进行测试.
+
+资源:
+
+- RESTful
+  - [Swagger](https://swagger.io/) 这是最为接近上面理想模型的一个解决方案
+  - [JSON Server](https://github.com/nuysoft/Mock) 快速生成JSON mock服务器
+  - [Easy Mock](https://easy-mock.com) 可视化的、在线的接口mock服务
+- GraphQl
+  - [GraphQL Faker](https://github.com/APIs-guru/graphql-faker)
+  - [graphql-tools](https://www.apollographql.com/docs/graphql-tools/mocking/)
+- 模拟数据生成
+  - [faker.js](https://github.com/Marak/faker.js) 🔥强大的模拟数据生成工具，支持Node和浏览器
+  - [Mock.js](https://github.com/nuysoft/Mock) 数据生成和模拟工具
+
+<br>
 
 ## 培训/知识管理/技术沉淀
 
@@ -952,7 +994,7 @@ export class Column extends Component<ColumnProps, {}> {
 
 - **产品架构与组织架构**. 介绍公司背景和产品，一般组织的团队结构和产品的架构是相关联的. 以笔者所在公司为例, 主要产品是即时通信:
 
-  ![](/images/frontend-standart/org.png)
+  ![](/images/frontend-standard/org.png)
 
 - **产品研发流程**: 介绍产品开发和迭代会涉及到的流程、以及团队之间的协作衔接，例如:
 
