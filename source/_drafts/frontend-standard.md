@@ -155,9 +155,18 @@ TODO:
 
 ### 任务管理
 
-TODO:
-看板工具
-基于issue看板
+作为前端Leader少不了任务管理。**看板是目前最为流行的任务管理工具，它可以帮助我们了解项目的进度、资源的分配、还原开发现场**. 
+
+笔者毕业第一年在一家很小的外包公司中工作，初生牛犊不怕虎，我竟然给老板推销起了看板和敏捷项目管理，想要改善项目管理这块效率低下问题，老板表示很支持，但是其他成员积极性并不高, 结果当然是失败的。
+
+当时还起草了一份[‘看板实施细则’](https://github.com/ivan-94/kanban_enforcement/blob/master/README.md#%E4%BB%80%E4%B9%88%E6%98%AF%E7%9C%8B%E6%9D%BF), 所以任务管理这一块也算小有心得吧.
+
+说说一些比较好用的工具吧：
+
+- 基于issue看板: 可以基于Gitlab或Github的Issue来做任务管理，它们都支持看板。比较Geek，推荐
+- [Tower](https://tower.im/) 专门做看板任务管理的。小团队基本够用。我们现在就使用这款产品
+- [teambition](https://www.teambition.com/) 和Tower差不多，没有深入使用过
+- [Trello](https://trello.com/) 颜值高.
 
 ## 技术栈规范
 
