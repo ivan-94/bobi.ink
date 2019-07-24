@@ -148,10 +148,32 @@ Git 有很多工作流方式，这些工作流的选择可能依赖于项目的�
 
 如果你遵循上面的规范，那么就可以利用社区上现有的工具来自动化这个流程. 这里工具有[conventional-changelog-cli](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli)、[conventional-github-releaser](https://github.com/conventional-changelog/conventional-github-releaser). 实际上自己开发一个也不是特别难的事情.
 
-
 ### 持续集成
 
-TODO:
+将整套开发工作流确定下来之后, 就可以使用持续集成服务来自动化执行整个流程。比如一个典型的CI流程:
+
+![](/images/frontend-standard/ci.png)
+
+对于持续集成规范一般会定义这些内容:
+
+- 执行的环境. 比如容器、Node版本、操作系统等等
+- 触发的条件。比如定时触发、在哪个分支触发、会触发什么任务等等
+- 执行的任务
+- 划分持续集成的阶段. 比如
+  - 检查：包括单元测试和代码lint. 所有push到版本库的代码都会跑这个阶段. 一般可以在提交title中包含[ci skip]来跳过这个阶段
+  - 构建: 对前端项目进行构建. 只有打上版本tag的提交或release分支会跑构建任务
+  - 发布: 将前端的构建结果进行交付/发布.  只有打上版本tag的提交或者release分支在构建成功后会跑发布任务
+- 定义持续集成脚本模板
+
+常用的CI服务:
+
+- Github
+  - [Travis CI](https://github.com/marketplace/travis-ci)
+  - [CircleCI](https://github.com/marketplace/circleci)
+  - [完整列表](https://github.com/marketplace/category/continuous-integration)
+- GitLab: [Gitlab-CI](https://docs.gitlab.com/ee/ci/)
+- 通用
+  - [Jenkins](https://jenkins.io)
 
 ### 任务管理
 
@@ -194,6 +216,7 @@ TODO:
 - 样式. 包含了命名规范、预处理器、方法论等等
 - QA. 包含了测试、Lint、格式化工具、监控
 - 项目构建工具流. 例如webpack、vue-cli
+- 包管理器。npm、yarn
 - 项目管理工具
 - 模板引擎
 - 开发工具
