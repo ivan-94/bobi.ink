@@ -4,13 +4,21 @@ date: 2019/7/19
 categories: 前端
 ---
 
-一个人就是规范，虽然人员的扩展，需要考虑规范，统一步伐往前走
+> 万字长文，涉及前端开发的方方面面。本文将持久更新和完善, 文章部分观点可能比较武断或不完整，欢迎评论和补充，一起完善该文章. 谢谢
+
+<br>
+
+笔者长期单枪匹马在前端领域厮杀(也就是团队就一个人)，自己就是规范。随着公司业务的扩展，扩充了一些人员，这时候就要开始考虑协作和编码规范问题了。本文记录了笔者在制定`前端协作规范`时的一些思考，希望能给你们也带来一些帮助.
+
+一个人走的更快，一群人可以走得更远，前提是统一的策略，还要不断地反省和优化。
+
+<br>
 
 **目录概览**
 
 <!-- TOC -->
 
-- [开发工作流规范](#开发工作流规范)
+- [工作流规范](#工作流规范)
   - [开发](#开发)
     - [版本规范](#版本规范)
     - [版本控制系统规范](#版本控制系统规范)
@@ -80,11 +88,15 @@ categories: 前端
 
 **规范包含哪些内容?**
 
-如文章题目，前端协作规范并不单单指‘编码规范’，这个规范涉及到前端开发活动的方方面面，例如代码库的管理、前后端协作、代码规范、兼容性规范；其中不仅仅是前端团队内部的协作，一个完整的软件生命周期内，我们需要和产品/设计、后端(或者原生客户端团队)、测试进行协作, 我们需要覆盖这些内容.
+如文章标题，**前端协作规范并不单单指‘编码规范’，这个规范涉及到前端开发活动的方方面面**，例如代码库的管理、前后端协作、代码规范、兼容性规范；
 
-下面就介绍，如果我是前端团队的Leader，我会怎么制定前端规范，这个规范需要包含哪些内容:
+其中不仅仅是前端团队内部的协作，一个完整的软件生命周期内，我们需要和产品/设计、后端(或者原生客户端团队)、测试进行协作, 我们需要覆盖这些内容.
 
-## 开发工作流规范
+下面就开始介绍，如果我是前端团队的Leader，我会怎么制定前端规范，这个规范需要包含哪些内容?
+
+<br>
+
+## 工作流规范
  
 ### 开发
 
@@ -100,11 +112,17 @@ categories: 前端
 
 #### 版本控制系统规范
 
-大部分团队都使用git作为版本管理器，管理好代码也是一种学问。尤其是涉及多人并发协作、需要管理多个软件版本的情况下，定义良好的版本库管理规范，可以让大型项目更有组织性，也可以提高成员协作效率.
+大部分团队都使用git作为版本库，管理好代码也是一种学问。尤其是涉及多人并发协作、需要管理多个软件版本的情况下，定义良好的版本库管理规范，可以让大型项目更有组织性，也可以提高成员协作效率.
 
 比较流行的git分支模型/工作流是[git-flow](https://www.git-tower.com/learn/git/ebook/cn/command-line/advanced-topics/git-flow), 但是大部分团队会根据自己的情况制定自己的git工作流规范, 例如我们团队的[分支规范](https://github.com/GDJiaMi/frontend-standards/blob/master/development.md#git-%E5%88%86%E6%94%AF%E6%A8%A1%E5%9E%8B)
 
-Git 有很多工作流方式，这些工作流的选择可能依赖于项目的规模，项目的类型以及团队成员的结构. 比如一个简单的个人项目可能不需要复杂的分支划分，我们的变更都是直接提交到 master 分支。再比如开源项目，除了核心团队成员，其他贡献者是没有提交的权限的，而且我们也需要手段来验证和讨论贡献的代码是否合理。 所以对于开源项目 fork 工作流更为适合. 了解常见的工作流有利于组织或创建适合自己团队的工作流, 提交团队协作的效率:
+Git 有很多工作流方法论，这些工作流的选择可能依赖于项目的规模、项目的类型以及团队成员的结构.
+
+比如一个简单的个人项目可能不需要复杂的分支划分，我们的变更都是直接提交到 master 分支;
+
+再比如开源项目，除了核心团队成员，其他贡献者是没有提交的权限的，而且我们也需要一定的手段来验证和讨论贡献的代码是否合理。 所以对于开源项目 fork 工作流更为适合.
+
+了解常见的工作流有利于组织或创建适合自己团队的工作流, 提交团队协作的效率:
 
 ![](/images/frontend-standard/branch.png)
 
@@ -116,11 +134,13 @@ Git 有很多工作流方式，这些工作流的选择可能依赖于项目的�
 
 #### 提交信息规范
 
-一个好的提交信息, 会帮助你提高项目的整体质量. 至少具有下面这些优点:
+组织好的提交信息, 可以提高项目的整体质量. 至少具有下面这些优点:
 
-- 格式统一的提交信息可以帮助自动化生成changelog
-- 版本库不只是存放代码的仓库, 也记录项目的开发记录. 这些记录应该可以帮助后来者快速地学习和回顾代码. 也应该方便其他协作者review你的代码
-- 规范化提交信息可以促进提交者提交有意义的提交
+- 格式统一的提交信息有助于自动化生成CHANGELOG
+- 版本库不只是存放代码的仓库, 它记录项目的开发日志. 这些记录应该可以帮助后来者快速地学习和回顾代码. 也应该方便其他协作者review你的代码
+- 规范化提交信息可以促进提交者提交有意义的提交. 提交者要想好要怎么描述这个提交，这样被动促进了他们去把控提交的粒度
+
+<br>
 
 社区上比较流行的提交信息规范是[Angular的提交信息规范](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#commit), 除此之外，这些也很不错:
 
@@ -129,11 +149,13 @@ Git 有很多工作流方式，这些工作流的选择可能依赖于项目的�
 - [Eslint](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-eslint)
 - [JQuery](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-jquery)
 
-这些工具可以帮助你检查提交信息和生成CHANGELOG:
+<br>
+
+另外这些工具可以帮助你检验提交信息, 以及生成CHANGELOG:
 
 - [conventional-changelog](https://github.com/conventional-changelog/conventional-changelog) - 从项目的提交信息中生成CHANGELOG和发布信息
-- [commitlint](https://github.com/conventional-changelog/commitlint) - 鞍韂提交信息
-- [commitizen](https://github.com/commitizen/cz-cli) - 简单的提交规范和提交帮助工具，推荐
+- [commitlint](https://github.com/conventional-changelog/commitlint) - 检验提交信息
+- [commitizen](https://github.com/commitizen/cz-cli) - 🔥简单的提交规范和提交帮助工具，推荐
 - [standard-changelog](https://github.com/conventional-changelog/commitlint) - angular风格的提交命令行工具 
 
 <br>
@@ -921,16 +943,29 @@ export class Column extends Component<ColumnProps, {}> {
 
 <br>
 
-**前端测试的相关资源**
+**相关工具**
 
-TODO:
-
-<br>
-
-扩展
-
-- [有赞前端质量保障体系](https://juejin.im/post/5d24096ee51d454d1d6285a1)
-
+- Headless Browsers: 无头浏览器是网页自动化的重要运行环境。 常用于功能测试、单元测试、网络爬虫
+  - [puppeteer](https://github.com/GoogleChrome/puppeteer)
+  - [Headless Chromium](https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md)
+- 测试框架
+  - [Jest](http://jest.io/) 🔥Facebook的单元测试框架. 零配置, 支持组件快照测试、模块Mock、Spy. 一般场景, 单元测试学它一个就行了
+    - 组件测试
+      - [testing-library](https://github.com/testing-library) 🔥
+      - [Enzyme](https://github.com/airbnb/enzyme)
+  - [Intern](https://theintern.github.io/)
+- 单元测试
+  - [AVA](https://github.com/avajs/ava)
+  - [Jasmine](http://jasmine.github.io/)
+  - [Mocha](http://mochajs.org/)
+  - [Tape](https://github.com/substack/tape)
+- 断言库
+  - [Chai](http://chaijs.com/)
+  - [expect.js](https://github.com/Automattic/expect.js)
+  - [should.js](http://shouldjs.github.io/)
+- Mock/Stubs/Spies
+  - [sinon.js](http://sinonjs.org/)
+  
 <br>
 
 [⬆️回到顶部](#)
