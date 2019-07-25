@@ -134,11 +134,13 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 
 #### 提交信息规范
 
+![](/images/frontend-standard/commit.png)
+
 组织好的提交信息, 可以提高项目的整体质量. 至少具有下面这些优点:
 
-- 格式统一的提交信息有助于自动化生成CHANGELOG
-- 版本库不只是存放代码的仓库, 它记录项目的开发日志. 这些记录应该可以帮助后来者快速地学习和回顾代码. 也应该方便其他协作者review你的代码
-- 规范化提交信息可以促进提交者提交有意义的提交. 提交者要想好要怎么描述这个提交，这样被动促进了他们去把控提交的粒度
+- **格式统一的提交信息有助于自动化生成CHANGELOG**
+- **版本库不只是存放代码的仓库, 它记录项目的开发日志, 它应该要清晰表达这次提交的做了什么**. 这些记录应该可以帮助后来者快速地学习和回顾代码, 也应该方便其他协作者review你的代码
+- **规范化提交信息可以促进提交者提交有意义的、粒度合适的'提交'**. 提交者要想好要怎么描述这个提交，这样被动促进了他们去把控**提交的粒度**
 
 <br>
 
@@ -162,31 +164,34 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 
 ### 构建规范
 
-对于团队、或者需要维护多个项目场景，统一的构建工具链很重要, 这套工具应该强调"约定大于配置"，让开发者更专注于业务的开发。在[为什么要用vue-cli3?](https://juejin.im/post/5d2fcaacf265da1b95708f63)提出了vue-cli3更新有很多亮点，非常适合作为团队构建工具链的基础:
+对于团队、或者需要维护多个项目场景，统一的构建工具链很重要, **这套工具应该强调"约定大于配置"，让开发者更专注于业务的开发**。笔者在[为什么要用vue-cli3?](https://juejin.im/post/5d2fcaacf265da1b95708f63)文章中提出了`vue-cli3`更新有很多亮点，非常适合作为团队构建工具链的基础:
 
-- 首先这类工具是推崇'约定大于配置'的。即按照他们的规范，实现开箱即用，快速开发业务. 在团队协作中这点很重要，我们不推荐团队成员去关心又臭又长的webpack构建配置
-- vue-cli3抽离了cli service层，可以独立更新工具链。也就是说项目的构建脚本在一个独立的service项目中维护，而不是像以前一样在每个项目目录下都有webpack配置和依赖, 这样做的好处是独立地、简单地升级整个构建链
-- 灵活的插件机制。对于团队的构建定制化应该封装到插件中，这样也实现独立的更新。
+- **首先这类工具是推崇'约定大于配置'**。即按照他们的规范，可以实现开箱即用，快速开发业务. 在团队协作中这点很重要，我们不推荐团队成员去关心又臭又长的webpack构建配置
+- **`vue-cli3`抽离了`cli service层`，可以独立更新工具链**。也就是说项目的构建脚本和配置在一个独立的service项目中维护，而不是像以前一样在每个项目目录下都有webpack配置和依赖. 这样做的好处是独立地、简单地升级整个构建链
+- **灵活的插件机制**。对于团队的定制化构建应该封装到插件中，这样也可以实现独立的更新。
 
-我们可以选择第三方CLI或者定制自己的构建链，按照上面说的这个构建链应该有以下特点:
+**我们可以选择第三方CLI, 当然也定制自己的构建链，按照上面说的这个构建链应该有以下特点**:
 
-- **强约定，体现团队的规范**。首先它应该避免团队成员去关心或更改构建的配置细节，暴露最小化的接口。 另外构建工具不仅仅是构建，通常它还会集成代码检查、测试。
+- **强约定，体现团队的规范**。首先它应该避免团队成员去关心或更改构建的配置细节，暴露最小化的配置接口。 *另外构建工具不仅仅是构建，通常它还会集成代码检查、测试等功能*。
 - **方便升级**。尤其是团队需要维护多个项目场景, 这一点很有意义
 
-下面是社区上比较流行的构建工具, 当然，如果你也可以根据自己的团队情况开发自己的CLI, 但是下面的工具依然很有参考价值：
+下面是社区上比较流行的构建工具. 当然，你也可以根据自己的团队情况开发自己的CLI, 但是下面的工具依然很有*参考价值*：
 
-- create-react-app
-- vue-cli
-- microbundle
-- parcel
+- [create-react-app](https://github.com/facebook/create-react-app) - 🔥零配置开始React开发
+- [vue-cli](https://cli.vuejs.org/) - 🔥零配置、渐进增强的项目构建CLI
+- [parcel](https://parceljs.org/) - 零配置的Web应用打包工具
+- [Fusebox](https://github.com/fuse-box/fuse-box) - 高速易用的打包工具
+- [microbundle](https://github.com/developit/microbundle) - 零配置, 基于Rollup，适合用于打包‘库’
 
 <br>
 
 ### 发布工作流规范
 
-发布工作流指的是将‘软件成品’对外发布(如测试或生产)的一套流程, 只有将这套流程实现规范才有利于实现自动化. 
+发布工作流指的是将‘软件成品’对外发布(如测试或生产)的一套流程, 将这套流程规范化后，可以实现自动化.
 
 举个例子, 一个典型的发布工作流如下：
+
+![](/images/frontend-standard/pub.png)
 
 - 代码变更
 - 提交代码变更到远程版本库
@@ -197,7 +202,9 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - 打上Tag
 - 推送
 
-如果你遵循上面的规范，那么就可以利用社区上现有的工具来自动化这个流程. 这里工具有[conventional-changelog-cli](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli)、[conventional-github-releaser](https://github.com/conventional-changelog/conventional-github-releaser). 实际上自己开发一个也不是特别难的事情.
+如果你遵循上面的规范，那么就可以利用社区上现有的工具来自动化这个流程. 这些工具有[conventional-changelog-cli](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli)、[conventional-github-releaser](https://github.com/conventional-changelog/conventional-github-releaser). 实际上自己开发一个也不是特别难的事情.
+
+<br>
 
 ### 持续集成
 
@@ -225,6 +232,8 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - GitLab: [Gitlab-CI](https://docs.gitlab.com/ee/ci/)
 - 通用
   - [Jenkins](https://jenkins.io)
+
+<br>
 
 ### 任务管理
 
