@@ -110,6 +110,9 @@ categories: 前端
 
 <br>
 
+[⬆️回到顶部](#)
+
+
 #### 版本控制系统规范
 
 大部分团队都使用git作为版本库，管理好代码也是一种学问。尤其是涉及多人并发协作、需要管理多个软件版本的情况下，定义良好的版本库管理规范，可以让大型项目更有组织性，也可以提高成员协作效率.
@@ -132,6 +135,8 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - [Fork/Pull Request 工作流](https://github.com/ivan-94/git-guide/blob/master/branch/fork.md)
 
 <br>
+
+[⬆️回到顶部](#)
 
 #### 提交信息规范
 
@@ -163,6 +168,9 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 
 <br>
 
+[⬆️回到顶部](#)
+
+
 ### 构建规范
 
 对于团队、或者需要维护多个项目场景，统一的构建工具链很重要, **这套工具应该强调"约定大于配置"，让开发者更专注于业务的开发**。笔者在[<为什么要用vue-cli3?>](https://juejin.im/post/5d2fcaacf265da1b95708f63)文章中提出了`vue-cli3`更新有很多亮点，非常适合作为团队构建工具链的基础:
@@ -185,6 +193,8 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - [microbundle](https://github.com/developit/microbundle) - 零配置, 基于Rollup，适合用于打包‘库’
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 发布工作流规范
 
@@ -210,6 +220,8 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - 实际上自己开发一个也不是特别难的事情.
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 持续集成
 
@@ -273,9 +285,13 @@ OK, **总结一下为什么持续集成的好处**:
 
 <br>
 
+[⬆️回到顶部](#)
+
 ### 任务管理
 
-作为前端Leader少不了任务管理。**看板是目前最为流行的任务管理工具，它可以帮助我们了解项目的进度、资源的分配、还原开发现场**. 
+![](/images/frontend-standard/kanban.png)
+
+作为前端Leader少不了任务管理。**看板是目前最为流行的任务管理工具，它可以帮助我们了解项目的进度、资源的分配情况、还原开发现场**.
 
 笔者毕业第一年在一家很小的外包公司中工作，初生牛犊不怕虎，我竟然给老板推销起了看板和敏捷项目管理，想要改善项目管理这块效率低下问题，老板表示很支持，但是其他成员积极性并不高, 结果当然是失败的。
 
@@ -283,10 +299,10 @@ OK, **总结一下为什么持续集成的好处**:
 
 说说一些比较好用的工具吧：
 
-- 基于issue看板: 可以基于Gitlab或Github的Issue来做任务管理，它们都支持看板。比较Geek，推荐
-- [Tower](https://tower.im/) 专门做看板任务管理的。小团队基本够用。我们现在就使用这款产品
-- [teambition](https://www.teambition.com/) 和Tower差不多，没有深入使用过
-- [Trello](https://trello.com/) 颜值高.
+- **基于issue看板** - 可以基于Gitlab或Github的Issue来做任务管理，它们都支持看板。很Geek，推荐
+- [**Tower**](https://tower.im/) - 专门做看板任务管理的。小团队基本够用。我们现在就使用这款产品
+- [**teambition**](https://www.teambition.com/) - 和Tower差不多，没有深入使用过
+- [**Trello**](https://trello.com/) - 颜值高.
 
 <br>
 
@@ -296,17 +312,17 @@ OK, **总结一下为什么持续集成的好处**:
 
 ## 技术栈规范
 
-笔者现在所在的公司在我来之前，前端技术栈就非常混乱，Vue、React和AngularJS三大框架都有, 而且风格相差也很大. 当时我就想收包裹走人. 
+笔者现在所在的公司之前前端技术栈就非常混乱，Vue、React和AngularJS三大框架都有, 而且风格相差也很大. 当时我就想收包裹走人.
 
 很少有人能精通这三个框架的，更别说是一个团队。
 
-**三大框架跟编程语言一样都有自己的设计哲学，这跟库的不一样, 一个库的替换成本很低；而框架的背后是一个架构、一个生态。每个框架背后牵涉着开发思维、生态系统、配套工具、最佳实践、性能调优。要精通和熟练一个框架需要付出的成本是很高。**
+**三大框架跟编程语言一样都有自己的设计哲学，这跟库是不一样, 一个库的替换成本很低；而框架的背后是一个架构、一个生态。每个框架背后牵涉着开发思维、生态系统、配套工具、最佳实践、性能调优。要精通和熟练一个框架需要付出的成本是很高**。
 
-所以说团队的开发效率是基于稳定且熟练的技术栈。稳定的技术栈规范有利于团队协作和沟通; 另外如果团队精通这个技术栈，当出现问题或者需要深入调优, 会相对轻松. 
+**所以说团队的开发效率是基于稳定且熟练的技术栈的**。稳定的技术栈规范有利于团队协作和沟通; 另外如果团队精通这个技术栈，当出现问题或者需要深入调优, 会相对轻松。
 
 前端技术栈规范主要包含下面这些类型:
 
-- 编程语言
+- 编程语言 - Typescript或Javascript
 - UI框架及其配套生态, 以及备选方案。其背后的生态非常庞大:
   - UI框架
   - 路由
@@ -318,6 +334,7 @@ OK, **总结一下为什么持续集成的好处**:
   - 脚手架、CLI工具
   - 组件测试
 - 样式. 包含了命名规范、预处理器、方法论等等
+- 动画引擎
 - QA. 包含了测试、Lint、格式化工具、监控
 - 项目构建工具流. 例如webpack、vue-cli
 - 包管理器。npm、yarn
@@ -333,13 +350,15 @@ OK, **总结一下为什么持续集成的好处**:
 
 ![](/images/frontend-standard/tech-stack.png)
 
-当然，对于团队而言也要鼓励学习新的技术、淘汰旧的技术栈。因为一般而言， 新的技术/解决方案，是为了更高的生产力而诞生的。当团队容纳一个新的技术选型需要考虑以下几点：
+<br>
 
-- 学习成本。考虑团队成员的接纳能力。如果成本小于收获的利益，在团队里面推行估计阻力会比较大
-- 收益。是否能够解决当前的某些痛点
-- 考虑风险。一般我们不能将一个实验阶段的技术使用的生产环境中
+当然，对于团队而言也要鼓励学习新的技术、淘汰旧的技术栈。因为一般而言新的技术或解决方案，是为了更高的生产力而诞生的。**当团队容纳一个新的技术选型需要考虑以下几点**：
 
-就我们团队而言，每个成员都有自己感兴趣的方向和领域，所以我们可以分工合作，探索各自的领域，再将成果分享出来，如果靠谱则可以在实验项目中先试验一下，最后才推广到其他项目.
+- **学习成本**。考虑团队成员的接纳能力。如果成本小于收获的利益，在团队里面推行估计阻力会比较大
+- **收益**。是否能够解决当前的某些痛点
+- **考虑风险**。一般我们不能将一个实验阶段的技术使用的生产环境中
+
+就我们团队而言，每个成员都有自己感兴趣的方向和领域，所以我们可以分工合作，探索各自的领域，再将成果分享出来，如果靠谱的话则可以在实验项目中先试验一下，最后才推广到其他项目.
 
 <br>
 
@@ -352,6 +371,8 @@ OK, **总结一下为什么持续集成的好处**:
 前端团队应该根据针对应用所面对的用户情况、应用类型、开发成本、浏览器市场统计数据等因素，来制定自己的浏览器兼容规范，并写入应用使用手册中.
 
 **有了浏览器兼容规范，前端开发和兼容性测试就有理有据，避免争议; 同时它也是前端团队的一种对外声明，除非特殊要求，不符合浏览器兼容规范的浏览器，前端开发人员可以选择忽略**。
+
+<br>
 
 ### 确定兼容策略
 
@@ -407,7 +428,7 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
 
 一个典型的项目组织规范如下:
 
-- **README.md**: 项目说明, 这个最重要。你必须在这里提供关于项目的关键信息或者提供相关信息的入口. 一般包含下列信息:
+- **README.md**: 项目说明, 这个是最重要。你必须在这里提供关于项目的关键信息或者相关信息的入口. 一般包含下列信息:
   - 简要描述、项目主要特性
   - 运行环境/依赖、安装和构建、测试指南
   - 简单示例代码
@@ -435,13 +456,13 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
   ```
 
 - **tests**: 全局的测试目录，通常放应用的集成测试或E2E测试等用例
-- **.env\***: 项目中我们通常会使用`环境变量`来影响应用在不同运行环境下的行为. 通过[dotEnv](https://github.com/motdotla/dotenv)来从文件中读取. 通常有三个文件:
+- **.env\***: 项目中我们通常会使用`环境变量`来影响应用在不同运行环境下的行为. 可以通过[dotEnv](https://github.com/motdotla/dotenv)来从文件中读取环境变量. 通常有三个文件:
 
   - `.env` 通用的环境变量
   - `.env.development` 开发环境的环境变量
   - `.env.production` 生成环境的环境变量
 
-  基本上这些文件的变动的频率很少，团队成员应该不要随意变动这些文件，以免影响其他成员。所以通常使用`.env.*.local`文件来覆盖上述的配置.
+  基本上这些文件的变动的频率很少，团队成员应该不要随意变动，以免影响其他成员。所以通常会使用`.env.*.local`文件来覆盖上述的配置, 另外会设置版本库来忽略`*.local`文件.
 
 <br>
 
@@ -455,15 +476,17 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
   - ISSUE_TEMPLATE: Issue的模板，github可以自动识别这个模板
   - PULL_REQUEST_TEMPLATE: PR模板
 
-任意一个优秀的开源项目都可以是你的老师，例如[React](https://github.com/facebook/react)、[Vue](https://github.com/vuejs/vue)...
+任意一个优秀的开源项目都是你的老师，例如[React](https://github.com/facebook/react)、[Vue](https://github.com/vuejs/vue)...
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 目录组织的风格
 
 上面只是一个通用的项目组织规范，具体源代码如何组织还取决于你们使用的技术栈和团队喜好。网上有很多教程，具体可以搜索`怎么组织XX项目`. 总结一下项目组织主要有三种风格:
 
-- **Rails-style**: 按照文件的类型划分为不同的目录，例如`components`、`constants`、 `typings`、`views`. 这个来源于Ruby-on-Rails框架，它按照MVC架构来划分不同的类型，典型的目录结构如下:
+- **Rails-style**: 按照文件的类型划分为不同的目录，例如`components`、`constants`、 `typings`、`views`. 这个来源于Ruby-on-Rails框架，它按照MVC架构来划分不同的目录类型，典型的目录结构如下:
   
   ```shell
     app
@@ -481,10 +504,11 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
     db        # 数据库相关
   ```
   
-- **Domain-style**:  按照一个功能特性或业务创建单独的文件夹，包含多种类型的文件或目录. 比如一个典型的Redux项目，所有项目的文件就近放置在同一个目录下:
+- **Domain-style**:  按照一个功能特性或业务创建单独的目录，这个目录就近包含多种类型的文件或目录. 比如一个典型的Redux项目，所有项目的文件就近放置在同一个目录下:
 
   ```shell
-  Todos/
+  Users/
+  Home/
     components/
     actions.js
     actionTypes.js
@@ -523,6 +547,8 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
   /* ... */
   </style>
   ```
+
+<br>
 
 大部分情况下, 我们都是使用混合两种方式的目录结构，例如:
 
@@ -563,21 +589,26 @@ src/
 
 框架官方很少会去干预项目的组织方式，读者可以参考下面这些资源来建立自己项目组织规范:
 
-- [React组件设计实践总结02 - 组件的组织](https://juejin.im/post/5cd8fb916fb9a03218556fc1#heading-11)
 - [Redux 常见问题：代码结构](https://link.juejin.im/?target=http%3A%2F%2Fcn.redux.js.org%2Fdocs%2Ffaq%2FCodeStructure.html)
 - [react-boilerplate](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Freact-boilerplate%2Freact-boilerplate)
 - [vuex 项目结构](https://vuex.vuejs.org/zh/guide/structure.html)
+- [React组件设计实践总结02 - 组件的组织](https://juejin.im/post/5cd8fb916fb9a03218556fc1#heading-11)
+
+<br>
+
+[⬆️回到顶部](#)
 
 ### 脚手架和项目模板
 
-如果团队可以将项目结构规范确定下来，可以创建自己的脚手架工具或者项目模板，快速初始化一个项目。更甚的，可以通过‘生成器’，来生成代码模板。
+在将项目结构规范确定下来后，可以创建自己的脚手架工具或者项目模板，用于快速初始化一个项目或代码模板。
 
-相关资源
-- [yeoman](https://yeoman.io) 老牌的项目脚手架工具
-- [plop](https://github.com/amwmedia/plop) 代码生成辅助CLI
-- [hygen](https://github.com/jondot/hygen) 类似于plop
-- [generact](https://github.com/diegohaz/generact) 生成React组件, 大部分组件的文件结构差不多, 这个工具就是帮助你生成这些重复的代码
-- [babel-code-generator](https://babeljs.io/docs/en/babel-generator) 利用babel来实现更高级的代码编辑和自动生成
+相关资源:
+
+- [yeoman](https://yeoman.io) - 老牌的项目脚手架工具
+- [plop](https://github.com/amwmedia/plop) - 代码生成辅助CLI
+- [hygen](https://github.com/jondot/hygen) - 类似于plop
+- [generact](https://github.com/diegohaz/generact) - 生成React组件, 大部分组件的文件结构差不多, 这个工具就是帮助你生成这些重复的代码
+- [babel-code-generator](https://babeljs.io/docs/en/babel-generator) - 利用babel来实现更高级的代码编辑和自动生成
 
 <br>
 
@@ -585,17 +616,19 @@ src/
 
 <br>
 
-
-
 ## 编码规范
 
-网络上大部分‘前端规范’指的都是编码规范. 统一的编码规范对团队项目的长远维护不无裨益. 一致性的代码规范可以增强团队开发协作、提高代码质量、减少遗留系统维护的负担。
+网络上大部分‘前端规范’指的都是编码规范, 这是一种‘狭义’的前端规范. 
+
+**统一的编码规范对团队项目的长远维护不无裨益. 一致性的代码规范可以增强团队开发协作效率、提高代码质量、减少遗留系统维护的负担**。
 
 最直接的好处就是避免写出糟糕的代码, 糟糕的代码与新手和老手关系不大，我也见过好处工作很多年的‘资深’工程师写出恶心的代码. 这样的代码随着项目的迭代会变得难以控制。
 
-现代的Lint工具已经非常先进，几乎可以约束各种编码行为. 比如约束一个文件的长度、函数的复杂度、命名规范、注释规范、接口黑名单、DeadCode、检查简单的逻辑错误...
+**现代的Lint工具已经非常先进，几乎可以约束各种编码行为**. 比如约束一个文件的长度、函数的复杂度、命名规范、注释规范、接口黑名单、DeadCode、检查简单的逻辑错误...
 
-每一个程序员心目中对‘好代码’都有自己的主见，统一的编码规范可以像秦始皇统一战国一样，避免论战和争议。
+每一个程序员心目中对‘好代码’都有自己的主见，统一的编码规范可以像秦始皇统一战国一样，避免不必要的论战和争议。
+
+<br>
 
 **其实与其自己建立前端编码规范，笔者推荐选择社区沉淀下来的规范**. 这方面的资源非常多，所以本文也不武断地提出自己的规范建议. 推荐下面这些资源:
 
@@ -604,16 +637,18 @@ src/
 ### Javascript
 
 - Lint工具
-  - [ESLint](https://cn.eslint.org)目前是社区最流行的、通用的Javascript Lint工具，Lint界的Babel。支持定制插件、preset。如果不想折腾可以选择它的一些预定义配置
-  - [TSLint](https://github.com/palantir/tslint)Typescript Lint工具。不过即将一个[废弃](https://github.com/palantir/tslint/issues/4534)了, 推荐使用ESLint
+  - [ESLint](https://cn.eslint.org) - 🔥目前是社区最流行的、通用的Javascript Lint工具，Lint界的Babel。支持定制插件、preset。如果不想折腾可以选择它的一些预定义配置
+  - [TSLint](https://github.com/palantir/tslint) - Typescript Lint工具。不过即将[废弃](https://github.com/palantir/tslint/issues/4534)了, 推荐使用ESLint
 - 规范
-  - [JavaScript Standard Style](https://standardjs.com/readme-zhcn.html#why-should-i-use-javascript-standard-style)零配置的、‘标准’的Javascript编码规范. 底层基于Eslint。目前不支持Typescript
-  - [Airbnb JavaScript Style Guide() {](https://github.com/airbnb/javascript) Airbnb的编码规范，业界标杆
+  - [JavaScript Standard Style](https://standardjs.com/readme-zhcn.html#why-should-i-use-javascript-standard-style) - 🔥 零配置的、‘标准’的Javascript编码规范. 底层基于Eslint。目前不支持Typescript
+  - [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript) - Airbnb的编码规范，业界标杆
 - 类型检查. 暂时将它们归类到这里，因为它们同属于[‘静态测试’](https://juejin.im/post/5d2c515d6fb9a07ead5a2bbe#heading-39)
-  - [Typescript](https://www.typescriptlang.org) Javascript语言的超集，这是一门‘新’的语言，而不是简单的类型检查器. 不过**它也支持[原生Javascript的类型检查](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)**
-  - [Flow](https://flow.org) Facebook出品的类型检查器，语法和Typescript类似. 个人推荐使用Typescript
+  - [Typescript](https://www.typescriptlang.org) - 🔥 Javascript语言的超集，这是一门‘新’的语言，而不是简单的类型检查器. 不过**它也支持[原生Javascript的类型检查](https://www.typescriptlang.org/docs/handbook/type-checking-javascript-files.html)**
+  - [Flow](https://flow.org) - Facebook出品的类型检查器，语法和Typescript类似. 个人推荐使用Typescript
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### HTML
 
@@ -625,77 +660,98 @@ src/
 
 <br>
 
+[⬆️回到顶部](#)
+
  ### CSS
 
 - Lint工具
-  - [stylelint](https://stylelint.docschina.org) 通用的CSS编码检查工具，支持最新的CSS语法、CSS-in-js、以及其他类CSS语法(如SCSS、Less). 它也有预定义配置，推荐使用
+  - [stylelint](https://stylelint.docschina.org) - 🔥 通用的CSS编码检查工具，支持最新的CSS语法、CSS-in-js、以及其他类CSS语法(如SCSS、Less). 它也有预定义配置，推荐使用
 - 规范
   - [Airbnb CSS / Sass Styleguide](https://github.com/airbnb/css)
   - [Code Guide](https://codeguide.co)
   - [更多](https://css-tricks.com/css-style-guides/)
 - 方法论
-  - [BEM](https://css-tricks.com/bem-101/) BEM命名规范
+  - [BEM](https://css-tricks.com/bem-101/) - 🔥 BEM命名规范
   - [OOCSS](https://github.com/stubbornella/oocss/wiki)
   - [smacss](http://smacss.com)
 
-关于CSS可以学习[Bootstrap](http://twitter.github.com/bootstrap/)这些传统UI框架，他们的代码组织性非常好
+<br>
+
+关于CSS可以学习[Bootstrap](http://twitter.github.com/bootstrap/)这些传统UI框架，他们的代码组织性非常好, 值得学习
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 代码格式化
 
 ![](/images/frontend-standard/prt.png)
 
-- [Prettier](https://prettier.io) 关于代码格式化的所有东西都交给它吧！
+- [Prettier](https://prettier.io) - 🔥 关于代码格式化的所有东西都交给它吧！
+
+基本上，所有代码格式相关的工作都可以交给Prettier来做，在这个基础上再使用Eslint覆盖语义相关的检查
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 集大成的
 
 - [isobar 前端代码规范及最佳实践](https://coderlmn.github.io/code-standards/#_code_reviews)
 - [凹凸实验室代码规范](https://guide.aotu.io/index.html)
 - [百度FEX规范](https://github.com/fex-team/styleguide)
-- [老牌的NEC规范](http://nec.netease.com/standard) 有点老
+- [老牌的NEC规范](http://nec.netease.com/standard) - 有点老
 
 <br>
+
+[⬆️回到顶部](#)
 
 ### 特定框架风格指南
 
 - [vue-style-guide](https://vue.docschina.org/v2/style-guide/)
 - [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react)
-- [React组件设计实践总结](https://juejin.im/post/5cd7f2c4e51d453a7d63b715) 自荐一下笔者写的React组件设计相关实践
+- [React组件设计实践总结](https://juejin.im/post/5cd7f2c4e51d453a7d63b715) - 自荐一下笔者写的React组件设计相关实践
 
 <br>
 
+[⬆️回到顶部](#)
+
 ### Code Review
 
-上述的Lint工具和类型检查器, 可以约束代码风格、避免低级的语法错误。但是即使通过上面的Lint和类型检查，代码也未必是‘好代码’。
+上述的Lint工具和类型检查器, 可以约束代码风格、避免低级的语法错误。但是即使通过上面的Lint和类型检查，代码也可能未必是‘好代码’。
 
-**很多代码设计的‘最佳实践’是无法通过具象化的自动化工具或文档覆盖的, 这时候，经验或者群体智慧就派上用场了**. 比如Code Review阶段会检查这些东西:
+**很多代码设计的‘最佳实践’是无法通过具象化的自动化工具或文档覆盖的, 这时候，'经验'或者'群体智慧'就派上用场了**. 比如Code Review阶段会检查这些东西:
 
 - 编程原则、设计思想. 例如符合SOLID原则? 是否足够DRY？接口设计是否简洁易扩展、
-- 模块耦合、代码重复
+- 模块耦合程度、代码重复
 - 代码健壮性。是否存在内存泄露、是否线程安全、是否有潜在性能问题和异常、错误是否被处理
 - 代码的性能和效率。
 - 是否有没有考虑到的场景？
 
 如果你们是第一次推行Code Review, 可以建立一个检查列表，对照着进行检查。熟练后，心中自然无码。
 
+<br>
+
 Code Review有很多好处，比如：
 
-- Code Review可以让其他成员都熟悉代码。这样保证其他人都可以较快地接手你的工作，或者帮你解决某些问题
-- 提高代码质量。毫无疑问. 一方面是*主动性*的代码质量提升，比如你的代码需要被人Review，会自觉尽量的提高代码质量；另一方面，其他成员可以检查提交方的代码质量
-- 检查或提高新成员的编程水平。培养新人时，由于不信任它们提交的代码，我们会做一次Review检查代码是否过关。另一方面这是一次真实的案例讲解, 可以较快提高他们的能力
+- **Code Review可以让其他成员都熟悉代码**。这样保证其他人都可以较快地接手你的工作，或者帮你解决某些问题
+- **提高代码质量**。毫无疑问. 一方面是*主动性*的代码质量提升，比如你的代码需要被人Review，会自觉尽量的提高代码质量；另一方面，其他成员可以检查提交方的代码质量
+- **检查或提高新成员的编程水平**。培养新人时，由于不信任它们提交的代码，我们会做一次Review检查代码是否过关。另一方面这是一次真实的案例讲解, 可以较快提高他们的能力
 
-Code Review有两种方式: 一个提交时、一个是定时
+<br>
 
-- 提交时. 大部分开源项目采用这种方式。通俗讲就是Pull Request。只有代码通过测试、和其他成员的Review才可以合进正式版本库。这种方式也称为‘阻塞式’代码检查，一般配合GitFlow使用。
-- 定时. 在项目完结后、项目的某个里程碑、或者固定的时间(每天、每个星期..). 团队成员聚在一起，回顾自己写的代码, 让其他成员进行审查
+**Code Review有两种方式: 一个`提交时`、一个是`定时`**:
 
-Code Review是比较难以推行的，不过这个也要看你们团队的情况，向我们钱少活多的团队，很少的时间去立马去兼顾其他成员的代码. 所以这时候定时Review会更有用，看起来更‘节省时间’.
-而提交时Review则可以针对新人，比如你不信任他们的代码或者需要希望帮助他们提高能力。
+- `提交时`. 大部分开源项目采用这种方式。通俗讲就是Pull Request。只有代码通过测试、和其他成员的Review才可以合进正式版本库。这种方式也称为‘阻塞式’代码检查，一般配合GitFlow使用。
+- `定时`. 在项目完结后、项目的某个里程碑、或者固定的时间(每天、每个星期..). 团队成员聚在一起，回顾自己写的代码, 让其他成员进行审查
 
-**扩展**
+Code Review是比较难以推行的，不过这个也要看你们团队的情况，向我们钱少活多的团队，很少的时间去立马去兼顾其他成员的代码. 这时候`定时Review`会更有用，因为看起来更‘节省时间’.
+
+而`提交时Review`则可以针对新人，比如你不信任他们的代码或者希望帮助他们提高编码能力。
+
+<br>
+
+**相关资源**:
 
 - [Code Review最佳实践](https://mp.weixin.qq.com/s?__biz=MzIwMTQwNTA3Nw==&mid=400946871&idx=1&sn=5a125337833768d705f9d87ba8cd9fff&scene=1&srcid=0104FLyeXIS6N0EShgDseIfI&key=41ecb04b051110031290b34976240e650f0169d239c89f125162a89c8d3412f2087198612e71fd7685cae9eebe08e295&ascene=0&uin=MTYyMDMzMTAwMA%3D%3D&devicetype=iMac+MacBookPro11%2C5+OSX+OSX+10.10.5+build(14F1509)&version=11020201&pass_ticket=dc5bBckt1XSthRKTIsukYHIcAvKfv0jninbMlYQ5TWnE6XS%2FrRkdHKlJjNTI2Wsg)
 - [是否要做Code Review？与BAT资深架构师争论之后的思考](https://juejin.im/post/5c9740ba6fb9a071090d6a37)
