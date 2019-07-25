@@ -128,6 +128,7 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 
 - [简单的集中式](https://github.com/ivan-94/git-guide/blob/master/branch/centralized.md)
 - [基于功能分支的工作流](https://github.com/ivan-94/git-guide/blob/master/branch/feature.md)
+- [Git Flow](https://github.com/ivan-94/git-guide/blob/master/branch/gitflow.md) 🔥
 - [Fork/Pull Request 工作流](https://github.com/ivan-94/git-guide/blob/master/branch/fork.md)
 
 <br>
@@ -164,7 +165,7 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 
 ### 构建规范
 
-对于团队、或者需要维护多个项目场景，统一的构建工具链很重要, **这套工具应该强调"约定大于配置"，让开发者更专注于业务的开发**。笔者在[为什么要用vue-cli3?](https://juejin.im/post/5d2fcaacf265da1b95708f63)文章中提出了`vue-cli3`更新有很多亮点，非常适合作为团队构建工具链的基础:
+对于团队、或者需要维护多个项目场景，统一的构建工具链很重要, **这套工具应该强调"约定大于配置"，让开发者更专注于业务的开发**。笔者在[<为什么要用vue-cli3?>](https://juejin.im/post/5d2fcaacf265da1b95708f63)文章中提出了`vue-cli3`更新有很多亮点，非常适合作为团队构建工具链的基础:
 
 - **首先这类工具是推崇'约定大于配置'**。即按照他们的规范，可以实现开箱即用，快速开发业务. 在团队协作中这点很重要，我们不推荐团队成员去关心又臭又长的webpack构建配置
 - **`vue-cli3`抽离了`cli service层`，可以独立更新工具链**。也就是说项目的构建脚本和配置在一个独立的service项目中维护，而不是像以前一样在每个项目目录下都有webpack配置和依赖. 这样做的好处是独立地、简单地升级整个构建链
@@ -202,17 +203,46 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - 打上Tag
 - 推送
 
-如果你遵循上面的规范，那么就可以利用社区上现有的工具来自动化这个流程. 这些工具有[conventional-changelog-cli](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli)、[conventional-github-releaser](https://github.com/conventional-changelog/conventional-github-releaser). 实际上自己开发一个也不是特别难的事情.
+如果你遵循上面的规范，那么就可以利用社区上现有的工具来自动化这个流程. 这些工具有:
+
+- [conventional-changelog-cli](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-cli)
+- [conventional-github-releaser](https://github.com/conventional-changelog/conventional-github-releaser)
+- 实际上自己开发一个也不是特别难的事情.
 
 <br>
 
 ### 持续集成
 
-将整套开发工作流确定下来之后, 就可以使用持续集成服务来自动化执行整个流程。比如一个典型的CI流程:
+将整套开发工作流确定下来之后, 就可以使用`持续集成服务`来自动化执行整个流程。比如一个典型的CI流程:
 
 ![](/images/frontend-standard/ci.png)
 
-对于持续集成规范一般会定义这些内容:
+**持续集成是什么，有什么意义呢**?
+
+我们需要`持续集成`拆成两个词分别来理解, 什么是`持续`? 什么是`集成`?
+
+**持续(Continuous), 可以理解为'频繁'或者‘连续性’**. 不管是持续集成还是敏捷开发思维、看板，都认为‘持续’是它们的基础。
+
+举一个通俗的例子，**比如代码检查，‘持续的’的代码检查就是代码一变动(如保存，或者IDE实时检查、或者提交到版本库时)就马上检查代码，而‘非持续’的代码检查就是在完成所有编码后，再进行检查**。对比两者可以发现，持续性的代码检查可以尽早地发现错误，而且错误也比较容易理解和处理，反之非持续性的代码检查，可能会发现一堆的错误，失之毫厘谬以千里，错误相互牵连，最终会变得难以收拾。
+
+**‘持续’的概念，可以用于软件开发的方方面面，本质上就是把传统瀑布式的软件开发流程打碎，形成一个个更小的开发闭环，持续地输出产品，同时产品也持续地给上游反馈和纠正**。
+
+![](/images/frontend-standard/con.png)
+
+**那什么是‘集成’呢**？狭义的集成可以简单认为是[‘集成测试’](https://juejin.im/post/5d2c515d6fb9a07ead5a2bbe#heading-26)吧. 集成测试可以对代码静态测试、单元测试、通过单元测试后可以进行集成测试，在应用组成一个整体后在模拟环境中跑E2E测试等等。也就是说，在这里进行一系列的自动化测试来验证软件系统。
+
+广义的持续集成服务，不仅仅是测试，它还衍生出很多概念，例如持续交付、持续部署，如下图
+
+![](/images/frontend-standard/devops.png)
+
+OK, **总结一下为什么持续集成的好处**:
+
+- 尽早发现错误，快速试错。越早发现错误，处理错误的成本越低
+- 自动化工作流，减少人工干预。人类比机器容易犯错, 而且机器擅长做重复的事情
+
+<br>
+
+**对于持续集成规范一般会定义这些内容**:
 
 - 执行的环境. 比如容器、Node版本、操作系统等等
 - 触发的条件。比如定时触发、在哪个分支触发、会触发什么任务等等
@@ -223,6 +253,8 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
   - 发布: 将前端的构建结果进行交付/发布.  只有打上版本tag的提交或者release分支在构建成功后会跑发布任务
 - 定义持续集成脚本模板
 
+<br>
+
 常用的CI服务:
 
 - Github
@@ -232,6 +264,12 @@ Git 有很多工作流方法论，这些工作流的选择可能依赖于项目�
 - GitLab: [Gitlab-CI](https://docs.gitlab.com/ee/ci/)
 - 通用
   - [Jenkins](https://jenkins.io)
+
+<br>
+
+扩展
+
+- [持续集成是什么](https://juejin.im/post/58f9ee860ce46300611be392)
 
 <br>
 
