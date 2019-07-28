@@ -4,6 +4,21 @@ date: 2019/7/15
 categories: 前端
 ---
 
+> 基于Dart 2.4 + Typescript 3.5
+
+<!-- TOC -->
+
+- [基本类型](#基本类型)
+- [操作符与表达式](#操作符与表达式)
+  - [操作符](#操作符)
+- [控制流](#控制流)
+- [函数](#函数)
+  - [**函数参数**](#函数参数)
+  - [函数返回值](#函数返回值)
+  - [函数是第一公民](#函数是第一公民)
+
+<!-- /TOC -->
+
 不同语言的定位
 
 Dart is a client-optimized language
@@ -134,6 +149,39 @@ assert(list.length == 3);
 assert(list[1] == 2);
 ```
 
+## 操作符与表达式
+
+### 操作符
+
+Dart和Javascript的操作符基本一致, 所以这里只将Dart中比较特殊的或者行为不太一样的操作符。
+
+| Dart |    | Javascript |             |
+|------|----|------------|-------------|
+| ~/   | 相除并返回int <br> `10/3` => 3.333..<br> `10~/3` => 3 | 没有类似操作符 | `Math.floor(10/3)` |
+| == | 判断两个对象是否'相等' <br> 相等的概念是根据对象类型来决定的，也就是Dart支持操作符重载，对象类型可以实现自定义的相等逻辑。 <br> 如果要判断两个对象内存地址相同，用`identical`函数 | === | Javascript的相等操作符比较混乱，`==`是一个宽松版的相等, 会有各种奇怪行为, 比如`'' == 0`, 而`===`则表示两个对象完全相等(内存地址一样) |
+| as | 类型转换(Typecast) | 类型断言(Type Assertions) | 两者意思都是一样的，就是‘纠正’编译器的类型判断，不会进行‘运行时’类型转换。 `(emp as Person).firstName = 'Bob';`
+| as | 设置库前缀 <br> `import 'package:lib2/lib2.dart' as lib2;`| 模块语句中也存在类似的语法 | `import * as Foo from 'foo'` |
+| is | TODO: `obj is T` 表示是否实现了T接口(类) | instanceof | Javascript本身没有‘类’或‘接口’的概念，只有基于原型的'继承'，instanceof主要通过原型链来检查一个对象是否是指定类型的实例 |
+| is!| 和is相反 | !(obj instanceof T) | Javascript中类似于`in`或`instanceof`这些操作符取反都需要括号包裹，而Dart的`is!`则优雅一点 |
+| ?? | 测试对象是否为null，如果是null则回退到默认值 <br> `name ?? 'Guest'` | | `name || 'Guest'` 或 `name == null ? 'Guest' : name` |
+| ??= | `name ??= 'Guest'` 和 `name = name ?? 'Guest'`等价 | | `name = name || 'Guest'` |
+| ?. | 条件成员访问, 访问成员前先判断对象是否为null<br> `foo?.bar` | ?. | Typescript未来也将支持，[Optional Chaining](https://github.com/tc39/proposal-optional-chaining)目前是stage 3阶段 |
+
+**`..`级联操作符**
+
+这个语法糖很甜，它允许你对一个对象做一系列的操作，例如赋值、函数调用、字段访问. 最后返回这个对象
+
+严格来说这不是一个操作符。形式上这个有点像我们常用的链式调用，但是更加强大:
+
+```dart
+querySelector('#confirm') // Get an object.            // const button = querySelector('#confirm')
+  ..text = 'Confirm' // Use its members.               // button.text = 'Confirm'
+  ..classes.add('important')                          // button.classes.add('important')
+  ..onClick.listen((e) => window.alert('Confirmed!')); // button.onClick.listen(e => window.alert('Confirmed!'));
+```
+
+<br>
+
 ## 控制流
 
 ## 函数
@@ -150,14 +198,18 @@ ReturnType name(ParamType param) { // function name(param: ParamType): ReturnTyp
 
 **'箭头'函数**
 
-如果函数体
+Dart函数支持省略'函数体的花括号', 形式如下:
 
 ```dart
 // 省略函数体花括号
 bool isNoble(int atomicNumber) => _nobleGases[atomicNumber] != null; //
 // 更接近JS的箭头函数
 var compare = (int a, int b) => a > b; // let compare = (a: number, b: number) => a > b
+
+// 注意, '=>' 的语法主要用于简化返回语句，它不能像Javascript一样携带函数体，只能携带表达式
 var compare = (int a, int b) => {return a > b}; // ❌，箭头函数箭头后面只能跟表达式
+// TODO: 返回值怎么声明
+var compare = (int a, int b) {return a > b};    // ✅ 去掉箭头后可以携带函数体
 ```
 
 ### **函数参数**
@@ -205,6 +257,39 @@ void enableFlags({bool bold = false, bool hidden = false}) {...}  // function en
 // 普通变量
 String say(String from, String msg, [String device = 'carrier pigeon', String mood]) {...} // function say(from: string, msg: string, device: string = 'carrier pigeon', mood?: string) {}
 ```
+
+
+### 函数返回值
+
+如果没有显式声明返回值类型， 默认为void。
+
+另外Dart和Javascript一样，函数没有显式使用`return`语句，默认返回null
+
+```dart
+foo() {}                // function foo() {}
+
+assert(foo() == null);
+```
+
+### 函数是第一公民
+
+和Javascript一样，Dart的函数也是第一公民，可以通过函数传递、赋给变量:
+
+```dart
+void printElement(int element) {        // function printElement(element: number) {
+  print(element);
+}
+
+var list = [1, 2, 3];
+
+// 作为函数参数
+list.forEach(printElement);
+
+// 赋值给变量
+var loudify = (msg) => '!!! ${msg.toUpperCase()} !!!'; // const loudify = msg => `!!! ${msg.toUpperCase()} !!!`
+```
+
+一样支持闭包
 
 - 签名
 - 监听函数
