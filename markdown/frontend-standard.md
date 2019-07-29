@@ -33,6 +33,7 @@ categories: 前端
 - [3 浏览器兼容规范](#3-浏览器兼容规范)
   - [3.1 确定兼容策略](#31-确定兼容策略)
   - [3.2 确定浏览器分级](#32-确定浏览器分级)
+  - [3.3 获取统计数据](#33-获取统计数据)
 - [4 项目组织规范](#4-项目组织规范)
   - [4.1 通用的项目组织规范](#41-通用的项目组织规范)
   - [4.2 目录组织的风格](#42-目录组织的风格)
@@ -76,8 +77,10 @@ categories: 前端
 
 **CHANGELOG**
 
-- 2019.7.29
+- 2019.7.28
   新增[技术选型](#tech-select)
+- 2019.7.29
+  新增[浏览器统计数据获取](#brw-anly)
 
 <br>
 
@@ -480,7 +483,27 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
 
 <br>
 
-可以从这些地方获取通用的浏览器统计数据:
+[⬆️回到顶部](#)
+
+### 3.3 获取统计数据
+
+<a id="brw-anly"></a>
+
+![](https://bobi.ink/images/frontend-standard/bdtj.png)
+
+<br>
+
+[百度统计](https://tongji.baidu.com/web/welcome/login)是中文网站使用最为广泛的、免费的流量分析平台. 如上图，通过这些统计平台可以获取到终端真实的浏览器使用情况, 点击[查看示例](https://tongji.baidu.com/web/demo/visit/client?siteId=5503017)。
+
+如果公司没有开发自己监控服务，还是建议使用这些免费的，有大厂支持的监控工具:
+
+- [百度统计](https://tongji.baidu.com/web/welcome/login)
+- [友盟](https://web.umeng.com/main.php?spm=a211g2.211692.0.0.3a437d23sjzEPv&c=user&a=index)
+- [Google Analytics](https://analytics.google.com/analytics/web/) 需要kx上网
+
+<br>
+
+**可以从这些地方获取通用的浏览器统计数据**:
 
 - [百度流量研究院](http://tongji.baidu.com/data/browser)：主要提供国内浏览器统计
 - [statcounter](http://gs.statcounter.com/): 国际浏览器统计
@@ -488,7 +511,7 @@ YUI就曾提出浏览器分级原则，到今天这个原则依然适用。简�
 
 <br>
 
-确定浏览器是否支持某个特性:
+**确定浏览器是否支持某个特性**:
 
 - [caniuse](https://caniuse.com)
 - [MDN](https://developer.mozilla.org/zh-CN/)
