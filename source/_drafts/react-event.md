@@ -65,21 +65,174 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
   - SyntheticTouchEvent
   - ....
 
-  
 
 **事件分类与优先级**
 
-和Fiber优先级有关系
+SimplePlugin将事件类型划分成了三类, 对应不同的优先级(优先级由低到高):
 
-基本架构
+- **DiscreteEvent** 离散事件. 例如blur、focus、 click、 submit、 touchStart. 这些事件都是离散触发的
+- **UserBlockingEvent** 用户阻塞事件. 例如touchMove、mouseMove、scroll、drag、dragOver等等。这些事件会'阻塞'用户的交互。
+- **ContinuousEvent** 可连续事件。例如load、error、loadStart、abort、animationEnd. 这个优先级最高，也就是说它们是同步执行的，这就是Continuous的意义，即可连续的执行，不被打断.
+
+可能要先了解一下React调度(Schedule)的优先级，才能理解这三种事件类型的区别。截止到本文写作时，React有5个优先级级别:
+
+- `Immediate` - 这个优先级的任务会同步执行, 或者说要马上执行且不能中断
+- `UserBlocking` 这些任务一般是用户交互的结果, 需要即时得到反馈 .
+- `Normal` (5s timeout) 应对哪些不需要立即感受到的任务，例如网络请求
+- `Low` (10s timeout) 这些任务可以放后，但是最终应该得到执行. 例如分析通知
+- `Idle` (no timeout) 一些没有必要做的任务 (e.g. 比如隐藏的内容).
+
+目前ContinuousEvent对应的是Immediate优先级，而DiscreteEvent和UserBlockingEvent对应的是UserBlocking。
+
+本文不会深入React Fiber架构的细节，有兴趣的读者可以阅读文末的扩展阅读列表.
 
 <br>
 
 ## 实现细节
 
-事件是如何绑定的？
+现在开始进入文章整体，React是怎么实现事件机制？主要分为两个部分**绑定**和**分发**.
 
-事件是如何分发的？
+### 事件是如何绑定的？
+
+为了避免后面绕晕了，有必要先了解一下React事件机制中的插件协议。
+
+每个插件的结构如下:
+
+```ts
+export type EventTypes = {[key: string]: DispatchConfig};
+
+export type PluginModule<NativeEvent> = {
+  eventTypes: EventTypes,
+  extractEvents: (
+    topLevelType: TopLevelType,
+    targetInst: null | Fiber,
+    nativeEvent: NativeEvent,
+    nativeEventTarget: EventTarget,
+  ) => ?ReactSyntheticEvent,
+  tapMoveThreshold?: number,
+};
+```
+
+**eventTypes**声明该插件负责的事件类型, 它通过`DispatchConfig`来描述:
+
+```ts
+export type DispatchConfig = {
+  dependencies: Array<TopLevelType>, // 依赖的原生事件，表示关联这些事件的触发. ‘简单事件’一般只有一个，复杂事件如onChange会监听多个, 如下图
+  phasedRegistrationNames?: {    // 两阶段props事件注册名称, React会根据这些名称在组件实例中查找对应的props事件处理器
+    bubbled: string,             // 冒泡阶段, 如onClick
+    captured: string,            // 捕获阶段，如onClickCapture
+  },
+  registrationName?: string      // props事件注册名称, 比如onMouseEnter这些不支持冒泡的事件类型，只会定义  registrationName，不会定义phasedRegistrationNames
+  eventPriority: EventPriority,  // 事件的优先级，上文已经介绍过了
+};
+```
+
+看一下示例:
+
+![](/images/react-event/dispatch-config.png)
+
+上面列举了三个典型的EventPlugin：
+
+- SimplePlugin: 简单事件最好理解，它们的行为都比较通用，没有什么Trick, 例如不支持事件冒泡、不支持在Document上绑定等等，和原生DOM事件是一一对应的关系，比较好处理.
+- EnterLeaveEventPlugin: 从上图可以看出来，mouseEnter和mouseLeave依赖的是mouseout和mouseover事件。也就是说\*Enter/\*Leave事件在React中是通过\*over/\*out事件来模拟的。这样做的好处是可以在document上面进行委托监听，还有避免enter/leave一些奇怪而不实用的行为。
+- ChangeEventPlugin: onChange是React的一个自定义事件，可以看出它依赖了多种原生DOM事件类型来模拟onChange事件.
+
+<br>
+
+每个插件还会定义extractEvents方法，这个方法接受事件名称、原生DOM事件对象、事件触发的DOM元素以及React组件实例, 返回一个合成事件对象，如果返回空则表示不作处理. 关于extractEvents的细节，会在下一节阐述.
+
+在ReactDOM启动时就会向EventPluginHub注册这些插件：
+
+```js
+EventPluginHubInjection.injectEventPluginsByName({
+  SimpleEventPlugin: SimpleEventPlugin,
+  EnterLeaveEventPlugin: EnterLeaveEventPlugin,
+  ChangeEventPlugin: ChangeEventPlugin,
+  SelectEventPlugin: SelectEventPlugin,
+  BeforeInputEventPlugin: BeforeInputEventPlugin,
+});
+```
+
+Ok, 回到正题，事件是怎么绑定的呢？ 打个断点看一下调用栈:
+
+![](/images/react-event/listento.png)
+
+前面关于React树如何更新和渲染就不在本文的范围内了，从上面的调用栈可以看出React在props初始化和更新时会进行事件绑定。这里先看一下流程图，忽略杂乱的跳转：
+
+![](/images/react-event/binding.png)
+
+- 在props初始化和更新时会进行事件绑定。首先React会判断元素是否是媒体类型，媒体类型的事件是无法在Document监听的，所以会直接在元素上进行绑定
+- 反之就在Document上绑定. 这里面需要两个信息，一个就是上文提到的'事件依赖列表', 比如onMouseEnter依赖mouseover/mouseout; 第二个是ReactBrowserEventEmitter维护的已订阅事件表。事件处理器只需在Document订阅一次，所以相比在每个元素上订阅事件会节省很多资源. 代码大概如下:
+
+```ts
+export function listenTo(
+  registrationName: string,           // 注册名称，如onClick
+  mountAt: Document | Element | Node, // 组件树容器，一般是Document
+): void {
+  const listeningSet = getListeningSetForElement(mountAt);             // 已订阅事件表
+  const dependencies = registrationNameDependencies[registrationName]; // 事件依赖
+
+  for (let i = 0; i < dependencies.length; i++) {
+    const dependency = dependencies[i];
+    if (!listeningSet.has(dependency)) {                               // 未订阅
+      switch (dependency) {
+        // ... 特殊的事件监听处理
+        default:
+          const isMediaEvent = mediaEventTypes.indexOf(dependency) !== -1;
+          if (!isMediaEvent) {
+            trapBubbledEvent(dependency, mountAt);                     // 设置事件处理器
+          }
+          break;
+      }
+      listeningSet.add(dependency);                                    // 更新已订阅表
+    }
+  }
+}
+```
+
+- 接下来就是根据事件的**优先级**和**阶段**(是否是capture)来设置事件处理器:
+
+```ts
+function trapEventForPluginEventSystem(
+  element: Document | Element | Node,
+  topLevelType: DOMTopLevelEventType,
+  capture: boolean,
+): void {
+  let listener;
+  switch (getEventPriority(topLevelType)) {
+    case DiscreteEvent:
+      listener = dispatchDiscreteEvent.bind(
+        null,
+        topLevelType,
+        PLUGIN_EVENT_SYSTEM,
+      );
+      break;
+    case UserBlockingEvent:
+      listener = dispatchUserBlockingUpdate.bind(
+        null,
+        topLevelType,
+        PLUGIN_EVENT_SYSTEM,
+      );
+      break;
+    case ContinuousEvent:
+    default:
+      listener = dispatchEvent.bind(null, topLevelType, PLUGIN_EVENT_SYSTEM);
+      break;
+  }
+
+  const rawEventName = getRawEventName(topLevelType);
+  if (capture) {
+    addEventCaptureListener(element, rawEventName, listener);
+  } else {
+    addEventBubbleListener(element, rawEventName, listener);
+  }
+}
+```
+
+
+事件绑定有
+
+### 事件是如何分发的？
 
 事件处理器怎么释放
 
@@ -88,3 +241,6 @@ ResponderSystem
 ## 扩展阅读
 
 - [input事件中文触发多次问题研究](https://segmentfault.com/a/1190000013094932)
+- [完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
+- [Lin Clark – A Cartoon Intro to Fiber – React Conf 2017](https://www.youtube.com/watch?v=ZCuYPiUIONs)
+- [Scheduling in React](https://philippspiess.com/scheduling-in-react/)

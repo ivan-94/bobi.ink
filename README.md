@@ -30,18 +30,6 @@
 - 长列表的性能优化
 - 为CLI添加Web界面
 - 使用 gitlab 进行项目管理
-
-- 前端测试大观(https://frontendmasters.com/books/front-end-handbook/2019/#6.27)
-  - 单元测试
-    - 组件测试
-      - 快照测试
-  - 集成测试/功能测试
-  - 基准测试
-    - 性能测试
-  - 兼容性测试
-  - 样式测试
-  - 端到端测试
-
 - dart for typescripter
 - 微前端
-- modern module
+- electron 对象代理
