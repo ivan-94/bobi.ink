@@ -16,7 +16,7 @@ categories: 前端
 
 React自定义一套事件系统的动机有以下几个:
 
-- 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。
+- 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。 另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
 - 抽象跨平台事件机制。如果VirtualDOM抽象了平台之间的UI节点，那么对应了React的合成事件机制就是为了抽象跨平台的事件机制。
 - 自定义事件。 如onchange，select，input这些组件都 更好用
 - React打算做更多优化。比如利用事件委托机制，大部分事件最终绑定到了document，而不是DOM节点本身，这样简化了DOM原生事件，减少了内存开销.
@@ -37,10 +37,16 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
 - **EventPluginHub** - 如其名，这是一个‘插件插槽’，负责管理和注册各种插件。在事件分发时，调用插件来生成合成事件
 - **Plugin** - React事件系统使用了插件机制来管理不同行为的事件。这些插件会处理自己感兴趣的事件类型，并生成合成事件对象。目前ReactDOM有以下几种插件类型
   - **SimpleEventPlugin** - 简单事件, 处理一些比较通用的事件类型，例如click、input、keyDown、mouseOver、mouseOut、pointerOver、pointerOut
-  - **EnterLeaveEventPlugin**
-  - **ChangeEventPlugin**
-  - **SelectEventPlugin**
-  - **BeforeInputEventPlugin**
+  - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两个事件比较特殊, 和\*over/\*leave事件相比它们不会冒泡。所以无法全局进行订阅，ReactDOM使用\*over/\*out事件来模拟这些\*enter/\*leave。所以当你使用onMouseEnter时会发现他是支持冒泡的。两者的区别可以查看这个[DEMO](TODO:)
+  - **ChangeEventPlugin** - change事件是React的一个自定义事件，旨在规范化表单元素的变动事件。
+
+    它支持这些元素: input, textarea, select 
+
+  - **SelectEventPlugin** - 和change事件一样，React为表单元素规范化了select(选择范围变动)事件，适用于input、textarea、contentEditable元素.
+  - **BeforeInputEventPlugin** - beforeinput事件以及[composition](https://developer.mozilla.org/zh-CN/docs/Web/Events/compositionstart)事件处理。
+
+  本文主要会关注SimpleEventPlugin的实现，有兴趣的读者可以自己阅读React的源代码.
+
 - **EventPropagators** 按照DOM事件传播的两个阶段，遍历React组件树，并收集所有事件处理器
 - **EventBatching** 负责批量执行事件队列和事件处理器，处理事件冒泡。
 - **SyntheticEvent** 这是‘合成’事件的基类，可以对应DOM的Event对象。只不过React为了减低内存损耗和垃圾回收，使用一个对象池来构建和释放事件对象， 也就是说SyntheticEvent不能用于异步引用，他在同步执行完事件处理器后就会被释放。
@@ -78,3 +84,7 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
 事件处理器怎么释放
 
 ResponderSystem
+
+## 扩展阅读
+
+- [input事件中文触发多次问题研究](https://segmentfault.com/a/1190000013094932)
