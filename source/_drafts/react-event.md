@@ -16,10 +16,10 @@ categories: 前端
 
 React自定义一套事件系统的动机有以下几个:
 
-- 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。 另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
+- 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
+- 事件‘合成’。事件合成除了处理兼容性问题，还可以用来自定义事件，比较典型的是React的onChange事件，它为表单元素定义了统一的值变动事件。另外第三方也可以通过插件机制来合成自定义事件，尽管很少人这么做。
 - 抽象跨平台事件机制。如果VirtualDOM抽象了平台之间的UI节点，那么对应了React的合成事件机制就是为了抽象跨平台的事件机制。
-- 自定义事件。 如onchange，select，input这些组件都 更好用
-- React打算做更多优化。比如利用事件委托机制，大部分事件最终绑定到了document，而不是DOM节点本身，这样简化了DOM原生事件，减少了内存开销.
+- React打算做更多优化。比如利用事件委托机制，大部分事件最终绑定到了document，而不是DOM节点本身，这样简化了DOM原生事件，减少了内存开销. 但这也意味着，React需要自己模拟一套事件冒泡的机制。
 - React打算干预事件的分发。v16引入Fiber架构、以及后面的Concurrent Mode，React为了优化用户的交互体验，会干预事件的分发。不同类型的事件有不同的优先级，比如高优先级的事件可以中断渲染，让代码可以及时响应用户交互。
 
 Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码，用流程图说话。
@@ -194,34 +194,35 @@ export function listenTo(
 
 ```ts
 function trapEventForPluginEventSystem(
-  element: Document | Element | Node,
-  topLevelType: DOMTopLevelEventType,
+  element: Document | Element | Node,   // 绑定到元素，一般是Document
+  topLevelType: DOMTopLevelEventType,   // 事件名称
   capture: boolean,
 ): void {
   let listener;
   switch (getEventPriority(topLevelType)) {
-    case DiscreteEvent:
+    // 不同优先级的事件类型，有不同的事件处理器进行分发, 下文会详细介绍
+    case DiscreteEvent:                      // 离散事件
       listener = dispatchDiscreteEvent.bind(
         null,
         topLevelType,
         PLUGIN_EVENT_SYSTEM,
       );
       break;
-    case UserBlockingEvent:
+    case UserBlockingEvent:                 // 用户阻塞事件
       listener = dispatchUserBlockingUpdate.bind(
         null,
         topLevelType,
         PLUGIN_EVENT_SYSTEM,
       );
       break;
-    case ContinuousEvent:
+    case ContinuousEvent:                   // 可连续事件
     default:
       listener = dispatchEvent.bind(null, topLevelType, PLUGIN_EVENT_SYSTEM);
       break;
   }
 
   const rawEventName = getRawEventName(topLevelType);
-  if (capture) {
+  if (capture) {                            // 绑定事件处理器到元素
     addEventCaptureListener(element, rawEventName, listener);
   } else {
     addEventBubbleListener(element, rawEventName, listener);
@@ -229,10 +230,205 @@ function trapEventForPluginEventSystem(
 }
 ```
 
+事件绑定的过程还比较简单, 接下来看看事件是如何分发的。
 
-事件绑定有
+<br>
 
 ### 事件是如何分发的？
+
+按惯例还是先上流程图:
+
+![](/images/react-event/binding.png)
+
+#### 事件触发调度
+
+通过上面的`trapEventForPluginEventSystem`函数可以知道，不同的事件类型有不同的事件处理器, 它们的区别是调度的优先级不一样:
+
+```js
+// 离散事件
+// discrentUpdates 在UserBlocking优先级中执行
+function dispatchDiscreteEvent(topLevelType, eventSystemFlags, nativeEvent) {
+  flushDiscreteUpdatesIfNeeded(nativeEvent.timeStamp);
+  discreteUpdates(dispatchEvent, topLevelType, eventSystemFlags, nativeEvent);
+}
+
+// 阻塞事件
+function dispatchUserBlockingUpdate(
+  topLevelType,
+  eventSystemFlags,
+  nativeEvent,
+) {
+  // 如果开启了enableUserBlockingEvents, 则在UserBlocking优先级中调度，
+  // 开启enableUserBlockingEvents可以防止饥饿问题，因为阻塞事件中有scroll、mouseMove这类频繁触发的事件
+  // 否则同步执行
+  if (enableUserBlockingEvents) {
+    runWithPriority(
+      UserBlockingPriority,
+      dispatchEvent.bind(null, topLevelType, eventSystemFlags, nativeEvent),
+    );
+  } else {
+    dispatchEvent(topLevelType, eventSystemFlags, nativeEvent);
+  }
+}
+
+// 可连续事件则直接同步调用dispatchEvent
+```
+
+<br>
+
+dispatchEvent中会从DOM原生事件对象中事件的target，再根据这个target获取React节点实例.
+
+接着(中间还有一些步骤，这里忽略)会调用EventPluginHub的`runExtractedPluginEventsInBatch`，这个方法遍历插件列表，来处理事件:
+
+```ts
+export function runExtractedPluginEventsInBatch(
+  topLevelType: TopLevelType,
+  targetInst: null | Fiber,
+  nativeEvent: AnyNativeEvent,
+  nativeEventTarget: EventTarget,
+) {
+  // 遍历插件列表, 调用插件的extractEvents，生成SyntheticEvent列表
+  const events = extractPluginEvents(
+    topLevelType,
+    targetInst,
+    nativeEvent,
+    nativeEventTarget,
+  );
+
+  // 事件处理器执行
+  runEventsInBatch(events);
+}
+```
+
+<br>
+
+#### 插件是如何处理事件?
+
+现在来看看插件是如何处理事件的，我们以SimpleEventPlugin为例:
+
+```js
+const SimpleEventPlugin: PluginModule<MouseEvent> & {
+  getEventPriority: (topLevelType: TopLevelType) => EventPriority,
+} = {
+  eventTypes: eventTypes,
+
+  // 抽取事件对象
+  extractEvents: function(
+    topLevelType: TopLevelType,
+    targetInst: null | Fiber,
+    nativeEvent: MouseEvent,
+    nativeEventTarget: EventTarget,
+  ): null | ReactSyntheticEvent {
+    // 事件配置
+    const dispatchConfig = topLevelEventsToDispatchConfig[topLevelType];
+
+    // 1️⃣ 根据事件类型获取SyntheticEvent子类事件构造器
+    let EventConstructor;
+    switch (topLevelType) {
+      // ...
+      case DOMTopLevelEventTypes.TOP_KEY_DOWN:
+      case DOMTopLevelEventTypes.TOP_KEY_UP:
+        EventConstructor = SyntheticKeyboardEvent;
+        break;
+      case DOMTopLevelEventTypes.TOP_BLUR:
+      case DOMTopLevelEventTypes.TOP_FOCUS:
+        EventConstructor = SyntheticFocusEvent;
+        break;
+      // ... 省略
+      case DOMTopLevelEventTypes.TOP_GOT_POINTER_CAPTURE:
+      // ...
+      case DOMTopLevelEventTypes.TOP_POINTER_UP:
+        EventConstructor = SyntheticPointerEvent;
+        break;
+      default:
+        EventConstructor = SyntheticEvent;
+        break;
+    }
+
+    // 2️⃣ 构造事件对象, 从对象池中获取
+    const event = EventConstructor.getPooled(
+      dispatchConfig,
+      targetInst,
+      nativeEvent,
+      nativeEventTarget,
+    );
+
+    // 3️⃣ 根据DOM事件传播的顺序获取用户事件处理器
+    accumulateTwoPhaseDispatches(event);
+    return event;
+  },
+};
+```
+
+SimpleEventPlugin的extractEvents主要做以下三个事情:
+
+- 1️⃣ 根据事件的类型确定SyntheticEvent构造器
+- 2️⃣ 构造SyntheticEvent对象。
+- 3️⃣ 根据DOM事件传播的顺序获取用户事件处理器列表
+
+为了避免频繁创建和释放事件对象导致性能损耗(对象创建和垃圾回收)，React使用一个事件池来负责管理事件对象，使用完的事件对象会放回池中，以备后续的复用。
+
+这也意味着，在事件处理器同步执行完后，对象就会马上被回收，所有属性都会无效。所以一般不会在异步操作中访问SyntheticEvent事件对象。你也可以通过以下方法来保持事件对象的引用：
+
+- 调用`SyntheticEvent#persist()`方法，告诉React不要回收到对象池
+- 直接引用`SyntheticEvent#nativeEvent`, nativeEvent是可以持久引用的，不过为了不打破抽象，建议不要直接引用nativeEvent
+
+<br>
+
+构建完SyntheticEvent对象后，就需要遍历组件树来获取订阅该事件的用户事件处理器了:
+
+```js
+function accumulateTwoPhaseDispatchesSingle(event) {
+  // 以_targetInst为基点, 按照DOM事件传播的顺序遍历组件树
+  traverseTwoPhase(event._targetInst, accumulateDirectionalDispatches, event);
+}
+```
+
+遍历方法其实很简单：
+
+```js
+export function traverseTwoPhase(inst, fn, arg) {
+  const path = [];
+  while (inst) {           // 从inst开始，向上级回溯
+    path.push(inst);
+    inst = getParent(inst);
+  }
+
+  let i;
+  // 捕获阶段，先从最顶层的父组件开始, 向下级传播
+  for (i = path.length; i-- > 0; ) {
+    fn(path[i], 'captured', arg);
+  }
+
+  // 冒泡阶段，从inst，即事件触发点开始, 向上级传播
+  for (i = 0; i < path.length; i++) {
+    fn(path[i], 'bubbled', arg);
+  }
+}
+```
+
+accumulateDirectionalDispatches函数则是简单查找当前节点是否有对应的事件处理器:
+
+```js
+function accumulateDirectionalDispatches(inst, phase, event) {
+  // 检查是否存在事件处理器
+  const listener = listenerAtPhase(inst, event, phase);
+  // 所有处理器都放入到_dispatchListeners队列中，后续批量执行这个队列
+  if (listener) {
+    event._dispatchListeners = accumulateInto(
+      event._dispatchListeners,
+      listener,
+    );
+    event._dispatchInstances = accumulateInto(event._dispatchInstances, inst);
+  }
+}
+```
+
+例如下面的组件树, 遍历过程是这样的：
+
+![](/images/react-event/event-delivery.png)
+
+最终计算出来的_dispatchListeners队列是这样的：`[handleB, handleC, handleA]`
 
 事件处理器怎么释放
 
