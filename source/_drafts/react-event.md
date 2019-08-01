@@ -8,6 +8,25 @@ categories: 前端
 
 当我们在组件上定义事件处理器时，React并不会在DOM元素上直接绑定事件处理器，而是定义了一套事件系统，在这个系统上统一进行事件订阅和分发. 例如上面的e就是一个合成事件对象(SyntheticEvent), 而不是原始的DOM事件对象.
 
+**文章大纲**
+
+<!-- TOC -->
+
+- [那为什么要自定义一套事件系统?](#那为什么要自定义一套事件系统)
+- [基本概念](#基本概念)
+- [实现细节](#实现细节)
+  - [事件是如何绑定的？](#事件是如何绑定的)
+  - [事件是如何分发的？](#事件是如何分发的)
+    - [事件触发调度](#事件触发调度)
+    - [插件是如何处理事件?](#插件是如何处理事件)
+    - [批量执行](#批量执行)
+- [ResponderSystem](#respondersystem)
+- [扩展阅读](#扩展阅读)
+
+<!-- /TOC -->
+
+<br>
+
 ## 那为什么要自定义一套事件系统?
 
 如果了解过Preact(笔者之前写过一篇文章[解析Preact的源码](https://juejin.im/post/5cfa29e151882539c33e4f5e))，Preact裁剪了很多React的东西，其中就是事件机制，Preact是直接在DOM元素上进行事件绑定的。
@@ -295,7 +314,7 @@ export function runExtractedPluginEventsInBatch(
     nativeEventTarget,
   );
 
-  // 事件处理器执行
+  // 事件处理器执行, 见后文批量执行
   runEventsInBatch(events);
 }
 ```
@@ -430,9 +449,53 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 
 最终计算出来的_dispatchListeners队列是这样的：`[handleB, handleC, handleA]`
 
-事件处理器怎么释放
+<br>
 
-ResponderSystem
+#### 批量执行
+
+遍历执行插件后，会得到一个SyntheticEvent列表，`runEventsInBatch`就是批量执行这些事件中的`_dispatchListeners`事件队列
+
+```js
+export function runEventsInBatch(
+  events: Array<ReactSyntheticEvent> | ReactSyntheticEvent | null,
+) {
+  // ...
+  forEachAccumulated(processingEventQueue, executeDispatchesAndRelease);
+}
+
+// 👇
+
+const executeDispatchesAndRelease = function(event: ReactSyntheticEvent) {
+  if (event) {
+    // 按顺序执行_dispatchListeners
+    // 👇
+    executeDispatchesInOrder(event);
+
+    // 如果没有调用persist()方法则直接回收
+    if (!event.isPersistent()) {
+      event.constructor.release(event);
+    }
+  }
+};
+
+export function executeDispatchesInOrder(event) {
+  // 遍历dispatchListeners
+  for (let i = 0; i < dispatchListeners.length; i++) {
+    // 通过调用 stopPropagation 方法可以禁止执行下一个事件处理器
+    if (event.isPropagationStopped()) {
+      break;
+    }
+    // 执行事件处理器
+    executeDispatch(event, dispatchListeners[i], dispatchInstances[i]);
+  }
+}
+```
+
+OK, 到这里React的事件机制就基本介绍完了，这里只是简单了介绍了一下`SimpleEventPlugin`, 实际代码中还有很多事件处理的细节，限于篇幅，本文就不展开去讲了。有兴趣的读者可以亲自去观摩React的源代码.
+
+<br>
+
+## ResponderSystem
 
 ## 扩展阅读
 
