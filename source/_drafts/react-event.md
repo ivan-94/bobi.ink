@@ -1,5 +1,5 @@
 ---
-title: "谈React事件机制和未来"
+title: "谈谈React事件机制和未来(react-events)"
 date: 2019/7/29
 categories: 前端
 ---
@@ -548,12 +548,13 @@ export function executeDispatchesInOrder(event) {
 OK, 到这里React的事件机制就基本介绍完了，这里只是简单了介绍了一下`SimpleEventPlugin`, 实际代码中还有很多事件处理的细节，限于篇幅，本文就不展开去讲了。有兴趣的读者可以亲自去观摩React的源代码.
 
 <br>
+<br>
 
 ## 未来
 
-React内部有一个实验性的事件API，React内部称为`React Flare`、也称为[react-events](https://github.com/facebook/react/tree/master/packages/react-events), **通过这个API可以实现跨平台、跨设备的高级事件**.
+React内部有一个实验性的事件API，React内部称为`React Flare`、正式名称是[`react-events`](https://github.com/facebook/react/tree/master/packages/react-events), **通过这个API可以实现跨平台、跨设备的高级事件封装**.
 
-react-events中, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
+react-events定义了一个**事件响应器(Event Responders)**的概念，这个事件响应器可以捕获子组件树或应用根节点的事件，然后转换为自定义事件.
 
 比较典型的高级事件是press、longPress、swipe这些手势。通常我们需要自己或者利用第三方库来实现这一套手势识别, 例如
 
@@ -573,7 +574,7 @@ container);
 
 那么react-events的目的就是**提供一套通用的事件机制给开发者来实现'高级事件'的封装, 甚至实现事件的跨平台、跨设备**.
 
-react-events除了核心的`Responder`接口，还封装了一些内置模块, 实现跨平台的、常用的高级事件操作：
+react-events除了核心的`Responder`接口，还封装了一些内置模块, 实现跨平台的、常用的高级事件封装：
 
 - Focus module
 - Hover module
@@ -586,9 +587,9 @@ react-events除了核心的`Responder`接口，还封装了一些内置模块, �
 - Scroll module
 - Swipe module
 
-举Press模块作为例子, [Press模块](https://github.com/facebook/react/blob/master/packages/react-events/docs/Press.md)会响应它包裹的元素的press事件。press事件包括onContextMenu、onLongPress、onPress、onPressEnd、onPressMove、onPressStart等等. press事件底层通过mouse、pen、touch、trackpad等事件来转换.
+举`Press`模块作为例子, [Press模块](https://github.com/facebook/react/blob/master/packages/react-events/docs/Press.md)会响应它包裹的元素的press事件。press事件包括onContextMenu、onLongPress、onPress、onPressEnd、onPressMove、onPressStart等等. 其底层通过mouse、pen、touch、trackpad等事件来转换.
 
-看看使用示例：
+ 看看使用示例：
 
 ```js
 import { PressResponder } from 'react-events/press';
@@ -631,6 +632,10 @@ const Button = (props) => (
 );
 ```
 
+![](/images/react-event/responder.png)
+
+如上图, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
+
 TODO: codesandbox
 
 <br>
@@ -642,11 +647,11 @@ TODO: codesandbox
 ```js
 const keyboardResponderImpl = {
   /**
-   * 定义Responder需要监听的子树的DOM事件，对于Keyboard来说是['keydown', 'keyup';]
+   * ①定义Responder需要监听的子树的DOM事件，对于Keyboard来说是['keydown', 'keyup';]
    */
   targetEventTypes,
   /**
-   * 监听子树触发的事件
+   * ②监听子树触发的事件
    */
   onEvent(
     event: ReactDOMResponderEvent,     // 包含了当前触发事件的相关信息，如原生事件对象，事件触发的节点，事件类型等等
@@ -700,25 +705,33 @@ function dispatchKeyboardEvent(
 导出Responder:
 
 ```js
+// createResponder把keyboardResponderImpl转换为组件形式
 export const KeyboardResponder = React.unstable_createResponder(
   'Keyboard',
   keyboardResponderImpl,
 );
 
+// 创建hooks将其
 export function useKeyboardListener(props: KeyboardListenerProps): void {
   React.unstable_useListener(KeyboardResponder, props);
 }
 ```
 
-现在读者应该对Responder的职责有了一些基本的了解，它主要做以下几件事情:
+现在读者应该对**Responder的职责**有了一些基本的了解，它主要做以下几件事情:
 
 - 声明要监听的原生事件(如DOM), 如上面的`targetEventTypes`
 - 处理和转换合成事件，如上面的`onEvent`
 - 创建并分发自定义事件。如上面的`context.dispatchEvent`
 
-和上面的Keyboard模块相比，现实中的很多高级事件，如longPress则要复杂得多. 它们可能要维持一定的状态、也可能要独占响应的所有权(即同一时间只能有一个Responder可以对事件进行处理, 这个常用于移动端触摸手势，例如React Native的[GestureResponderSystem](https://reactnative.cn/docs/gesture-responder-system/))。react-events都考虑了这些场景
+<br>
+
+和上面的Keyboard模块相比，现实中的很多高级事件，如longPress, 它们的实现则要复杂得多. 它们可能要维持一定的**状态**、也可能要独占响应的**所有权**(即同一时间只能有一个Responder可以对事件进行处理, 这个常用于移动端触摸手势，例如React Native的[GestureResponderSystem](https://reactnative.cn/docs/gesture-responder-system/))。
+
+react-events目前都考虑了这些场景, 看一下API概览:
 
 ![](/images/react-event/react-events.png)
+
+<br>
 
 详细可以看react-events[官方仓库](https://github.com/facebook/react/tree/master/packages/react-events)
 
@@ -728,13 +741,19 @@ export function useKeyboardListener(props: KeyboardListenerProps): void {
 
 上文提到了React事件内部采用了插件机制，来实现事件处理和合成，比较典型的就是onChange事件。onChange事件其实就是所谓的‘高级事件’，它是通过表单组件的各种原生事件来模拟的。
 
-也就是说，React通过插件机制本质上是可以实现高级事件的封装的。如果读者看过源代码，就会觉得里面逻辑比较绕，而且依赖React的很多内部实现。所以这种内部的插件机制不是面向普通开发者的。
+也就是说，React通过插件机制本质上是可以实现高级事件的封装的。但是如果读者看过源代码，就会觉得里面逻辑比较绕，而且依赖React的很多内部实现。**所以这种内部的插件机制并不是面向普通开发者的**。
 
-react-events接口就简单很多了，它屏蔽了很多内部细节，面向普通开发者。我们可以利用它来实现高性能的自定义事件分发，更大的意义是通过它可以实现跨平台/设备的事件处理方式.
+`react-events`接口就简单很多了，它屏蔽了很多内部细节，面向普通开发者。我们可以利用它来实现高性能的自定义事件分发，更大的意义是通过它可以实现跨平台/设备的事件处理方式.
 
-目前react-events还是实验阶段，特性是默认关闭，API可能会出现变更, 所以不建议在生产环境使用。
+目前react-events还是实验阶段，特性是默认关闭，API可能会出现变更, 所以不建议在生产环境使用。可以通过这个[Issue](https://github.com/facebook/react/issues/15257)来关注它的进展。
+
+<br>
 
 最后赞叹一下React团队的创新能力！
+
+<br>
+
+完！
 
 <br>
 
