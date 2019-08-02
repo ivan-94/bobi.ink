@@ -74,9 +74,9 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
 - **EventPluginHub** - 如其名，这是一个‘插件插槽’，负责管理和注册各种插件。在事件分发时，调用插件来生成合成事件
 - **Plugin** - React事件系统使用了插件机制来管理不同行为的事件。这些插件会处理自己感兴趣的事件类型，并生成合成事件对象。目前ReactDOM有以下几种插件类型:
   - **SimpleEventPlugin** - 简单事件, 处理一些比较通用的事件类型，例如click、input、keyDown、mouseOver、mouseOut、pointerOver、pointerOut
-  - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两个事件比较特殊, 和`*over/*leave`事件相比, 它们不会冒泡, 所以无法全局进行订阅. 所以ReactDOM使用`*over/*out`事件来模拟这些`*enter/*leave`。
-  
-    所以当你使用onMouseEnter时会发现他是支持冒泡的。两者的区别可以查看这个[DEMO](TODO:)
+  - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两类事件比较特殊, 和`*over/*leave`事件相比, 它们不支持事件冒泡, `*enter`会给所有进入的元素发送事件, 行为有点类似于`:hover`; 而`*over`在进入元素后，还会冒泡通知其上级. 可以通过这个[实例](https://codesandbox.io/s/enter-and-over-608cl)观察enter和over的区别.
+
+    如果树层次比较深，大量的mouseenter触发可能导致性能问题。另外其不支持冒泡，无法在Document完美的监听, 所以ReactDOM使用`*over/*out`事件来模拟这些`*enter/*leave`。
 
   - **ChangeEventPlugin** - change事件是React的一个自定义事件，旨在规范化表单元素的变动事件。
 
@@ -636,7 +636,7 @@ const Button = (props) => (
 
 如上图, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
 
-TODO: codesandbox
+> 你可以通过这个Codesanbox玩一下`react-events`: [![Edit react-events-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-events-playground-wpjje?fontsize=14)
 
 <br>
 
