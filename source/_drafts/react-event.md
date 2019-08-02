@@ -1,12 +1,16 @@
 ---
-title: "再谈React事件机制"
+title: "谈React事件机制和未来"
 date: 2019/7/29
 categories: 前端
 ---
 
 ![](/images/react-event/sample.png)
 
-当我们在组件上定义事件处理器时，React并不会在DOM元素上直接绑定事件处理器，而是定义了一套事件系统，在这个系统上统一进行事件订阅和分发. 例如上面的e就是一个合成事件对象(SyntheticEvent), 而不是原始的DOM事件对象.
+当我们在组件上设置事件处理器时，React并不会在该DOM元素上直接绑定事件处理器. React内部自定义了一套事件系统，在这个系统上统一进行事件订阅和分发. 
+
+具体来讲，React利用事件委托机制在Document上统一监听DOM事件，再根据触发的target将事件分发到具体的组件实例。另外上面e是一个合成事件对象(SyntheticEvent), 而不是原始的DOM事件对象.
+
+<br>
 
 **文章大纲**
 
@@ -14,6 +18,8 @@ categories: 前端
 
 - [那为什么要自定义一套事件系统?](#那为什么要自定义一套事件系统)
 - [基本概念](#基本概念)
+  - [整体的架构](#整体的架构)
+  - [事件分类与优先级](#事件分类与优先级)
 - [实现细节](#实现细节)
   - [事件是如何绑定的？](#事件是如何绑定的)
   - [事件是如何分发的？](#事件是如何分发的)
@@ -27,21 +33,31 @@ categories: 前端
 
 <!-- /TOC -->
 
+> 截止本文写作时，React版本是16.8.6
+
 <br>
 
 ## 那为什么要自定义一套事件系统?
 
-如果了解过Preact(笔者之前写过一篇文章[解析Preact的源码](https://juejin.im/post/5cfa29e151882539c33e4f5e))，Preact裁剪了很多React的东西，其中就是事件机制，Preact是直接在DOM元素上进行事件绑定的。
+如果了解过Preact(笔者之前写过一篇文章[解析Preact的源码](https://juejin.im/post/5cfa29e151882539c33e4f5e))，Preact裁剪了很多React的东西，其中包括事件机制，Preact是直接在DOM元素上进行事件绑定的。
 
 在研究一个事物之前，我首先要问为什么？了解它的动机，才有利于你对它有本质的认识。
 
 React自定义一套事件系统的动机有以下几个:
 
-- 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
-- 事件‘合成’。事件合成除了处理兼容性问题，还可以用来自定义事件/高级事件，比较典型的是React的onChange事件，它为表单元素定义了统一的值变动事件。另外第三方也可以通过插件机制来合成自定义事件，尽管很少人这么做。
-- 抽象跨平台事件机制。如果VirtualDOM抽象了平台之间的UI节点，那么对应了React的合成事件机制就是为了抽象跨平台的事件机制。
-- React打算做更多优化。比如利用事件委托机制，大部分事件最终绑定到了document，而不是DOM节点本身，这样简化了DOM原生事件，减少了内存开销. 但这也意味着，React需要自己模拟一套事件冒泡的机制。
-- React打算干预事件的分发。v16引入Fiber架构、以及后面的Concurrent Mode，React为了优化用户的交互体验，会干预事件的分发。不同类型的事件有不同的优先级，比如高优先级的事件可以中断渲染，让代码可以及时响应用户交互。
+- **1. 抹平浏览器之间的兼容性差异**。 这是估计最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件(SyntheticEvent), 意在抹平浏览器之间的差异。
+
+  另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
+
+- **2. 事件‘合成’, 即事件自定义**。事件合成除了处理兼容性问题，还可以用来自定义高级事件，比较典型的是React的onChange事件，它为表单元素定义了统一的值变动事件。另外第三方也可以通过React的事件插件机制来合成自定义事件，尽管很少人这么做。
+
+- **3. 抽象跨平台事件机制**。 和VirtualDOM的意义差不多，VirtualDOM抽象了跨平台的渲染方式，那么对应的SyntheticEvent目的也是想提供一个抽象的跨平台事件机制。
+
+- **4. React打算做更多优化**。比如利用事件委托机制，大部分事件最终绑定到了Document，而不是DOM节点本身. 这样简化了DOM事件处理逻辑，减少了内存开销. 但这也意味着，**React需要自己模拟一套事件冒泡的机制**。
+
+- **5. React打算干预事件的分发**。v16引入Fiber架构，React为了优化用户的交互体验，会干预事件的分发。不同类型的事件有不同的优先级，比如高优先级的事件可以中断渲染，让用户代码可以及时响应用户交互。
+
+<br>
 
 Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码，用流程图说话。
 
@@ -49,30 +65,33 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
 
 ## 基本概念
 
-**整体的架构**
+### 整体的架构
 
 ![](/images/react-event/st.png)
 
-- **ReactEventListener** - 事件处理器，在这里进行事件处理器的绑定。当DOM触发事件时，会从这里开始调度分发到React组件树
-- **ReactEventEmitter** - 暴露接口给React组件层用于事件订阅
+- **ReactEventListener** - 事件处理器. 在这里进行事件处理器的绑定。当DOM触发事件时，会从这里开始调度分发到React组件树
+- **ReactEventEmitter** - 暴露接口给React组件层用于添加事件订阅
 - **EventPluginHub** - 如其名，这是一个‘插件插槽’，负责管理和注册各种插件。在事件分发时，调用插件来生成合成事件
-- **Plugin** - React事件系统使用了插件机制来管理不同行为的事件。这些插件会处理自己感兴趣的事件类型，并生成合成事件对象。目前ReactDOM有以下几种插件类型
+- **Plugin** - React事件系统使用了插件机制来管理不同行为的事件。这些插件会处理自己感兴趣的事件类型，并生成合成事件对象。目前ReactDOM有以下几种插件类型:
   - **SimpleEventPlugin** - 简单事件, 处理一些比较通用的事件类型，例如click、input、keyDown、mouseOver、mouseOut、pointerOver、pointerOut
-  - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两个事件比较特殊, 和\*over/\*leave事件相比它们不会冒泡。所以无法全局进行订阅，ReactDOM使用\*over/\*out事件来模拟这些\*enter/\*leave。所以当你使用onMouseEnter时会发现他是支持冒泡的。两者的区别可以查看这个[DEMO](TODO:)
+  - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两个事件比较特殊, 和`*over/*leave`事件相比, 它们不会冒泡, 所以无法全局进行订阅. 所以ReactDOM使用`*over/*out`事件来模拟这些`*enter/*leave`。
+  
+    所以当你使用onMouseEnter时会发现他是支持冒泡的。两者的区别可以查看这个[DEMO](TODO:)
+
   - **ChangeEventPlugin** - change事件是React的一个自定义事件，旨在规范化表单元素的变动事件。
 
-    它支持这些元素: input, textarea, select 
+    它支持这些表单元素: input, textarea, select 
 
   - **SelectEventPlugin** - 和change事件一样，React为表单元素规范化了select(选择范围变动)事件，适用于input、textarea、contentEditable元素.
   - **BeforeInputEventPlugin** - beforeinput事件以及[composition](https://developer.mozilla.org/zh-CN/docs/Web/Events/compositionstart)事件处理。
 
-  本文主要会关注SimpleEventPlugin的实现，有兴趣的读者可以自己阅读React的源代码.
+  本文主要会关注`SimpleEventPlugin`的实现，有兴趣的读者可以自己阅读React的源代码.
 
-- **EventPropagators** 按照DOM事件传播的两个阶段，遍历React组件树，并收集所有事件处理器
+- **EventPropagators** 按照DOM事件传播的两个阶段，遍历React组件树，并收集所有组件的事件处理器.
 - **EventBatching** 负责批量执行事件队列和事件处理器，处理事件冒泡。
-- **SyntheticEvent** 这是‘合成’事件的基类，可以对应DOM的Event对象。只不过React为了减低内存损耗和垃圾回收，使用一个对象池来构建和释放事件对象， 也就是说SyntheticEvent不能用于异步引用，他在同步执行完事件处理器后就会被释放。
+- **SyntheticEvent** 这是‘合成’事件的基类，可以对应DOM的Event对象。只不过React为了减低内存损耗和垃圾回收，使用一个对象池来构建和释放事件对象， 也就是说SyntheticEvent不能用于异步引用，它在同步执行完事件处理器后就会被释放。
   
-  SyntheticEvent也有子类， 和DOM事件类型一一匹配
+  SyntheticEvent也有子类，和DOM具体事件类型一一匹配:
 
   - SyntheticAnimationEvent
   - SyntheticClipboardEvent
@@ -86,27 +105,30 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
   - SyntheticTouchEvent
   - ....
 
+<br>
 
-**事件分类与优先级**
 
-SimplePlugin将事件类型划分成了三类, 对应不同的优先级(优先级由低到高):
+### 事件分类与优先级
+
+SimpleEventPlugin将事件类型划分成了三类, 对应不同的优先级(**优先级由低到高**):
 
 - **DiscreteEvent** 离散事件. 例如blur、focus、 click、 submit、 touchStart. 这些事件都是离散触发的
 - **UserBlockingEvent** 用户阻塞事件. 例如touchMove、mouseMove、scroll、drag、dragOver等等。这些事件会'阻塞'用户的交互。
-- **ContinuousEvent** 可连续事件。例如load、error、loadStart、abort、animationEnd. 这个优先级最高，也就是说它们是同步执行的，这就是Continuous的意义，即可连续的执行，不被打断.
+- **ContinuousEvent** 可连续事件。例如load、error、loadStart、abort、animationEnd. 这个优先级最高，也就是说它们应该是立即同步执行的，这就是Continuous的意义，即可连续的执行，不被打断.
 
 可能要先了解一下React调度(Schedule)的优先级，才能理解这三种事件类型的区别。截止到本文写作时，React有5个优先级级别:
 
 - `Immediate` - 这个优先级的任务会同步执行, 或者说要马上执行且不能中断
-- `UserBlocking` 这些任务一般是用户交互的结果, 需要即时得到反馈 .
+- `UserBlocking`(250ms timeout) 这些任务一般是用户交互的结果, 需要即时得到反馈 .
 - `Normal` (5s timeout) 应对哪些不需要立即感受到的任务，例如网络请求
 - `Low` (10s timeout) 这些任务可以放后，但是最终应该得到执行. 例如分析通知
 - `Idle` (no timeout) 一些没有必要做的任务 (e.g. 比如隐藏的内容).
 
-目前ContinuousEvent对应的是Immediate优先级，而DiscreteEvent和UserBlockingEvent对应的是UserBlocking。
+目前ContinuousEvent对应的是Immediate优先级; UserBlockingEvent对应的是UserBlocking(需要手动开启); 而DiscreteEvent对应的也是UserBlocking, 只不过它在执行之前，先会执行完其他Discrete任务。
 
 本文不会深入React Fiber架构的细节，有兴趣的读者可以阅读文末的扩展阅读列表.
 
+<br>
 <br>
 
 ## 实现细节
@@ -154,7 +176,7 @@ export type DispatchConfig = {
 
 上面列举了三个典型的EventPlugin：
 
-- SimplePlugin: 简单事件最好理解，它们的行为都比较通用，没有什么Trick, 例如不支持事件冒泡、不支持在Document上绑定等等，和原生DOM事件是一一对应的关系，比较好处理.
+- SimpleEventPlugin: 简单事件最好理解，它们的行为都比较通用，没有什么Trick, 例如不支持事件冒泡、不支持在Document上绑定等等，和原生DOM事件是一一对应的关系，比较好处理.
 - EnterLeaveEventPlugin: 从上图可以看出来，mouseEnter和mouseLeave依赖的是mouseout和mouseover事件。也就是说\*Enter/\*Leave事件在React中是通过\*over/\*out事件来模拟的。这样做的好处是可以在document上面进行委托监听，还有避免enter/leave一些奇怪而不实用的行为。
 - ChangeEventPlugin: onChange是React的一个自定义事件，可以看出它依赖了多种原生DOM事件类型来模拟onChange事件.
 
@@ -664,7 +686,7 @@ export function useKeyboardListener(props: KeyboardListenerProps): void {
 - 处理和转换合成事件，如上面的`onEvent`
 - 创建并分发自定义事件。如上面的`context.dispatchEvent`
 
-和上面的Keyboard模块相比，现实中的很多高级事件，如longPress则要复杂得多. 它们可能要维持一定的状态、也可能要独占响应的所有权(即同一时间只能有一个Responder可以对事件进行处理)。react-events都考虑了这些场景
+和上面的Keyboard模块相比，现实中的很多高级事件，如longPress则要复杂得多. 它们可能要维持一定的状态、也可能要独占响应的所有权(即同一时间只能有一个Responder可以对事件进行处理, 这个常用于移动端触摸手势，例如React Native的[GestureResponderSystem](https://reactnative.cn/docs/gesture-responder-system/))。react-events都考虑了这些场景
 
 ![](/images/react-event/react-events.png)
 
