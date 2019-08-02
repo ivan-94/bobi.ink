@@ -133,20 +133,19 @@ SimpleEventPlugin将事件类型划分成了三类, 对应不同的优先级(**�
 
 ## 实现细节
 
-现在开始进入文章整体，React是怎么实现事件机制？主要分为两个部分**绑定**和**分发**.
+现在开始进入文章正题，React是怎么实现事件机制？主要分为两个部分: **绑定**和**分发**.
 
 ### 事件是如何绑定的？
 
-为了避免后面绕晕了，有必要先了解一下React事件机制中的插件协议。
-
-每个插件的结构如下:
+为了避免后面绕晕了，有必要先了解一下React事件机制中的插件协议。 每个插件的结构如下:
 
 ```ts
 export type EventTypes = {[key: string]: DispatchConfig};
 
+// 插件接口
 export type PluginModule<NativeEvent> = {
-  eventTypes: EventTypes,
-  extractEvents: (
+  eventTypes: EventTypes,          // 声明插件支持的事件类型
+  extractEvents: (                 // 对事件进行处理，并返回合成事件对象
     topLevelType: TopLevelType,
     targetInst: null | Fiber,
     nativeEvent: NativeEvent,
@@ -156,11 +155,13 @@ export type PluginModule<NativeEvent> = {
 };
 ```
 
+<br>
+
 **eventTypes**声明该插件负责的事件类型, 它通过`DispatchConfig`来描述:
 
 ```ts
 export type DispatchConfig = {
-  dependencies: Array<TopLevelType>, // 依赖的原生事件，表示关联这些事件的触发. ‘简单事件’一般只有一个，复杂事件如onChange会监听多个, 如下图
+  dependencies: Array<TopLevelType>, // 依赖的原生事件，表示关联这些事件的触发. ‘简单事件’一般只有一个，复杂事件如onChange会监听多个, 如下图👇
   phasedRegistrationNames?: {    // 两阶段props事件注册名称, React会根据这些名称在组件实例中查找对应的props事件处理器
     bubbled: string,             // 冒泡阶段, 如onClick
     captured: string,            // 捕获阶段，如onClickCapture
@@ -170,21 +171,27 @@ export type DispatchConfig = {
 };
 ```
 
-看一下示例:
+<br>
+
+看一下实例:
 
 ![](/images/react-event/dispatch-config.png)
 
 上面列举了三个典型的EventPlugin：
 
-- SimpleEventPlugin: 简单事件最好理解，它们的行为都比较通用，没有什么Trick, 例如不支持事件冒泡、不支持在Document上绑定等等，和原生DOM事件是一一对应的关系，比较好处理.
-- EnterLeaveEventPlugin: 从上图可以看出来，mouseEnter和mouseLeave依赖的是mouseout和mouseover事件。也就是说\*Enter/\*Leave事件在React中是通过\*over/\*out事件来模拟的。这样做的好处是可以在document上面进行委托监听，还有避免enter/leave一些奇怪而不实用的行为。
-- ChangeEventPlugin: onChange是React的一个自定义事件，可以看出它依赖了多种原生DOM事件类型来模拟onChange事件.
+- **SimpleEventPlugin** - 简单事件最好理解，它们的行为都比较通用，没有什么Trick, 例如不支持事件冒泡、不支持在Document上绑定等等. 和原生DOM事件是一一对应的关系，比较好处理.
+
+- **EnterLeaveEventPlugin** - 从上图可以看出来，`mouseEnter`和`mouseLeave`依赖的是`mouseout`和`mouseover`事件。也就是说`*Enter/*Leave`事件在React中是通过`*Over/*Out`事件来模拟的。这样做的好处是可以在document上面进行委托监听，还有避免`*Enter/*Leave`一些奇怪而不实用的行为。
+
+- **ChangeEventPlugin** - onChange是React的一个自定义事件，可以看出它依赖了多种原生DOM事件类型来模拟onChange事件.
 
 <br>
 
-每个插件还会定义extractEvents方法，这个方法接受事件名称、原生DOM事件对象、事件触发的DOM元素以及React组件实例, 返回一个合成事件对象，如果返回空则表示不作处理. 关于extractEvents的细节，会在下一节阐述.
+另外每个插件还会定义`extractEvents`方法，这个方法接受事件名称、原生DOM事件对象、事件触发的DOM元素以及React组件实例, 返回一个合成事件对象，如果返回空则表示不作处理. 关于extractEvents的细节会在下一节阐述.
 
-在ReactDOM启动时就会向EventPluginHub注册这些插件：
+<br>
+
+在ReactDOM启动时就会向`EventPluginHub`注册这些插件：
 
 ```js
 EventPluginHubInjection.injectEventPluginsByName({
@@ -196,16 +203,20 @@ EventPluginHubInjection.injectEventPluginsByName({
 });
 ```
 
+<br>
+
 Ok, 回到正题，事件是怎么绑定的呢？ 打个断点看一下调用栈:
 
 ![](/images/react-event/listento.png)
 
-前面关于React树如何更新和渲染就不在本文的范围内了，从上面的调用栈可以看出React在props初始化和更新时会进行事件绑定。这里先看一下流程图，忽略杂乱的跳转：
+前面调用栈关于React树如何更新和渲染就不在本文的范围内了，通过调用栈可以看出React在props初始化和更新时会进行事件绑定。这里先看一下流程图，忽略杂乱的跳转：
 
 ![](/images/react-event/binding.png)
 
-- 在props初始化和更新时会进行事件绑定。首先React会判断元素是否是媒体类型，媒体类型的事件是无法在Document监听的，所以会直接在元素上进行绑定
-- 反之就在Document上绑定. 这里面需要两个信息，一个就是上文提到的'事件依赖列表', 比如onMouseEnter依赖mouseover/mouseout; 第二个是ReactBrowserEventEmitter维护的已订阅事件表。事件处理器只需在Document订阅一次，所以相比在每个元素上订阅事件会节省很多资源. 代码大概如下:
+- **1. 在props初始化和更新时会进行事件绑定**。首先React会判断元素是否是`媒体类型`，**媒体类型的事件是无法在Document监听的，所以会直接在元素上进行绑定**
+- **2. 反之就在Document上绑定**. 这里面需要两个信息，一个就是上文提到的'事件依赖列表', 比如`onMouseEnter`依赖`mouseover/mouseout`; 第二个是ReactBrowserEventEmitter维护的'已订阅事件表'。**事件处理器只需在Document订阅一次，所以相比在每个元素上订阅事件会节省很多资源**.
+
+代码大概如下:
 
 ```ts
 export function listenTo(
@@ -233,7 +244,7 @@ export function listenTo(
 }
 ```
 
-- 接下来就是根据事件的**优先级**和**阶段**(是否是capture)来设置事件处理器:
+- **接下来就是根据事件的'优先级'和'捕获阶段'(是否是capture)来设置事件处理器**:
 
 ```ts
 function trapEventForPluginEventSystem(
@@ -319,9 +330,22 @@ function dispatchUserBlockingUpdate(
 
 <br>
 
-dispatchEvent中会从DOM原生事件对象中事件的target，再根据这个target获取React节点实例.
+最终不同的事件类型都会调用`dispatchEvent`函数. `dispatchEvent`中会从DOM原生事件对象获取事件触发的target，再根据这个target获取关联的React节点实例.
 
-接着(中间还有一些步骤，这里忽略)会调用EventPluginHub的`runExtractedPluginEventsInBatch`，这个方法遍历插件列表，来处理事件:
+```js
+export function dispatchEvent(topLevelType: DOMTopLevelEventType, eventSystemFlags: EventSystemFlags, nativeEvent: AnyNativeEvent): void {
+  // 获取事件触发的目标DOM
+  const nativeEventTarget = getEventTarget(nativeEvent);
+  // 获取离该DOM最近的组件实例(只能是DOM元素组件)
+  let targetInst = getClosestInstanceFromNode(nativeEventTarget);
+  // ....
+  dispatchEventForPluginEventSystem(topLevelType, eventSystemFlags, nativeEvent, targetInst);
+}
+```
+
+<br>
+
+接着(中间还有一些步骤，这里忽略)会调用`EventPluginHub`的`runExtractedPluginEventsInBatch`，这个方法遍历插件列表来处理事件，生成一个SyntheticEvent列表:
 
 ```ts
 export function runExtractedPluginEventsInBatch(
@@ -347,14 +371,13 @@ export function runExtractedPluginEventsInBatch(
 
 #### 插件是如何处理事件?
 
-现在来看看插件是如何处理事件的，我们以SimpleEventPlugin为例:
+现在来看看插件是如何处理事件的，我们以`SimpleEventPlugin`为例:
 
 ```js
 const SimpleEventPlugin: PluginModule<MouseEvent> & {
   getEventPriority: (topLevelType: TopLevelType) => EventPriority,
 } = {
   eventTypes: eventTypes,
-
   // 抽取事件对象
   extractEvents: function(
     topLevelType: TopLevelType,
@@ -403,22 +426,24 @@ const SimpleEventPlugin: PluginModule<MouseEvent> & {
 };
 ```
 
-SimpleEventPlugin的extractEvents主要做以下三个事情:
+`SimpleEventPlugin`的`extractEvents`主要做以下三个事情:
 
 - 1️⃣ 根据事件的类型确定SyntheticEvent构造器
 - 2️⃣ 构造SyntheticEvent对象。
 - 3️⃣ 根据DOM事件传播的顺序获取用户事件处理器列表
 
-为了避免频繁创建和释放事件对象导致性能损耗(对象创建和垃圾回收)，React使用一个事件池来负责管理事件对象，使用完的事件对象会放回池中，以备后续的复用。
+<br>
 
-这也意味着，在事件处理器同步执行完后，对象就会马上被回收，所有属性都会无效。所以一般不会在异步操作中访问SyntheticEvent事件对象。你也可以通过以下方法来保持事件对象的引用：
+**为了避免频繁创建和释放事件对象导致性能损耗(对象创建和垃圾回收)，React使用一个事件池来负责管理事件对象，使用完的事件对象会放回池中，以备后续的复用**。
+
+这也意味着，**在事件处理器同步执行完后，SyntheticEvent对象就会马上被回收**，所有属性都会无效。所以一般不会在异步操作中访问SyntheticEvent事件对象。你也可以通过以下方法来保持事件对象的引用：
 
 - 调用`SyntheticEvent#persist()`方法，告诉React不要回收到对象池
 - 直接引用`SyntheticEvent#nativeEvent`, nativeEvent是可以持久引用的，不过为了不打破抽象，建议不要直接引用nativeEvent
 
 <br>
 
-构建完SyntheticEvent对象后，就需要遍历组件树来获取订阅该事件的用户事件处理器了:
+构建完SyntheticEvent对象后，就需要**遍历组件树来获取订阅该事件的用户事件处理器**了:
 
 ```js
 function accumulateTwoPhaseDispatchesSingle(event) {
@@ -450,7 +475,7 @@ export function traverseTwoPhase(inst, fn, arg) {
 }
 ```
 
-accumulateDirectionalDispatches函数则是简单查找当前节点是否有对应的事件处理器:
+`accumulateDirectionalDispatches`函数则是简单查找当前节点是否有对应的事件处理器:
 
 ```js
 function accumulateDirectionalDispatches(inst, phase, event) {
@@ -467,11 +492,13 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 }
 ```
 
+<br>
+
 例如下面的组件树, 遍历过程是这样的：
 
 ![](/images/react-event/event-delivery.png)
 
-最终计算出来的_dispatchListeners队列是这样的：`[handleB, handleC, handleA]`
+最终计算出来的`_dispatchListeners`队列是这样的：`[handleB, handleC, handleA]`
 
 <br>
 
@@ -514,6 +541,9 @@ export function executeDispatchesInOrder(event) {
   }
 }
 ```
+
+![](/images/react-event/dispatch.png)
+
 
 OK, 到这里React的事件机制就基本介绍完了，这里只是简单了介绍了一下`SimpleEventPlugin`, 实际代码中还有很多事件处理的细节，限于篇幅，本文就不展开去讲了。有兴趣的读者可以亲自去观摩React的源代码.
 
