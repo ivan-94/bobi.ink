@@ -20,7 +20,9 @@ categories: 前端
     - [事件触发调度](#事件触发调度)
     - [插件是如何处理事件?](#插件是如何处理事件)
     - [批量执行](#批量执行)
-- [ResponderSystem](#respondersystem)
+- [未来](#未来)
+  - [初探Responder的创建](#初探responder的创建)
+  - [react-events意义何在?](#react-events意义何在)
 - [扩展阅读](#扩展阅读)
 
 <!-- /TOC -->
@@ -36,7 +38,7 @@ categories: 前端
 React自定义一套事件系统的动机有以下几个:
 
 - 抹平浏览器之间的兼容性问题。 这是最原始的动机，React根据[W3C 规范](https://www.w3.org/TR/DOM-Level-3-Events/)来定义这些合成事件, 避免了浏览器之间的差异。另外React还会试图通过其他相关事件来模拟一些低版本不兼容的事件, 这才是‘合成’的本来意思吧？。
-- 事件‘合成’。事件合成除了处理兼容性问题，还可以用来自定义事件，比较典型的是React的onChange事件，它为表单元素定义了统一的值变动事件。另外第三方也可以通过插件机制来合成自定义事件，尽管很少人这么做。
+- 事件‘合成’。事件合成除了处理兼容性问题，还可以用来自定义事件/高级事件，比较典型的是React的onChange事件，它为表单元素定义了统一的值变动事件。另外第三方也可以通过插件机制来合成自定义事件，尽管很少人这么做。
 - 抽象跨平台事件机制。如果VirtualDOM抽象了平台之间的UI节点，那么对应了React的合成事件机制就是为了抽象跨平台的事件机制。
 - React打算做更多优化。比如利用事件委托机制，大部分事件最终绑定到了document，而不是DOM节点本身，这样简化了DOM原生事件，减少了内存开销. 但这也意味着，React需要自己模拟一套事件冒泡的机制。
 - React打算干预事件的分发。v16引入Fiber架构、以及后面的Concurrent Mode，React为了优化用户的交互体验，会干预事件的分发。不同类型的事件有不同的优先级，比如高优先级的事件可以中断渲染，让代码可以及时响应用户交互。
@@ -495,7 +497,194 @@ OK, 到这里React的事件机制就基本介绍完了，这里只是简单了�
 
 <br>
 
-## ResponderSystem
+## 未来
+
+React内部有一个实验性的事件API，React内部称为`React Flare`、也称为[react-events](https://github.com/facebook/react/tree/master/packages/react-events), **通过这个API可以实现跨平台、跨设备的高级事件**.
+
+react-events中, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
+
+比较典型的高级事件是press、longPress、swipe这些手势。通常我们需要自己或者利用第三方库来实现这一套手势识别, 例如
+
+```js
+import Gesture from 'rc-gesture';
+
+ReactDOM.render(
+  <Gesture
+    onTap={handleTap}
+    onSwipe={onSwipe}
+    onPinch={handlePinch}
+  >
+    <div>container</div>
+  </Gesture>,
+container);
+```
+
+那么react-events的目的就是**提供一套通用的事件机制给开发者来实现'高级事件'的封装, 甚至实现事件的跨平台、跨设备**.
+
+react-events除了核心的`Responder`接口，还封装了一些内置模块, 实现跨平台的、常用的高级事件操作：
+
+- Focus module
+- Hover module
+- Press module
+- FocusScope module
+- Input module
+- KeyBoard module
+- Drag module
+- Pan module
+- Scroll module
+- Swipe module
+
+举Press模块作为例子, [Press模块](https://github.com/facebook/react/blob/master/packages/react-events/docs/Press.md)会响应它包裹的元素的press事件。press事件包括onContextMenu、onLongPress、onPress、onPressEnd、onPressMove、onPressStart等等. press事件底层通过mouse、pen、touch、trackpad等事件来转换.
+
+看看使用示例：
+
+```js
+import { PressResponder } from 'react-events/press';
+
+const Button = (props) => (
+  const [ pressed, setPressed ] = useState(false);
+  return (
+    <div
+      responders={                      // 通过responders props绑定Responder实例
+        <Press
+          onPress={props.onPress}
+          onPressChange={setPressed}
+          onLongPress={props.onLongPress}
+        />
+      }
+    >
+      {subtrees}
+    </div>
+  );
+);
+```
+
+你甚至可以通过hooks形式给Responder传递props:
+
+```jsx
+import { PressResponder, usePressListener } from 'react-events/press';
+
+const Button = (props) => (
+  usePressListener({  // 通过hooks监听当前组件的PressResponder
+    onPressStart,
+    onPress,
+    onPressEnd,
+  })
+
+  return (
+    <div responders={<Press delayPressStart={2000}/>}>
+      {subtrees}
+    </div>
+  );
+);
+```
+
+TODO: codesandbox
+
+<br>
+
+### 初探Responder的创建
+
+我们挑一个简单的模块来了解一些react-events的核心API, 目前最简单的是Keyboard模块. Keyboard模块的目的就是规范化keydown和keyup事件对象的key属性(部分浏览器key属性的行为不一样)，它的实现如下:
+
+```js
+const keyboardResponderImpl = {
+  /**
+   * 定义Responder需要监听的子树的DOM事件，对于Keyboard来说是['keydown', 'keyup';]
+   */
+  targetEventTypes,
+  /**
+   * 监听子树触发的事件
+   */
+  onEvent(
+    event: ReactDOMResponderEvent,     // 包含了当前触发事件的相关信息，如原生事件对象，事件触发的节点，事件类型等等
+    context: ReactDOMResponderContext, // Responder的上下文，给Responder提供了一些方法来驱动事件分发
+    props: KeyboardResponderProps,     // 传递给Responder的props
+  ): void {
+    const {responderTarget, type} = event;
+
+    if (props.disabled) {
+      return;
+    }
+
+    if (type === 'keydown') {
+      dispatchKeyboardEvent(
+        'onKeyDown',
+        event,
+        context,
+        'keydown',
+        ((responderTarget: any): Element | Document),
+      );
+    } else if (type === 'keyup') {
+      dispatchKeyboardEvent(
+        'onKeyUp',
+        event,
+        context,
+        'keyup',
+        ((responderTarget: any): Element | Document),
+      );
+    }
+  },
+};
+```
+
+再来看看dispatchKeyboardEvent:
+
+```js
+function dispatchKeyboardEvent(
+  eventPropName: string,
+  event: ReactDOMResponderEvent,
+  context: ReactDOMResponderContext,
+  type: KeyboardEventType,
+  target: Element | Document,
+): void {
+  // 创建合成事件对象，在这个函数中会规范化事件的key属性
+  const syntheticEvent = createKeyboardEvent(event, context, type, target);
+  // 通过Responder上下文分发事件
+  context.dispatchEvent(eventPropName, syntheticEvent, DiscreteEvent);
+}
+```
+
+导出Responder:
+
+```js
+export const KeyboardResponder = React.unstable_createResponder(
+  'Keyboard',
+  keyboardResponderImpl,
+);
+
+export function useKeyboardListener(props: KeyboardListenerProps): void {
+  React.unstable_useListener(KeyboardResponder, props);
+}
+```
+
+现在读者应该对Responder的职责有了一些基本的了解，它主要做以下几件事情:
+
+- 声明要监听的原生事件(如DOM), 如上面的`targetEventTypes`
+- 处理和转换合成事件，如上面的`onEvent`
+- 创建并分发自定义事件。如上面的`context.dispatchEvent`
+
+和上面的Keyboard模块相比，现实中的很多高级事件，如longPress则要复杂得多. 它们可能要维持一定的状态、也可能要独占响应的所有权(即同一时间只能有一个Responder可以对事件进行处理)。react-events都考虑了这些场景
+
+![](/images/react-event/react-events.png)
+
+详细可以看react-events[官方仓库](https://github.com/facebook/react/tree/master/packages/react-events)
+
+<br>
+
+### react-events意义何在?
+
+上文提到了React事件内部采用了插件机制，来实现事件处理和合成，比较典型的就是onChange事件。onChange事件其实就是所谓的‘高级事件’，它是通过表单组件的各种原生事件来模拟的。
+
+也就是说，React通过插件机制本质上是可以实现高级事件的封装的。如果读者看过源代码，就会觉得里面逻辑比较绕，而且依赖React的很多内部实现。所以这种内部的插件机制不是面向普通开发者的。
+
+react-events接口就简单很多了，它屏蔽了很多内部细节，面向普通开发者。我们可以利用它来实现高性能的自定义事件分发，更大的意义是通过它可以实现跨平台/设备的事件处理方式.
+
+目前react-events还是实验阶段，特性是默认关闭，API可能会出现变更, 所以不建议在生产环境使用。
+
+最后赞叹一下React团队的创新能力！
+
+<br>
 
 ## 扩展阅读
 
@@ -503,3 +692,5 @@ OK, 到这里React的事件机制就基本介绍完了，这里只是简单了�
 - [完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
 - [Lin Clark – A Cartoon Intro to Fiber – React Conf 2017](https://www.youtube.com/watch?v=ZCuYPiUIONs)
 - [Scheduling in React](https://philippspiess.com/scheduling-in-react/)
+- [[Umbrella] React Flare](https://github.com/facebook/react/issues/15257)
+- [react-events](https://github.com/facebook/react/tree/master/packages/react-events)
