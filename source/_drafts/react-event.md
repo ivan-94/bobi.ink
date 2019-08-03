@@ -76,7 +76,7 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
   - **SimpleEventPlugin** - 简单事件, 处理一些比较通用的事件类型，例如click、input、keyDown、mouseOver、mouseOut、pointerOver、pointerOut
   - **EnterLeaveEventPlugin** - mouseEnter/mouseLeave和pointerEnter/pointerLeave这两类事件比较特殊, 和`*over/*leave`事件相比, 它们不支持事件冒泡, `*enter`会给所有进入的元素发送事件, 行为有点类似于`:hover`; 而`*over`在进入元素后，还会冒泡通知其上级. 可以通过这个[实例](https://codesandbox.io/s/enter-and-over-608cl)观察enter和over的区别.
 
-    如果树层次比较深，大量的mouseenter触发可能导致性能问题。另外其不支持冒泡，无法在Document完美的监听, 所以ReactDOM使用`*over/*out`事件来模拟这些`*enter/*leave`。
+    如果树层次比较深，大量的mouseenter触发可能导致性能问题。另外其不支持冒泡，无法在Document完美的监听和分发, 所以ReactDOM使用`*over/*out`事件来模拟这些`*enter/*leave`。
 
   - **ChangeEventPlugin** - change事件是React的一个自定义事件，旨在规范化表单元素的变动事件。
 
@@ -589,43 +589,20 @@ react-events除了核心的`Responder`接口，还封装了一些内置模块, �
 
 举`Press`模块作为例子, [Press模块](https://github.com/facebook/react/blob/master/packages/react-events/docs/Press.md)会响应它包裹的元素的press事件。press事件包括onContextMenu、onLongPress、onPress、onPressEnd、onPressMove、onPressStart等等. 其底层通过mouse、pen、touch、trackpad等事件来转换.
 
- 看看使用示例：
-
-```js
-import { PressResponder } from 'react-events/press';
-
-const Button = (props) => (
-  const [ pressed, setPressed ] = useState(false);
-  return (
-    <div
-      responders={                      // 通过responders props绑定Responder实例
-        <Press
-          onPress={props.onPress}
-          onPressChange={setPressed}
-          onLongPress={props.onLongPress}
-        />
-      }
-    >
-      {subtrees}
-    </div>
-  );
-);
-```
-
-你甚至可以通过hooks形式给Responder传递props:
+看看使用示例：
 
 ```jsx
 import { PressResponder, usePressListener } from 'react-events/press';
 
 const Button = (props) => (
-  usePressListener({  // 通过hooks监听当前组件的PressResponder
+  const listener = usePressListener({  // 通过hooks监听当前组件的PressResponder
     onPressStart,
     onPress,
     onPressEnd,
   })
 
   return (
-    <div responders={<Press delayPressStart={2000}/>}>
+    <div listeners={listener}>
       {subtrees}
     </div>
   );
@@ -636,7 +613,7 @@ const Button = (props) => (
 
 如上图, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
 
-> 你可以通过这个Codesanbox玩一下`react-events`: [![Edit react-events-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-events-playground-wpjje?fontsize=14)
+> 你可以通过这个Codesanbox玩一下`react-events`: [![Edit react-events-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/ivan-94/react-events-playground)
 
 <br>
 
