@@ -4,7 +4,7 @@ date: 2019/7/29
 categories: 前端
 ---
 
-![](/images/react-event/sample.png)
+![](https://bobi.ink/images/react-event/sample.png)
 
 当我们在组件上设置事件处理器时，React并不会在该DOM元素上直接绑定事件处理器. React内部自定义了一套事件系统，在这个系统上统一进行事件订阅和分发. 
 
@@ -14,7 +14,7 @@ categories: 前端
 
 **文章大纲**
 
-<!-- TOC -->
+
 
 - [那为什么要自定义一套事件系统?](#那为什么要自定义一套事件系统)
 - [基本概念](#基本概念)
@@ -31,7 +31,7 @@ categories: 前端
   - [react-events意义何在?](#react-events意义何在)
 - [扩展阅读](#扩展阅读)
 
-<!-- /TOC -->
+
 
 > 截止本文写作时，React版本是16.8.6
 
@@ -67,7 +67,7 @@ Ok, 后面我们会深入了解React的事件实现，我会尽量不贴代码�
 
 ### 整体的架构
 
-![](/images/react-event/st.png)
+![](https://bobi.ink/images/react-event/st.png)
 
 - **ReactEventListener** - 事件处理器. 在这里进行事件处理器的绑定。当DOM触发事件时，会从这里开始调度分发到React组件树
 - **ReactEventEmitter** - 暴露接口给React组件层用于添加事件订阅
@@ -175,7 +175,7 @@ export type DispatchConfig = {
 
 看一下实例:
 
-![](/images/react-event/dispatch-config.png)
+![](https://bobi.ink/images/react-event/dispatch-config.png)
 
 上面列举了三个典型的EventPlugin：
 
@@ -207,11 +207,11 @@ EventPluginHubInjection.injectEventPluginsByName({
 
 Ok, 回到正题，事件是怎么绑定的呢？ 打个断点看一下调用栈:
 
-![](/images/react-event/listento.png)
+![](https://bobi.ink/images/react-event/listento.png)
 
 前面调用栈关于React树如何更新和渲染就不在本文的范围内了，通过调用栈可以看出React在props初始化和更新时会进行事件绑定。这里先看一下流程图，忽略杂乱的跳转：
 
-![](/images/react-event/binding.png)
+![](https://bobi.ink/images/react-event/binding.png)
 
 - **1. 在props初始化和更新时会进行事件绑定**。首先React会判断元素是否是`媒体类型`，**媒体类型的事件是无法在Document监听的，所以会直接在元素上进行绑定**
 - **2. 反之就在Document上绑定**. 这里面需要两个信息，一个就是上文提到的'事件依赖列表', 比如`onMouseEnter`依赖`mouseover/mouseout`; 第二个是ReactBrowserEventEmitter维护的'已订阅事件表'。**事件处理器只需在Document订阅一次，所以相比在每个元素上订阅事件会节省很多资源**.
@@ -255,21 +255,21 @@ function trapEventForPluginEventSystem(
   let listener;
   switch (getEventPriority(topLevelType)) {
     // 不同优先级的事件类型，有不同的事件处理器进行分发, 下文会详细介绍
-    case DiscreteEvent:                      // 离散事件
+    case DiscreteEvent:                      // ⚛️离散事件
       listener = dispatchDiscreteEvent.bind(
         null,
         topLevelType,
         PLUGIN_EVENT_SYSTEM,
       );
       break;
-    case UserBlockingEvent:                 // 用户阻塞事件
+    case UserBlockingEvent:                 // ⚛️用户阻塞事件
       listener = dispatchUserBlockingUpdate.bind(
         null,
         topLevelType,
         PLUGIN_EVENT_SYSTEM,
       );
       break;
-    case ContinuousEvent:                   // 可连续事件
+    case ContinuousEvent:                   // ⚛️可连续事件
     default:
       listener = dispatchEvent.bind(null, topLevelType, PLUGIN_EVENT_SYSTEM);
       break;
@@ -292,7 +292,7 @@ function trapEventForPluginEventSystem(
 
 按惯例还是先上流程图:
 
-![](/images/react-event/binding.png)
+![](https://bobi.ink/images/react-event/binding.png)
 
 #### 事件触发调度
 
@@ -496,7 +496,7 @@ function accumulateDirectionalDispatches(inst, phase, event) {
 
 例如下面的组件树, 遍历过程是这样的：
 
-![](/images/react-event/event-delivery.png)
+![](https://bobi.ink/images/react-event/event-delivery.png)
 
 最终计算出来的`_dispatchListeners`队列是这样的：`[handleB, handleC, handleA]`
 
@@ -542,7 +542,7 @@ export function executeDispatchesInOrder(event) {
 }
 ```
 
-![](/images/react-event/dispatch.png)
+![](https://bobi.ink/images/react-event/dispatch.png)
 
 
 OK, 到这里React的事件机制就基本介绍完了，这里只是简单了介绍了一下`SimpleEventPlugin`, 实际代码中还有很多事件处理的细节，限于篇幅，本文就不展开去讲了。有兴趣的读者可以亲自去观摩React的源代码.
@@ -572,7 +572,9 @@ ReactDOM.render(
 container);
 ```
 
-那么react-events的目的就是**提供一套通用的事件机制给开发者来实现'高级事件'的封装, 甚至实现事件的跨平台、跨设备**.
+<br>
+
+那么react-events的目的就是**提供一套通用的事件机制给开发者来实现'高级事件'的封装, 甚至实现事件的跨平台、跨设备**, 现在你可以通过react-events来封装这些手势事件.
 
 react-events除了核心的`Responder`接口，还封装了一些内置模块, 实现跨平台的、常用的高级事件封装：
 
@@ -609,9 +611,13 @@ const Button = (props) => (
 );
 ```
 
-![](/images/react-event/responder.png)
+<br>
 
-如上图, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**。
+react-events的运作流程图如下, **事件响应器(Event Responders)会挂载到host节点，它会在host节点监听host或子节点分发的原生事件(DOM或React Native), 并将它们转换/合并成高级的事件**:
+
+![](https://bobi.ink/images/react-event/responder.png)
+
+<br>
 
 > 你可以通过这个Codesanbox玩一下`react-events`: [![Edit react-events-playground](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/github/ivan-94/react-events-playground)
 
@@ -622,13 +628,16 @@ const Button = (props) => (
 我们挑一个简单的模块来了解一些react-events的核心API, 目前最简单的是Keyboard模块. Keyboard模块的目的就是规范化keydown和keyup事件对象的key属性(部分浏览器key属性的行为不一样)，它的实现如下:
 
 ```js
+/**
+ * 定义Responder的实现
+ */
 const keyboardResponderImpl = {
   /**
-   * ①定义Responder需要监听的子树的DOM事件，对于Keyboard来说是['keydown', 'keyup';]
+   * 1️⃣定义Responder需要监听的子树的DOM事件，对于Keyboard来说是['keydown', 'keyup';]
    */
   targetEventTypes,
   /**
-   * ②监听子树触发的事件
+   * 2️⃣监听子树触发的事件
    */
   onEvent(
     event: ReactDOMResponderEvent,     // 包含了当前触发事件的相关信息，如原生事件对象，事件触发的节点，事件类型等等
@@ -672,9 +681,9 @@ function dispatchKeyboardEvent(
   type: KeyboardEventType,
   target: Element | Document,
 ): void {
-  // 创建合成事件对象，在这个函数中会规范化事件的key属性
+  // ⚛️创建合成事件对象，在这个函数中会规范化事件的key属性
   const syntheticEvent = createKeyboardEvent(event, context, type, target);
-  // 通过Responder上下文分发事件
+  // ⚛️通过Responder上下文分发事件
   context.dispatchEvent(eventPropName, syntheticEvent, DiscreteEvent);
 }
 ```
@@ -682,17 +691,19 @@ function dispatchKeyboardEvent(
 导出Responder:
 
 ```js
-// createResponder把keyboardResponderImpl转换为组件形式
+// ⚛️createResponder把keyboardResponderImpl转换为组件形式
 export const KeyboardResponder = React.unstable_createResponder(
   'Keyboard',
   keyboardResponderImpl,
 );
 
-// 创建hooks将其
+// ⚛️创建hooks形式
 export function useKeyboardListener(props: KeyboardListenerProps): void {
   React.unstable_useListener(KeyboardResponder, props);
 }
 ```
+
+<br>
 
 现在读者应该对**Responder的职责**有了一些基本的了解，它主要做以下几件事情:
 
@@ -706,7 +717,7 @@ export function useKeyboardListener(props: KeyboardListenerProps): void {
 
 react-events目前都考虑了这些场景, 看一下API概览:
 
-![](/images/react-event/react-events.png)
+![](https://bobi.ink/images/react-event/react-events.png)
 
 <br>
 
