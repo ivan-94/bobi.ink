@@ -250,6 +250,10 @@ const valueToMeta = function (sender, contextId, value, optimizeSimpleObject = f
 }
 ```
 
+## 影子对象
+
+影分身之术
+
 ## 对象的生命周期
 
 valueToMeta会将每一个对象和函数都放入注册表中，包含函数返回值。这是否意味着，如果频繁调用函数，将会导致注册表暴涨呢？占用太多内存呢？这些对象什么时候释放?
@@ -377,17 +381,121 @@ void RemoteObjectFreer::RunDestructor() {
 
 再回到主进程, 主进程监听`ELECTRON_BROWSER_DEREFERENCE`事件，并递减指定对象的引用计数：
 
-```
+```js
 handleRemoteCommand('ELECTRON_BROWSER_DEREFERENCE', function (event, contextId, id, rendererSideRefCount) {
   objectsRegistry.remove(event.sender, contextId, id, rendererSideRefCount)
 })
 ```
 
-TODO: 流程图
+如果被上面的代码绕得优点晕，那就看看下面的流程图, 消化消化：
+
+![](/images/electron-remote/lifetime.png)
 
 <br>
 
 ## 渲染进程给主进程传递回调
+
+在渲染进程中，通过remote还可以给主进程的函数传递回调。其实跟主进程暴露函数或对象给渲染进程的原理一样，渲染进程在将回调处理给主进程之前会放置到回调注册表中，然后给主进程暴露一个callbackID。
+
+渲染进程会调用wrapArgs将函数调用参数序列化为MetaData:
+
+```js
+function wrapArgs (args, visited = new Set()) {
+  const valueToMeta = (value) => {
+    // 🔴 防止循环引用
+    if (visited.has(value)) {
+      return {
+        type: 'value',
+        value: null
+      }
+    }
+
+    // ... 省略其他类型的处理，这些类型基本都是值拷贝
+    } else if (typeof value === 'function') {
+      return {
+        type: 'function',
+        // 添加到回调注册表中
+        id: callbacksRegistry.add(value),
+        location: v8Util.getHiddenValue(value, 'location'),
+        length: value.length
+      }
+    } else {
+      // ...
+    }
+  }
+}
+```
+
+回到主进程，这里也要一个对应的`unwrapArgs`函数来反序列化函数参数：
+
+```js
+const unwrapArgs = function (sender, frameId, contextId, args) {
+  const metaToValue = function (meta) {
+    switch (meta.type) {
+      case 'value':
+        return meta.value
+      // ... 省略
+      case 'function': {
+        const objectId = [contextId, meta.id]
+        // 回调缓存
+        if (rendererFunctions.has(objectId)) {
+          return rendererFunctions.get(objectId)
+        }
+
+        // 🔴 封装影子函数
+        const callIntoRenderer = function (...args) {
+          let succeed = false
+          if (!sender.isDestroyed()) {
+            // 🔴通过IPC通知渲染进程
+            // 忽略回调返回值
+            succeed = sender._sendToFrameInternal(frameId, 'ELECTRON_RENDERER_CALLBACK', contextId, meta.id, valueToMeta(sender, contextId, args))
+          }
+
+          if (!succeed) {
+            // 没有发送成功则表明渲染进程的回调可能被释放了，输出警告信息
+            // 这种情况比较常见，比如被渲染进程刷新了
+            removeRemoteListenersAndLogWarning(this, callIntoRenderer)
+          }
+        }
+
+        v8Util.setHiddenValue(callIntoRenderer, 'location', meta.location)
+        Object.defineProperty(callIntoRenderer, 'length', { value: meta.length })
+
+        // 🔴 监听回调函数垃圾回收事件
+        v8Util.setRemoteCallbackFreer(callIntoRenderer, contextId, meta.id, sender)
+        rendererFunctions.set(objectId, callIntoRenderer)
+        return callIntoRenderer
+      }
+      default:
+        throw new TypeError(`Unknown type: ${meta.type}`)
+    }
+  }
+
+  return args.map(metaToValue)
+}
+```
+
+渲染进程响应就比较简单了：
+
+```js
+handleMessage('ELECTRON_RENDERER_CALLBACK', (id, args) => {
+  callbacksRegistry.apply(id, metaToValue(args))
+})
+```
+
+那回调什么时候释放呢？这个相比渲染进程的对象引用要简单很多，因为主进程只有一个。通过上面的代码可以知道, `setRemoteCallbackFreer`会监听影子回调是否被垃圾回收，一旦被垃圾回收了则通知渲染进程:
+
+```js
+handleMessage('ELECTRON_RENDERER_RELEASE_CALLBACK', (id) => {
+  callbacksRegistry.remove(id)
+})
+```
+
+按照惯例，来个流程图:
+
+![](/images/electron-remote/callback.png)
+
+<br>
 
 ## 渲染进程端实现
 
@@ -399,5 +507,7 @@ TODO: 流程图
 生命周期
 传递回调
 内存占用，所有对象都会被缓存起来？
+
+值得学习，跨端通信非常常见，例如WebView、Worker
 
 ## 扩展
