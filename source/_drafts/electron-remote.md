@@ -164,11 +164,18 @@ const myModal = remote.require('myModal') // 让主进程require指定模块，�
         id: 2,
         members: [],
         name: "Function",
-        proto: {/*见下面*/},
+        proto: {/*见上面*/},
         type: "function"
       },
     };
     ```
+
+了解remote的数据传输协议后，有经验的开发者应该心里有底了，它的原理大概是这样的：
+
+![](/images/electron-remote/meta-transform.png)
+
+生命周期管理，防止垃圾回收
+递归
 
 ## 主进程端实现
 
@@ -181,5 +188,6 @@ const myModal = remote.require('myModal') // 让主进程require指定模块，�
 
 生命周期
 传递回调
+内存占用，所有对象都会被缓存起来？
 
 ## 扩展
