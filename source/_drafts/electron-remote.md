@@ -15,6 +15,22 @@ const myModal = remote.require('myModal') // 让主进程require指定模块，�
 
 ![](/images/electron-remote/ipc.png)
 
+**文章大纲**
+
+<!-- TOC -->
+
+- [通信协议的定义](#通信协议的定义)
+- [对象的序列化](#对象的序列化)
+- [影子对象](#影子对象)
+- [对象的生命周期](#对象的生命周期)
+- [渲染进程给主进程传递回调](#渲染进程给主进程传递回调)
+- [一些缺陷](#一些缺陷)
+- [remote模块实践和优化](#remote模块实践和优化)
+- [总结](#总结)
+- [扩展](#扩展)
+
+<!-- /TOC -->
+
 ## 通信协议的定义
 
 首先需要定义一个协议来描述一个模块/对象的外形，其中包含下列类型:
@@ -250,9 +266,90 @@ const valueToMeta = function (sender, contextId, value, optimizeSimpleObject = f
 }
 ```
 
+<br>
+
 ## 影子对象
 
-影分身之术
+![](/images/electron-remote/naruto.png)
+
+渲染进程从MetaData中反序列化的对象或函数只是一个‘影子’，我们也可以将它们称为影子对象或者代理对象. 类似于火影忍者中的影分身之术，主体存储在主进程中，影子对象不包含任何实体数据，当访问这些对象或调用函数/方法时，影子对象直接远程请求。
+
+来看看渲染进程怎么创建‘影子对象’:
+
+**函数的处理**:
+
+```js
+  if (meta.type === 'function') {
+    // 🔴创建一个'影子'函数
+    const remoteFunction = function (...args) {
+      let command
+      // 通过new Obj形式调用
+      if (this && this.constructor === remoteFunction) {
+        command = 'ELECTRON_BROWSER_CONSTRUCTOR'
+      } else {
+        command = 'ELECTRON_BROWSER_FUNCTION_CALL'
+      }
+      // 🔴同步IPC远程
+      // wrapArgs将函数参数序列化为MetaData
+      const obj = ipcRendererInternal.sendSync(command, contextId, meta.id, wrapArgs(args))
+      // 🔴反序列化返回值
+      return metaToValue(obj)
+    }
+    ret = remoteFunction
+
+```
+
+<br>
+
+**对象成员的处理**:
+
+```js
+function setObjectMembers (ref, object, metaId, members) {
+  for (const member of members) {
+    if (object.hasOwnProperty(member.name)) continue
+
+    const descriptor = { enumerable: member.enumerable }
+    if (member.type === 'method') {
+      // 🔴创建‘影子’方法. 和上面的函数调用差不多
+      const remoteMemberFunction = function (...args) {
+        let command
+        if (this && this.constructor === remoteMemberFunction) {
+          command = 'ELECTRON_BROWSER_MEMBER_CONSTRUCTOR'
+        } else {
+          command = 'ELECTRON_BROWSER_MEMBER_CALL'
+        }
+        const ret = ipcRendererInternal.sendSync(command, contextId, metaId, member.name, wrapArgs(args))
+        return metaToValue(ret)
+      }
+      // ...
+
+    } else if (member.type === 'get') {
+      // 🔴属性的获取
+      descriptor.get = () => {
+        const command = 'ELECTRON_BROWSER_MEMBER_GET'
+        const meta = ipcRendererInternal.sendSync(command, contextId, metaId, member.name)
+        return metaToValue(meta)
+      }
+
+      // 🔴属性的设置
+      if (member.writable) {
+        descriptor.set = (value) => {
+          const args = wrapArgs([value])
+          const command = 'ELECTRON_BROWSER_MEMBER_SET'
+          const meta = ipcRendererInternal.sendSync(command, contextId, metaId, member.name, args)
+          if (meta != null) metaToValue(meta)
+          return value
+        }
+      }
+    }
+
+    Object.defineProperty(object, member.name, descriptor)
+  }
+}
+```
+
+<br>
+<br>
 
 ## 对象的生命周期
 
@@ -496,16 +593,11 @@ handleMessage('ELECTRON_RENDERER_RELEASE_CALLBACK', (id) => {
 ![](/images/electron-remote/callback.png)
 
 <br>
-
-## 渲染进程端实现
-
-函数调用
-对调的处理
-
-<br>
 <br>
 
-## 一些坑
+## 一些缺陷
+
+remote机制只是对远程对象的一个‘影分身’，无法百分百和远程对象的行为保持一致，下面是一些比较常见的缺陷:
 
 - 当渲染进程调用远程对象的方法或函数时，是进行同步IPC通信。换言之，同步IPC调用会阻塞用户代码的执行，而且跨端的通信效率无法和原生函数调用相比，所以频繁的IPC调用会影响主进程和渲染进程的性能.
 - 主进程会注册每一个渲染进程访问的对象，包括函数的返回值。同理，频繁的远程对象请求，对内存的占用和垃圾回收造成不小的压力
@@ -521,7 +613,7 @@ handleMessage('ELECTRON_RENDERER_RELEASE_CALLBACK', (id) => {
 <br>
 <br>
 
-## remote模块实践
+## remote模块实践和优化
 
 ![](/images/electron-remote/gzb.png)
 
@@ -589,5 +681,6 @@ remote的源码也很容易理解，值得学习. 毕竟前端目前跨端通信
 <br>
 <br>
 
-
 ## 扩展
+
+- [Electron remote 文档](https://electronjs.org/docs/api/remote)
