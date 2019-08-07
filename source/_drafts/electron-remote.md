@@ -523,6 +523,58 @@ handleMessage('ELECTRON_RENDERER_RELEASE_CALLBACK', (id) => {
 
 ## remote模块实践
 
+![](/images/electron-remote/gzb.png)
+
+上面是我参与过的某个项目的软件架构图，`Hybrid`层使用C/C++编写，封装了应用跨平台的核心业务逻辑，在此之上来构建各个平台的视图。其中桌面端我们使用的是Electron技术。
+
+如上图，Bridge进是对Hybrid的一层Node桥接封装。一个应用中只能有一个Bridge实例，因此我们的做法是使用Electron的remote模块，让渲染进程通过主进程间接地访问Bridge.
+
+页面需要监听Bridge的一些事件，最初我们的代码是这样的:
+
+```ts
+// bridge.ts
+// 使用remote的一个好处时，可以配合Typescript实现较好的类型检查
+const bridge = electron.remote.require('bridge') as typeof import('bridge')
+
+export default bridge
+```
+
+某些Store:
+
+```ts
+import bridge from '~/bridge'
+
+class Store extends MobxStore {
+  // 初始化
+  pageReady() {
+    this.someEventDispose = bridge.addListener('someEvent', this.handleSomeEvent)
+  }
+
+  // 页面关闭
+  pageWillClose() {
+    this.someEventDispose()
+  }
+  // ...
+}
+```
+
+流程图如下:
+
+![](/images/electron-remote/addListener.png)
+
+这种方式存在很多问题:
+
+- 主进程需要为每一个addListener回调都维持一个引用。上面的代码会在页面关闭时释放订阅，但是它没有考虑用户刷新页面或者页面崩溃的场景。这会导致回调在主进程泄露。然而就算Electron在调用回调时可以发现回调在渲染进程已经被释放掉了，Bridge这里却无法得到这些信息， Bridge会始终保持对影子回调的引用.
+- 另外一个比较明显的是调用效率的问题。假设页面监听了N次A事件，当A事件触发时，主进程需要给这个页面发送N个通知。
+
+后来我们抛弃了使用remote进行事件订阅这种方式，让主进程来维护这种订阅关系, 如下图:
+
+![](/images/electron-remote/addListener2.png)
+
+我们改进了很多东西：
+
+**主进程现在只维护‘哪个页面’订阅了哪个事件，从‘绑定回调’进化成为‘绑定页面’**。这样可以解决上面调用效率和回调泄露问题、比如不会因为页面刷新导致回调泄露。另外这里参考了remote本身的实现，在页面销毁时移除该页面的所有订阅。相比比remote黑盒，我们自己来实现这种事件订阅关系比之前要更好调试。
+
 <br>
 <br>
 
