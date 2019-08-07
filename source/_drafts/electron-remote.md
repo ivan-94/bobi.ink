@@ -580,9 +580,14 @@ class Store extends MobxStore {
 
 ## 总结
 
-值得学习，跨端通信非常常见，例如WebView、Worker
+remote模块对于Electron开发有很重要的意义，毕竟很多模块只有在主进程才能访问，比如BrowserWindow、dialog. 相比ipc通信，remote实在方面很多，通过上文我们也了解了它的基本原理和缺陷。所以remote虽好，切忌不要滥用。
+
+remote的源码也很容易理解，值得学习. 毕竟前端目前跨端通信非常常见，例如WebViewBridge、Worker. remote可以给你一些灵感，但是要完全照搬它是不可行的，因为它依赖一些v8 'Hack'来监听对象的垃圾回收，普通开发场景是无法接触到这些底层的东西的。
+
+本文完.
 
 <br>
 <br>
+
 
 ## 扩展
