@@ -597,7 +597,7 @@ react-events除了核心的`Responder`接口，还封装了一些内置模块, �
 import { PressResponder, usePressListener } from 'react-events/press';
 
 const Button = (props) => (
-  const listener = usePressListener({  // 通过hooks监听当前组件的PressResponder
+  const listener = usePressListener({  // ⚛️通过hooks创建Responder
     onPressStart,
     onPress,
     onPressEnd,

@@ -1,5 +1,5 @@
 ---
-title: "Electron的remote模块是怎么运作的?"
+title: "揭开Electron的remote模块的面纱"
 date: 2019/8/4
 categories: 前端
 ---
@@ -12,11 +12,13 @@ const myModal = remote.require('myModal') // 让主进程require指定模块，�
 myModal.dosomething()                     // 调用方法
 ```
 
+<br>
+
 **本质上，remote模块是基于Electron的IPC机制的，进程之间的通信的数据必须是可序列化的，比如JSON序列化**。所以本文的目的是介绍Electron是如何设计remote模块的，以及里面有什么坑。
 
 <br>
 
-![](/images/electron-remote/ipc.png)
+![](https://bobi.ink/images/electron-remote/ipc.png)
 
 <br>
 
@@ -60,7 +62,7 @@ Electron使用MetaData(元数据)来描述这些对象外形的协议. 下面是
 
   - 输出
 
-    ```json
+    ```js
     {type: "value", value: 1};
     {type: "date", value: 1565002306662};  // 序列化为时间戳
     {type: "buffer", value: {data: Uint8Array(11), length: 11, type: "Buffer"}}; // 序列化为数组
@@ -90,7 +92,7 @@ Electron使用MetaData(元数据)来描述这些对象外形的协议. 下面是
 
     数组会递归对成员进行转换. 注意数组和基本类型没什么区别，它也是值拷贝，也就是说修改数组不会影响到对端进程的数组值。
 
-    ```json
+    ```js
     {
       "members": [
         {"type":"value","value":1},
@@ -121,7 +123,7 @@ Electron使用MetaData(元数据)来描述这些对象外形的协议. 下面是
 
   - 输出
 
-    ```json
+    ```js
     {
       // 这里有一个id，用于标识主进程的一个对象
       id: 1,
@@ -209,9 +211,9 @@ Electron使用MetaData(元数据)来描述这些对象外形的协议. 下面是
 
 了解remote的数据传输协议后，有经验的开发者应该心里有底了，它的原理大概是这样的：
 
-![](/images/electron-remote/meta-transform.png)
+![](https://bobi.ink/images/electron-remote/meta-transform.png)
 
-主进程和渲染进程之间需要将对象序列化成MetaData描述，转换的规则上面已经解释的比较清楚了。这里面需要特殊处理是对象和函数，渲染进程拿到MetaData后需要封装成一个影子对象/函数，来供应用调用。
+主进程和渲染进程之间需要将对象序列化成MetaData描述，转换的规则上面已经解释的比较清楚了。这里面需要特殊处理是对象和函数，渲染进程拿到MetaData后需要封装成一个影子对象/函数，来供渲染进程应用调用。
 
 其中比较复杂的是对象和函数的处理，Electron为了防止对象被垃圾回收，需要将这些对象放进一个注册表中，在这个表中每个对象都有一个唯一的id来标识。这个id有点类似于‘指针’，渲染进程会拿着这个id向主进程请求访问对象。
 
@@ -303,7 +305,7 @@ const valueToMeta = function (sender, contextId, value, optimizeSimpleObject = f
 
 ## 影子对象
 
-![](/images/electron-remote/naruto.png)
+![](https://bobi.ink/images/electron-remote/naruto.jpeg)
 
 渲染进程会从MetaData中反序列化的对象或函数, 不过这只是一个‘影子’，我们也可以将它们称为**影子对象**或者**代理对象**. 类似于火影忍者中的影分身之术，主体存储在主进程中，影子对象不包含任何实体数据，当访问这些对象或调用函数/方法时，影子对象直接远程请求。
 
@@ -517,7 +519,7 @@ handleRemoteCommand('ELECTRON_BROWSER_DEREFERENCE', function (event, contextId, 
 
 如果被上面的代码绕得优点晕，那就看看下面的流程图, 消化消化：
 
-![](/images/electron-remote/lifetime.png)
+![](https://bobi.ink/images/electron-remote/lifetime.png)
 
 <br>
 <br>
@@ -629,7 +631,7 @@ handleMessage('ELECTRON_RENDERER_RELEASE_CALLBACK', (id) => {
 
 按照惯例，来个流程图:
 
-![](/images/electron-remote/callback.png)
+![](https://bobi.ink/images/electron-remote/callback.png)
 
 <br>
 <br>
@@ -654,7 +656,7 @@ remote机制只是对远程对象的一个‘影分身’，无法百分百和�
 
 ## remote模块实践和优化
 
-![](/images/electron-remote/gzb.png)
+![](https://bobi.ink/images/electron-remote/gzb.png)
 
 上面是我参与过的某个项目的软件架构图，`Hybrid`层使用C/C++编写，封装了跨平台的核心业务逻辑，在此之上来构建各个平台的视图。其中桌面端我们使用的是Electron技术。
 
@@ -693,7 +695,7 @@ class Store extends MobxStore {
 
 流程图如下:
 
-![](/images/electron-remote/addListener.png)
+![](https://bobi.ink/images/electron-remote/addListener.png)
 
 这种方式存在很多问题:
 
@@ -708,7 +710,7 @@ class Store extends MobxStore {
 
 后来我们抛弃了使用remote进行事件订阅这种方式，让主进程来维护这种订阅关系, 如下图:
 
-![](/images/electron-remote/addListener2.png)
+![](https://bobi.ink/images/electron-remote/addListener2.png)
 
 我们改进了很多东西：
 
