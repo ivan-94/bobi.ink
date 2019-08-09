@@ -32,5 +32,4 @@
 - 使用 gitlab 进行项目管理
 - dart for typescripter
 - 微前端
-- electron 对象代理
-- vue 代码技巧
+- react 代码技巧

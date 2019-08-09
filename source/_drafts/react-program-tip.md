@@ -132,3 +132,34 @@ const repeat = (str, n) => {
   return res
 }
 ```
+
+<br>
+
+## 对象池
+
+对象创建和垃圾回收
+
+<br>
+
+## 类数组对象的转换
+
+石器时代我们通常会使用Array.prototype.slice来转换类数组对象, 至今它也依旧实用:
+
+```js
+function toArray() {
+  return Array.prototype.slice.call(arguments)
+}
+```
+
+现在也可以通过Array.from实现:
+
+```js
+function toArray() {
+  return Array.from(arguments)
+}
+```
+
+但是经过在Chrome上测试，前者的转换效率是后者的22倍。
+
+
+<br>
