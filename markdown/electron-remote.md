@@ -307,7 +307,7 @@ const valueToMeta = function (sender, contextId, value, optimizeSimpleObject = f
 
 ![](https://bobi.ink/images/electron-remote/naruto.jpeg)
 
-渲染进程会从MetaData中反序列化的对象或函数, 不过这只是一个‘影子’，我们也可以将它们称为**影子对象**或者**代理对象**. 类似于火影忍者中的影分身之术，主体存储在主进程中，影子对象不包含任何实体数据，当访问这些对象或调用函数/方法时，影子对象直接远程请求。
+渲染进程会从MetaData中反序列化的对象或函数, 不过这只是一个‘影子’，我们也可以将它们称为**影子对象**或者**代理对象**、**替身**. 类似于火影忍者中的影分身之术，主体存储在主进程中，影子对象不包含任何实体数据，当访问这些对象或调用函数/方法时，影子对象直接远程请求。
 
 > 渲染进程的代码可以看[这里](https://github.com/electron/electron/blob/master/lib/renderer/api/remote.js)
 
