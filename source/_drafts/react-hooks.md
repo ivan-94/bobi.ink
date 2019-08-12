@@ -75,6 +75,9 @@ const [state, setState] = useState(initialState);
 
 [useState](https://zh-hans.reactjs.org/docs/hooks-reference.html#usestate)返回**一个state，以及更新state的函数**. setState接受一个新的值，并触发组件重新渲染.
 
+> React会确保setState函数是稳定的，不会在组件重新渲染时改变。下面的useReducer的dispatch函数也一样。
+> 这就意味着，可以安全地在useEffect、useCallback中使用
+
 <br>
 
 ### useSetState
@@ -163,9 +166,50 @@ export default function UseSetState() {
 <br>
 
 ### useReducer
-稍微复杂的状态管理
-redux
+
+如果组件状态比较复杂，推荐使用useReducer来管理状态。如果你熟悉Redux，会很习惯这种方式。
+
+```js
+// 定义初始状态
+const initialState = {count: 0};
+
+// 定义Reducer
+// ruducer接受当前state，以及一个用户操作，返回一个'新'的state
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return {count: state.count + 1};
+    case 'decrement':
+      return {count: state.count - 1};
+    default:
+      throw new Error();
+  }
+}
+
+// --------
+// EXAMPLE
+// --------
+function Counter() {
+  // 返回state，以及dispatch函数
+  // dispatch函数可以触发reducer执行，给reducer传递指令和载荷
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return (
+    <>
+      Count: {state.count}
+      <button onClick={() => dispatch({type: 'increment'})}>+</button>
+      <button onClick={() => dispatch({type: 'decrement'})}>-</button>
+    </>
+  );
+}
+```
+
+了解更多reducer的思想可以参考[Redux文档](TODO:)
+
+<br>
+
 ### useForceUpdate
+
+forceUpdate
 ### useSession 简化localStorage存取
 #### useQuery
 ### useInstance
