@@ -10,11 +10,11 @@ categories: 前端
 
 **仔细反思一下，对于这些刚入门Javascript的或者从其他语言切换过来的开发者，他们压根就没有概念，比如Python、Ruby、Java这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，基本上都可以统一使用这套标准库。而Javascript目前的现状是：不同的运行环境，API结构是割裂的**。
 
-Javascript这门十几天开发出来的、专供浏览器的语言，可能当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。**因为这个背景, Javascript长期不具备独立性，它深度依赖于浏览器这个运行环境, 处于一种给浏览器打辅助的角色**, 所以Javascript很多年没有走出浏览器玩具语言这个范围. 
+Javascript这门十几天开发出来的、专供浏览器的语言，可能当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。**因为这个背景, Javascript长期不具备独立性，它深度依赖于浏览器这个运行环境, 处于一种给浏览器打辅助的角色**, 所以Javascript很多年没有走出浏览器玩具语言这个范围.
 
 当然这既是劣势，也是优势, 现在没任何语言能撼动Javascript在浏览器中的地位。
 
-我想很多人跟我当初一样**将浏览器提供的Web API等价于Javascript的标准库, 比如`console.log`、`setTimeout`**(下文会介绍这些功能都不在Javascript规范里面). 正如当年那些把JQuery当成‘Javascript’的人.
+我想很多人跟我当初一样认为**浏览器提供的Web API === Javascript的标准库**, 比如`console.log`、`setTimeout`(下文会介绍这些功能都不在Javascript规范里面). 正如当年那些把JQuery当成‘Javascript’的人.
 
 直到NodeJS的出现，Javascript才挣脱浏览器约束，延伸到服务器领域, 不再是一个'沙盒语言'。NodeJS定义了很多模块来支撑服务端的开发, 如fs、os、Buffer、net。但是这些API一样不是Javascript的标准、也就是说**NodeJS !== Javascript**.
 
@@ -245,8 +245,6 @@ WebAPI基本概览:
 ## 总结
 
 本文从一个SegmentFault上的一个问题开始，对比其他语言，揭露Javascript没有标准库的窘境. 接着介绍现有Javascript的API结构，介绍什么是标准库，辩证考虑标准库的优缺点，以及推行上面可能会遇到的阻碍.
-
-Javascript发展非常快，你已经不再是当初的玩具语言, 是该有自己的标准库了
 
 <br>
 

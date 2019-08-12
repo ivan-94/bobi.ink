@@ -28,10 +28,10 @@ categories: 前端
 <!-- TOC -->
 
 - [组件状态](#组件状态)
-  - [useSetState](#usesetstate)
-  - [useReducer](#usereducer)
-  - [useForceUpdate](#useforceupdate)
-  - [useSession 简化localStorage存取](#usesession-简化localstorage存取)
+  - [useSetState 模拟传统的setState](#usesetstate-模拟传统的setstate)
+  - [useReducer Redux风格状态管理](#usereducer-redux风格状态管理)
+  - [useForceUpdate 强制重新渲染](#useforceupdate-强制重新渲染)
+  - [useStorage 简化localStorage存取](#usestorage-简化localstorage存取)
     - [useQuery](#usequery)
   - [useInstance](#useinstance)
   - [封装一些工具hooks](#封装一些工具hooks)
@@ -80,7 +80,7 @@ const [state, setState] = useState(initialState);
 
 <br>
 
-### useSetState
+### useSetState 模拟传统的setState
 
 useState和Class组件的setState不太一样.
 
@@ -165,7 +165,7 @@ export default function UseSetState() {
 
 <br>
 
-### useReducer
+### useReducer Redux风格状态管理
 
 如果组件状态比较复杂，推荐使用useReducer来管理状态。如果你熟悉Redux，会很习惯这种方式。
 
@@ -207,10 +207,107 @@ function Counter() {
 
 <br>
 
-### useForceUpdate
+### useForceUpdate 强制重新渲染
 
-forceUpdate
-### useSession 简化localStorage存取
+Class组件可以通过forceUpdate实例方法来触发强制重新渲染。使用useState也可以模拟相同的效果：
+
+```ts
+export default function useForceUpdate() {
+  const [, setValue] = useState(0)
+  return useCallback(() => {
+    // 递增state值，强制React进行重新渲染
+    setValue(val => (val + 1) % (Number.MAX_SAFE_INTEGER - 1))
+  }, [])
+}
+
+// -------
+// EXAMPLE
+// -------
+function ForceUpdate() {
+  const forceUpdate = useForceUpdate()
+  useEffect(() => {
+    somethingChange(forceUpdate)
+  }, [])
+}
+```
+
+<br>
+
+### useStorage 简化localStorage存取
+
+通过自定义Hooks，可以将状态代理到其他数据源，比如localStorage。 下面展示如果使用Hooks封装和简化localStorage的存取:
+
+```ts
+import { useState, useCallback, Dispatch, SetStateAction } from 'react'
+
+export default function useStorage<T>(
+  key: string,
+  // 默认值
+  defaultValue?: T | (() => T),
+  // 是否在窗口关闭后保持数据
+  keepOnWindowClosed: boolean = true,
+): [T | undefined, Dispatch<SetStateAction<T>>, () => void] {
+  const storage = keepOnWindowClosed ? localStorage : sessionStorage
+
+  // 尝试从Storage恢复值
+  const getStorageValue = () => {
+    try {
+      const storageValue = storage.getItem(key)
+      if (storageValue != null) {
+        return JSON.parse(storageValue)
+      } else if (defaultValue) {
+        // 设置默认值
+        const value = typeof defaultValue === 'function' ? (defaultValue as () => T)() : defaultValue
+        storage.setItem(key, JSON.stringify(value))
+        return value
+      }
+    } catch (err) {
+      console.warn(`useStorage 无法获取${key}: `, err)
+    }
+
+    return undefined
+  }
+
+  const [value, setValue] = useState<T | undefined>(getStorageValue)
+
+  // 更新组件状态并保存到Storage
+  const save = useCallback<Dispatch<SetStateAction<T>>>(value => {
+    setValue(prev => {
+      const finalValue = typeof value === 'function' ? (value as (prev: T | undefined) => T)(prev) : value
+      storage.setItem(key, JSON.stringify(finalValue))
+      return finalValue
+    })
+  }, [])
+
+  // 移除状态
+  const clear = useCallback(() => {
+    storage.removeItem(key)
+    setValue(undefined)
+  }, [])
+
+  return [value, save, clear]
+}
+
+// --------
+// EXAMPLE
+// --------
+function Demo() {
+  // 保存登录状态
+  const [use, setUser, clearUser] = useStorage('user')
+  const handleLogin = (user) => {
+    setUser(user)
+  }
+
+  const handleLogout = () => {
+    clearUser()
+  }
+
+  // ....
+}
+```
+
+<br>
+
 #### useQuery
 ### useInstance
 ### 封装一些工具hooks
