@@ -34,9 +34,9 @@ categories: 前端
   - [useStorage 简化localStorage存取](#usestorage-简化localstorage存取)
   - [useRefState 引用state的最新值](#userefstate-引用state的最新值)
   - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
+    - [每次重新渲染都创建闭包会影响效率吗？](#每次重新渲染都创建闭包会影响效率吗)
   - [封装一些工具hooks](#封装一些工具hooks)
     - [useQuery](#usequery)
-  - [获取最新的值](#获取最新的值)
 - [props处理](#props处理)
   - [获取上一个Props](#获取上一个props)
   - [useWhyUpdate](#usewhyupdate)
@@ -471,9 +471,62 @@ function queueExecute(callback) {
 }
 ```
 
-React可以保证useRef返回值的稳定性，可以在组件的任意地方安全地引用.
+React会保证useRef返回值的稳定性，可以在组件的任意地方安全地引用.
+
+<br>
 
 ### useRefProps 引用最新的Props
+
+现实项目中也有有这种场景，我们需要获取最新的props值，这个同样可以通过useRef来实现：
+
+```js
+export default function useRefProps<T>(props: T) {
+  const ref = useRef<T>(props)
+  ref.current = props
+
+  return ref
+}
+
+// ---------
+// EXAMPLE
+// ---------
+function MyButton(props) {
+  const propsRef = useRefProps(props)
+
+  // 永久不变的事件处理器
+  const handleClick = useCallback(() => {
+    const { onClick } = propsRef.current
+    if (onClick) {
+      onClick()
+    }
+  }, [])
+
+  return <ComplexButton onClick={handleClick}></ComplexButton>
+}
+```
+
+<br>
+<br>
+
+#### 每次重新渲染都创建闭包会影响效率吗？
+
+函数组件和Class组件不一样的是，每一次重新渲染会重复创建大量的闭包、数组和对象。而传统的Class组件的render函数则要简洁很多，一般只放置JSX。
+
+我们看看官方是怎么回应的：
+
+![](/images/react-hooks/fn-perf.png)
+
+我在SegmentFault的[react function组件与class组件性能问题](https://segmentfault.com/q/1010000019644156/a-1020000019706666)进行了详细的回答, 结论是:
+
+> 我刚开始写React hooks时也有这个顾虑，函数式组件每次渲染里面的闭包都要重新创建，不会很耗性能吗？ 类组件的方法是静态不变的，那是否在这点上类组件性能更好一点？
+>
+> 上面的答案其实已经说得很明白了，目前而言，实现同样的功能，类组件和函数组件的效率是不相上下的。但是函数组件是未来，而且还有优化空间，React团队会继续优化它。而类组件会逐渐退出历史
+
+为了提高函数组件的性能，可以在这些地方做一些优化:
+
+- 能否将函数提取为静态的
+- 简化组件的复杂度，动静分离
+- 再拆分更细粒度的组件，这些组件都使用React.memo缓存
 
 <br>
 
@@ -481,14 +534,6 @@ React可以保证useRef返回值的稳定性，可以在组件的任意地方安
   #### useToggle
   #### useArray
 #### useQuery
-### 获取最新的值
-
-闭包原理
-闭包性能
-解决闭包问题
-闭包问题 为什么， 配图
-在函数内创建闭包效率很高，几乎可以忽略不计， segmentFault回答
-vue value api
 
 ## props处理
 
