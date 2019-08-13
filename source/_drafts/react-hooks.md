@@ -35,7 +35,13 @@ categories: 前端
   - [useRefState 引用state的最新值](#userefstate-引用state的最新值)
   - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
     - [每次重新渲染都创建闭包会影响效率吗？](#每次重新渲染都创建闭包会影响效率吗)
-  - [封装一些工具hooks](#封装一些工具hooks)
+  - [封装'工具'Hooks简化State的操作](#封装工具hooks简化state的操作)
+    - [useToggle 开关](#usetoggle-开关)
+    - [useArray](#usearray)
+- [模拟生命周期函数](#模拟生命周期函数)
+  - [useOnMount 模拟componentDidMount](#useonmount-模拟componentdidmount)
+  - [useOnUnmount 模拟componentWillUnmount](#useonunmount-模拟componentwillunmount)
+  - [useOnUpdate 模拟componentDidUpdate](#useonupdate-模拟componentdidupdate)
     - [useQuery](#usequery)
 - [props处理](#props处理)
   - [获取上一个Props](#获取上一个props)
@@ -45,7 +51,6 @@ categories: 前端
   - [useTheme](#usetheme)
   - [useI18n](#usei18n)
   - [useRouter](#userouter)
-- [模拟生命周期函数](#模拟生命周期函数)
 - [事件处理](#事件处理)
   - [useChange](#usechange)
   - [自定义事件封装](#自定义事件封装)
@@ -445,31 +450,7 @@ function Counter() {
 }
 ```
 
-useEffect和useCallback一样存在闭包变量问题，所以它和useCallback一个支持指定第二个参数，当这个参数变化时调用副作用。原理大概如下:
-
-```js
-let memoCallback = {fn: undefined, disposer: undefined}
-let memoArgs
-function useEffect(fn, args) {
-  // 如果变动则执行副作用
-  if (!isEqual(memoArgs, args)) {
-    memoArgs = args
-    memoCallback.fn = fn
-
-    // 放进队列等待调度执行
-    pushIntoEffectQueue(memoCallback)
-  }
-}
-
-// 队列执行
-function queueExecute(callback) {
-  if (callback.disposer) {
-    callback.disposer()
-    callback.disposer = undefined
-  }
-  callback.disposer = callback.fn()
-}
-```
+useEffect和useCallback一样存在闭包变量问题，所以它和useCallback一个支持指定第二个参数，当这个参数变化时执行副作用。
 
 React会保证useRef返回值的稳定性，可以在组件的任意地方安全地引用.
 
@@ -530,9 +511,191 @@ function MyButton(props) {
 
 <br>
 
-### 封装一些工具hooks
-  #### useToggle
-  #### useArray
+### 封装'工具'Hooks简化State的操作
+
+Hooks只是普通函数，所以可以灵活地自定义。下面举一些例子，利用自定义Hooks来简化常见的数据操作场景. 
+
+<br>
+
+#### useToggle 开关
+
+```ts
+function useToggle(initialValue?: boolean) {
+  const [value, setValue] = useState(!!initialValue)
+  const toggler = useCallback(() => setValue(value => !value), [])
+
+  return [value, toggler]
+}
+
+// --------
+// EXAMPLE
+// --------
+function Demo() {
+  const [enable, toggleEnable] = useToggle()
+
+  return <Switch value={enable} onClick={toggleEnable}></Switch>
+}
+```
+
+<br>
+
+#### useArray
+
+```ts
+function useArray<T>(initial?: T[] | (() => T[]), idKey: string = 'id') {
+  const [value, setValue] = useState(initial || [])
+  return {
+    value,
+    setValue,
+    push: useCallback(a => setValue(v => [...v, a]), []),
+    clear: useCallback(() => setValue(() => []), []),
+    removeById: useCallback(id => setValue(arr => arr.filter(v => v && v[idKey] !== id)), []),
+    removeIndex: useCallback(
+      index =>
+        setValue(v => {
+          v.splice(index, 1)
+          return v
+        }),
+      [],
+    ),
+  }
+}
+
+// ---------
+// EXAMPLE
+// ---------
+function Demo() {
+  const {value, push, removeById} = useArray<{id: number, name: string}>()
+  const handleAdd = useCallback(() => {
+    push({id: Math.random(), name: getName()})
+  }, [])
+
+  return (<div>
+    <div>{value.map(i => <span key={i.id} onClick={() => removeById(i.id)}>{i.name}</span>)}</div>
+    <button onClick={handleAdd}>add</button>
+  </div>)
+}
+```
+
+限于篇幅，就不展开更多了，读者可以自己发挥想象力.
+
+## 模拟生命周期函数
+
+组件生命周期相关的操作依赖于`useEffect` Hook. React在函数组件中刻意淡化了组件生命周期的概念，而更关注‘数据的响应’.
+
+`useEffect`名称意图非常明显，就是专门用来管理组件的副作用。和useCallback一样，useEffect支持传递第二个参数，告知React在这些值发生变动时才执行父作用. 原理大概如下:
+
+```js
+let memoCallback = {fn: undefined, disposer: undefined}
+let memoArgs
+function useEffect(fn, args) {
+  // 如果变动则执行副作用
+  if (args == null || !isEqual(memoArgs, args)) {
+    memoArgs = args
+    memoCallback.fn = fn
+
+    // 放进队列等待调度执行
+    pushIntoEffectQueue(memoCallback)
+  }
+}
+
+// 队列执行
+// 这个会在组件完成渲染，在布局(layout)和绘制(paint)之后被执行
+// 如果是useLayoutEffect, 执行的时机会更早一些
+function queueExecute(callback) {
+  // 执行清理函数
+  if (callback.disposer) {
+    callback.disposer()
+    callback.disposer = undefined
+  }
+  callback.disposer = callback.fn()
+}
+```
+
+关于useEffect官网有详尽的[描述](https://zh-hans.reactjs.org/docs/hooks-reference.html#useeffect); Dan Abramov也写了一篇[useEffect 完整指南](https://overreacted.io/zh-hans/a-complete-guide-to-useeffect/), 推荐👍。
+
+<br>
+
+### useOnMount 模拟componentDidMount
+
+```ts
+export default function useOnMount(fn: Function) {
+  useEffect(() => {
+    fn()
+  }, []) // 第二个参数设置为[], 表示只在首次渲染时调用
+}
+
+// ---------
+// EXAMPLE
+// ---------
+function Demo() {
+  useOnMount(async () => {
+    try {
+      await loadList()
+    } catch {
+      // log
+    }
+  })
+}
+```
+
+如果需要在挂载请求一些资源、并且需要在卸载时释放这些资源，还是推荐使用useEffect，这些逻辑最好放在一起, 方便维护和理解:
+
+```js
+// 但是useEffect传入的函数不支持async/await(返回Promise)
+useEffect(() => {
+  const subscription = props.source.subscribe();
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+```
+
+<br>
+
+### useOnUnmount 模拟componentWillUnmount
+
+```ts
+export default function useOnUnmount(fn: Function) {
+  useEffect(() => {
+    return () => {
+        fn()
+    }
+  }, [])
+}
+```
+
+<br>
+
+### useOnUpdate 模拟componentDidUpdate
+
+```ts
+function useOnUpdate(fn: () => void, dep?: any[]) {
+  const ref = useRef({ fn, mounted: false })
+  ref.current.fn = fn
+
+  useEffect(() => {
+    // 首次渲染不执行
+    if (!ref.current.mounted) {
+      ref.current.mounted = true
+    } else {
+      ref.current.fn()
+    }
+  }, dep)
+}
+
+// -----------
+// EXAMPLE
+// -----------
+function Demo(props) {
+  useOnUpdate(() => {
+    dosomethingwith(props.a)
+  }, [props.a])
+
+  return <div>...</div>
+}
+```
+
 #### useQuery
 
 ## props处理
@@ -552,7 +715,6 @@ unstaged
 
 ### useRouter
 
-## 模拟生命周期函数
 
 ## 事件处理
 
