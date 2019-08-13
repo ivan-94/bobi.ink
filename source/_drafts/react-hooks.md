@@ -32,9 +32,10 @@ categories: 前端
   - [useReducer Redux风格状态管理](#usereducer-redux风格状态管理)
   - [useForceUpdate 强制重新渲染](#useforceupdate-强制重新渲染)
   - [useStorage 简化localStorage存取](#usestorage-简化localstorage存取)
-    - [useQuery](#usequery)
-  - [useInstance](#useinstance)
+  - [useRefState 引用state的最新值](#userefstate-引用state的最新值)
+  - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
   - [封装一些工具hooks](#封装一些工具hooks)
+    - [useQuery](#usequery)
   - [获取最新的值](#获取最新的值)
 - [props处理](#props处理)
   - [获取上一个Props](#获取上一个props)
@@ -308,13 +309,183 @@ function Demo() {
 
 <br>
 
-#### useQuery
-### useInstance
+### useRefState 引用state的最新值
+
+![](/image/react-hooks/vue-api.png)
+
+上图是今年六月份VueConf，尤雨溪的Slide截图，他对比了Vue最新的FunctionBase API和React Hook. React Hooks有很多问题, 比如:
+
+- 每个Hooks在组件每次渲染时都执行。也就是说每次渲染都要重新创建很多闭包和对象
+- 需要理解闭包变量
+
+首先闭包变量问题是你掌握React Hooks过程中的重要一关。闭包问题是指什么呢？举个简单的例子, Counter:
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0)
+  const handleIncr = () => {
+    setCount(count + 1)
+  }
+
+  return (<div>{count}: <ComplexButton onClick={handleIncr}>increment</ComplexButton></div>)
+}
+```
+
+假设ComplexButton是一个非常复杂的组件，每一次点击它，我们会递增count，从而触发组将重新渲染。**因为Counter每次渲染都会重新生成handleIncr，所以也会导致ComplexButton重新渲染，不管ComplexButton使用了`PureComponent`还是使用`React.memo`包装**。
+
+为了解决这个问题，React也提供了一个`useCallback` Hook, 用来‘缓存’函数. 比如我们可以这样使用:
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0)
+  const handleIncr = useCallback(() => {
+    setCount(count + 1)
+  }, [])
+
+  return (<div>{count}: <ComplexButton onClick={handleIncr}>increment</ComplexButton></div>)
+}
+```
+
+上面的代码是有bug的，不过怎么点击，count会一直显示为1！再仔细阅读useCallback的文档，useCallback支持第二个参数，当这些值变动时更新缓存的函数, useCallback的内部逻辑大概是这样的：
+
+```js
+let memoFn, memoArgs
+function useCallback(fn, args) {
+  // 如果变动则更新缓存函数
+  if (!isEqual(memoArgs, args)) {
+    memoArgs = args
+    return (memoFn = fn)
+  }
+  return memoFn
+}
+```
+
+Ok, 现在理解一下为什么会一直显示1？
+
+![](/images/react-hooks/usecallback.png)
+
+首次渲染时缓存了闭包，这时候闭包捕获的count值是0。在后续的重新渲染中，因为useCallback第二个参数指定的值没有变动，handleIncr闭包会永远被缓存。这就解释了为什么每次点击，count只能为1.
+
+解决办法也很简单，让我们在count变动时，让useCallback更新缓存函数:
+
+```ts
+function Counter() {
+  const [count, setCount] = useState(0)
+  const handleIncr = useCallback(() => {
+    setCount(count + 1)
+  }, [count])
+
+  return (<div>{count}: <ComplexButton onClick={handleIncr}>increment</ComplexButton></div>)
+}
+```
+
+如果useCallback依赖很多值，这时候代码可能是这样的：`useCallback(fn, [a, b, c, d, e])`. 反正我是无法接受这种代码的，而且可维护性很差，尽管通过ESLint插件可以检查这些问题。
+
+<br>
+
+通过`useRef` Hook，可以让我们像Class组件一样保存一些‘实例变量’, 可以在任何缓存的闭包里面安全地引用最新的值。基于这个原理，我们尝试封装一个`useRefState`, 它在useState的基础上扩展了一个返回值，用于获取state的最新值:
+
+```ts
+import { useState, useRef, useCallback, Dispatch, SetStateAction, MutableRefObject } from 'react'
+
+function useRefState<S>(initialState: S | (() => S)): [S, Dispatch<SetStateAction<S>>, MutableRefObject<S>]
+function useRefState<S = undefined>(): [
+  S | undefined,
+  Dispatch<SetStateAction<S | undefined>>,
+  MutableRefObject<S | undefined>
+]
+function useRefState<S>(
+  initialState?: S | (() => S),
+): [S | undefined, Dispatch<SetStateAction<S | undefined>>, MutableRefObject<S | undefined>] {
+  const ins = useRef<S>()
+
+  const [state, setState] = useState<S | undefined>(() => {
+    // 初始化
+    const value = typeof initialState === 'function' ? (initialState as () => S)() : initialState
+    ins.current = value
+    return value
+  })
+
+  const setValue = useCallback((value: SetStateAction<S | undefined>) => {
+    if (typeof value === 'function') {
+      setState(prevState => {
+        const finalValue = (value as (prevState: S|undefined) => S)(prevState)
+        ins.current = finalValue
+        return finalValue
+      })
+    } else {
+      ins.current = value
+      setState(value)
+    }
+  }, [])
+
+  return [state, setValue, ins]
+}
+```
+
+<br>
+
+使用示例:
+
+```ts
+function Counter() {
+  const [count, setCount, countRef] = useRefState(0)
+  const handleIncr = useCallback(() => {
+    setCount(countRef.current + 1)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      // 在组件卸载时保存当前的count
+      saveCount(countRef.current)
+    }
+  }, [])
+
+  return (<div>{count}: <ComplexButton onClick={handleIncr}>increment</ComplexButton></div>)
+}
+```
+
+useEffect和useCallback一样存在闭包变量问题，所以它和useCallback一个支持指定第二个参数，当这个参数变化时调用副作用。原理大概如下:
+
+```js
+let memoCallback = {fn: undefined, disposer: undefined}
+let memoArgs
+function useEffect(fn, args) {
+  // 如果变动则执行副作用
+  if (!isEqual(memoArgs, args)) {
+    memoArgs = args
+    memoCallback.fn = fn
+
+    // 放进队列等待调度执行
+    pushIntoEffectQueue(memoCallback)
+  }
+}
+
+// 队列执行
+function queueExecute(callback) {
+  if (callback.disposer) {
+    callback.disposer()
+    callback.disposer = undefined
+  }
+  callback.disposer = callback.fn()
+}
+```
+
+React可以保证useRef返回值的稳定性，可以在组件的任意地方安全地引用.
+
+### useRefProps 引用最新的Props
+
+<br>
+
 ### 封装一些工具hooks
   #### useToggle
   #### useArray
+#### useQuery
 ### 获取最新的值
 
+闭包原理
+闭包性能
+解决闭包问题
 闭包问题 为什么， 配图
 在函数内创建闭包效率很高，几乎可以忽略不计， segmentFault回答
 vue value api
