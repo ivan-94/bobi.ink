@@ -10,15 +10,17 @@ categories: 前端
 
 <br>
 
-上面一张图，已经大概把一个简单模板引擎(这里指的是[EJS](https://ejs.co/))的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？其关键的步骤、以及其背后的思想。
+上面一张图，已经大概把一个简单模板引擎(这里以[EJS](https://ejs.co/)为例)的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？包含实现的关键步骤、以及其背后的思想。
 
-基本上模板引擎的套路也就这样了，这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.
+基本上模板引擎的套路也就这样了，但这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.
+
+<br>
 
 ## 基本API设计
 
-我们将实现一个简化版的Ejs, 这个模板引擎支持这些标签:
+我们将实现一个简化版的EJS, 这个模板引擎支持这些标签:
 
-- `<% script %>` 脚本执行. 一般用于控制语句，不会输出值 例如
+- `<% script %>` - 脚本执行. 一般用于控制语句，不会输出值 例如
 
   ```html
   <% if (user) { %>
@@ -26,19 +28,19 @@ categories: 前端
   <% } %>
   ```
 
-- `<%= expression %>` 输出表达式的值，但是会转义HTML:
+- `<%= expression %>` - 输出表达式的值，但是会转义HTML:
 
   ```html
   <title>{%= title %}</title>
   ```
 
-- `<%- expression %>` 和`<%= expr %>`一样，只不过不会对HTML进行转义
-- `<%%` 和`%%>` 表示标签转义, `<%%`会输出为`<%`
-- `<%# 注释 %>` 不会有内容输出
+- `<%- expression %>` -  和`<%= expr %>`一样，只不过不会对HTML进行转义
+- `<%%` 和`%%>` - 表示标签转义, 比如`<%%`会输出为`<%`
+- `<%# 注释 %>` - 不会有内容输出
 
 <br>
 
-看看一个完整的模板示例，下文会基于这个模板的解析进行讲解:
+下面是一个完整的模板示例，下文会基于这个模板进行讲解:
 
 ```html
 <html>
@@ -55,6 +57,8 @@ categories: 前端
 ```
 
 <br>
+
+**基本API设计**
 
 我们将模板解析和渲染相关的逻辑放到一个Template类中，它的基本接口如下:
 
@@ -103,10 +107,11 @@ export default class Template {
 ```
 
 <br>
+<br>
 
 ## token解析
 
-第一步我们需要将所有的开始标签(start tag)和结束标签(end tag)都解析处理出来，我们期望的解析结果是这样的：
+第一步我们需要将所有的开始标签(start tag)和结束标签(end tag)都解析出来，我们期望的解析结果是这样的：
 
 ```js
 [
@@ -138,7 +143,7 @@ export default class Template {
 ]
 ```
 
-因为我们的模板引擎语法非常简单, 压根就不需要解析成什么抽象语法树(AST). 直接通过`正则表达式`就可以实现将标签抽取出来。
+因为我们的模板引擎语法非常简单, 压根就不需要解析成什么抽象语法树(AST)(即省去了语法解析, 只进行词法解析). 直接通过`正则表达式`就可以实现将标签抽取出来。
 
 先定义正则表达式, 用来匹配我们所有支持的标签：
 
@@ -148,6 +153,7 @@ export default class Template {
 // <%= 输出脚本值
 // <%- 输出脚本值，unescape
 // <%# 注释
+// %> 结束标签
 const REGEXP = /(<%%|%%>|<%=|<%-|<%#|<%|%>)/;
 ```
 
@@ -202,7 +208,7 @@ const comtStart = "<%#";      // 注释
 if (tok.includes(start) && !tok.includes(escpStart)) {
   closing = this.tokens[idx + 2];
   if (closing == null || !closing.includes(end)) {
-    throw new Error(`${tok} 未找到对应的标签`);
+    throw new Error(`${tok} 未找到对应的闭合标签`);
   }
 }
 ```
@@ -242,15 +248,17 @@ enum State {
 
 <br>
 
-现在开始遍历token:
+Ok, 现在开始遍历token:
 
 ```js
 this.tokens.forEach((tok, idx) => {
   // ...
   switch (tok) {
+
     /**
      * 标签识别
      */
+
     case start:
       // 脚本开始
       this.state = State.EVAL;
@@ -281,9 +289,11 @@ this.tokens.forEach((tok, idx) => {
       this.state = undefined;
       break;
     default:
+
       /**
        * 转换输出
        */
+
       if (this.state != null) {
         switch (this.state) {
           case State.EVAL:
@@ -401,21 +411,23 @@ temp.render({ show: true, title: "hello", before: "<div>xx</div>" })
 
 [![Edit ejs](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/ejs-wp11m?fontsize=14)
 
+<br>
+
 ## 总结
 
-本文其实受到了[the-super-tiny-compiler](https://github.com/jamiebuilds/the-super-tiny-compiler)启发，实现了一个极简的模板引擎，其实模板引擎就是一个Compiler，通过上文可以了解到一个模板引擎编译有三个步骤：
+本文其实受到了[the-super-tiny-compiler](https://github.com/jamiebuilds/the-super-tiny-compiler)启发，实现了一个极简的模板引擎，其实模板引擎本质上也是一个Compiler，通过上文可以了解到一个模板引擎编译有三个步骤：
 
 1. **解析** 将模板代码解析成抽象的表示形式。复杂的编译器会有`词法解析(Lexical Analysis)`和`语法解析(Syntactic Analysis)`
 
-  词法解析, 上文我们将模板内容解析成token的过程就可以认为是‘词法解析’，它会将源代码拆分称为token数组，token是一个小单元，表示独立的‘语法片段’。
+    **词法解析**, 上文我们将模板内容解析成token的过程就可以认为是‘词法解析’，它会将源代码拆分称为token数组，token是一个小单元，表示独立的‘语法片段’。
 
-  语法解析，语法解析器接收token数组，将它们重新格式化称为抽象语法树(Abstract Syntax Tree, AST), 抽象语法树可以用于描述语法单元以及单元之间的关系。 语法解析阶段可以发现语法问题。
+    **语法解析**，语法解析器接收token数组，将它们重新格式化称为抽象语法树(Abstract Syntax Tree, AST), 抽象语法树可以用于描述语法单元, 以及单元之间的关系。 语法解析阶段可以发现语法问题。
 
-  ![](https://bobi.ink/images/ejs/ast.png)
+    ![](https://bobi.ink/images/ejs/ast.png)
 
-  (图片来源: https://ruslanspivak.com/lsbasi-part7)
+    (图片来源: https://ruslanspivak.com/lsbasi-part7)
 
-  本文介绍的模板引擎，因为语法太简单了，所以不需要AST这个中间表示形式。直接在tokens上进行转换
+    本文介绍的模板引擎，因为语法太简单了，所以不需要AST这个中间表示形式。直接在tokens上进行转换
 
 2. **转换** 将上个步骤抽象的表示形式，转换成为编译器想要的。比如上文模板引擎会转换为对应语言的语句。复杂的编译器会基于AST进行‘转换’，也就是对AST进行‘增删查改’. 通常会配合Visitors模式来遍历/访问AST的节点
 3. **代码生成** 将转换后的抽象表示转换为新的代码。 比如模板引擎最后一步会封装成为一个渲染函数. 复杂的编译器会将AST转换为目标代码
