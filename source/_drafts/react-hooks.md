@@ -47,13 +47,15 @@ categories: 前端
   - [获取上一个Props](#获取上一个props)
   - [useWhyUpdate](#usewhyupdate)
 - [事件处理](#事件处理)
-  - [useChange 简化onChange的处理](#usechange-简化onchange的处理)
+  - [useChange 简化onChange表单双向绑定](#usechange-简化onchange表单双向绑定)
   - [自定义事件封装](#自定义事件封装)
-    - [useFocus](#usefocus)
-    - [useDraggable](#usedraggable)
-    - [useListener (react-events)](#uselistener-react-events)
-  - [订阅](#订阅)
-- [context获取](#context获取)
+    - [useActive](#useactive)
+    - [useTouch 手势事件封装](#usetouch-手势事件封装)
+    - [useDraggable 拖拽事件封装](#usedraggable-拖拽事件封装)
+    - [useListener react-events 面向未来的高级事件封装](#uselistener-react-events-面向未来的高级事件封装)
+  - [useSubscription 通用事件源订阅](#usesubscription-通用事件源订阅)
+  - [useObservable Hooks和RxJS优雅的尝试(rxjs-hooks)](#useobservable-hooks和rxjs优雅的尝试rxjs-hooks)
+- [Context的妙用](#context的妙用)
   - [简单状态管理](#简单状态管理)
   - [useTheme](#usetheme)
   - [useI18n](#usei18n)
@@ -711,7 +713,7 @@ function Demo(props) {
 
 ## 事件处理
 
-### useChange 简化onChange的处理
+### useChange 简化onChange表单双向绑定
 
 表单值的双向绑定在项目中非常常见，通常我们的代码是这样的:
 
@@ -770,15 +772,267 @@ function Demo() {
 <br>
 
 ### 自定义事件封装
-#### useFocus
-#### useDraggable
-#### useListener (react-events)
 
-### 订阅
+Hooks也可以用于封装一些高级事件或者简化事件的处理，比如拖拽、手势、鼠标激活等等；
+
+#### useActive
+
+举个简单的例子, useActive, 在鼠标按下时设置状态为true，鼠标释放时恢复为false:
+
+```ts
+function useActive(refEl: React.RefObject<HTMLElement>) {
+  const [value, setValue] = useState(false)
+  useEffect(() => {
+    const handleMouseDown = () => {
+      setValue(true)
+    }
+    const handleMouseUp = () => {
+      setValue(false)
+    }
+
+    // DOM 事件监听
+    if (refEl && refEl.current) {
+      refEl.current.addEventListener('mousedown', handleMouseDown)
+      refEl.current.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      if (refEl && refEl.current) {
+        refEl.current.removeEventListener('mousedown', handleMouseDown)
+        refEl.current.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [])
+
+  return value
+}
+
+// ----------
+// EXAMPLE
+// ----------
+function Demo() {
+  const elRef = useRef(null)
+  const active = useActive(inputRef)
+
+  return (<div ref={elRef}>{active ? "Active" : "Nop"}</div>)
+}
+```
+
+#### useTouch 手势事件封装
+
+更复杂的自定义事件, 例如手势。限于篇幅就不列举它们的实现代码，我们可以看看它们的Demo:
+
+```ts
+function Demo() {
+  const {ref} = useTouch({
+    onTap: () => { /* 点击 */ },
+    onLongTap: () => { /* 长按 */ },
+    onRotate: () => {/* 旋转 */}
+    // ...
+  })
+
+  return (<div className="box" ref={ref}></div>)
+}
+```
+
+useTouch的实现可以参考[useTouch.ts](https://github.com/GDJiaMi/hooks/blob/master/src/useTouch.ts)
+
+<br>
+
+#### useDraggable 拖拽事件封装
+
+拖拽也是一个典型的自定义事件
+
+```ts
+function useDraggable(ref: React.RefObject<HTMLElement>) {
+  const [{ dx, dy }, setOffset] = useState({ dx: 0, dy: 0 })
+
+  useEffect(() => {
+    if (ref.current == null) {
+      throw new Error(`[useDraggable] ref未注册到组件中`)
+    }
+    const el = ref.current
+
+    const handleMouseDown = (event: MouseEvent) => {
+      const startX = event.pageX - dx
+      const startY = event.pageY - dy
+
+      const handleMouseMove = (event: MouseEvent) => {
+        const newDx = event.pageX - startX
+        const newDy = event.pageY - startY
+        setOffset({ dx: newDx, dy: newDy })
+      }
+
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener(
+        'mouseup',
+        () => {
+          document.removeEventListener('mousemove', handleMouseMove)
+        },
+        { once: true },
+      )
+    }
+
+    el.addEventListener('mousedown', handleMouseDown)
+
+    return () => {
+      el.removeEventListener('mousedown', handleMouseDown)
+    }
+  }, [dx, dy])
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.style.transform = `translate3d(${dx}px, ${dy}px, 0)`
+    }
+  }, [dx, dy])
+}
+
+// -----------
+// EXAMPLE
+// -----------
+function Demo() {
+  const el = useRef();
+  useDraggable(el);
+
+  return <div className="box" ref={el} />
+}
+```
+
+<br>
+
+#### useListener react-events 面向未来的高级事件封装
+
+我在[<谈谈React事件机制和未来(react-events)>](https://juejin.im/post/5d44e3745188255d5861d654)介绍了React-Events**实验性**的API。当这个API成熟后，我们可以基于它来实现更优雅的高级事件的封装：
+
+```js
+import { PressResponder, usePressListener } from 'react-events/press';
+
+const Button = (props) => (
+  const listener = usePressListener({  // ⚛️ 通过hooks创建Responder
+    onPressStart,
+    onPress,
+    onPressEnd,
+  })
+
+  return (
+    <div listeners={listener}>
+      {subtrees}
+    </div>
+  );
+);
+```
+
+<br>
+<br>
+
+### useSubscription 通用事件源订阅
+
+React官方维护了一个use-subscription包，支持使用Hooks的形式来监听事件源. 事件源可以是DOM事件、RxJS的Observable等等.
+
+先来看看使用示例:
+
+```js
+function Demo() {
+  const subscription = useMemo(
+    () => ({
+      getCurrentValue: () => behaviorSubject.getValue(),
+      subscribe: callback => {
+        // 当事件触发时调用callback
+        const subscription = behaviorSubject.subscribe(callback);
+        // 和useEffect一样，返回一个函数来取消订阅
+        return () => subscription.unsubscribe();
+      }
+    }),
+    // 在behaviorSubject变化后重新订阅
+    [behaviorSubject]
+  );
+
+  const value = useSubscription(subscription);
+
+  return <div>{value}</div>
+}
+```
 
 
+现在来看看实现:
 
-## context获取
+```ts
+export function useSubscription<T>({
+  getCurrentValue,
+  subscribe,
+}: {
+  // 获取当前值
+  getCurrentValue?: () => T
+  // 用于订阅事件源
+  subscribe: (callback: Function) => () => void
+}): T {
+  const [state, setState] = useState(() => ({ getCurrentValue, subscribe, value: getCurrentValue() }))
+  let valueToReturn = state.value
+
+  // 更新getCurrentValue和subscribe
+  if (state.getCurrentValue !== getCurrentValue || state.subscribe !== subscribe) {
+    valueToReturn = getCurrentValue()
+    setState({ getCurrentValue, subscribe, value: valueToReturn })
+  }
+
+  useEffect(() => {
+    let didUnsubscribe = false
+    const checkForUpdates = () => {
+      if (didUnsubscribe) {
+        return
+      }
+
+      setState(prevState => {
+        // 检查getCurrentValue和subscribe是否变动
+        // setState时如果返回值没有变化，则不会触发重新渲染
+        if (prevState.getCurrentValue !== getCurrentValue || prevState.subscribe !== subscribe) {
+          return prevState
+        }
+        // 值没变动
+        const value = getCurrentValue()
+        if (prevState.value === value) {
+          return prevState
+        }
+
+        return { ...prevState, value }
+      })
+    }
+    const unsubscribe = subscribe(checkForUpdates)
+    checkForUpdates()
+
+    return () => {
+      didUnsubscribe = true
+      unsubscribe()
+    }
+  }, [getCurrentValue, subscribe])
+
+  return valueToReturn
+}
+```
+
+实现也不复杂，甚至可以说有点啰嗦.
+
+<br>
+
+### useObservable Hooks和RxJS优雅的尝试(rxjs-hooks)
+
+如果要配置RxJS使用，LeetCode团队封装了一个[rxjs-hooks](https://github.com/LeetCode-OpenSource/rxjs-hooks/blob/master/README.md)库，用起来则要优雅很多, 非常推荐:
+
+```ts
+function App() {
+  const value = useObservable(() => interval(500).pipe(map((val) => val * 3)));
+
+  return (
+    <div className="App">
+      <h1>Incremental number: {value}</h1>
+    </div>
+  );
+}
+```
+
+<br>
+
+## Context的妙用
 
 ### 简单状态管理
 unstaged
