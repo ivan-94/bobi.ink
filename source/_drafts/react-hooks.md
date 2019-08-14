@@ -46,18 +46,18 @@ categories: 前端
 - [props处理](#props处理)
   - [获取上一个Props](#获取上一个props)
   - [useWhyUpdate](#usewhyupdate)
-- [context获取](#context获取)
-  - [简单状态管理](#简单状态管理)
-  - [useTheme](#usetheme)
-  - [useI18n](#usei18n)
-  - [useRouter](#userouter)
 - [事件处理](#事件处理)
-  - [useChange](#usechange)
+  - [useChange 简化onChange的处理](#usechange-简化onchange的处理)
   - [自定义事件封装](#自定义事件封装)
     - [useFocus](#usefocus)
     - [useDraggable](#usedraggable)
     - [useListener (react-events)](#uselistener-react-events)
   - [订阅](#订阅)
+- [context获取](#context获取)
+  - [简单状态管理](#简单状态管理)
+  - [useTheme](#usetheme)
+  - [useI18n](#usei18n)
+  - [useRouter](#userouter)
 - [副作用封装](#副作用封装)
   - [useTitle](#usetitle)
   - [useNetworkStatus](#usenetworkstatus)
@@ -706,6 +706,78 @@ function Demo(props) {
 ### 获取上一个Props
 ### useWhyUpdate
 
+<br>
+<br>
+
+## 事件处理
+
+### useChange 简化onChange的处理
+
+表单值的双向绑定在项目中非常常见，通常我们的代码是这样的:
+
+```ts
+function Demo() {
+  const [value, setValue] = useState('')
+
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(evt => {
+    setValue(evt.target.value)
+  }, [])
+
+  return <input value={value} onChange={handleChange} />
+}
+```
+
+如果需要维护多个表单，这种代码就会变得难以接受。幸好有Hooks，我们可以简化这些代码:
+
+```ts
+function useChange<S>(initial?: S | (() => S)) {
+  const [value, setValue] = useState<S | undefined>(initial)
+  const onChange = useCallback(e => setValue(e.target.value), [])
+
+  return {
+    value,
+    setValue,
+    onChange,
+    // 绑定到原生事件
+    bindEvent: {
+      onChange,
+      value,
+    },
+    // 绑定到自定义组件
+    bind: {
+      onChange: setValue,
+      value,
+    },
+  }
+}
+
+// ----------
+// EXAMPLE
+// ----------
+function Demo() {
+  const userName = useChange('')
+  const password = useChange('')
+
+  return (
+    <div>
+      <input {...userName.bindEvent} />
+      <input type="password" {...password.bindEvent} />
+    </div>
+  )
+}
+```
+
+<br>
+
+### 自定义事件封装
+#### useFocus
+#### useDraggable
+#### useListener (react-events)
+
+### 订阅
+
+
+
 ## context获取
 
 ### 简单状态管理
@@ -716,16 +788,6 @@ unstaged
 
 ### useRouter
 
-
-## 事件处理
-
-### useChange
-### 自定义事件封装
-#### useFocus
-#### useDraggable
-#### useListener (react-events)
-
-### 订阅
 
 ## 副作用封装
 
