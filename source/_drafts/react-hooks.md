@@ -8,7 +8,7 @@ categories: 前端
 
 我在[React组件设计实践总结04 - 组件的思维](https://juejin.im/post/5cdc2f54e51d453b0c35930d#heading-3)中已经总结过React Hooks的意义，以及一些应用场景。那这篇文章就完全是React Hooks的应用实例，列举了我使用React Hooks的一些实践。
 
-希望通过这些案例，可以帮助你快速迁移到React Hooks
+希望通过这些案例，可以帮助你快速迁移到React Hooks. **文章篇幅很长，建议收藏不看, 至少看看目录吧**
 
 把之前文章的React Hooks应用场景总结拿过来:
 
@@ -35,6 +35,7 @@ categories: 前端
   - [useRefState 引用state的最新值](#userefstate-引用state的最新值)
   - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
     - [每次重新渲染都创建闭包会影响效率吗？](#每次重新渲染都创建闭包会影响效率吗)
+  - [usePrevious 获取上一次渲染的值](#useprevious-获取上一次渲染的值)
   - [封装'工具'Hooks简化State的操作](#封装工具hooks简化state的操作)
     - [useToggle 开关](#usetoggle-开关)
     - [useArray](#usearray)
@@ -62,15 +63,19 @@ categories: 前端
   - [useI18n 国际化](#usei18n-国际化)
   - [useRouter 简化路由状态的访问](#userouter-简化路由状态的访问)
 - [副作用封装](#副作用封装)
+  - [useOnlineStatus](#useonlinestatus)
+- [副作用衍生](#副作用衍生)
   - [useTitle](#usetitle)
-  - [useNetworkStatus](#usenetworkstatus)
   - [useDebounce](#usedebounce)
+  - [useThrottle](#usethrottle)
 - [简化业务逻辑](#简化业务逻辑)
-  - [usePromise封装异步请求](#usepromise封装异步请求)
-  - [usePromiseOnMount](#usepromiseonmount)
-  - [useList](#uselist)
+  - [usePromise 封装异步请求](#usepromise-封装异步请求)
+  - [usePromiseEffect 自动进行异步请求](#usepromiseeffect-自动进行异步请求)
+  - [useInfiniteList 简化列表请求](#useinfinitelist-简化列表请求)
+  - [usePoll 用hook实现轮询](#usepoll-用hook实现轮询)
+  - [useComponent 简化组件的配置](#usecomponent-简化组件的配置)
   - [业务逻辑抽离](#业务逻辑抽离)
-- [React Hooks的生态](#react-hooks的生态)
+- [React Hooks 技术地图](#react-hooks-技术地图)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -516,6 +521,11 @@ function MyButton(props) {
 - 再拆分更细粒度的组件，这些组件都使用React.memo缓存
 
 <br>
+
+### usePrevious 获取上一次渲染的值
+
+TODO:
+基本需不要， shouldComponentUpdate, didUpdate
 
 ### 封装'工具'Hooks简化State的操作
 
@@ -1281,25 +1291,382 @@ function usePageViews() {
 
 ## 副作用封装
 
+我们可以利用Hooks来封装或监听组件外部的副作用，将它们转换为组件的状态。
+
+### useOnlineStatus
+
+比较典型的案例就是监听主机的在线状态：
+
+```ts
+function getOnlineStatus() {
+  return typeof navigator.onLine === 'boolean' ? navigator.onLine : true
+}
+
+function useOnlineStatus() {
+  let [onlineStatus, setOnlineStatus] = useState(getOnlineStatus())
+
+  useEffect(() => {
+    const online = () => setOnlineStatus(true)
+    const offline = () => setOnlineStatus(false)
+    window.addEventListener('online', online)
+    window.addEventListener('offline', offline)
+
+    return () => {
+      window.removeEventListener('online', online)
+      window.removeEventListener('offline', offline)
+    }
+  }, [])
+
+  return onlineStatus
+}
+
+// --------
+// EXAMPLE
+// --------
+function Demo() {
+  let onlineStatus = useOnlineStatus();
+  return (
+    <div>
+      <h1>网络状态: {onlineStatus ? "在线" : "离线"}</h1>
+    </div>
+  );
+}
+```
+
+<br>
+
+还有很多案例, 这里就不一一列举，读者可以自己尝试去实现，比如:
+
+- useDeviceOrientation 监听设备方向
+- useGeolocation 监听GPS坐标变化
+- useScrollPosition 监听滚动位置
+- useMotion 监听设备运动
+- ....
+
+<br>
+
+## 副作用衍生
+
+和`副作用封装`相反，副作用衍生是指当组件状态变化时，衍生出其他副作用. 两者的方向是相反的.
+
+副作用衍生主要会用到useEffect，使用useEffect来响应状态的变化.
+
 ### useTitle
-### useNetworkStatus
+
+useTitle是最简单的，当给定的值变化时，更新`document.title`
+
+```ts
+function useTitle(t: string) {
+  useEffect(() => {
+    document.title = t
+  }, [t])
+}
+
+// --------
+// EXAMPLE
+// --------
+function Demo(props) {
+  useTitle(props.isEdit ? '编辑' : '新增')
+  // ....
+}
+```
+
+<br>
+
 ### useDebounce
+
+再来个复杂一点的，useDebounce：当某些状态变化时，它会延迟执行某些操作：
+
+```ts
+function useDebounce(fn: () => void, args?: any[], ms: number = 100, skipMount?: boolean) {
+  const mounted = useRef(false)
+  useEffect(() => {
+    // 跳过挂载执行
+    if (skipMount && !mounted.current) {
+      mounted.current = true
+      return undefined
+    }
+
+    const timer = setTimeout(fn, ms)
+
+    return () => {
+      // 如果args变化，先清除计时器
+      clearTimeout(timer)
+    }
+  }, args)
+}
+
+// -----------
+// EXAMPLE
+// -----------
+const returnEmptyArray = () => []
+function Demo() {
+  const [query, setQuery] = useState('')
+  const [list, setList] = useState(returnEmptyArray)
+
+  // 搜索
+  const handleSearch = async () => {
+    setList(await fetchList(query))
+  }
+
+  // 当query变化时执行搜索
+  useDebounce(handleSearch, [query], 500)
+
+  return (<div>
+    <SearchBar value={query} onChange={setQuery} />
+    <Result list={list}></Result>
+  </div>)
+}
+```
+
+### useThrottle
+
+同理可以实现useThrottle
+
+```ts
+// 代码来源: react-use https://github.com/streamich/react-use/blob/master/src/useThrottleFn.ts
+const useThrottleFn = <T>(fn: (...args: any[]) => T, ms: number = 200, args: any[]) => {
+  const [state, setState] = useState<T>(null as any);
+  const timeout = useRef<any>(null);
+  const nextArgs = useRef(null) as any;
+  const hasNextArgs = useRef(false) as any;
+
+  useEffect(() => {
+    if (!timeout.current) {
+      setState(fn(...args));
+      const timeoutCallback = () => {
+        if (hasNextArgs.current) {
+          hasNextArgs.current = false;
+          setState(fn(...nextArgs.current));
+          timeout.current = setTimeout(timeoutCallback, ms);
+        } else {
+          timeout.current = null;
+        }
+      };
+      timeout.current = setTimeout(timeoutCallback, ms);
+    } else {
+      nextArgs.current = args;
+      hasNextArgs.current = true;
+    }
+  }, args);
+
+  useOnUnmount(() => {
+    clearTimeout(timeout.current);
+  });
+
+  return state;
+};
+```
+
+<br>
 
 ## 简化业务逻辑
 
-### usePromise封装异步请求
-### usePromiseOnMount
-### useList
+80%的程序员80%的时间在写业务代码，有了Hooks，React开发者如获至宝. 组件的代码可以变得很精简，且这些Hooks可以方便地在组件之间复用
+
+![](/images/react-hooks/hooks-transform.png)
+
+下面介绍，如何利用Hooks来简化业务代码
+
+### usePromise 封装异步请求
+
+第一个例子，试试封装一下promise，简化简单页面异步请求的流程:
+
+```ts
+export interface Res<T, S> {
+  loading: boolean
+  error?: Error
+  value?: S
+  setValue: (v: S) => void
+  call: T
+  callIgnoreError: T
+  reset: () => void
+  retry: () => void
+}
+
+export interface UsePromiseOptions {
+  // 如果promise正在加载中则跳过，默认为true
+  skipOnLoading?: boolean
+}
+
+// 👇 下面是一堆Typescript函数重载声明，为了方便Typescript推断泛型变量. 小白可以跳过
+function usePromise<T>(action: () => Promise<T>, option?: UsePromiseOptions): Res<() => Promise<T>, T>
+function usePromise<T, A>(action: (arg0: A) => Promise<T>, option?: UsePromiseOptions): Res<(arg0: A) => Promise<T>, T>
+function usePromise<T, A, B>(action: (arg0: A, arg1: B) => Promise<T>, option?: UsePromiseOptions): Res<(arg0: A, arg1: B) => Promise<T>, T>
+function usePromise<T, A, B, C>( action: (arg0: A, arg1: B, arg2: C) => Promise<T>, option?: UsePromiseOptions): Res<(arg0: A, arg1: B, arg2: C) => Promise<T>, T>
+function usePromise<T, A, B, C, D>(action: (arg0: A, arg1: B, arg2: C, arg3: D) => Promise<T>, option?: UsePromiseOptions): Res<(arg0: A, arg1: B, arg2: C, arg3: D) => Promise<T>, T>
+function usePromise(action: (...args: any[]) => Promise<any>, option?: UsePromiseOptions): Res<(...args: any) => Promise<any>, any>
+// 👆 上面是一堆Typescript函数重载声明，可以跳过
+
+/**
+ * 接受一个action，用于执行异步操作
+ */
+function usePromise(
+  action: (...args: any[]) => Promise<any>,
+  option: UsePromiseOptions = { skipOnLoading: true },
+): Res<(...args: any) => Promise<any>, any> {
+  const actionRef = useRefProps(action)
+  const optionRef = useRefProps(option)
+  const [loading, setLoading, loadingRef] = useRefState(false)
+  const taskIdRef = useRef<number>()
+  const argsRef = useRef<any[]>()
+  const [value, setValue] = useState()
+  const [error, setError, errorRef] = useRefState<Error | undefined>()
+
+  const caller = useCallback(async (...args: any[]) => {
+    argsRef.current = args
+    if (loadingRef.current && optionRef.current.skipOnLoading) {
+      return
+    }
+    const taskId = getUid()
+    taskIdRef.current = taskId
+
+    // 已经有新的任务在执行了，什么都不做
+    const shouldContinue = () => {
+      if (taskId !== taskIdRef.current) {
+        return false
+      }
+      return true
+    }
+
+    try {
+      setLoading(true)
+      setError(undefined)
+      const res = await actionRef.current(...args)
+
+      if (!shouldContinue()) return
+      setValue(res)
+      return res
+    } catch (err) {
+      if (shouldContinue()) {
+        setError(err)
+      }
+      throw err
+    } finally {
+      if (shouldContinue()) {
+        setLoading(false)
+      }
+    }
+  }, [])
+
+  // 不抛出异常
+  const callIgnoreError = useCallback(
+    async (...args: any[]) => {
+      try {
+        return await caller(...args)
+      } catch {
+        // ignore
+      }
+    },
+    [caller],
+  )
+
+  const reset = useCallback(() => {
+    setLoading(false)
+    setValue(undefined)
+    setError(undefined)
+  }, [])
+
+  // 失败后重试
+  const retry = useCallback(() => {
+    if (argsRef.current && errorRef.current) {
+      return callIgnoreError(...argsRef.current)
+    }
+    throw new Error(`not call yet`)
+  }, [])
+
+  return {
+    loading,
+    error,
+    call: caller,
+    callIgnoreError,
+    value,
+    setValue,
+    reset,
+    retry,
+  }
+}
+```
+
+上面把完整的usePromise代码都贴出来了😰, 啥都别说了，直接看实例吧:
+
+```tsx
+function Demo() {
+  const list = usePromise(async (id: string) => {
+    return fetchList(id)
+  })
+
+  return (<div>
+    {/* 触发请求 */}
+    <button onClick={() => list.callIgnoreError('myId')}>Get List</button>
+    {/* 错误信息展示和重试 */}
+    {!!list.error && <ErrorMessage error={list.error} retry={list.retry}>加载失败:</ErrorMessage>}
+    {/* 加载状态 */}
+    <Loader loading={list.loadin}>
+      {/* 请求结果 */}
+      <Result value={list.value}></Result>
+    </Loader>
+  </div>)
+}
+```
+
+<br>
+
+### usePromiseEffect 自动进行异步请求
+
+很多时候，我们是在组件一挂载或者某些状态变化时自动进行一步请求的，我们在usePromise的基础上，结合useEffect来实现自动调用:
+
+```ts
+// 为了缩短篇幅，这里就不考虑跟usePromise一样的函数重载了
+export default function usePromiseEffect<T>(
+  action: (...args: any[]) => Promise<T>,
+  args?: any[],
+) {
+  const prom = usePromise(action)
+
+  useEffect(() => {
+    prom.callIgnoreError.apply(null, args)
+  }, args)
+
+  return prom
+}
+
+// ---------
+// EXAMPLE
+// ---------
+function Demo(props) {
+  // 在挂载或者id变化时请求
+  const list = usePromiseEffect((id) => fetchById(id), [id])
+
+  // 同usePromise
+}
+```
+
+看到这里，应该惊叹Hooks的抽象能力了吧！😸
+
+<br>
+
+### useInfiniteList 简化列表请求
+
+### usePoll 用hook实现轮询
+
+### useComponent 简化组件的配置
+
 ### 业务逻辑抽离
 
-## React Hooks的生态
+## React Hooks 技术地图
 
 redux
 react-spring
 react-router
 mobx
 appoll
+react-use
 
 ## 扩展
 
 ![Awesome React Hooks](https://github.com/rehooks/awesome-react-hooks)
+
+你用React Hook遇到过什么问题？ 开过什么脑洞，下方评论告诉我
+
+本文完!
