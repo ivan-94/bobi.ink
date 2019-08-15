@@ -57,8 +57,8 @@ categories: 前端
   - [useObservable Hooks和RxJS优雅的结合(rxjs-hooks)](#useobservable-hooks和rxjs优雅的结合rxjs-hooks)
   - [useEventEmitter 对接eventEmitter](#useeventemitter-对接eventemitter)
 - [Context的妙用](#context的妙用)
+  - [useTheme 主题配置](#usetheme-主题配置)
   - [简单状态管理](#简单状态管理)
-  - [useTheme](#usetheme)
   - [useI18n](#usei18n)
   - [useRouter](#userouter)
 - [副作用封装](#副作用封装)
@@ -1106,14 +1106,75 @@ function Demo() {
 
 ## Context的妙用
 
+通过useContext可以方便地引用Context。不过需要注意的是如果上级`Context.Provider`的value变化，使用useContext的组件就会被强制重新渲染。
+
+### useTheme 主题配置
+
+原本需要使用高阶组件注入或Context.Consumer获取的Context值，现在变得非常简洁：
+
+```ts
+/**
+ * 传统方式
+ */
+// 通过高阶组件注入
+withTheme(MyComponent)
+
+// 利用Context.Consumer
+const MyComponentWithTheme = (props) => {
+  return (<ThemeContext.Consumer>
+    {value => <MyComponent theme={value} {...props}></MyComponent>}
+  </ThemeContext.Consumer>)
+}
+```
+
+Hooks方式
+
+```ts
+import React, { useContext, FC } from 'react'
+
+const ThemeContext = React.createContext<object>({})
+
+export const ThemeProvider: FC<{ theme: object }> = props => {
+  return <ThemeContext.Provider value={props.theme}>{props.children}</ThemeContext.Provider>
+}
+
+export function useTheme<T extends object>(): T {
+  return useContext(ThemeContext)
+}
+
+// ---------
+// EXAMPLE
+// ---------
+const theme = {
+  primary: '#000',
+  secondary: '#444',
+}
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <div>...</div>
+    </ThemeProvider>
+  )
+}
+
+const Button: FC = props => {
+  const t = useTheme<typeof theme>()
+  const style = {
+    color: t.primary,
+  }
+  return <button style={style}>{props.children}</button>
+}
+```
+
+<br>
+
 ### 简单状态管理
 unstaged
 
-### useTheme
 ### useI18n
 
 ### useRouter
-
 
 ## 副作用封装
 
