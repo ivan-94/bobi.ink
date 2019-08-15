@@ -1698,6 +1698,115 @@ function Demo(props) {
 
 ### usePoll 用hook实现轮询
 
+下面使用Hooks实现一个定时轮询器
+
+```ts
+export interface UsePollOptions<T> {
+  /**
+   * 决定是否要继续轮询
+   * @param arg 上一次轮询返回的值
+   */
+  condition: (arg?: T, error?: Error) => Promise<boolean>
+  /**
+   * 轮询操作
+   */
+  poller: () => Promise<T>
+  onError?: (err: Error) => void
+  /**
+   * 轮询间隔. 默认 5000
+   */
+  duration?: number
+  /**
+   * 监听的参数，当这些参数变化时，重新检查轮询条件，决定是否继续轮询
+   */
+  args?: any[]
+  /**
+   * 是否立即轮询
+   */
+  immediately?: boolean
+}
+
+/**
+ * 实现页面轮询机制
+ */
+export default function usePoll<T = any>(options: UsePollOptions<T>) {
+  const [polling, setPolling, pollingRef] = useRefState(false)
+  const [error, setError] = useState<Error>()
+  const state = useInstance<{ timer?: number; unmounted?: boolean }>({})
+  const optionsRef = useRefProps(options)
+
+  const poll = useCallback(async (immediate?: boolean) => {
+    // 已经卸载，或其他轮询器正在轮询
+    if (state.unmounted || pollingRef.current) return
+    setPolling(true)
+    state.timer = window.setTimeout(
+      async () => {
+        if (state.unmounted) return
+        try {
+          let res: T | undefined
+          let error: Error | undefined
+          setError(undefined)
+
+          try {
+            res = await optionsRef.current.poller()
+          } catch (err) {
+            error = err
+            setError(err)
+            if (optionsRef.current.onError) {
+              optionsRef.current.onError(err)
+            }
+          }
+          // 准备下一次轮询
+          if (!state.unmounted && (await optionsRef.current.condition(res, error))) {
+            setTimeout(poll)
+          }
+        } finally {
+          !state.unmounted && setPolling(false)
+        }
+      },
+      immediate ? 0 : optionsRef.current.duration || 5000,
+    )
+  }, [])
+
+  useOnUpdate(
+    async () => {
+      if (await optionsRef.current.condition()) poll(options.immediately)
+    },
+    options.args || [],
+    false,
+  )
+
+  useOnUnmount(() => {
+    state.unmounted = true
+    clearTimeout(state.timer)
+  })
+
+  return { polling, error }
+}
+```
+
+使用示例:
+
+```ts
+function Demo() {
+  const [query, setQuery] = useState(')
+  const [result, setResult] = useState<Result>()
+  usePoll({
+    poller: await() => {
+      const res =await fetch(query)
+      setResult(res)
+      return res
+    }
+    condition: async () => {
+      return query !== ''
+    },
+    args: [query],
+  })
+
+  // ...
+}
+```
+
 ### useComponent 简化组件的配置
 
 ### 业务逻辑抽离
@@ -1710,10 +1819,12 @@ react-router
 mobx
 appoll
 react-use
+rehook
 
 ## 扩展
 
-![Awesome React Hooks](https://github.com/rehooks/awesome-react-hooks)
+- [Awesome React Hooks](https://github.com/rehooks/awesome-react-hooks)
+- [rehooks/ideas ](https://github.com/rehooks/ideas/issues) 一起开脑洞
 
 你用React Hook遇到过什么问题？ 开过什么脑洞，下方评论告诉我
 
