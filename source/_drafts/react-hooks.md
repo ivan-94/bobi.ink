@@ -33,8 +33,9 @@ categories: 前端
   - [useForceUpdate 强制重新渲染](#useforceupdate-强制重新渲染)
   - [useStorage 简化localStorage存取](#usestorage-简化localstorage存取)
   - [useRefState 引用state的最新值](#userefstate-引用state的最新值)
-  - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
     - [每次重新渲染都创建闭包会影响效率吗？](#每次重新渲染都创建闭包会影响效率吗)
+  - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
+  - [useInstance ‘实例’变量存取](#useinstance-实例变量存取)
   - [usePrevious 获取上一次渲染的值](#useprevious-获取上一次渲染的值)
   - [封装'工具'Hooks简化State的操作](#封装工具hooks简化state的操作)
     - [useToggle 开关](#usetoggle-开关)
@@ -467,6 +468,29 @@ React会保证useRef返回值的稳定性，可以在组件的任意地方安全
 
 <br>
 
+#### 每次重新渲染都创建闭包会影响效率吗？
+
+函数组件和Class组件不一样的是，每一次重新渲染会重复创建大量的闭包、数组和对象。而传统的Class组件的render函数则要简洁很多，一般只放置JSX。
+
+我们看看官方是怎么回应的：
+
+![](/images/react-hooks/fn-perf.png)
+
+我在SegmentFault的[react function组件与class组件性能问题](https://segmentfault.com/q/1010000019644156/a-1020000019706666)进行了详细的回答, 结论是:
+
+> 我刚开始写React hooks时也有这个顾虑，函数式组件每次渲染里面的闭包都要重新创建，不会很耗性能吗？ 类组件的方法是静态不变的，那是否在这点上类组件性能更好一点？
+>
+> 上面的答案其实已经说得很明白了，目前而言，实现同样的功能，类组件和函数组件的效率是不相上下的。但是函数组件是未来，而且还有优化空间，React团队会继续优化它。而类组件会逐渐退出历史
+
+为了提高函数组件的性能，可以在这些地方做一些优化:
+
+- 能否将函数提取为静态的
+- 简化组件的复杂度，动静分离
+- 再拆分更细粒度的组件，这些组件都使用React.memo缓存
+
+<br>
+<br>
+
 ### useRefProps 引用最新的Props
 
 现实项目中也有有这种场景，我们需要获取最新的props值，这个同样可以通过useRef来实现：
@@ -500,27 +524,51 @@ function MyButton(props) {
 <br>
 <br>
 
-#### 每次重新渲染都创建闭包会影响效率吗？
+### useInstance ‘实例’变量存取
 
-函数组件和Class组件不一样的是，每一次重新渲染会重复创建大量的闭包、数组和对象。而传统的Class组件的render函数则要简洁很多，一般只放置JSX。
+```ts
+function isFunction<T>(initial?: T | (() => T)): initial is () => T {
+  return typeof initial === 'function'
+}
 
-我们看看官方是怎么回应的：
+function useInstance<T extends {}>(initial?: T | (() => T)) {
+  const instance = useRef<T>()
+  // 初始化
+  if (instance.current == null) {
+    if (initial) {
+      instance.current = isFunction(initial) ? initial() : initial
+    } else {
+      instance.current = {} as T
+    }
+  }
 
-![](/images/react-hooks/fn-perf.png)
+  return instance.current
+}
 
-我在SegmentFault的[react function组件与class组件性能问题](https://segmentfault.com/q/1010000019644156/a-1020000019706666)进行了详细的回答, 结论是:
+// ---------
+// EXAMPLE
+// ---------
+function Demo() {
+  const inst = useInstance({ count: 1 })
+  const update = useForceUpdate()
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // 像类组件一样，进行‘实例变量’存储
+      // 在函数组件的任意地方引用
+      inst.count++
+    }, 1000)
 
-> 我刚开始写React hooks时也有这个顾虑，函数式组件每次渲染里面的闭包都要重新创建，不会很耗性能吗？ 类组件的方法是静态不变的，那是否在这点上类组件性能更好一点？
->
-> 上面的答案其实已经说得很明白了，目前而言，实现同样的功能，类组件和函数组件的效率是不相上下的。但是函数组件是未来，而且还有优化空间，React团队会继续优化它。而类组件会逐渐退出历史
+    return () => clearInterval(timer)
+  }, [])
 
-为了提高函数组件的性能，可以在这些地方做一些优化:
-
-- 能否将函数提取为静态的
-- 简化组件的复杂度，动静分离
-- 再拆分更细粒度的组件，这些组件都使用React.memo缓存
-
-<br>
+  return (
+    <div>
+      count: {inst.count}
+      <button onClick={update}>刷新</button>
+    </div>
+  )
+}
+```
 
 ### usePrevious 获取上一次渲染的值
 
