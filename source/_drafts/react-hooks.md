@@ -58,7 +58,7 @@ categories: 前端
   - [useEventEmitter 对接eventEmitter](#useeventemitter-对接eventemitter)
 - [Context的妙用](#context的妙用)
   - [useTheme 主题配置](#usetheme-主题配置)
-  - [简单状态管理](#简单状态管理)
+  - [unstated 简单状态管理](#unstated-简单状态管理)
   - [useI18n](#usei18n)
   - [useRouter](#userouter)
 - [副作用封装](#副作用封装)
@@ -1169,8 +1169,72 @@ const Button: FC = props => {
 
 <br>
 
-### 简单状态管理
-unstaged
+### unstated 简单状态管理
+
+Hooks + Context 也可以用于实现简单的状态管理。我在[React组件设计实践总结05 - 状态管理](https://juejin.im/post/5ce3ee436fb9a07f070e0220#heading-2)提到过[unstated-next](https://link.juejin.im/?target=https%3A%2F%2Fgithub.com%2Fjamiebuilds%2Funstated-next)， 这个库只有主体代码十几行，利用了React本身的机制来实现状态管理.
+
+```ts
+import React, { useState } from "react"
+import { createContainer } from "unstated-next"
+
+function useCounter(initialState = 0) {
+  let [count, setCount] = useState(initialState)
+  let decrement = () => setCount(count - 1)
+  let increment = () => setCount(count + 1)
+  return { count, decrement, increment }
+}
+
+let Counter = createContainer(useCounter)
+
+function CounterDisplay() {
+  let counter = Counter.useContainer()
+  return (
+    <div>
+      <button onClick={counter.decrement}>-</button>
+      <span>{counter.count}</span>
+      <button onClick={counter.increment}>+</button>
+    </div>
+  )
+}
+```
+
+看看它的源码:
+
+```ts
+export function createContainer(useHook) {
+  // 只是创建一个Context
+	let Context = React.createContext(null)
+
+	function Provider(props) {
+		let value = useHook(props.initialState)
+		return <Context.Provider value={value}>{props.children}</Context.Provider>
+	}
+
+	function useContainer() {
+    // 只是使用useContext
+		let value = React.useContext(Context)
+		if (value === null) {
+			throw new Error("Component must be wrapped with <Container.Provider>")
+		}
+		return value
+	}
+
+	return { Provider, useContainer }
+}
+
+export function useContainer(container) {
+	return container.useContainer()
+}
+```
+
+到这里，你会说，我靠，就这样，这个库感觉啥事情都没干啊。
+
+需要注意的是: Context不是万金油，它作为状态管理有一个比较致命的缺陷，我在[浅谈React性能优化的方向](https://juejin.im/post/5d045350f265da1b695d5bf2#heading-14)文章中也提到了这一点:
+**它是可以穿透React.memo或者shouldComponentUpdate的比对的，也就是说，一旦 Context 的 Value 变动，所有依赖该 Context 的组件会全部 forceUpdate**
+
+所以如果你打算使用Context作为状态管理，一定要规避这一点. 它可能会导致组件频繁重新渲染.
+
+<br>
 
 ### useI18n
 
