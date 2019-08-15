@@ -54,7 +54,8 @@ categories: 前端
     - [useDraggable 拖拽事件封装](#usedraggable-拖拽事件封装)
     - [useListener react-events 面向未来的高级事件封装](#uselistener-react-events-面向未来的高级事件封装)
   - [useSubscription 通用事件源订阅](#usesubscription-通用事件源订阅)
-  - [useObservable Hooks和RxJS优雅的尝试(rxjs-hooks)](#useobservable-hooks和rxjs优雅的尝试rxjs-hooks)
+  - [useObservable Hooks和RxJS优雅的结合(rxjs-hooks)](#useobservable-hooks和rxjs优雅的结合rxjs-hooks)
+  - [useEventEmitter 对接eventEmitter](#useeventemitter-对接eventemitter)
 - [Context的妙用](#context的妙用)
   - [简单状态管理](#简单状态管理)
   - [useTheme](#usetheme)
@@ -1014,7 +1015,7 @@ export function useSubscription<T>({
 
 <br>
 
-### useObservable Hooks和RxJS优雅的尝试(rxjs-hooks)
+### useObservable Hooks和RxJS优雅的结合(rxjs-hooks)
 
 如果要配置RxJS使用，LeetCode团队封装了一个[rxjs-hooks](https://github.com/LeetCode-OpenSource/rxjs-hooks/blob/master/README.md)库，用起来则要优雅很多, 非常推荐:
 
@@ -1030,6 +1031,77 @@ function App() {
 }
 ```
 
+<br>
+
+### useEventEmitter 对接eventEmitter
+
+我在[React组件设计实践总结04 - 组件的思维](https://juejin.im/post/5cdc2f54e51d453b0c35930d#heading-3)这篇文章里面提过：**自定义 hook 和函数组件的代码结构基本一致, 所以有时候hooks 写着写着原来越像组件, 组件写着写着越像 hooks. 我觉得可以认为组件就是一种特殊的 hook, 只不过它输出 Virtual DOM**
+
+Hooks跟组件一样，是一个逻辑和状态的聚合单元。可以维护自己的状态、有自己的'生命周期'. 
+
+`useEventEmitter`就是一个典型的例子，可以独立地维护和释放自己的资源:
+
+```ts
+const functionReturnObject = () => ({})
+const functionReturnArray = () => []
+
+export function useEventEmitter(emmiter: EventEmitter) {
+  const disposers = useRef<Function[]>([])
+  const listeners = useRef<{ [name: string]: Function }>({})
+
+  const on = useCallback(<P>(name: string, cb: (data: P) => void) => {
+    if (!(name in listeners.current)) {
+      const call = (...args: any[]) => {
+        const fn = listeners.current[name]
+        if (fn) {
+          fn(...args)
+        }
+      }
+      // 监听eventEmitter
+      emmiter.on(name, call)
+      disposers.current.push(() => {
+        emmiter.off(name, call)
+      })
+    }
+
+    listeners.current[name] = cb
+  }, [])
+
+  useEffect(() => {
+    // 资源释放
+    return () => {
+      disposers.current.forEach(i => i())
+    }
+  }, [])
+
+  return {
+    on,
+    emit: emmiter.emit,
+  }
+}
+
+
+// ---------
+// EXAMPLE
+// ---------
+function Demo() {
+  const { on, emit } = useEventEmitter(eventBus)
+
+  // 事件监听
+  on('someEvent', () => {
+    // do something
+  })
+
+  const handleClick = useCallback(() => {
+    // 事件触发
+    emit('anotherEvent', someData)
+  }, [])
+
+  return (<div onClick={handleClick}>...</div>)
+}
+```
+
+<br>
 <br>
 
 ## Context的妙用
