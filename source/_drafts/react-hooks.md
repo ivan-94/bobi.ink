@@ -59,8 +59,8 @@ categories: 前端
 - [Context的妙用](#context的妙用)
   - [useTheme 主题配置](#usetheme-主题配置)
   - [unstated 简单状态管理](#unstated-简单状态管理)
-  - [useI18n](#usei18n)
-  - [useRouter](#userouter)
+  - [useI18n 国际化](#usei18n-国际化)
+  - [useRouter 简化路由状态的访问](#userouter-简化路由状态的访问)
 - [副作用封装](#副作用封装)
   - [useTitle](#usetitle)
   - [useNetworkStatus](#usenetworkstatus)
@@ -1236,9 +1236,48 @@ export function useContainer(container) {
 
 <br>
 
-### useI18n
+### useI18n 国际化
 
-### useRouter
+I18n是另一个Context的典型使用场景。[react-intl](https://github.com/formatjs/react-intl/blob/master/docs/API.md#useintl-hook-currently-available-in-300-beta)和[react-i18next](https://react.i18next.com/latest/usetranslation-hook)都与时俱进，推出了自己的Hook API:
+
+```js
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+export function MyComponent() {
+  const { t, i18n } = useTranslation();
+
+  return <p>{t('my translated text')}</p>
+}
+```
+
+基本上原本使用高阶组件(HOC)实现的功能都可以用Hooks代替，让代码变得更加简洁
+
+<br>
+
+### useRouter 简化路由状态的访问
+
+React Hooks 推出已经接近一年，ReactRouter竟然还没有正式推出Hook API。不过它们也提上了计划[The Future of React Router and @reach/router](https://reacttraining.com/blog/reach-react-router-future/)，5.X版本会推出Hook API. 我们暂时看看一些代码示例:
+
+```js
+function SomeComponent() {
+  // 访问路由变量
+  const { userId } = useParams()
+  // ...
+}
+
+function usePageViews() {
+  // 访问location对象
+  const { location } = useLocation()
+  useEffect(() => {
+    ga('send', 'pageview', location.pathname)
+  }, [location])
+}
+```
+
+再等等吧
+
+<br>
 
 ## 副作用封装
 
