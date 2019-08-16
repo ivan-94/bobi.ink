@@ -50,6 +50,7 @@ categories: 前端
   - [useWhyUpdate](#usewhyupdate)
 - [事件处理](#事件处理)
   - [useChange 简化onChange表单双向绑定](#usechange-简化onchange表单双向绑定)
+  - [useBind 绑定回调参数](#usebind-绑定回调参数)
   - [自定义事件封装](#自定义事件封装)
     - [useActive](#useactive)
     - [useTouch 手势事件封装](#usetouch-手势事件封装)
@@ -63,6 +64,7 @@ categories: 前端
   - [unstated 简单状态管理](#unstated-简单状态管理)
   - [useI18n 国际化](#usei18n-国际化)
   - [useRouter 简化路由状态的访问](#userouter-简化路由状态的访问)
+  - [react-hook-form Hooks和表单能擦出什么火花?](#react-hook-form-hooks和表单能擦出什么火花)
 - [副作用封装](#副作用封装)
   - [useOnlineStatus](#useonlinestatus)
 - [副作用衍生](#副作用衍生)
@@ -72,9 +74,8 @@ categories: 前端
 - [简化业务逻辑](#简化业务逻辑)
   - [usePromise 封装异步请求](#usepromise-封装异步请求)
   - [usePromiseEffect 自动进行异步请求](#usepromiseeffect-自动进行异步请求)
-  - [useInfiniteList 简化列表请求](#useinfinitelist-简化列表请求)
+  - [useInfiniteList 实现无限加载列表](#useinfinitelist-实现无限加载列表)
   - [usePoll 用hook实现轮询](#usepoll-用hook实现轮询)
-  - [useComponent 简化组件的配置](#usecomponent-简化组件的配置)
   - [业务逻辑抽离](#业务逻辑抽离)
 - [React Hooks 技术地图](#react-hooks-技术地图)
 - [扩展](#扩展)
@@ -830,6 +831,37 @@ function Demo() {
 
 <br>
 
+### useBind 绑定回调参数
+
+绑定一些回调参数，并利用useMemo给下级传递一个缓存的回调, 避免重新渲染:
+
+```ts
+function useBind(fn?: (...args: any[]) => any, ...args: any[]): (...args: any[]) => any {
+  return useMemo(() => {fn && fn.bind(null, ...args)}, args)
+}
+
+// ---------
+// EXAMPLE
+// ---------
+function Demo(props) {
+  const {id, onClick} = props
+  const handleClick = useBind(onClick, id)
+
+  return <ComplexComponent onClick={handleClick}></ComplexComponent>
+}
+
+// 等价于
+function Demo(props) {
+  const {id, onClick} = props
+  const handleClick = useCallback(() => onClick(id), [id])
+
+  return <ComplexComponent onClick={handleClick}></ComplexComponent>
+}
+```
+
+<br>
+<br>
+
 ### 自定义事件封装
 
 Hooks也可以用于封装一些高级事件或者简化事件的处理，比如拖拽、手势、鼠标激活等等；
@@ -1162,6 +1194,14 @@ function Demo() {
 <br>
 <br>
 
+更多脑洞：
+
+- useWebSocket
+- [use-socketio](https://github.com/mfrachet/use-socketio)
+
+<br>
+<br>
+
 ## Context的妙用
 
 通过useContext可以方便地引用Context。不过需要注意的是如果上级`Context.Provider`的value变化，使用useContext的组件就会被强制重新渲染。
@@ -1337,9 +1377,42 @@ function usePageViews() {
 
 <br>
 
+### react-hook-form Hooks和表单能擦出什么火花?
+
+[react-hook-form](https://github.com/react-hook-form/react-hook-form)是Hooks+Form的典型案例，比较符合我理想中的表单管理方式
+
+```js
+import React from 'react';
+import useForm from 'react-hook-form';
+
+function App() {
+  const { register, handleSubmit, errors } = useForm(); // initialise the hook
+  const onSubmit = data => {
+    console.log(data);
+  }; // callback when validation pass
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input name="firstname" ref={register} /> {/* register an input */}
+      
+      <input name="lastname" ref={register({ required: true })} />
+      {errors.lastname && 'Last name is required.'}
+      
+      <input name="age" ref={register({ pattern: /\d+/ })} />
+      {errors.age && 'Please enter number for age.'}
+      
+      <input type="submit" />
+    </form>
+  );
+}
+```
+
+<br>
+<br>
+
 ## 副作用封装
 
-我们可以利用Hooks来封装或监听组件外部的副作用，将它们转换为组件的状态。
+我们可以**利用Hooks来封装或监听组件外部的副作用，将它们转换为组件的状态**。
 
 ### useOnlineStatus
 
@@ -1389,6 +1462,7 @@ function Demo() {
 - useGeolocation 监听GPS坐标变化
 - useScrollPosition 监听滚动位置
 - useMotion 监听设备运动
+- useMediaDevice 监听媒体设备
 - ....
 
 <br>
@@ -1694,7 +1768,101 @@ function Demo(props) {
 
 <br>
 
-### useInfiniteList 简化列表请求
+### useInfiniteList 实现无限加载列表
+
+这里例子在之前的文章中也提及过
+
+```ts
+export default function useInfiniteList<T>(
+  fn: (params: { offset: number; pageSize: number; list: T[] }) => Promise<T[]>,
+  pageSize: number = 20,
+) {
+  const [list, setList] = useState<T[]>(returnEmptyArray)
+  const [hasMore, setHasMore, hasMoreRef] = useRefState(true)
+  const [empty, setEmpty] = useState(false)
+  const promise = usePromise(() => fn({ list, offset: list.length, pageSize }))
+
+  const load = useCallback(async () => {
+    if (!hasMoreRef.current) {
+      return
+    }
+    const res = await promise.call()
+    if (res.length < pageSize) {
+      setHasMore(false)
+    }
+
+    setList(l => {
+      if (res.length === 0 && l.length === 0) {
+        setEmpty(true)
+      }
+
+      return [...l, ...res]
+    })
+  }, [])
+
+  const clean = useCallback(() => {
+    setList([])
+    setHasMore(true)
+    setEmpty(false)
+    promise.reset()
+  }, [])
+
+  const refresh = useCallback(() => {
+    clean()
+    setTimeout(() => {
+      load()
+    })
+  }, [])
+
+  return {
+    list,
+    hasMore,
+    empty,
+    loading: promise.loading,
+    error: promise.error,
+    load,
+    refresh,
+  }
+}
+```
+
+使用示例:
+
+```ts
+interface Item {
+  id: number
+  name: string
+}
+function App() {
+  const { load, list, hasMore, refresh } = useInfiniteList<Item>(async ({ offset, pageSize }) => {
+    const list = []
+    for (let i = offset; i < offset + pageSize; i++) {
+      if (i === 200) {
+        break
+      }
+      list.push({ id: i, name: `${i}-----` })
+    }
+    return list
+  })
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  return (
+    <div className="App">
+      <button onClick={refresh}>Refresh</button>
+      {list.map(i => (
+        <div key={i.id}>{i.name}</div>
+      ))}
+      {hasMore ? <button onClick={load}>Load more</button> : <div>No more</div>}
+    </div>
+  )
+}
+```
+
+<br>
+<br>
 
 ### usePoll 用hook实现轮询
 
@@ -1807,9 +1975,14 @@ function Demo() {
 }
 ```
 
-### useComponent 简化组件的配置
+<br>
+<br>
 
 ### 业务逻辑抽离
+
+通过上面的案例可以看到, Hooks非常适合用于抽离重复的业务逻辑。
+
+<br>
 
 ## React Hooks 技术地图
 
