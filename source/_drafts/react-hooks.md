@@ -37,6 +37,7 @@ categories: 前端
   - [useRefProps 引用最新的Props](#userefprops-引用最新的props)
   - [useInstance ‘实例’变量存取](#useinstance-实例变量存取)
   - [usePrevious 获取上一次渲染的值](#useprevious-获取上一次渲染的值)
+  - [useImmer 简化不可变数据操作](#useimmer-简化不可变数据操作)
   - [封装'工具'Hooks简化State的操作](#封装工具hooks简化state的操作)
     - [useToggle 开关](#usetoggle-开关)
     - [useArray](#usearray)
@@ -590,6 +591,47 @@ function usePrevious(value) {
 const calculation = count * 100;
 const prevCalculation = usePrevious(calculation);
 ```
+
+<br>
+
+### useImmer 简化不可变数据操作
+
+这个案例来源于[use-immer](https://github.com/immerjs/use-immer), 结合[immer.js](https://github.com/mweststrate/immer)和Hooks来简化不可变数据操作
+
+```js
+const [person, updatePerson] = useImmer({
+  name: "Michel",
+  age: 33
+});
+
+function updateName(name) {
+  updatePerson(draft => {
+    draft.name = name;
+  });
+}
+
+function becomeOlder() {
+  updatePerson(draft => {
+    draft.age++;
+  });
+}
+```
+
+实现也非常简单:
+
+```ts
+export function useImmer(initialValue) {
+  const [val, updateValue] = useState(initialValue);
+  return [
+    val,
+    useCallback(updater => {
+      updateValue(produce(updater));
+    }, [])
+  ];
+}
+```
+
+简洁的Hooks配合简洁的Immer，简直完美
 
 <br>
 
@@ -1344,6 +1386,13 @@ export function useContainer(container) {
 
 <br>
 
+其他状态管理方案:
+
+- [easy-peasy](https://github.com/ctrlplusb/easy-peasy)
+- [react-hooks-global-state](https://github.com/dai-shi/react-hooks-global-state)
+
+<br>
+
 ### useI18n 国际化
 
 I18n是另一个Context的典型使用场景。[react-intl](https://github.com/formatjs/react-intl/blob/master/docs/API.md#useintl-hook-currently-available-in-300-beta)和[react-i18next](https://react.i18next.com/latest/usetranslation-hook)都与时俱进，推出了自己的Hook API:
@@ -1474,6 +1523,7 @@ function Demo() {
 - useMotion 监听设备运动
 - useMediaDevice 监听媒体设备
 - useDarkMode 夜间模式监听
+- useKeyBindings 监听快捷键
 - ....
 
 <br>
@@ -2174,9 +2224,9 @@ const Home: FC<{}> = props => {
 - [Redux + Hooks](https://react-redux.js.org/api/hooks)
 - [Mobx + Hooks](https://github.com/mobxjs/mobx-react-lite)
 - [ReactSpring + Hooks](https://www.react-spring.io/docs/hooks/basics)
-appoll
-i18next
-react-router
+- [Appoll](https://www.apollographql.com/docs/react/api/react-hooks/)
+- [react-i18next](https://react.i18next.com/latest/usetranslation-hook)
+- [react-router](https://reacttraining.com/blog/reach-react-router-future/) Come in soon
 
 <br>
 
@@ -2194,6 +2244,12 @@ react-router
 - [Awesome React Hooks](https://github.com/rehooks/awesome-react-hooks)
 - [Hooks.Guide](https://www.hooks.guide/rehooks/useComponentSize)
 - [useHooks](https://usehooks.com/)
+
+<br>
+
+**FAQ**
+
+- [官方Hooks FAQ](https://zh-hans.reactjs.org/docs/hooks-faq.html) 可以解答大部分的疑问
 
 <br>
 <br>
