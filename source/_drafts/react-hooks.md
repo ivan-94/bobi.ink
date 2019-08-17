@@ -44,10 +44,6 @@ categories: 前端
   - [useOnMount 模拟componentDidMount](#useonmount-模拟componentdidmount)
   - [useOnUnmount 模拟componentWillUnmount](#useonunmount-模拟componentwillunmount)
   - [useOnUpdate 模拟componentDidUpdate](#useonupdate-模拟componentdidupdate)
-    - [useQuery](#usequery)
-- [props处理](#props处理)
-  - [获取上一个Props](#获取上一个props)
-  - [useWhyUpdate](#usewhyupdate)
 - [事件处理](#事件处理)
   - [useChange 简化onChange表单双向绑定](#usechange-简化onchange表单双向绑定)
   - [useBind 绑定回调参数](#usebind-绑定回调参数)
@@ -77,8 +73,10 @@ categories: 前端
   - [useInfiniteList 实现无限加载列表](#useinfinitelist-实现无限加载列表)
   - [usePoll 用hook实现轮询](#usepoll-用hook实现轮询)
   - [业务逻辑抽离](#业务逻辑抽离)
+- [开脑洞](#开脑洞)
+  - [useScript Hooks + Suspend = ❤️](#usescript-hooks--suspend--❤️)
+  - [useModal 模态框数据流管理](#usemodal-模态框数据流管理)
 - [React Hooks 技术地图](#react-hooks-技术地图)
-- [扩展](#扩展)
 
 <!-- /TOC -->
 
@@ -222,7 +220,7 @@ function Counter() {
 }
 ```
 
-了解更多reducer的思想可以参考[Redux文档](TODO:)
+了解更多reducer的思想可以参考[Redux文档](https://redux.js.org/basics/reducers)
 
 <br>
 
@@ -573,8 +571,27 @@ function Demo() {
 
 ### usePrevious 获取上一次渲染的值
 
-TODO:
-基本需不要， shouldComponentUpdate, didUpdate
+在Class组织中，我们经常会在`shouldComponentUpdate`或`componentDidUpdate`这类生命周期方法中对props或state进行比对，来决定做某些事情，例如重新发起请求、监听事件等等.
+
+Hooks中我们可以使用useEffect或useMemo来响应状态变化，进行状态或副作用衍生. 所以上述比对的场景在Hooks中很少见。但也不是不可能，React官方案例中就有一个`usePrevious`:
+
+```ts
+function usePrevious(value) {
+  const ref = useRef();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+// --------
+// EXAMPLE
+// --------
+const calculation = count * 100;
+const prevCalculation = usePrevious(calculation);
+```
+
+<br>
 
 ### 封装'工具'Hooks简化State的操作
 
@@ -760,13 +777,6 @@ function Demo(props) {
   return <div>...</div>
 }
 ```
-
-#### useQuery
-
-## props处理
-
-### 获取上一个Props
-### useWhyUpdate
 
 <br>
 <br>
@@ -1463,6 +1473,7 @@ function Demo() {
 - useScrollPosition 监听滚动位置
 - useMotion 监听设备运动
 - useMediaDevice 监听媒体设备
+- useDarkMode 夜间模式监听
 - ....
 
 <br>
@@ -1982,22 +1993,211 @@ function Demo() {
 
 通过上面的案例可以看到, Hooks非常适合用于抽离重复的业务逻辑。
 
+在[React组件设计实践总结02 - 组件的组织](https://juejin.im/post/5cd8fb916fb9a03218556fc1#heading-6)介绍了容器组件和展示组件分离，Hooks时代，我们可以自然地将逻辑都放置到Hooks中，实现逻辑和视图的分离。
+
+抽离的后业务逻辑可以复用于不同的'展示平台', 例如 web 版和 native 版:
+
+```shell
+Login/
+  useLogin.ts   // 可复用的业务逻辑
+  index.web.tsx
+  index.tsx
+```
+
+<br>
+<br>
+
+## 开脑洞
+
+一些奇奇怪怪的东西，不知道怎么分类。作者想象力非常丰富!
+
+### useScript Hooks + Suspend = ❤️
+
+这个案例来源于[the-platform](https://github.com/palmerhq/the-platform#usescript), 使用script标签来加载外部脚本:
+
+```ts
+// 注意: 这还是实验性特性
+import {createResource} from 'react-cache'
+
+export const ScriptResource = createResource((src: string) => {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(script);
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+});
+
+
+function useScript(options: { src: string }) {
+  return ScriptResource.read(src);
+}
+```
+
+<br>
+
+使用示例:
+
+```ts
+import { useScript } from 'the-platform';
+
+const Example = () => {
+   useScript({ src: 'bundle.js' });
+  // ...
+};
+
+// Suspend
+function App() {
+  return <Suspense fallback={'loading...'}><Example></Example></Suspense>
+}
+```
+
+同理还可以实现
+
+- [useStylesheet](https://github.com/palmerhq/the-platform/blob/master/src/Stylesheet.tsx) 用于加载样式表
+- [fetch-suspense](https://github.com/CharlesStover/fetch-suspense)
+
+<br>
+
+### useModal 模态框数据流管理
+
+我在[React组件设计实践总结04 - 组件的思维](https://juejin.im/post/5cdc2f54e51d453b0c35930d#heading-6)也举到一个使用`Hooks + Context`来巧妙实现模态框管理的例子。
+
+先来看看如何使用Context来渲染模态框, 很简单, ModalContext.Provider给下级组件暴露一个render方法，通过这个方法来传递需要渲染的模态框组件和props:
+
+```ts
+// 模态框组件要实现的接口
+export interface BaseModalProps {
+  visible: boolean
+  onHide: () => void
+}
+
+interface ModalContextValue {
+  render(Component: React.ComponentType<any>, props: any): void
+}
+
+const Context = React.createContext<ModalContextValue>({
+  render: () => {
+    throw new Error("useModal 必须在ModalRenderer 下级")
+  },
+})
+
+// 模态框渲染器
+const ModalRenderer: FC<{}> = props => {
+  const [modal, setModal] = useState<
+    | { Comp: React.ComponentType<any>; props: any; visible?: boolean }
+    | undefined
+  >()
+
+  const hide = useCallback(() => {
+    setModal(prev => prev && { ...prev, visible: false })
+  }, [])
+
+  const render = useCallback<ModalContextValue["render"]>((Comp, props) => {
+    setModal({ Comp, props, visible: true })
+  }, [])
+
+  const value = useMemo(() => ({render}), [])
+
+  return (
+    <Context.Provider value={value}>
+      {props.children}
+      <div className="modal-container">
+        {!!modal &&
+          React.createElement(modal.Comp, {
+            ...modal.props,
+            visible: modal.visible,
+            onHide: hide,
+          })}
+      </div>
+    </Context.Provider>
+  )
+}
+```
+
+再看看Hooks的实现, 也很简单，就是使用useContext来访问ModalContext， 并调用render方法:
+
+```ts
+export function useModal<P extends BaseModalProps>(
+  Modal: React.ComponentType<P>,
+) {
+  const renderer = useContext(Context)
+
+  return useCallback(
+    (props: Omit<P, keyof BaseModalProps>) => {
+      renderer.render(Modal, props || {})
+    },
+    [Modal],
+  )
+}
+```
+
+应用示例:
+
+```ts
+const MyModal: FC<BaseModalProps & { a: number }> = props => {
+  return (
+    <Modal visible={props.visible} onOk={props.onHide} onCancel={props.onHide}>
+      {props.a}
+    </Modal>
+  )
+}
+
+const Home: FC<{}> = props => {
+  const showMyModal = useModal(MyModal)
+
+  const handleShow = useCallback(() => {
+    // 显示模态框
+    showMyModal({
+      a: 123,
+    })
+  }, [])
+
+  return (
+    <div>
+      showMyModal: <button onClick={handleShow}>show</button>
+    </div>
+  )
+}
+```
+
+可运行的完整示例可以看[这里](https://codesandbox.io/s/lryom9617l?fontsize=14)
+
+<br>
 <br>
 
 ## React Hooks 技术地图
 
-redux
-react-spring
-react-router
-mobx
-appoll
-react-use
-rehook
+**全家桶和Hooks的结合**:
 
-## 扩展
+- [Redux + Hooks](https://react-redux.js.org/api/hooks)
+- [Mobx + Hooks](https://github.com/mobxjs/mobx-react-lite)
+- [ReactSpring + Hooks](https://www.react-spring.io/docs/hooks/basics)
+appoll
+i18next
+react-router
+
+<br>
+
+**一些有趣的Hooks集合**:
+
+- [the-platform](https://github.com/palmerhq/the-platform#usescript)
+- [react-use](https://github.com/streamich/react-use)
+- [rehooks/ideas](https://github.com/rehooks/ideas/issues) 一起开脑洞
+- [react-hanger](https://github.com/kitze/react-hanger)
+
+<br>
+
+**Awesome**
 
 - [Awesome React Hooks](https://github.com/rehooks/awesome-react-hooks)
-- [rehooks/ideas ](https://github.com/rehooks/ideas/issues) 一起开脑洞
+- [Hooks.Guide](https://www.hooks.guide/rehooks/useComponentSize)
+- [useHooks](https://usehooks.com/)
+
+<br>
+<br>
+
 
 你用React Hook遇到过什么问题？ 开过什么脑洞，下方评论告诉我
 
