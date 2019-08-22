@@ -34,7 +34,9 @@ console.log(add3(2)) // 5
 
 ![](/images/ts-fam/value_and_context.png)
 
-现在你**把一个函数应用到这个值的时候, 根据其上下文你会得到不同的结果**. 这就是 `Functor`, `Applicative`, `Monad`, `Arrow` 之类概念的基础. `Maybe` 数据类型定义了两种相关的上下文(Maybe只是其中一个典型的、比较简单的数据类型):
+现在你**把一个函数应用到这个值的时候, 根据其上下文你会得到不同的结果**. 这就是 `Functor`, `Applicative`, `Monad`, `Arrow` 之类概念的基础. 
+
+`Maybe` 就是一个典型的数据类型, 它定义了两种相关的‘上下文’:
 
 ![](/images/ts-fam/context.png)
 
@@ -184,3 +186,43 @@ Array 也是 functor！
 ```
 
 好了，好了，最后一个示例：如果将一个函数应用到另一个函数上会发生什么？
+
+```ts
+// 因为受限语言，这里使用一个函数，而不是将fmap作为一个方法，懂就行了
+fmap(x => x +1, y => y + 3) // ?
+```
+
+这是一个函数：
+
+![](/images/ts-fam/function_with_value.png)
+
+这是一个应用到另一个函数上的函数：
+
+![](/images/ts-fam/fmap_function.png)
+
+其结果是又一个函数！
+
+```ts
+function fmap<T, U, R>(fn: (a: T) => U, transform: (b: U) => R): (a: T) => R {
+  return (val: T) => transform(fn(val));
+}
+```
+
+所以函数也是 Functor！ 对一个函数使用 fmap，其实就是函数组合(compose)！ 也就是说: `f.fmap(g) == compose(f, g)`
+
+### Functor总结
+
+通过上面的例子，可以知道Functor其实并没有那么难以理解, 一个Functor就是：
+
+```
+<Functor a>.fmap(fn: (v: T) => U): <Functor b>
+```
+
+`Functor会定义一个‘fmap’，这个fmap接受一个函数fn，fn接收的是具体的值，返回另一个具体的值，例如上面的add3. **fmap决定如何来应用fn到源Functor(a)**， fmap返回一个新的Functor(b)`。 也就是fmap的源和输出的值‘上下文’类型是一样的。比如
+
+- `Just -> fmap -> Just`
+- `Nothing -> fmap -> Nothing`
+- `Maybe -> fmap -> Maybe`
+- `Array -> fmap -> Array`
+
+<br>
