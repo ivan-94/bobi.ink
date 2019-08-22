@@ -36,3 +36,4 @@
 - react-hooks 实例
 - babel插件
 - 小程序
+- workerize
