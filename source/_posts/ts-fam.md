@@ -226,3 +226,120 @@ function fmap<T, U, R>(fn: (a: T) => U, transform: (b: U) => R): (a: T) => R {
 - `Array -> fmap -> Array`
 
 <br>
+
+## Applicative
+
+现在练到二重天了。 Applicative 又提升了一个层次。
+
+对于 Applicative，我们的值依然和 Functor 一样包装在一个上下文中
+
+![](/images/ts-fam/value_and_context.png)
+
+不一样的是，我们将Functor中的函数(例如add3)也包装在一个上下文中！
+
+![](/images/ts-fam/function_and_context.png)
+
+嗯。 我们继续深入。 Applicative 并没有开玩笑。不像Haskell，Typescript并没有内置方式来处理Applicative。我们可以给需要支持Applicative的类型定义一个apply函数。apply函数知道怎么将`包装在上下文的函数`应用到一个`包装在上下文的值`：
+
+```ts
+class None {
+  public static apply(fn: any): Nothing {
+    return None;
+  }
+}
+
+const isNothing = (val: any): val is Nothing => {
+  return val === None;
+};
+
+class Just<T> {
+  // 使用方法重载，让Typescript更好推断
+  // 如果值和函数都是Just类型，结果也是Just类型
+  public apply<U>(fn: Just<(a: T) => U>): Just<U>;
+  // 如果函数是Nothing类型，结果是Nothing. 严格上apply只应该接收同一个上下文类型的函数，即Just
+  public apply<U>(fn: Nothing): Nothing;
+  // 如果值和函数都是Maybe类型, 返回一个Maybe类型 
+  public apply<U>(fn: Maybe<(a: T) => U>): Maybe<U> {
+    if (!isNothing(fn)) {
+      return Just.of(fn.value(this.value));
+    }
+    return None;
+  }
+}
+```
+
+再来看看数组:
+
+```ts
+interface Array<T> {
+  apply<U>(fns: Array<(e: T) => U>): U[]
+}
+
+// 接收一个函数‘数组(上下文)’，返回一个应用了‘函数’的新的数组
+Array.prototype.apply = function<T, U>(fns: Array<(e: T) => U>) {
+  const res: U[] = []
+  for (const fn of fns) {
+    this.forEach(el => res.push(fn(el)))
+  }
+  return res
+}
+```
+
+在Haskell中，使用<*>来表示apply操作: `Just (+3) <*> Just 2 == Just 5`. Typescript不支持操作符重载，所以忽略.
+
+Just类型的Applicative应用图解：
+
+![](/images/ts-fam/applicative_just.png)
+
+数组类型的Applicative应用图解：
+
+![](/images/ts-fam/applicative_list.png)
+
+```ts
+const num: number[] = [1, 2, 3]
+console.log(num.apply([multiply2, add3]))
+// [2, 4, 6, 4, 5, 6]
+```
+
+这里有 Applicative 能做到而 Functor 不能做到的事情。 如何将一个接受两个参数的函数应用到两个已包装的值上？
+
+```ts
+// 一个支持两个参数的Curry型加法函数
+const curriedAddition = (a: number) => (b: number) => a + b
+
+Just.of(5).fmap(curriedAddition) // 返回 `Just.of((b: number) => 5 + b)`
+// Ok 继续
+Just.of((b: number) => 5 + b).fmap(Just.of(4))  // ❌不行了，报错了，Functor没办法处理包装上下文
+```
+
+但是Applicative可以：
+
+```ts
+Just.of(5).fmap(curriedAddition) // 返回 `Just.of((b: number) => 5 + b)`
+// ✅当当当
+Just.of((b: number) => 5 + b).apply(Just.of(3)) // Just.of(8)
+```
+
+这时候Applicative 把 Functor 推到一边。 “大人物可以使用具有任意数量参数的函数，”它说。 “装备了 <$>(fmap) 与 <*>(apply) 之后，我可以接受具有任意个数未包装值参数的任意函数。 然后我传给它所有已包装的值，而我会得到一个已包装的值出来！ 啊啊啊啊啊！”
+
+```ts
+Just.of(5).fmap(curriedAddition).apply(Just.of(3)) // 返回 `Just.of(8)`
+```
+
+### Applicative总结
+
+我们重申一个Applicative的定义, 如果Functor要求实现fmap的话，Applicative就是要求实现apply，apply符合以下定义:
+
+```
+// 这是Functor的fmap定义
+<Functor a>.fmap(fn: (v: T) => U): <Functor b>
+
+// 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数
+<Functor a>.apply(fn: <Functor (v: T) => U>): <Functor b>
+```
+
+<br>
+
+## Monad
+
+终于练到三重天了！
