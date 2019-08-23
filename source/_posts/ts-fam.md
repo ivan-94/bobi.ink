@@ -4,12 +4,6 @@ date: 2019/8/22
 categories: 前端
 ---
 
-- [Swift Functors, Applicatives, and Monads in Pictures](http://www.mokacoding.com/blog/functor-applicative-monads-in-pictures/)
-- [Functor、Applicative 和 Monad](http://blog.leichunfeng.com/blog/2015/11/08/functor-applicative-and-monad/)
-- [Your easy guide to Monads, Applicatives, & Functors](https://medium.com/@lettier/your-easy-guide-to-monads-applicatives-functors-862048d61610)
-- [Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html#translations)
-- [Playground](https://codesandbox.io/s/functors-applicatives-and-monads-in-pictures-p753n)
-
 这是一个简单的值:
 
 ![](/images/ts-fam/value.png)
@@ -444,3 +438,90 @@ Just.of(20).flatMap(half).flatMap(half).flatMap(falf) // => Nothing
 ```
 
 ![](/images/ts-fam/monad_chain.png)
+
+原文还示范了另一个例子: `IO` monad, 我们这里就简单介绍一下
+
+![](/images/ts-fam/io.png)
+
+IO的签名大概如下:
+
+```ts
+class IO<T> {
+  public val: T
+  // 具体实现我们暂不关心
+  public flatMap(fn: (val: T) => IO<U>): IO<U>
+}
+```
+
+具体来看三个函数。 getLine 没有参数, 用来获取用户输入：
+
+![](/images/ts-fam/getLine.png)
+
+```ts
+function getLine(): IO<string>
+```
+
+readFile 接受一个字符串（文件名）并返回该文件的内容：
+
+![](/images/ts-fam/readFile.png)
+
+```ts
+function readFile(filename: string): IO<string>
+```
+
+putStrLn 输出字符串到控制台：
+
+![](/images/ts-fam/putStrLn.png)
+
+```ts
+function putStrLn(str: string): IO
+```
+
+所有这三个函数都接受普通值（或无值）并返回一个已包装的值。 我们可以使用 flatMap 将它们串联起来！
+
+![](/images/ts-fam/monad_io.png)
+
+```ts
+getLine().flatMap(readFile).flatMap(putStrLn)
+```
+
+太棒了！ 前排占座来看 monad 展示！
+
+## 总结
+
+1. functor 是实现了 `fmap` 的数据类型。
+2. applicative 是实现了 `apply` 的数据类型。
+3. monad 是实现了 `flatMap` 的数据类型。
+4. Maybe 实现了这三者，所以它是 functor、 applicative、 以及 monad。
+
+这三者有什么区别呢？
+
+![](/images/ts-fam/recap.png)
+
+1. **functor**: 可通过 fmap 将一个`函数`应用到一个`已包装的值`上。
+2. **applicative**: 可通过 apply 将一个`已包装的函数`应用到`已包装的值`上。
+3. **monad**: 可通过 flatMap 将一个`返回已包装值的函数`应用到`已包装的值`上。
+
+综合起来看看它们的签名：
+
+```
+// 这是Functor的fmap定义
+<Functor a>.fmap(fn: (v: T) => U): <Functor b>
+
+// 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数
+<Applicative a>.apply(fn: <Applicative (v: T) => U>): <Applicative b>
+
+// Monad的定义, 而接受一个函数， 这个函数返回一个包装在上下文的值
+<Monad a>.flatmap(fn: (v: T) => <Monad U>): <Monad b>
+```
+
+所以，亲爱的朋友（我觉得我们现在是朋友了），我想我们都同意 monad 是一个简单且高明的主意（SMART IDEA(tm)）。 现在你已经通过这篇指南润湿了你的口哨，为什么不拉上 Mel Gibson 并抓住整个瓶子呢。 请参阅《Haskell 趣学指南》的《来看看几种 Monad》。 其中包含很多我已经炫耀过的东西，因为 Miran 深入这些方面做的非常棒。
+
+## 扩展
+
+- [Swift Functors, Applicatives, and Monads in Pictures](http://www.mokacoding.com/blog/functor-applicative-monads-in-pictures/)
+- [Functor、Applicative 和 Monad](http://blog.leichunfeng.com/blog/2015/11/08/functor-applicative-and-monad/)
+- [Your easy guide to Monads, Applicatives, & Functors](https://medium.com/@lettier/your-easy-guide-to-monads-applicatives-functors-862048d61610)
+- [Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html#translations)
+- [Playground](https://codesandbox.io/s/functors-applicatives-and-monads-in-pictures-p753n)
+
