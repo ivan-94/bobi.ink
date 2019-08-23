@@ -335,7 +335,7 @@ Just.of(5).fmap(curriedAddition).apply(Just.of(3)) // 返回 `Just.of(8)`
 <Functor a>.fmap(fn: (v: T) => U): <Functor b>
 
 // 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数
-<Functor a>.apply(fn: <Functor (v: T) => U>): <Functor b>
+<Applicative a>.apply(fn: <Applicative (v: T) => U>): <Applicative b>
 ```
 
 <br>
@@ -343,3 +343,64 @@ Just.of(5).fmap(curriedAddition).apply(Just.of(3)) // 返回 `Just.of(8)`
 ## Monad
 
 终于练到三重天了！
+
+如何学习 Monad 呢：
+
+  1. 取得计算机科学博士学位。
+  2. 然后把它扔掉，因为在本节中你并不需要！
+
+Monad 增加了一个新的转变。
+
+Functor 将一个`函数`应用到一个`已包装的值`上：
+
+![](/images/ts-fam/fmap.png)
+
+Applicative 将一个`已包装的函数`应用到一个`已包装的值`上：
+
+![](/images/ts-fam/applicative.png)
+
+Monad 将一个`返回已包装值的函数`应用到一个`已包装的值`上。 Monad 有一个函数`flatMap`（在 Haskell 中是使用操作符 >>=来应用Monad，读作“bind”）来做这个。
+
+让我们来看个示例。 老搭档 Maybe 是一个 monad：
+
+![](/images/ts-fam/context.png)
+
+假设 `half` 是一个只适用于偶数的函数：
+
+```ts
+// 这就是一个典型的: "返回已包装值"的函数
+function half(value: number): Maybe<number> {
+  if (value % 2 === 0) {
+    return Just.of(value / 2)
+  }
+  return None
+}
+```
+
+![](/images/ts-fam/half.png)
+
+如果我们喂给它一个已包装的值呢？
+
+![](/images/ts-fam/half_ouch.png)
+
+我们需要使用flatMap(Haskell 中的>>=)来将我们已包装的值塞进该函数。 这是 >>= 的照片：
+
+![](/images/ts-fam/plunger.jpg)
+
+以下是它的工作方式：
+
+```ts
+Just.of(3).flatMap(half) // => Nothing
+Just.of(4).flatMap(half) // => Just 2
+None.flatMap(half)       // => Nothing
+```
+
+内部发生了什么？我们再看看flatMap的方法签名:
+
+```ts
+// Maybe
+func flatMap<T, U>(a: Maybe<T>, f: (val: T) => Maybe<U>): Maybe<U>
+
+// Array
+func >>-<T, U>(a: [T], f: T -> [U]) -> [U]
+```
