@@ -399,8 +399,48 @@ None.flatMap(half)       // => Nothing
 
 ```ts
 // Maybe
-func flatMap<T, U>(a: Maybe<T>, f: (val: T) => Maybe<U>): Maybe<U>
+flatMap<T, U>(a: Maybe<T>, f: (val: T) => Maybe<U>): Maybe<U>
 
 // Array
-func >>-<T, U>(a: [T], f: T -> [U]) -> [U]
+flatMap<T, U>(a: T[], f: (val: T) => U[]): U[]
 ```
+
+![](/images/ts-fam/bind_def.png)
+
+所以 Maybe 是一个 Monad：
+
+```ts
+class None {
+  public static flatMap(fn: any): Nothing {
+    return None;
+  }
+}
+
+class Just<T> {
+  // 使用方法重载，让Typescript更好推断
+  // 如果函数返回Just类型，结果也是Just类型
+  public flatMap<U>(fn: (a: T) => Just<U>): Just<U>;
+  // 如果函数返回值是Nothing类型，结果是Nothing. 严格上flatMap只应该接收同一个上下文类型的函数，即Just
+  public flatMap<U>(fn: (a: T) => Nothing): Nothing;
+  // 如果函数返回值是Maybe类型, 返回一个Maybe类型 
+  public flatMap<U>(fn: (a: T) => Maybe<U>): Maybe<U> {
+    return fn(this.value)
+  }
+}
+```
+
+这是与 Just 3 互动的情况！
+
+![](/images/ts-fam/monad_just.png)
+
+如果传入一个 Nothing 就更简单了：
+
+![](/images/ts-fam/monad_nothing.png)
+
+你还可以将这些调用串联起来：
+
+```ts
+Just.of(20).flatMap(half).flatMap(half).flatMap(falf) // => Nothing
+```
+
+![](/images/ts-fam/monad_chain.png)
