@@ -6,7 +6,9 @@ categories: 前端
 
 本文是经典的[Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html)的Typescript翻译版本。
 
-Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。后来拜读了[Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html), 不错，好像懂了。于是自己想通过翻译，再深入消化消化这篇文章，这里使用Typescript作为描述语言，对于前端来说会更好理解。
+Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。
+
+后来拜读了[Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html), 不错，好像懂了。于是自己想通过翻译，再深入消化消化这篇文章，这里使用`Typescript`作为描述语言，对于前端来说会更好理解。
 
 有理解不正确的地方，敬请指正. 开始吧！
 
@@ -83,12 +85,11 @@ a = Just.of(3);
 ```
 
 > 说实在这个实现有点挫, 但是为了更加贴近原文描述，暂且使用这个实现。之前考虑过的一个版本是下面这样的, 因为无法给它们扩展方法，就放弃了这个方案:
->
-> ```ts
-> type Optional<T> = NonNullable<T> | nul
-> let a: Optional<number> = 1;
-> a = null;
-> ```
+  ```ts
+    type Optional<T> = NonNullable<T> | nul
+    let a: Optional<number> = 1;
+    a = null;
+  ```
 
 <br>
 
@@ -97,7 +98,7 @@ a = Just.of(3);
 <br>
 <br>
 
-## Functor
+## Functors
 
 当一个值被包装在一个上下文中时, 你就不能拿普通函数来应用了:
 
@@ -136,7 +137,7 @@ Just.of(2).fmap(add3) // Just 5
 
 1. 一个Functor类型的 fa, 例如Just 2
 2. fa 定义了一个fmap, fmap 接受一个函数fn，例如add3
-3. fmap 将fa应用到fn中， 返回一个Functor类型的 fb. **fa和fb的包装上下文类型一样**, 例如fa是Just, 那么fb也是Just; 反之fa是Nothing，fb也是Nothing;
+3. fmap 直到如何将fa应用到fn中， 返回一个Functor类型的 fb. **fa和fb的包装上下文类型一样**, 例如fa是Just, 那么fb也是Just; 反之fa是Nothing，fb也是Nothing;
 
 用Typescript的函数签名描述一下：
 
@@ -156,14 +157,14 @@ Just.of(2).fmap(add3) // Just 5
 class Just<T> {
   // ...
   // 实现fmap
-  public fmap<U>(fn: (val: T) => U) {
+  fmap<U>(fn: (val: T) => U) {
     return Just.of(fn(this.value))
   }
 }
 
 class None {
   // None 接受任何函数都返回None
-  public static fmap(fn: any) {
+  static fmap(fn: any) {
     return None
   }
 }
@@ -171,7 +172,7 @@ class None {
 
 <br>
 
-当我们写 `Maybe.Just(2).fmap(add3)` 时，这是幕后发生的事情：
+当我们写 `Just.of(2).fmap(add3)` 时，这是幕后发生的事情：
 
 ![](/images/ts-fam/fmap_just.png)
 
@@ -180,7 +181,7 @@ class None {
 ![](/images/ts-fam/fmap_nothing.png)
 
 ```ts
-Nothing.fmap(add3) // Nothing
+None.fmap(add3) // Nothing
 ```
 
 ![](/images/ts-fam/bill.png)
@@ -208,16 +209,14 @@ findPost(1).fmap(getPostTitle)
 如果 findPost 返回一篇文章，我们就会通过 getPostTitle 获取其标题。 如果它返回 Nothing，我们就也返回 Nothing！ 较之前简洁了很多对吧?
 
 > Typescript有了Optional Chaining后，处理null也可以很简洁:
-> ```ts
-> findPost(1)?.title // 异曲同工
-> ```
-
+ ```ts
+ findPost(1)?.title // 异曲同工
+ ```
 
 > 原文还有定义了一个fmap的重载操作符版本，因为JavaScript不支持操作符重载，所以这里简单带过
-> 
-> ```
-> getPostTitle <$> findPost(1) // 使用操作符重载<$> 来简化fmap. 等价于上面的代码
-> ```
+ ```
+ getPostTitle <$> findPost(1) // 使用操作符重载<$> 来简化fmap. 等价于上面的代码
+ ```
 
 <br>
 
@@ -236,12 +235,10 @@ Array 也是 functor！
 好了，好了，最后一个示例：如果将一个函数应用到另一个函数上会发生什么？
 
 ```ts
-
-
 const multiply3 = (v: number) => v * 3
 const add3 = (v: number) => v + 3
 
-add3.fmap(multiply3) // ?
+add3.fmap(multiply3) // ❓
 ```
 
 这是一个函数：
@@ -276,7 +273,7 @@ Function.prototype.fmap = function(fn) {
 <Functor T>.fmap(fn: (v: T) => U): <Functor U>
 ```
 
-`Functor会定义一个‘fmap’，这个fmap接受一个函数fn，fn接收的是具体的值，返回另一个具体的值，例如上面的add3. **fmap决定如何来应用fn到源Functor(a)**， fmap返回一个新的Functor(b)`。 也就是fmap的源和输出的值‘上下文’类型是一样的。比如
+Functor会定义一个‘fmap’操作，这个fmap接受一个函数fn，fn接收的是具体的值，返回另一个具体的值，例如上面的add3. **fmap决定如何来应用fn到源Functor(a)**， 返回一个新的Functor(b)。 也就是fmap的源和输出的值‘上下文’类型是一样的。比如
 
 - `Just -> fmap -> Just`
 - `Nothing -> fmap -> Nothing`
@@ -313,7 +310,7 @@ class Just<T> {
   apply<U>(fn: Just<(a: T) => U>): Just<U>;
   // 如果函数是Nothing类型，结果是Nothing.
   // 严格上apply只应该接收同一个上下文类型的函数，即Just,
-  // 因为Maybe是Union类型，没办法给它扩展方法，这里将Maybe和Just混在一起了
+  // 因为Maybe是Typescript的Union类型，没办法给它扩展方法，这里将Maybe和Just混在一起了
   apply<U>(fn: Nothing): Nothing;
   // 如果值和函数都是Maybe类型, 返回一个Maybe类型
   apply<U>(fn: Maybe<(a: T) => U>): Maybe<U> {
@@ -344,6 +341,8 @@ Array.prototype.apply = function<T, U>(fns: Array<(e: T) => U>) {
   return res
 }
 ```
+
+<br>
 
 在Haskell中，使用`<*>`来表示apply操作: `Just (+3) <*> Just 2 == Just 5`. Typescript不支持操作符重载，所以忽略.
 
@@ -390,7 +389,7 @@ Just.of(3).apply(Just.of(5).fmap(curriedAddition)) // 返回 `Just.of(8)`
 
 ### Applicative总结
 
-我们重申一个Applicative的定义, 如果Functor要求实现fmap的话，Applicative就是要求实现apply，apply符合以下定义:
+我们重申一个Applicative的定义, **如果Functor要求实现fmap的话，Applicative就是要求实现apply**，apply符合以下定义:
 
 ```
 // 这是Functor的fmap定义
@@ -410,21 +409,21 @@ Just.of(3).apply(Just.of(5).fmap(curriedAddition)) // 返回 `Just.of(8)`
 如何学习 Monad 呢：
 
   1. 你要取得计算机科学博士学位。
-  2. 然后把它扔掉，因为在本节中你并不需要！
+  2. 然后把它扔掉，因为在本文你并不需要它！
 
 Monad 增加了一个新的转变。
 
-Functor 将一个`函数`应用到一个`已包装的值`上：
+`Functor` 将一个`函数`应用到一个`已包装的值`上：
 
 ![](/images/ts-fam/fmap.png)
 
-Applicative 将一个`已包装的函数`应用到一个`已包装的值`上：
+`Applicative` 将一个`已包装的函数`应用到一个`已包装的值`上：
 
 ![](/images/ts-fam/applicative.png)
 
-Monad 将一个`返回已包装值的函数`应用到一个`已包装的值`上。 Monad 有一个函数`flatMap`（在 Haskell 中是使用操作符 >>=来应用Monad，读作“bind”）来做这个。
+Monad 将一个`返回已包装值的函数`应用到一个`已包装的值`上。 Monad 定义一个函数`flatMap`（在 Haskell 中是使用操作符 `>>=` 来应用Monad，读作“bind”）来做这个。
 
-让我们来看个示例。 老搭档 Maybe 是一个 monad：
+让我们来看个示例。 老搭档 Maybe 是一个 Monad：
 
 ![](/images/ts-fam/context.png)
 
@@ -442,7 +441,7 @@ function half(value: number): Maybe<number> {
 
 ![](/images/ts-fam/half.png)
 
-如果我们喂给它一个已包装的值呢？
+如果我们喂给它一个`已包装的值`会怎样？
 
 ![](/images/ts-fam/half_ouch.png)
 
@@ -453,7 +452,7 @@ function half(value: number): Maybe<number> {
 以下是它的工作方式：
 
 ```ts
-Just.of(3).flatMap(half) // => Nothing
+Just.of(3).flatMap(half) // => Nothing, Haskell中使用操作符这样操作: Just 3 >>= half
 Just.of(4).flatMap(half) // => Just 2
 None.flatMap(half)       // => Nothing
 ```
@@ -462,37 +461,59 @@ None.flatMap(half)       // => Nothing
 
 ```ts
 // Maybe
-flatMap<T, U>(a: Maybe<T>, f: (val: T) => Maybe<U>): Maybe<U>
+Maybe<T>.flatMap<U>(fn: (val: T) => Maybe<U>): Maybe<U>
 
 // Array
-flatMap<T, U>(a: T[], f: (val: T) => U[]): U[]
+Array<T>.flatMap<U>(fn: (val: T) => U[]): U[]
 ```
 
 ![](/images/ts-fam/bind_def.png)
 
-所以 Maybe 是一个 Monad：
+**Array是一个Monad**, Javascript的Array的flatMap已经正式成为标准， 看看它的使用示例:
+
+```ts
+const arr1 = [1, 2, 3, 4];
+arr1.map(x => [x * 2]); 
+// [[2], [4], [6], [8]]
+
+arr1.flatMap(x => [x * 2]);
+// [2, 4, 6, 8]
+
+// only one level is flattened
+arr1.flatMap(x => [[x * 2]]);
+// [[2], [4], [6], [8]]
+```
+
+<br>
+
+Maybe 也是一个 Monad：
 
 ```ts
 class None {
-  public static flatMap(fn: any): Nothing {
+  static flatMap(fn: any): Nothing {
     return None;
   }
 }
 
 class Just<T> {
+  // 和上面的apply差不多
   // 使用方法重载，让Typescript更好推断
   // 如果函数返回Just类型，结果也是Just类型
-  public flatMap<U>(fn: (a: T) => Just<U>): Just<U>;
-  // 如果函数返回值是Nothing类型，结果是Nothing. 严格上flatMap只应该接收同一个上下文类型的函数，即Just
-  public flatMap<U>(fn: (a: T) => Nothing): Nothing;
-  // 如果函数返回值是Maybe类型, 返回一个Maybe类型 
-  public flatMap<U>(fn: (a: T) => Maybe<U>): Maybe<U> {
+  flatMap<U>(fn: (a: T) => Just<U>): Just<U>;
+  // 如果函数返回值是Nothing类型，结果是Nothing.
+  flatMap<U>(fn: (a: T) => Nothing): Nothing;
+  // 如果函数返回值是Maybe类型, 返回一个Maybe类型
+  flatMap<U>(fn: (a: T) => Maybe<U>): Maybe<U> {
     return fn(this.value)
   }
 }
+
+// 示例
+Just.of(3).flatMap(half) // Nothing
+Just.of(4).flatMap(half) // Just.of(4)
 ```
 
-这是与 Just 3 互动的情况！
+这是与 Just 3 运作的情况！
 
 ![](/images/ts-fam/monad_just.png)
 
@@ -507,8 +528,13 @@ Just.of(20).flatMap(half).flatMap(half).flatMap(falf) // => Nothing
 ```
 
 ![](/images/ts-fam/monad_chain.png)
+![](/images/ts-fam/whoa.png)
 
-原文还示范了另一个例子: `IO` monad, 我们这里就简单介绍一下
+<br>
+
+很炫酷哈！所以我们现在知道Maybe既是一个Functor、Applicative，还是一个Monad。
+
+原文还示范了另一个例子: `IO` Monad, 我们这里就简单了解一下
 
 ![](/images/ts-fam/io.png)
 
@@ -516,9 +542,9 @@ IO的签名大概如下:
 
 ```ts
 class IO<T> {
-  public val: T
+  val: T
   // 具体实现我们暂不关心
-  public flatMap(fn: (val: T) => IO<U>): IO<U>
+  flatMap(fn: (val: T) => IO<U>): IO<U>
 }
 ```
 
@@ -543,10 +569,10 @@ putStrLn 输出字符串到控制台：
 ![](/images/ts-fam/putStrLn.png)
 
 ```ts
-function putStrLn(str: string): IO
+function putStrLn(str: string): IO<void>
 ```
 
-所有这三个函数都接受普通值（或无值）并返回一个已包装的值。 我们可以使用 flatMap 将它们串联起来！
+所有这三个函数都接受普通值（或无值）并返回一个已包装的值，即IO。 我们可以使用 flatMap 将它们串联起来！
 
 ![](/images/ts-fam/monad_io.png)
 
@@ -554,7 +580,18 @@ function putStrLn(str: string): IO
 getLine().flatMap(readFile).flatMap(putStrLn)
 ```
 
-太棒了！ 前排占座来看 monad 展示！
+太棒了！ 前排占座来看 monad 展示！我们不需要在取消包装和重新包装 IO monad 的值上浪费时间. flatMap 为我们做了那些工作!
+
+Haskell 还为 monad 提供了语法糖, 叫做 do 表达式:
+
+```haskell
+foo = do
+    filename <- getLine
+    contents <- readFile filename
+    putStrLn contents
+```
+
+<br>
 
 ## 总结
 
@@ -575,22 +612,25 @@ getLine().flatMap(readFile).flatMap(putStrLn)
 
 ```
 // 这是Functor的fmap定义
-<Functor a>.fmap(fn: (v: T) => U): <Functor b>
+<Functor T>.fmap(fn: (v: T) => U): <Functor U>
 
 // 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数
-<Applicative a>.apply(fn: <Applicative (v: T) => U>): <Applicative b>
+<Applicative T>.apply(fn: <Applicative (v: T) => U>): <Applicative U>
 
 // Monad的定义, 而接受一个函数， 这个函数返回一个包装在上下文的值
-<Monad a>.flatmap(fn: (v: T) => <Monad U>): <Monad b>
+<Monad T>.flatmap(fn: (v: T) => <Monad U>): <Monad U>
 ```
 
-所以，亲爱的朋友（我觉得我们现在是朋友了），我想我们都同意 monad 是一个简单且高明的主意（SMART IDEA(tm)）。 现在你已经通过这篇指南润湿了你的口哨，为什么不拉上 Mel Gibson 并抓住整个瓶子呢。 请参阅《Haskell 趣学指南》的《来看看几种 Monad》。 其中包含很多我已经炫耀过的东西，因为 Miran 深入这些方面做的非常棒。
+所以，亲爱的朋友（我觉得我们现在是朋友了），我想我们都同意 monad 是一个简单且高明的主意（SMART IDEA(tm)）。 现在你已经通过这篇指南润湿了你的口哨，为什么不拉上 Mel Gibson 并抓住整个瓶子呢。 参阅《Haskell 趣学指南》的《来看看几种 Monad》。 很多东西我其实掩饰了因为 Miran 深入这方面做得很棒.
+
+<br>
 
 ## 扩展
 
-- [Swift Functors, Applicatives, and Monads in Pictures](http://www.mokacoding.com/blog/functor-applicative-monads-in-pictures/)
-- [Functor、Applicative 和 Monad](http://blog.leichunfeng.com/blog/2015/11/08/functor-applicative-and-monad/)
-- [Your easy guide to Monads, Applicatives, & Functors](https://medium.com/@lettier/your-easy-guide-to-monads-applicatives-functors-862048d61610)
-- [Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html#translations)
-- [Playground](https://codesandbox.io/s/functors-applicatives-and-monads-in-pictures-p753n)
+本文在[原文](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html)的基础上, 参考了下列这些翻译版本，再次感谢这些作者:
 
+- [Functors, Applicatives, And Monads In Pictures](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html#translations) - 原文
+- [Swift Functors, Applicatives, and Monads in Pictures](http://www.mokacoding.com/blog/functor-applicative-monads-in-pictures/) - Swift版本, 本文主要参考这篇文章
+- [Kotlin 版图解 Functor、Applicative 与 Monad](https://hltj.me/kotlin/2017/08/25/kotlin-functor-applicative-monad-cn.html) - Kotlin版本，翻译非常棒
+- [Functor, Applicative, 以及 Monad 的图片阐释](http://jiyinyiyong.github.io/monads-in-pictures/) - 中文版本，**题叶**翻译
+- [Your easy guide to Monads, Applicatives, & Functors](https://medium.com/@lettier/your-easy-guide-to-monads-applicatives-functors-862048d61610) - Medium上一篇动图图解Monad的文章，写得也不错. 读完本文可以再读这篇文章
