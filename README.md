@@ -37,5 +37,9 @@
 - babel插件
 - 小程序
 - workerize
-- elixr
 - 元编程
+- 多学一门语言
+  - elixr
+  - ruby
+  - go
+- react performance
