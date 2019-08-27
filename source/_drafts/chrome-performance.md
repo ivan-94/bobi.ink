@@ -91,7 +91,15 @@ const Map: FC = props => {
 
 ### 是React问题吗？
 
+![](/images/perf/react-perf.png)
+
 Fiber
+
+可中断、检查点、控制权让出(伪代码展示)
+
+user timingAPI
+
+React百度地图的渲染方式
 
 百度移动端渲染问题
 
@@ -102,7 +110,7 @@ React Fiber解决的问题
 第一个解决方案
 
 再一次优化
-
+  
 进一步优化
 
 使用Performance User Timing API在Performance标记执行行为
@@ -110,3 +118,6 @@ React Fiber解决的问题
 Performance Timeline API, the Navigation Timing API, the User Timing API, and the Resource Timing API.
 
 API结构
+
+![\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
+![React Fiber Architecture](https://github.com/acdlite/react-fiber-architecture)
