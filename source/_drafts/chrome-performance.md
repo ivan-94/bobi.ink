@@ -18,9 +18,80 @@ Chrome Performance是一块宝藏，它是一个窗口用来审视浏览器内�
 
 > 你可以通过这个Playground来模拟这个过程
 
-当机立断，后端需要降低客户端位置上报的频率，再通过节流(Throttle)机制，合并推送给前端.
+当机立断，后端需要降低客户端位置上报的频率，再通过节流(Throttle)机制，合并推送给前端. 
 
-问题定位
+后来发现地图(移动端)渲染更新仍然会存在卡顿的情况。
+
+**还原现场**, 这里模拟30个用户同时在线，且一秒钟内有接近1/4的用户会更新自己的位置:
+
+```tsx
+const Map: FC = props => {
+  const [center] = useState(() => new BMap.Point(116.404269, 39.915378));
+  const [points, setPoints] = useState<BMap.Point[]>(() => {
+    let pts = [];
+    for (let i = 0; i < 30; i++) {
+      pts.push(new BMap.Point(center.lng, center.lat));
+    }
+    return pts;
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPoints(points => {
+        const pts = [...points];
+        for (let i = 0; i < pts.length; i++) {
+          const shoudUpdate = Math.floor((Math.random() * 100) % 4) === 0;
+          if (shoudUpdate) {
+            const mup = (i % 2 === 0 ? -1 : 1) * 0.001;
+            pts[i] = new BMap.Point(
+              center.lng + mup * Math.random(),
+              center.lat + mup * Math.random()
+            );
+          }
+        }
+        return pts;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <BDMap className="map" center={center} enableScrollWheelZoom>
+      <ScaleControl />
+      <NavigationControl />
+      {points.map((i, idx) => {
+        return (
+          <React.Fragment key={idx}>
+            {/* 绘制当前位置到终点的线段 */}
+            <Polyline path={[center, i]} strokeColor="red" strokeWeight={3} />
+            {/* 当前位置标记 */}
+            <Marker position={i} />
+            {/* 用户头像 */}
+            <AvatarOverlay position={i} />
+          </React.Fragment>
+        );
+      })}
+    </BDMap>
+  );
+};
+```
+
+那就上Chrome Performance分析分析吧：
+
+![](/images/perf/perf1.png)
+
+另一个重要的工具是Chrome Devtools的Rendering标签，比如开启`FPS Meter`，显示实时的帧率:
+
+![](/images/perf/perf2.png)
+
+<br>
+
+## 问题定位
+
+### 是React问题吗？
+
+Fiber
 
 百度移动端渲染问题
 
