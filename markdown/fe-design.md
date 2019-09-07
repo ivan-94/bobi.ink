@@ -453,3 +453,7 @@ view = f(state)
 - [如何才能写出好的软件设计文档？](https://www.infoq.cn/article/how-to-write-a-good-software-design-document)
 - [软件设计文档编写概述](https://blog.csdn.net/lori2004/article/details/80011806)
 - [现代软件开发中，详细设计这一步要如何来做？](https://www.zhihu.com/question/300407894)
+
+<br>
+
+![](https://bobi.ink/images/sponsor.jpg)

@@ -1507,3 +1507,5 @@ export class Column extends Component<ColumnProps, {}> {
 ## 12 反馈
 
 大家有什么要补充或意见可以在下方评论, 一起来完善这篇文章, 谢谢！
+
+![](https://bobi.ink/images/sponsor.jpg)
