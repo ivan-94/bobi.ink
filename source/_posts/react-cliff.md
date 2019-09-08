@@ -190,3 +190,122 @@ The important take-away here is that even values with the same JavaScript type c
 这里更重要的一点是，**即使是相同Javascript类型的值，为了优化，背后可能会以完全不同的方式进行表示**kj。
 
 ## Smi vs. HeapNumber vs. MutableHeapNumber
+
+Here’s how that works under the hood. Let’s say you have the following object:
+
+下面介绍它们底层是怎么工作的。假设你有下列对象:
+
+```js
+const o = {
+  x: 42,  // Smi
+  y: 4.2, // HeapNumber
+};
+```
+
+The value 42 for x can be encoded as Smi, so it can be stored inside of the object itself. The value 4.2 on the other hand needs a separate entity to hold the value, and the object points to that entity.
+
+x的值42可以被编码为Smi， 所以你可以保存在对象自己内部。另一方面，值4.2则需要一个单独的实体来保存，然后对象再指向这个实体.
+
+![](/images/react-cliff/04-smi-vs-heapnumber.svg)
+
+Now, let’s say we run the following JavaScript snippet:
+
+现在开始执行下面的Javascript片段:
+
+```js
+o.x += 10;
+// → o.x 现在是 52
+o.y += 1;
+// → o.y 现在是 5.2
+```
+
+In this case, the value of x can be updated in-place, since the new value 52 also fits the Smi range.
+
+这种情况下，x的值可以被原地更新，因为新的值52还是符合Smi的范围.
+
+![](/images/react-cliff/05-update-smi.svg)
+
+However, the new value of y=5.2 does not fit into a Smi and is also different from the previous value 4.2, so V8 has to allocate a new HeapNumber entity for the assignment to y.
+
+然而，新值`y=5.2`不符合Smi，且和之前的值4.2不一样，所有V8必须分配一个新的HeapNumber实体，再赋值给y。
+
+![](/images/react-cliff/06-update-heapnumber.svg)
+
+HeapNumbers are not mutable, which enables certain optimizations. For example, if we assign ys value to x:
+
+HeapNumber是不可变的，这也让某些优化成为可能。举个例子，如果我们将y的值赋给x:
+
+```js
+o.x = o.y;
+// → o.x 现在是 5.2
+```
+
+…we can now just link to the same HeapNumber instead of allocating a new one for the same value.
+
+...我们现在可以简单地链接到同一个HeapNumber，而不是分配一个新的
+
+![](/images/react-cliff/07-heapnumbers.svg)
+
+One downside to HeapNumbers being immutable is that it would be slow to update fields with values outside the Smi range often, like in the following example:
+
+heapnumbers不可变的一个缺点是，频繁更新字段不在Smi范围内的值会比较慢，如下例所示
+
+```js
+// 创建一个 `HeapNumber` 实例.
+const o = { x: 0.1 };
+
+for (let i = 0; i < 5; ++i) {
+  // 创建另一个 `HeapNumber` 实例.
+  o.x += 1;
+}
+```
+
+The first line would create a HeapNumber instance with the initial value 0.1. The loop body changes this value to 1.1, 2.1, 3.1, 4.1, and finally 5.1, creating a total of six HeapNumber instances along the way, five of which are garbage once the loop finishes.
+
+第一行通过初始化值0.1创建一个HeapNumber实例。循环体将它的值改变为1.1、2.1、3.1、4.1、最后是5.1，这个过程总共创建了6个HeapNumber实例，其中5个会在循环结束后被垃圾回收。
+
+![](/images/react-cliff/08-garbage-heapnumbers.svg)
+
+To avoid this problem, V8 provides a way to update non-Smi number fields in-place as well, as an optimization. When a numeric field holds values outside the Smi range, V8 marks that field as a Double field on the shape, and allocates a so-called MutableHeapNumber that holds the actual value encoded as Float64.
+
+为了避免这个问题，V8为了优化，也提供了一种机制来原地更新非Smi数字字段。当一个数字字段保存的值超出了Smi的范围，V8会在`Shape`中标记这个字段为`Double`字段, 并且分配一个称为`MutableHeapNumber`实体来保存实际的值。
+
+![](/images/react-cliff/09-mutableheapnumber.svg)
+
+> 译注: 关于Shape是什么，可以阅读这篇[文章](https://mathiasbynens.be/notes/shapes-ics), 简单说Shape就是一个对象的‘外形’，Javascript引擎可以通过Shape来优化对象的属性访问。
+
+When your field’s value changes, V8 no longer needs to allocate a new HeapNumber, but instead can just update the MutableHeapNumber in-place.
+
+当字段的值变动时，V8不需要在分配一个新的HeapNumber，而是直接原地更新MutableHeapNumber.
+
+![](/images/react-cliff/10-update-mutableheapnumber.svg)
+
+However, there’s a catch to this approach as well. Since the value of a MutableHeapNumber can change, it’s important that these are not passed around.
+
+然而，这种方式也有一个缺陷。因为MutableHeapNumber的值可以被修改，所以这些值不能安全传递给其他变量
+
+![](/images/react-cliff/11-mutableheapnumber-to-heapnumber.svg)
+
+For example, if you assign o.x to some other variable y, you wouldn’t want the value of y to change the next time o.x changes — that would be a violation of the JavaScript spec! So when o.x is accessed, the number must be re-boxed into a regular HeapNumber before assigning it to y.
+
+举个例子，如果你将`o.x`赋值给其他变量y，你可不想下一次`o.x`变动时影响到y的值——这违反了javascript规范！因此，当`o.x`被访问后，在将其赋值给y之前，必须将该数字重新装箱(re-boxed)成一个常规的HeapNumber。
+
+For floats, V8 performs all the above-mentioned “boxing” magic behind the scenes. But for small integers it would be wasteful to go with the MutableHeapNumber approach, since Smi is a more efficient representation.
+
+对于浮点数，V8会在背后执行所有上面提到的“包装(boxing)”魔法。但是对于小整数来说，使用MutableHeapNumber就是浪费，意味Smi是更高效的表示。
+
+```js
+const object = { x: 1 };
+// → 不需要‘包装’x字段
+
+object.x += 1;
+// → 直接在对象内部更新
+```
+
+To avoid the inefficiency, all we have to do for small integers is mark the field on the shape as Smi representation, and simply update the number value in place as long as it fits the small integer range.
+
+为了避免低效率，对于小整数，我们必须在Shape上将该字段标记为Smi表示，只要符合小整数的范围，我们就可以简单地原地更新数字值。
+
+![](/images/react-cliff/12-smi-no-boxing.svg)
+
+## Shape 废弃和迁移
