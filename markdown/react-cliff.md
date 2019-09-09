@@ -18,7 +18,7 @@ categories: 前端
 
 每一个Javascript值都属于以下八个类型之一(目前): `Number`, `String`, `Symbol`, `BigInt`, `Boolean`, `Undefined`, `Null`, 以及 `Object`.
 
-![](/images/react-cliff/01-javascript-types.svg)
+![](https://bobi.ink/images/react-cliff/01-javascript-types.svg)
 
 但是有个总所周知的例外，在JavaScript中可以通过`typeof`操作符观察值的类型：
 
@@ -50,11 +50,11 @@ typeof { x: 42 };
 
 > 译注：也就是，null可以理解为对象类型的'undefined'；而undefined是所有类型的'undefined'
 
-![](/images/react-cliff/02-primitives-objects.svg)
+![](https://bobi.ink/images/react-cliff/02-primitives-objects.svg)
 
 遵循这个思路，Brendan Eich 在设计Javascript的时候受到了Java的影响，让`typeof`右侧所有值(即所有对象和null值)都返回'object'. 这就是为什么`typeof null === 'object'`的原因, 尽管规范中有一个单独的`Null`类型。
 
-![](/images/react-cliff/03-primitives-objects-typeof.svg)
+![](https://bobi.ink/images/react-cliff/03-primitives-objects-typeof.svg)
 
 <br>
 
@@ -173,7 +173,7 @@ const o = {
 
 `x`的值`42`可以被编码为`Smi`，所以你可以在对象自己内部进行保存。另一方面，值`4.2`则需要一个单独的实体来保存，然后对象再指向这个实体.
 
-![](/images/react-cliff/04-smi-vs-heapnumber.svg)
+![](https://bobi.ink/images/react-cliff/04-smi-vs-heapnumber.svg)
 
 现在开始执行下面的Javascript片段:
 
@@ -186,11 +186,11 @@ o.y += 1;
 
 这种情况下，`x`的值可以被原地(in-place)更新，因为新的值`52`还是符合`Smi`的范围.
 
-![](/images/react-cliff/05-update-smi.svg)
+![](https://bobi.ink/images/react-cliff/05-update-smi.svg)
 
 然而，新值`y=5.2`不符合`Smi`，且和之前的值`4.2`不一样，所以V8必须分配一个新的`HeapNumber`实体，再赋值给y。
 
-![](/images/react-cliff/06-update-heapnumber.svg)
+![](https://bobi.ink/images/react-cliff/06-update-heapnumber.svg)
 
 `HeapNumber`是不可变的，这也让某些优化成为可能。举个例子，如果我们将y的值赋给x:
 
@@ -201,7 +201,7 @@ o.x = o.y;
 
 ...我们现在可以简单地链接到同一个HeapNumber，而不是分配一个新的.
 
-![](/images/react-cliff/07-heapnumbers.svg)
+![](https://bobi.ink/images/react-cliff/07-heapnumbers.svg)
 
 `HeapNumbers`不可变的一个缺点是，频繁更新字段不在`Smi`范围内的值会比较慢，如下例所示:
 
@@ -217,21 +217,21 @@ for (let i = 0; i < 5; ++i) {
 
 第一行通过初始化值`0.1`创建一个`HeapNumber`实例。循环体将它的值改变为`1.1`、`2.1`、`3.1`、`4.1`、最后是`5.1`，这个过程总共创建了6个`HeapNumber`实例，其中5个会在循环结束后被垃圾回收。
 
-![](/images/react-cliff/08-garbage-heapnumbers.svg)
+![](https://bobi.ink/images/react-cliff/08-garbage-heapnumbers.svg)
 
 为了避免这个问题，V8也提供了一种机制来原地更新非`Smi`数字字段作为优化。当一个数字字段保存的值超出了`Smi`的范围后，V8会在`Shape`中将这个字段标记为`Double`, 并且分配一个称为`MutableHeapNumber`实体来保存实际的值。
 
-![](/images/react-cliff/09-mutableheapnumber.svg)
+![](https://bobi.ink/images/react-cliff/09-mutableheapnumber.svg)
 
 > 译注: 关于`Shape`是什么，可以阅读这篇[文章](https://mathiasbynens.be/notes/shapes-ics), 简单说`Shape`就是一个对象的‘外形’，JavaScript引擎可以通过`Shape`来优化对象的属性访问。
 
 现在当字段的值变动时，V8不需要在分配一个新的`HeapNumber`，而是直接原地更新`MutableHeapNumber`.
 
-![](/images/react-cliff/10-update-mutableheapnumber.svg)
+![](https://bobi.ink/images/react-cliff/10-update-mutableheapnumber.svg)
 
 然而，这种方式也有一个缺陷。因为MutableHeapNumber的值可以被修改，所以这些值不能安全传递给其他变量
 
-![](/images/react-cliff/11-mutableheapnumber-to-heapnumber.svg)
+![](https://bobi.ink/images/react-cliff/11-mutableheapnumber-to-heapnumber.svg)
 
 举个例子，如果你将`o.x`赋值给其他变量`y`，你可不想下一次`o.x`变动时影响到`y`的值 —— 这违反了JavaScript规范！因此，当`o.x`被访问后，在将其赋值给`y`之前，必须将该数字重新装箱(re-boxed)成一个常规的`HeapNumber`。
 
@@ -247,7 +247,7 @@ object.x += 1;
 
 为了避免低效率，对于小整数，我们必须在`Shape`上将该字段标记为`Smi`表示，只要符合小整数的范围，我们就可以简单地原地更新数字值。
 
-![](/images/react-cliff/12-smi-no-boxing.svg)
+![](https://bobi.ink/images/react-cliff/12-smi-no-boxing.svg)
 
 <br>
 
@@ -268,15 +268,15 @@ y = a.x;
 
 一开始两个对象都指向同一个`Shape`，`x`被标记为`Smi`表示：
 
-![](/images/react-cliff/13-shape.svg)
+![](https://bobi.ink/images/react-cliff/13-shape.svg)
 
 当`b.x`修改为`Double`表示时，V8会分配一个新的`Shape`，将`x`设置为`Double`表示，并且它会指向回`空Shape`(译注：Shape是树结构)。另外V8还会分配一个`MutableHeapNumber`来保存`x`的新值`0.2`. 接着我们更新对象`b`指向新的`Shape`，并且修改对象的`x`指向刚才分配的`MutableHeapNumber`。最后，我们标记旧的`Shape`为废弃状态，并从转换树(transition tree)中移除。这是通过将`“x”`从空`Shape`转换为新创建的`Shape`的方式来完成的。
 
-![](/images/react-cliff/14-shape-transition.svg)
+![](https://bobi.ink/images/react-cliff/14-shape-transition.svg)
 
 这个时候我们还不能完全将`旧Shape`删除掉，因为它还被`a`使用着，而且你不能着急遍历内存来找出所有指向`旧Shape`的对象，这种做法太低效。所以V8采用惰性方式: 对于`a`的任意属性的访问和赋值，会首先迁移到新的`Shape`。这样做, 最终可以将废弃的Shape变成‘不能到达(unreachable)’, 让垃圾回收器释放掉它。
 
-![](/images/react-cliff/15-shape-deprecation.svg)
+![](https://bobi.ink/images/react-cliff/15-shape-deprecation.svg)
 
 如果修改表示的字段不是链中的最后一个字段，则会出现更棘手的情况：
 
@@ -292,7 +292,7 @@ o.y = 0.1;
 
 这种情况，V8需要找到所谓的`分割Shape`(split shape), 即相关属性在被引入到`Shape`链之前的`Shape`。这里我们修改的是`y`，所以我们可以找到引入`y`之前的最后一个`Shape`，在上面的例子中这个`Shape`就是`x`：
 
-![](/images/react-cliff/16-split-shape.svg)
+![](https://bobi.ink/images/react-cliff/16-split-shape.svg)
 
 从`分割Shape`(即x)开始，我们为y创建一个新的转换链, 它将y标记为`Double`表示，并重放(replay)之前的其他转换. 我们将对`y`应用这个新的转换链，将旧的树标记为废弃。在最后一步，我们将实例`o`迁移到新的`Shape`，现在使用一个`MutableHeapNumber`来保存`y`的值。后面新创建的对象都不会使用旧的`Shape`的路径，一旦所有旧`Shape`的引用都移除了，`Shape`树的废弃部分就会被销毁。
 
@@ -345,7 +345,7 @@ Object.preventExtensions(b);
 
 我们都知道它一开始会从空`Shape`转换为一个包含`x`(表示为Smi)的新`Shape`。当我们阻止`b`被扩展时，我们会执行一项特殊的转换，创建一个新的`Shape`并标记为'不可扩展'。这个特殊的转换不会引入任何新的属性 —— 它只是一个标记
 
-![](/images/react-cliff/17-shape-nonextensible.svg)
+![](https://bobi.ink/images/react-cliff/17-shape-nonextensible.svg)
 
 注意，我们不能原地更新`x`的`Shape`，因为它还被`a`对象引用，`a`对象还是可扩展的。
 
@@ -365,13 +365,13 @@ o.y = 0.2;
 
 按照我们上面描述的，这大概会创建以下东西：
 
-![](/images/react-cliff/18-repro-shape-setup.svg)
+![](https://bobi.ink/images/react-cliff/18-repro-shape-setup.svg)
 
 两个属性都会被标记为`Smi`表示，最后一个转换是可扩展性转换，用于将Shape标记为不可扩展。
 
 现在我们需要将`y`转换为`Double`表示，这意味着我们又要开始找出`分割Shape`. 在这个例子中，`分割Shape`就是引入`x`的那个`Shape`。但是V8会有点迷惑，因为`分割Shape`是可扩展的，而当前`Shape`却被标记为不可扩展。在这种情况下，V8并不知道如何正确地重放转换。所以V8干脆上放弃了尝试理解它，直接创建了一个单独的Shape，它没有连接到现有的Shape树，也没有与任何其他对象共享。可以把它想象成一个`孤儿Shape`：
 
-![](/images/react-cliff/19-orphaned-shape.svg)
+![](https://bobi.ink/images/react-cliff/19-orphaned-shape.svg)
 
 你可以想象一下，如果有很多对象都这样子有多糟糕，这会让整个`Shape`系统变得毫无用处。
 
@@ -393,25 +393,25 @@ const node2 = new FiberNode();
 
 上面例子的初始状态如下:
 
-![](/images/react-cliff/20-fibernode-shape.svg)
+![](https://bobi.ink/images/react-cliff/20-fibernode-shape.svg)
 
 按照我们设想的一样, 这两个实例共享了同一个Share树. 后面，当你保存真正的时间戳时，V8找到`分割Shape`就迷惑了：
 
-![](/images/react-cliff/21-orphan-islands.svg)
+![](https://bobi.ink/images/react-cliff/21-orphan-islands.svg)
 
 V8给`node1`分配了一个新的`孤儿Shape`，`node2`同理，这样就生成了两个孤岛，每个孤岛都有自己不相交的Shape。大部分真实的React应用有上千上万个FiberNode。可以想象到，这种情况对V8的性能不是特别乐观。
 
 幸运的是，我们在V8 [v7.4](https://v8.dev/blog/v8-release-74)修复了这个[性能问题](https://chromium-review.googlesource.com/c/v8/v8/+/1442640/), 我们也正在研究[如何降低修改字段表示的成本](https://bit.ly/v8-in-place-field-representation-changes)，以消灭剩余的性能瓶颈. 经过修复后，V8可以正确处理这种情况:
 
-![](/images/react-cliff/22-fix.svg)
+![](https://bobi.ink/images/react-cliff/22-fix.svg)
 
 两个FiberNode实例都指向了'actualStartTime'为`Smi`的不可扩展`Shape`. 当第一次给`node1.actualStartTime`赋值时，将创建一个新的转换链，并将之前的链标记为废弃。
 
-![](/images/react-cliff/23-fix-fibernode-shape-1.svg)
+![](https://bobi.ink/images/react-cliff/23-fix-fibernode-shape-1.svg)
 
 注意, 现在扩展性转换可以在新链中正确重放。
 
-![](/images/react-cliff/24-fix-fibernode-shape-2.svg)
+![](https://bobi.ink/images/react-cliff/24-fix-fibernode-shape-2.svg)
 
 在赋值`node2.actualStartTime`之后，两个节点都引用到了新的Shape，转换树中废弃的部分将被垃圾回收器回收。
 
@@ -471,4 +471,4 @@ p.y = 402;
 <br>
 <br>
 
-![](/images/sponsor.jpg)
+![](https://bobi.ink/images/sponsor.jpg)
