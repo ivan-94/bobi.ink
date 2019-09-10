@@ -45,4 +45,4 @@
 - react performance user timing
 - react fiber
 - 大企业是怎么管理前端静态资源的?
-- 前端软件设计文档
+- 架构模式
