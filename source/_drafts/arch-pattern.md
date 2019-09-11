@@ -65,6 +65,7 @@ categories: 前端
 (图片来源: [多端统一开发框架 - Taro](https://aotu.io/notes/2018/06/07/Taro/))
 
 <br>
+<br>
 
 ## 管道和过滤器
 
@@ -104,7 +105,83 @@ fromEvent(document, 'click')
 
 <br>
 
-### 中间件风格
+除了上述的RxJS，管道模式在前端领域也有很多应用，主要集中在前端工程化领域。例如'老牌'的项目构建工具[gulp](https://www.gulpjs.com.cn/), Gulp使用管道化模式来处理文件类型，管道中的每一个步骤成为Transpiler(转译器), 以 NodeJS 的Stream 作为输入输出。整个过程高效而简单。
+
+![](/images/arch-pattern/gulp.png)
+
+不确定是否受到Gulp的影响，现代的[Webpack](https://www.webpackjs.com/)打包工具，也使用同样的模式来实现对文件的处理, 即[Loader](https://www.webpackjs.com/concepts/loaders/), Loader 用于对模块的源代码进行转换, 通过Loader的组合，可以实现复杂的文件转译需求.
+
+```js
+// webpack.config.js
+module.exports = {
+  ...
+  module: {
+    rules: [{
+      test: /\.scss$/,
+      use: [{
+          loader: "style-loader" // 将 JS 字符串生成为 style 节点
+      }, {
+          loader: "css-loader" // 将 CSS 转化成 CommonJS 模块
+      }, {
+          loader: "sass-loader" // 将 Sass 编译成 CSS
+      }]
+    }]
+  }
+};
+```
+
+<br>
+
+### 中间件(Middleware)
+
+![](/images/arch-pattern/middleware.png)
+
+如果开发过Express、Koa或者Redux, 你可能会发现中间件模式和上述的管道模式有一定的相似性，如上图。相比管道，中间件模式可以使用一个洋葱剖面来形容。和管道相比，一般的中间件实现有以下特点:
+
+- 中间件没有显式的输入输出。这些中间件之间通常通过集中式的上下文对象来共享状态
+- 有一个回归的过程。管道中，数据处理完毕后交给下游了，后面就不管了。而中间件还有一个回归的过程，当下游处理完毕后会进行回溯，所以有机会干预下游的处理结果。
+
+我在谷歌上搜了老半天中间件，对于中间件都没有得到一个令我满意的定义. **暂且把它当作一个特殊形式的管道模式吧**。这种模式通常用于后端，它可以干净地分离出请求的不同阶段，也就是分离关注点。比如我们可以创建这些中间件：
+
+- 日志： 记录开始时间 | 计算响应时间，输出请求日志
+- 认证： 验证用户是否登录
+- 授权： 验证用户是否有执行该操作的权限
+- 缓存： 是否有缓存结果，有的话就直接返回 | 当下游响应完成后，再判断一下响应是否可以被缓存
+- 执行： 执行实际的请求处理 | 响应
+
+有了中间件之后，我们不需要在每个响应处理方法中都包含这些逻辑，关注好自己该做的事情。
+
+```js
+const Koa = require('koa');
+const app = new Koa();
+
+// logger
+
+app.use(async (ctx, next) => {
+  await next();
+  const rt = ctx.response.get('X-Response-Time');
+  console.log(`${ctx.method} ${ctx.url} - ${rt}`);
+});
+
+// x-response-time
+
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  ctx.set('X-Response-Time', `${ms}ms`);
+});
+
+// response
+
+app.use(async ctx => {
+  ctx.body = 'Hello World';
+});
+
+app.listen(3000);
+```
+
+<br>
 
 简洁而不简单
 
@@ -114,3 +191,4 @@ fromEvent(document, 'click')
 - [架构风格与基于网络的软件架构设计](https://docs.huihoo.com/rest/REST_cn.pdf) REST提议者，Roy Thomas Fielding的博士论文
 - [软件架构入门](http://www.ruanyifeng.com/blog/2016/09/software-architecture.html)
 - [管道 (Unix)](https://zh.wikipedia.org/wiki/管道_\(Unix\))
+- [redux middleware 详解](https://zhuanlan.zhihu.com/p/20597452)
