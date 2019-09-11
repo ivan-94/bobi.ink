@@ -66,7 +66,45 @@ categories: 前端
 
 <br>
 
+## 管道和过滤器
+
+在管道/过滤器架构风格中，每个组件都有一组输入和输出，每个组件职责都很单一, 数据输入组件，经过内部处理，然后将处理过的数据输出。所以这些组件也称为过滤器，连接器按照业务需求将组件连接起来，其形状就像‘管道’一样，这种架构风格由此得名。
+
+![](/images/arch-pattern/pipeline.png)
+
+这里面最经典的案例是`*unix` Shell命令，Unix的哲学就是“只做一件事，把它做好”，所以我们常用的Unix命令功能都非常单一，但是Unix Shell还有一件法宝就是管道，通过管道我们可以将命令通过`标准输入输出`串联起来实现复杂的功能:
+
+```shell
+# 获取网页，并进行拼写检查。代码来源于wiki
+curl "http://en.wikipedia.org/wiki/Pipeline_(Unix)" | \
+sed 's/[^a-zA-Z ]/ /g' | \
+tr 'A-Z ' 'a-z\n' | \
+grep '[a-z]' | \
+sort -u | \
+comm -23 - /usr/share/dict/words | \
+less
+```
+
+另一个和Unix管道相似的例子是`ReactiveX`, 例如[RxJS](https://github.com/ReactiveX/rxjs). 很多教程将Rx比喻成河流，这个河流的开头就是一个事件源，这个事件源按照一定的频率发布事件。Ok，Rx真正强大的其实是它的操作符，有了这些操作符，你可以对这条河流[做一切可以做的事情](https://rxjs.dev/operator-decision-tree)，例如分流、节流、建大坝、转换、统计、合并、产生河流的河流....
+
+这些操作符和Unix的命令一样，职责都很单一，只干好一件事情。但我们管道将它们组合起来的时候，就迸发了无限的能力.
+
+```js
+import { fromEvent } from 'rxjs';
+import { throttleTime, map, scan } from 'rxjs/operators';
+
+fromEvent(document, 'click')
+  .pipe(
+    throttleTime(1000),
+    map(event => event.clientX),
+    scan((count, clientX) => count + clientX, 0)
+  )
+  .subscribe(count => console.log(count));
+```
+
 <br>
+
+### 中间件风格
 
 简洁而不简单
 
@@ -75,3 +113,4 @@ categories: 前端
 - [几种常见的软件架构风格介绍](https://wxs.me/2069)
 - [架构风格与基于网络的软件架构设计](https://docs.huihoo.com/rest/REST_cn.pdf) REST提议者，Roy Thomas Fielding的博士论文
 - [软件架构入门](http://www.ruanyifeng.com/blog/2016/09/software-architecture.html)
+- [管道 (Unix)](https://zh.wikipedia.org/wiki/管道_\(Unix\))
