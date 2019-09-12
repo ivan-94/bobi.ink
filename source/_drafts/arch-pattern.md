@@ -195,12 +195,120 @@ JavaScript的基因决定事件驱动模式在前端领域的广泛使用. 在[�
 
 > 需要注意的是：事件驱动和异步是不能划等号的。异步 !== 事件驱动，事件驱动 !== 异步
 
+**扩展**:
+
+- 响应式编程: 响应式编程本质上也是事件驱动的，下面是前端领域比较流行的两种响应式模式：
+  - 函数响应式(Functional Reactive Programming), 典型代码RxJS
+  - 透明的函数响应式编程(transparently applying functional reactive programming - TFRP), 典型代码Vue、Mobx
+
+## MV*
+
+`MV*`架构风格应用也非常广泛。我觉MV*本质上也是一种分层架构，一样强调职责分离。其中最为经典的是MVC架构风格，除此之外还有各种衍生风格，例如`MVP`、`MVVM`、[MVI(Model View Intent)](https://medium.com/@fkrautwald/plug-and-play-all-your-observable-streams-with-cycle-js-e543fc287872#.by4c219c8). 还有有点关联Flux或者Redux模式。
+
+### 家喻户晓的MVC
+
+![](/images/arch-pattern/mvc.png)
+
+如其名，MVC将应用分为三层，分别是：
+
+- 视图层(View) 呈现数据给用户
+- 控制器(Controller) 模型和视图之间的纽带，起到不同层的组织作用：
+  - 处理事件并作出响应。一般事件有用户的行为(比如用户点击、客户端请求)，模型层的变更
+  - 控制程序的流程。根据请求选择适当的模型进行处理，然后选择适当的视图进行渲染，最后呈现给用户
+- 模型(Model) 封装与应用程序的业务逻辑相关的数据以及对数据的处理方法, 通常它需要和数据持久化层进行通信
+
+目前前端应用很少有纯粹使用MVC的，要么视图层混合了控制器层，要么就是模型和控制器混合，或者干脆就没有所谓的控制器. 但一点可以确定的是，很多应用都不约而同分离了‘逻辑层’和视图层。
+
+典型的AngularJS代码:
+
+视图层:
+
+```html
+    <h2>Todo</h2>
+    <div ng-controller="TodoListController as todoList">
+      <span>{{todoList.remaining()}} of {{todoList.todos.length}} remaining</span>
+      [ <a href="" ng-click="todoList.archive()">archive</a> ]
+      <ul class="unstyled">
+        <li ng-repeat="todo in todoList.todos">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="todo.done">
+            <span class="done-{{todo.done}}">{{todo.text}}</span>
+          </label>
+        </li>
+      </ul>
+      <form ng-submit="todoList.addTodo()">
+        <input type="text" ng-model="todoList.todoText"  size="30"
+               placeholder="add new todo here">
+        <input class="btn-primary" type="submit" value="add">
+      </form>
+    </div>
+```
+
+逻辑层:
+
+```js
+angular.module('todoApp', [])
+  .controller('TodoListController', function() {
+    var todoList = this;
+    todoList.todos = [
+      {text:'learn AngularJS', done:true},
+      {text:'build an AngularJS app', done:false}];
+
+    todoList.addTodo = function() {
+      todoList.todos.push({text:todoList.todoText, done:false});
+      todoList.todoText = '';
+    };
+
+    todoList.remaining = function() {
+      var count = 0;
+      angular.forEach(todoList.todos, function(todo) {
+        count += todo.done ? 0 : 1;
+      });
+      return count;
+    };
+
+    todoList.archive = function() {
+      var oldTodos = todoList.todos;
+      todoList.todos = [];
+      angular.forEach(oldTodos, function(todo) {
+        if (!todo.done) todoList.todos.push(todo);
+      });
+    };
+  });
+```
+
+至于MVP、MVVM，这些MVC模式的延展或者升级，网上都大量的资源，这里就不予赘述。
+
+<br>
+
+### Redux
+
+Redux是Flux架构的改进、融合了Elm语言中函数式的思想. 下面是Redux的架构图:
+
+![](/images/arch-pattern/redux.png)
+
+从上图可以看出Redux架构有以下要点:
+
+- **单一的数据源**.
+- **单向的数据流**.
+
+单一数据源, 首先解决的是传统MVC架构多模型数据流混乱问题(如下图)。单一的数据源可以让应用的状态可预测和可被调试。另外单一数据源也方便做数据镜像，实现撤销/重做，数据持久化等等功能
+
+![](/images/arch-pattern/multi-model.png)
+
+单向数据流用于辅助单一数据源, 主要目的是阻止应用代码直接修改数据源，这样一方面简化数据流，也让应用状态变化变得可预测。
+
+上面两个特点是Redux架构风的核心，至于Redux还强调不可变数据、利用中间件封装副作用、范式化状态树，只是一种最佳实践。还有许多`类Redux`的框架，例如[`Vuex`](http://vuex.vuejs.org)、[ngrx](https://ngrx.io)，在架构思想层次是一致的。
+
+<br>
+
 简洁而不简单
 
-## 参考文献
+## 扩展阅读
 
 - [几种常见的软件架构风格介绍](https://wxs.me/2069)
 - [架构风格与基于网络的软件架构设计](https://docs.huihoo.com/rest/REST_cn.pdf) REST提议者，Roy Thomas Fielding的博士论文
 - [软件架构入门](http://www.ruanyifeng.com/blog/2016/09/software-architecture.html)
 - [管道 (Unix)](https://zh.wikipedia.org/wiki/管道_\(Unix\))
 - [redux middleware 详解](https://zhuanlan.zhihu.com/p/20597452)
+- [浅析前端开发中的 MVC/MVP/MVVM 模式](https://juejin.im/post/593021272f301e0058273468)
