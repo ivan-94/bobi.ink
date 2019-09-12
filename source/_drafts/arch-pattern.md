@@ -379,8 +379,42 @@ if (cluster.isMaster) {
 
 ## 微前端
 
+前几天听了[代码时间](http://codetimecn.com/)上[左耳朵耗子](https://coolshell.cn/haoel)的一期[节目](http://codetimecn.com/episodes/manager), 他介绍得了亚马逊内部有很多小团队，亚马逊网站上一块豆腐块大小的区域可能是一个团队在维护，比如地址选择器、购物车、运达时间计算...大厂的这种超级项目是怎么协调和维护的呢？ 这也许就是微前端或者微服务出现的原因吧。
+
+微前端旨在将`单体前端`分解成更小、更简单的模块，这些模块可以被独立的团队进行开发、测试和部署，最后再组合成一个大型的整体。
+
+![](/images/arch-pattern/microfrontend.jpg)
+
+微前端下各个应用模块是独立运行、独立开发、独立部署的，相对应的会配备更加自治的团队(一个团队干好一件事情)。 微前端的应用还需要有强大前端基础设施和研发体系的支撑。
+
+如果你想深入学习微前端架构，建议阅读[Phodal](https://www.zhihu.com/people/phodal/activities)的[相关文章](https://juejin.im/user/5567e339e4b0349d3313190b/posts)，还有他的新书[《前端架构：从入门到微前端》](https://www.amazon.cn/dp/B07TJ7R9DX/ref=sr_1_1?__mk_zh_CN=%E4%BA%9A%E9%A9%AC%E9%80%8A%E7%BD%91%E7%AB%99&keywords=%E5%89%8D%E7%AB%AF%E6%9E%B6%E6%9E%84&qid=1568279892&s=gateway&sr=8-1)
+
+
+<br>
+
+## 组件化架构
+
+前端应用开发目前都是组件化形式了，对现在的我们来说如此自然，就像水对鱼的关系一样。
+
+组件化也是一种非常常见的架构思想，它的中心思想就是分而治之。按照Wiki上面的定义是：`组件化就是基于可复用目的，将一个大的软件系统按照分离关注点的形式，拆分成多个独立的组件，主要目的就是减少耦合`.
+
+从前端的角度具体来讲，如下图， 石器时代开发方式(右侧), 组件时代(左侧):
+
+![](/images/arch-pattern/component2.png)
+(图片来源: http://www.alloyteam.com/2015/11/we-will-be-componentized-web-long-text)
+
+按照Vue官网的说法: `组件系统是 Vue 的另一个重要概念，因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树`：
+
+![](/images/arch-pattern/component.png)
+
+按照我的理解组件跟函数是一样的东西，这就是为什么函数式编程思想在React中会应用的如此自然。若干个简单函数，可以复合成复杂的函数，复杂的函数可以复合成复杂的程序。对于前端来说，页面就是这么来的，一个复杂的页面就是有不同粒度的组件复合而成的。
+
+组件另外一个重要的特征就是内聚性，他是一个独立的单元，自包含了所有需要的资源。
+
 
 ## 其他
+
+我终于编不下去了
 
 - 面向对象风格: 将应用或系统任务分割为单独、可复用、可自给的对象，每个对象都包含数据、以及对象相关的行为
 - 基于组件的风格: 将应用拆分为独立的、可复用、可组合的组件. 每个组件只通过明确定义的通信接口进行通信
@@ -400,3 +434,6 @@ if (cluster.isMaster) {
 - [浅析前端开发中的 MVC/MVP/MVVM 模式](https://juejin.im/post/593021272f301e0058273468)
 - [CodeSandbox 浏览器端的webpack是如何工作的？ 上篇](https://juejin.im/post/5d1e0dea51882514bf5bedfa#comment)
 - [万金油CS与分层](https://mp.weixin.qq.com/s/KT288QNmtJzKe-jaPyFtFA)
+- [大前端时代下的微前端架构：实现增量升级、代码解耦、独立部署](https://www.infoq.cn/article/03*BeU3zQegIbIytRsX9)
+- [系统组件化架构设计](https://www.iteye.com/blog/moon-walker-2393310)
+- [2015前端组件化框架之路](https://github.com/xufei/blog/issues/19)
