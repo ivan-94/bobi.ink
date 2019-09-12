@@ -200,6 +200,7 @@ JavaScript的基因决定事件驱动模式在前端领域的广泛使用. 在[�
 - 响应式编程: 响应式编程本质上也是事件驱动的，下面是前端领域比较流行的两种响应式模式：
   - 函数响应式(Functional Reactive Programming), 典型代码RxJS
   - 透明的函数响应式编程(transparently applying functional reactive programming - TFRP), 典型代码Vue、Mobx
+- 消息总线：指接收、发送消息的软件系统。消息基于一组已知的格式，以便系统无需知道实际接收者就能互相通信
 
 ## MV*
 
@@ -298,7 +299,57 @@ Redux是Flux架构的改进、融合了Elm语言中函数式的思想. 下面是
 
 单向数据流用于辅助单一数据源, 主要目的是阻止应用代码直接修改数据源，这样一方面简化数据流，也让应用状态变化变得可预测。
 
-上面两个特点是Redux架构风的核心，至于Redux还强调不可变数据、利用中间件封装副作用、范式化状态树，只是一种最佳实践。还有许多`类Redux`的框架，例如[`Vuex`](http://vuex.vuejs.org)、[ngrx](https://ngrx.io)，在架构思想层次是一致的。
+上面两个特点是Redux架构风的核心，至于Redux还强调不可变数据、利用中间件封装副作用、范式化状态树，只是一种最佳实践。还有许多`类Redux`的框架，例如[`Vuex`](http://vuex.vuejs.org)、[ngrx](https://ngrx.io)，在架构思想层次是一致的:
+
+![](/images/arch-pattern/vuex.png)
+
+<br>
+
+## 复制风格
+
+复制风格(Replication), 基于复制风格的系统，会利用多个实例提供相同的服务，来改善服务的可访问性和可伸缩性。这种架构风格可以改善用户可察觉的性能，简单服务响应的延迟。
+
+这种风格在后端用得比较多，举前端比较熟悉的例子，NodeJS. NodeJS是单线程的，为了利用多核资源，NodeJS标准库提供了一个[`cluster`](https://nodejs.org/api/cluster.html)模块，它可以根据CPU数创建多个Worker进程，这些Worker进程共享一个服务器端口，对外提供同质的服务, Master进程会根据一定的策略将资源分配给Worker:
+
+```js
+const cluster = require('cluster');
+const http = require('http');
+const numCPUs = require('os').cpus().length;
+
+if (cluster.isMaster) {
+  console.log(`Master ${process.pid} is running`);
+
+  // Fork workers.
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+} else {
+  // Workers可以共享任意的TCP连接 
+  // 比如共享HTTP服务器 
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('hello world\n');
+  }).listen(8000);
+
+  console.log(`Worker ${process.pid} started`);
+}
+```
+
+![](/images/arch-pattern/pm2.png)
+
+利用多核能力可以提升应用的性能和可靠性。这里[PM2](http://pm2.keymetrics.io/docs/usage/cluster-mode/)这里进程管理工具，可以简化Node集群的管理，它支持很多有用的特性，例如集群节点重启、日志归集、性能监视等。
+
+复制风格常用于网络服务器。浏览器和Node都有Worker的概念，但是一般都只推荐在CPU密集型的场景使用它们，因为浏览器或者NodeJS内置的异步操作已经非常高效。实际上前端应用CPU密集型场景并不多，或者目前阶段不是特别实用。除此之外你还要权衡进程间通信的效率、进程异常处理等等。
+
+有一点典型的CPU密集型的场景，即源文件转译. 典型的例子是[Codesandbox](https://codesandbox.io/dashboard), 它就是利用浏览器的Worker机制来提高源文件的转译性能的:
+
+![](/images/arch-pattern/codesandbox.png)
+
+> 处理处理CPU密集型任务，对于浏览器来说，它也是一个重要的安全机制，用于隔离不安全代码的执行，或者限制访问浏览器DOM相关的东西。小程序抽离逻辑进程的原因之一就是安全性
 
 <br>
 
@@ -312,3 +363,4 @@ Redux是Flux架构的改进、融合了Elm语言中函数式的思想. 下面是
 - [管道 (Unix)](https://zh.wikipedia.org/wiki/管道_\(Unix\))
 - [redux middleware 详解](https://zhuanlan.zhihu.com/p/20597452)
 - [浅析前端开发中的 MVC/MVP/MVVM 模式](https://juejin.im/post/593021272f301e0058273468)
+- [CodeSandbox 浏览器端的webpack是如何工作的？ 上篇](https://juejin.im/post/5d1e0dea51882514bf5bedfa#comment)
