@@ -23,13 +23,13 @@ categories: 前端
 
 - 隔离业务复杂度与技术复杂度的利器. 典型的例子是网络协议, 越高层越面向人类，越底层越面向机器。一层一层往上，很多技术的细节都被隐藏了，比如我们使用HTTP时，不需要考虑TCP层的握手和包传输，TCP层不需要关心IP层的寻址和路由。
 
-  ![](/images/arch-pattern/tcp-ip-model.png)
+  ![](https://bobi.ink/images/arch-pattern/tcp-ip-model.png)
 
 - 分离关注点。减少跨越多层的耦合, 当一层变动时不会影响到其他层。例如我们前端项目建议拆分逻辑层和视图层，一方面可以降低逻辑和视图之间的耦合，当视图层元素变动时可以尽量减少对逻辑层的影响；另外一个好处是, 当逻辑抽取出去后，可以被不同平台的视图复用。
   
 关注点分离之后，软件的结构会变得容易理解和开发, 每一层可以被复用, 可以独立测试， 其他层的接口通过模拟解决. 分层架构，也不是全是优点，比如分层的抽象可能会丢失部分效率和灵活性, 比如编程语言就有明显的层次结构，语言抽象的层次越高，一般运行效率可能会有衰减:
 
-![](/images/arch-pattern/lang.png)
+![](https://bobi.ink/images/arch-pattern/lang.png)
 
 分层架构在软件领域的案例实在太多太多了，咱讲讲前端的一些分层案例：
 
@@ -37,17 +37,17 @@ categories: 前端
 
 前端石器时代，我们页面交互和渲染，是直接通过操作DOM实现的, 有点像C/C++这类系统编程语言需要手动操纵内存. 那时候JQuery很火:
 
-![](/images/arch-pattern/jquery.png)
+![](https://bobi.ink/images/arch-pattern/jquery.png)
 
 后来随着软硬件性能越来越好、Web应用也越来越复杂，前端开发者的生产力也要跟上，类似JQuery这种命令式的编程方式无疑比较低效的. 尽管手动操作 DOM 可能可以达到更高的性能和灵活性，但是这样对大部分开发者来说太低效了，我们是可以接受牺牲一点性能换取更高的开发效率的.
 
 怎么解决，再加一层吧，后来React就搞了一层VirtualDOM。我们可以声明式、组合式地构建一颗对象树。然后由React将它映射到DOM。
 
-![](/images/arch-pattern/vd1.png)
+![](https://bobi.ink/images/arch-pattern/vd1.png)
 
 一开始VirtualDOM这一层和DOM的关系并不纯粹，两者是耦合在一起的。后面有人想，我们有了VirtualDOM这个抽象层，那应该能搞点别的，比如渲染到移动端元素组件、PDF、Canvas、终端UI等等。VirtualDOM进行了更彻底的分层，有着这个抽象层我们可以将VirtualDOM映射到更多类似场景的软件应用中:
 
-![](/images/arch-pattern/vd2.png)
+![](https://bobi.ink/images/arch-pattern/vd2.png)
 
 所以说 VirtualDOM 更大的意义在于开发方式的改变: 声明式、 数据驱动, 让开发者不需要关心 DOM 的操作细节(属性操作、事件绑定、DOM 节点变更)，也就是说应用的开发方式变成了`view=f(state)`, 这对生产力的解放是有很大推动作用的.
 
@@ -61,7 +61,7 @@ categories: 前端
 
 **[Taro](https://taro-docs.jd.com/taro/docs/README.html) 和React一样也采用分层架构风格，只不过他们解决的问题是相反的。React加上一个分层，可以渲染到不同的视图形态；而Taro则是为了统一**: 国内现如今市面上端的形态多种多样，Web、React-Native、微信小程序...，针对不同的端去编写多套代码的成本非常高，这种需求催生了Taro这类框架的诞生. 使用 Taro，我们可以只书写一套代码, 通过编译工具可以输出到不同的端.
 
-![](/images/arch-pattern/taro.jpg)
+![](https://bobi.ink/images/arch-pattern/taro.jpg)
 (图片来源: [多端统一开发框架 - Taro](https://aotu.io/notes/2018/06/07/Taro/))
 
 <br>
@@ -71,7 +71,7 @@ categories: 前端
 
 在管道/过滤器架构风格中，每个组件都有一组输入和输出，每个组件职责都很单一, 数据输入组件，经过内部处理，然后将处理过的数据输出。所以这些组件也称为过滤器，连接器按照业务需求将组件连接起来，其形状就像‘管道’一样，这种架构风格由此得名。
 
-![](/images/arch-pattern/pipeline.png)
+![](https://bobi.ink/images/arch-pattern/pipeline.png)
 
 这里面最经典的案例是`*unix` Shell命令，Unix的哲学就是“只做一件事，把它做好”，所以我们常用的Unix命令功能都非常单一，但是Unix Shell还有一件法宝就是管道，通过管道我们可以将命令通过`标准输入输出`串联起来实现复杂的功能:
 
@@ -107,7 +107,7 @@ fromEvent(document, 'click')
 
 除了上述的RxJS，管道模式在前端领域也有很多应用，主要集中在前端工程化领域。例如'老牌'的项目构建工具[gulp](https://www.gulpjs.com.cn/), Gulp使用管道化模式来处理文件类型，管道中的每一个步骤成为Transpiler(转译器), 以 NodeJS 的Stream 作为输入输出。整个过程高效而简单。
 
-![](/images/arch-pattern/gulp.png)
+![](https://bobi.ink/images/arch-pattern/gulp.png)
 
 不确定是否受到Gulp的影响，现代的[Webpack](https://www.webpackjs.com/)打包工具，也使用同样的模式来实现对文件的处理, 即[Loader](https://www.webpackjs.com/concepts/loaders/), Loader 用于对模块的源代码进行转换, 通过Loader的组合，可以实现复杂的文件转译需求.
 
@@ -134,7 +134,7 @@ module.exports = {
 
 ### 中间件(Middleware)
 
-![](/images/arch-pattern/middleware.png)
+![](https://bobi.ink/images/arch-pattern/middleware.png)
 
 如果开发过Express、Koa或者Redux, 你可能会发现中间件模式和上述的管道模式有一定的相似性，如上图。相比管道，中间件模式可以使用一个洋葱剖面来形容。和管道相比，一般的中间件实现有以下特点:
 
@@ -208,7 +208,7 @@ JavaScript的基因决定事件驱动模式在前端领域的广泛使用. 在[�
 
 ### 家喻户晓的MVC
 
-![](/images/arch-pattern/mvc.png)
+![](https://bobi.ink/images/arch-pattern/mvc.png)
 
 如其名，MVC将应用分为三层，分别是：
 
@@ -286,7 +286,7 @@ angular.module('todoApp', [])
 
 Redux是Flux架构的改进、融合了Elm语言中函数式的思想. 下面是Redux的架构图:
 
-![](/images/arch-pattern/redux.png)
+![](https://bobi.ink/images/arch-pattern/redux.png)
 
 从上图可以看出Redux架构有以下要点:
 
@@ -295,13 +295,13 @@ Redux是Flux架构的改进、融合了Elm语言中函数式的思想. 下面是
 
 单一数据源, 首先解决的是传统MVC架构多模型数据流混乱问题(如下图)。单一的数据源可以让应用的状态可预测和可被调试。另外单一数据源也方便做数据镜像，实现撤销/重做，数据持久化等等功能
 
-![](/images/arch-pattern/multi-model.png)
+![](https://bobi.ink/images/arch-pattern/multi-model.png)
 
 单向数据流用于辅助单一数据源, 主要目的是阻止应用代码直接修改数据源，这样一方面简化数据流，也让应用状态变化变得可预测。
 
 上面两个特点是Redux架构风的核心，至于Redux还强调不可变数据、利用中间件封装副作用、范式化状态树，只是一种最佳实践。还有许多`类Redux`的框架，例如[`Vuex`](http://vuex.vuejs.org)、[ngrx](https://ngrx.io)，在架构思想层次是一致的:
 
-![](/images/arch-pattern/vuex.png)
+![](https://bobi.ink/images/arch-pattern/vuex.png)
 
 <br>
 
@@ -339,7 +339,7 @@ if (cluster.isMaster) {
 }
 ```
 
-![](/images/arch-pattern/pm2.png)
+![](https://bobi.ink/images/arch-pattern/pm2.png)
 
 利用多核能力可以提升应用的性能和可靠性。这里[PM2](http://pm2.keymetrics.io/docs/usage/cluster-mode/)这里进程管理工具，可以简化Node集群的管理，它支持很多有用的特性，例如集群节点重启、日志归集、性能监视等。
 
@@ -347,7 +347,7 @@ if (cluster.isMaster) {
 
 有一点典型的CPU密集型的场景，即源文件转译. 典型的例子是[Codesandbox](https://codesandbox.io/dashboard), 它就是利用浏览器的Worker机制来提高源文件的转译性能的:
 
-![](/images/arch-pattern/codesandbox.png)
+![](https://bobi.ink/images/arch-pattern/codesandbox.png)
 
 > 处理处理CPU密集型任务，对于浏览器来说，它也是一个重要的安全机制，用于隔离不安全代码的执行，或者限制访问浏览器DOM相关的东西。小程序抽离逻辑进程的原因之一就是安全性
 
@@ -359,7 +359,7 @@ if (cluster.isMaster) {
 
 ## 微内核架构
 
-![](/images/arch-pattern/plugin-architecture.png)
+![](https://bobi.ink/images/arch-pattern/plugin-architecture.png)
 
 微内核架构(MicroKernel)又称为"插件架构", 指的是软件的内核相对较小，主要功能和业务逻辑都通过插件形式实现。内核只包含系统运行的最小功能。插件之间相互独立，插件之间的通信，应该降到最低，减少相互依赖。
 
@@ -373,7 +373,7 @@ if (cluster.isMaster) {
 
 > [Sean Larkin](https://twitter.com/thelarkinn)有个演讲: [Everything is a plugin! Mastering webpack from the inside out ](https://www.youtube.com/watch?v=4tQiJaFzuJ8)
 
-![](/images/arch-pattern/webpack.png)
+![](https://bobi.ink/images/arch-pattern/webpack.png)
 
 这里有一篇文章[微内核架构应用研究](https://yunsong0922.github.io/2018/12/09/%E5%BE%AE%E5%86%85%E6%A0%B8%E6%9E%B6%E6%9E%84%E5%BA%94%E7%94%A8%E7%A0%94%E7%A9%B6/)专门写了前端微内核架构模式的一些应用，推荐阅读一下。
 
@@ -386,7 +386,7 @@ if (cluster.isMaster) {
 
 微前端旨在将`单体前端`分解成更小、更简单的模块，这些模块可以被独立的团队进行开发、测试和部署，最后再组合成一个大型的整体。
 
-![](/images/arch-pattern/microfrontend.jpg)
+![](https://bobi.ink/images/arch-pattern/microfrontend.jpg)
 
 微前端下各个应用模块是独立运行、独立开发、独立部署的，相对应的会配备更加自治的团队(一个团队干好一件事情)。 微前端的应用还需要有强大前端基础设施和研发体系的支撑。
 
@@ -403,12 +403,12 @@ if (cluster.isMaster) {
 
 从前端的角度具体来讲，如下图， 石器时代开发方式(右侧), 组件时代(左侧):
 
-![](/images/arch-pattern/component2.png)
+![](https://bobi.ink/images/arch-pattern/component2.png)
 (图片来源: http://www.alloyteam.com/2015/11/we-will-be-componentized-web-long-text)
 
 按照Vue官网的说法: `组件系统是 Vue 的另一个重要概念，因为它是一种抽象，允许我们使用小型、独立和通常可复用的组件构建大型应用。仔细想想，几乎任意类型的应用界面都可以抽象为一个组件树`：
 
-![](/images/arch-pattern/component.png)
+![](https://bobi.ink/images/arch-pattern/component.png)
 
 按照我的理解组件跟函数是一样的东西，这就是为什么函数式编程思想在React中会应用的如此自然。若干个简单函数，可以复合成复杂的函数，复杂的函数可以复合成复杂的程序。对于前端来说，页面就是这么来的，一个复杂的页面就是有不同粒度的组件复合而成的。
 
