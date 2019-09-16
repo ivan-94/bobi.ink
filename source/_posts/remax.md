@@ -340,6 +340,7 @@ export default class VNode {
   appendChild(node: VNode, immediately: boolean)
   removeChild(node: VNode, immediately: boolean)
   insertBefore(newNode: VNode, referenceNode: VNode, immediately: boolean)
+  // 触发同步到渲染进程
   update()
   path(): Path
   isMounted(): boolean
@@ -399,6 +400,7 @@ const HostConfig = {
   commitTextUpdate(node: VNode, oldText: string, newText: string) {
     if (oldText !== newText) {
       node.text = newText;
+      // 更新节点
       node.update();
     }
   },
@@ -410,11 +412,147 @@ const HostConfig = {
 
 ## 同步到渲染进程
 
-React自定义渲染器差不多就这样了，接下来就是平台相关的事情了。
+React自定义渲染器差不多就这样了，接下来就是平台相关的事情了。Remax目前的做法是在树结构变更或者节点更新提交时触发更新，通过小程序Page对象的setData方法将`更新指令`传递给渲染进程; 渲染进程侧再通过[`WXS`](https://developers.weixin.qq.com/miniprogram/dev/framework/view/wxs/)机制，将`更新指令`恢复到树中. 最后再通过模板，将树递归渲染出来 整体的过程如下:
+
+![](/images/remax/07.png)
+
+先来看看逻辑进程侧是如何推送更新指令的：
+
+```js
+// 在根容器上管理更新
+export default class Container {
+  // ...
+  requestUpdate(
+    path: Path,
+    start: number,
+    deleteCount: number,
+    immediately: boolean,
+    ...items: RawNode[]
+  ) {
+    const update: SpliceUpdate = {
+      path, // 更新节点的树路径
+      start, // 更新节点在children中的索引
+      deleteCount,
+      items, // 当前节点的信息
+    };
+    if (immediately) {
+      this.updateQueue.push(update);
+      this.applyUpdate();
+    } else {
+      // 放入更新队列，延时收集更新
+      if (this.updateQueue.length === 0) {
+        setTimeout(() => this.applyUpdate());
+      }
+      this.updateQueue.push(update);
+    }
+  }
+
+  applyUpdate() {
+    const action = {
+      type: 'splice',
+      payload: this.updateQueue.map(update => ({
+        path: stringPath(update.path),
+        start: update.start,
+        deleteCount: update.deleteCount,
+        item: update.items[0],
+      })),
+    };
+
+    // 通过setData通知渲染进程
+    this.context.setData({ action });
+    this.updateQueue = [];
+  }
+}
+```
+
+逻辑还是比较清楚的，即将需要更新的节点(包含节点路径、节点信息)推入更新队列，然后触发`setData`通知到渲染进程。
+
+渲染进程侧，则需要通过`WXS`机制，相对应地将`更新指令`恢复到`渲染树`中：
+
+```js
+var tree = {
+  root: {
+    children: [],
+  },
+};
+
+function reduce(action) {
+  switch (action.type) {
+    case 'splice':
+      for (var i = 0; i < action.payload.length; i += 1) {
+        var value = get(tree, action.payload[i].path);
+        if (action.payload[i].item) {
+          value.splice(
+            action.payload[i].start,
+            action.payload[i].deleteCount,
+            action.payload[i].item
+          );
+        } else {
+          value.splice(action.payload[i].start, action.payload[i].deleteCount);
+        }
+        set(tree, action.payload[i].path, value);
+      }
+      return tree;
+    default:
+      return tree;
+  }
+}
+```
+
+OK, 接着开始渲染:
+
+```xml
+<wxs src="../../helper.wxs" module="helper" />
+<import src="../../base.wxml"/>
+<template is="REMAX_TPL" data="{{tree: helper.reduce(action)}}" />
+```
+
+Remax为每个组件类型都生成了一个template，动态递归渲染整颗树:
+
+```xml
+<template name="REMAX_TPL">
+  <block wx:for="{{tree.root.children}}" wx:key="{{id}}">
+    <template is="REMAX_TPL_1_CONTAINER" data="{{i: item}}" />
+  </block>
+</template>
+
+<wxs module="_h">
+  module.exports = {
+  v: function(value) {
+  return value !== undefined ? value : '';
+  }
+  };
+</wxs>
+
+<!-- 按照层级生成模板 -->
+<% for (var i = 1; i <= depth; i++) { %>
+<%var id = i; %>
+<!-- 生成组件模板 -->
+<% for (let component of components) { %>
+<%- include('./component.ejs', {
+        props: component.props,
+        id: component.id,
+        templateId: id,
+      }) %>
+<% } %>
+<template name="REMAX_TPL_<%=id%>_plain-text" data="{{i: i}}">
+  <block>{{i.text}}</block>
+</template>
+<!--  把动态选择模板的逻辑放入一个模板内，可以提升性能问题 -->
+<template name="REMAX_TPL_<%=id%>_CONTAINER" data="{{i: i}}">
+  <template is="{{'REMAX_TPL_<%=id%>_' + i.type}}" data="{{i: i}}" />
+</template>
+<% } %>
+```
+
+## 总结
+
+本文以Remax为例，科普一个React自定义渲染器是如何运作的。对于Remax，目前还处于早期开发阶段，很多功能还不完善。至于性能如何，笔者还不好做评论，需要等待官方给出的基准测试。有能力的同学，可以参与贡献。
 
 <br>
 
 ## 扩展阅读
 
+- [Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)
 - [Hello World Custom React Renderer - Shailesh - Medium](https://medium.com/@agent_hunt/hello-world-custom-react-renderer-9a95b7cd04bc)
 - [⚛️👆 Part 1/3 - Beginners guide to Custom React Renderers. How to build your own renderer from scratch?](https://blog.atulr.com/react-custom-renderer-1/) 这系列文章很棒
