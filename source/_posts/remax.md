@@ -1,10 +1,10 @@
 ---
-title: "一步一步解析 Remax 与自定义React渲染器"
+title: "自定义React渲染器 之 深入解耦 Remax(用React写小程序)"
 date: 2019/9/15
 categories: 前端
 ---
 
-上个月蚂蚁金服团队发布了一个新的应用`Remax`, 口号是**使用真正的、完整的React来开发小程序**，对于原本的React开发者来说'Learn once, write anywhere', 和ReactNative开发体验差不多；**而对于小程序来说则是全新的开发体验**。
+上个月蚂蚁金服前端发布了一个新的应用`Remax`, 口号是**使用真正的、完整的React来开发小程序**，对于原本的React开发者来说'Learn once, write anywhere', 和ReactNative开发体验差不多；**而对于小程序来说则是全新的开发体验**。
 
 Taro号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，[meck](https://www.zhihu.com/people/meck)在它的[Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)文章中也提到了这一点: `所谓静态编译，就是使用工具把代码语法分析一遍，把其中的 JSX 部分和逻辑部分抽取出来，分别生成小程序的模板和 Page 定义。` 这种方案实现起来比较复杂，且运行时并没有React存在。
 
@@ -93,6 +93,8 @@ Taro号称是‘类React’的开发方案，但是它是使用静态编译的�
 
   ![](/images/remax/02.png)
 
+- **两个阶段**: TODO:
+
 本文的主题就是如何自定义Renderer. 大部分核心的工作已经在Reconciler完成，好在React的架构和模块划分还比较清晰，React官方也暴露了一些仓库，比较友好的支持第三方自定义渲染器。这极大简化了我们开发Renderer的难度。
 
 <br>
@@ -149,71 +151,123 @@ TODO: codesandbox 简单版渲染器
 
 ## HostConfig 渲染器适配器
 
-HostConfig支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 其中常见的有这些参数：
+HostConfig支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 下面是一些自定义渲染器必须提供的参数：
 
-```js
-export const getPublicInstance = $$$hostConfig.getPublicInstance;
-export const getRootHostContext = $$$hostConfig.getRootHostContext; // 用于存放一些自定义的上下文信息
-export const getChildHostContext = $$$hostConfig.getChildHostContext;
+```tsx
+interface HostConfig {
+  /**
+   * 用于分享一些上下文信息
+   */
+  // 获取根容器的上下文信息, 只在根节点调用一次
+  getRootHostContext(rootContainerInstance: Container): HostContext;
+  // 获取子节点的上下文信息, 每遍历一个节点都会调用一次
+  getChildHostContext(parentHostContext: HostContext, type: Type, rootContainerInstance: Container): HostContext;
 
-/**
- * 节点的创建和提交
- */
-export const createInstance = $$$hostConfig.createInstance;       // 创建宿主组件实例
-export const createTextInstance = $$$hostConfig.createTextInstance; // 创建文本宿主组件实例
-export const prepareForCommit = $$$hostConfig.prepareForCommit;
-export const resetAfterCommit = $$$hostConfig.resetAfterCommit;
-export const appendInitialChild = $$$hostConfig.appendInitialChild;
-export const finalizeInitialChildren = $$$hostConfig.finalizeInitialChildren;
-export const prepareUpdate = $$$hostConfig.prepareUpdate;
-export const shouldSetTextContent = $$$hostConfig.shouldSetTextContent;
-export const shouldDeprioritizeSubtree =
-  $$$hostConfig.shouldDeprioritizeSubtree;
 
-/**
- * 时间调度相关
- */
-export const now = $$$hostConfig.now;  // () => number, 返回当前时间戳，ReactReconciler用于计算当前事件
-export const scheduleTimeout = $$$hostConfig.setTimeout; // 相当于setTimeout
-export const cancelTimeout = $$$hostConfig.clearTimeout; // 相当于clearTimeout
-export const noTimeout = $$$hostConfig.noTimeout; // number，配置scheduleTimeout没有超时时的duration，比如-1
+  /**
+   * 节点实例的创建
+   */
+  // 普通节点实例创建，例如DOM的Element类型
+  createInstance(type: Type, props: Props, rootContainerInstance: Container, hostContext: HostContext, internalInstanceHandle: OpaqueHandle,): Instance;
+  // 文本节点的创建，例如DOM的Text类型
+  createTextInstance(text: string, rootContainerInstance: Container, hostContext: HostContext, internalInstanceHandle: OpaqueHandle): TextInstance;
+  // 决定是否要处理子节点/子文本节点. 如果不想创建则返回true. 例如ReactDOM中使用dangerouslySetInnerHTML, 这时候子节点会被忽略
+  shouldSetTextContent(type: Type, props: Props): boolean;
 
-export const isPrimaryRenderer = $$$hostConfig.isPrimaryRenderer;
-export const warnsIfNotActing = $$$hostConfig.warnsIfNotActing;
+  /**
+   * 节点树构建
+   */
+  // 如果节点在*未挂载*状态下，会调用这个来添加子节点
+  appendInitialChild(parentInstance: Instance, child: Instance | TextInstance): void;
+  // **下面都是副作用(Effect)，在’提交‘阶段被执行**
+  // 添加子节点
+  appendChild?(parentInstance: Instance, child: Instance | TextInstance): void;
+  // 添加子节点到容器节点(根节点)
+  appendChildToContainer?(container: Container, child: Instance | TextInstance): void;
+  // 插入子节点
+  insertBefore?(parentInstance: Instance, child: Instance | TextInstance, beforeChild: Instance | TextInstance): void;
+  // 插入子节点到容器节点(根节点)
+  insertInContainerBefore?(container: Container, child: Instance | TextInstance, beforeChild: Instance | TextInstance,): void;
+  // 删除子节点
+  removeChild?(parentInstance: Instance, child: Instance | TextInstance): void;
+  // 从容器节点(根节点)中移除子节点
+  removeChildFromContainer?(container: Container, child: Instance | TextInstance): void;
 
-/**
- * 配置支持哪些特性, 如果支持，需要添加对应的方法
- */
-export const supportsMutation = $$$hostConfig.supportsMutation;     // boolean, 节点修改, 比如appendChild、removeChild等操作
-export const supportsPersistence = $$$hostConfig.supportsPersistence; // boolean, 持久化
-export const supportsHydration = $$$hostConfig.supportsHydration; // boolean, 水合，常用于服务端渲染
+  /**
+   * 节点挂载
+   */
+  // 在完成所有子节点初始化时(所有子节点都appendInitialChild完毕)时被调用, 如果返回true，则commitMount将会被触发
+  // ReactDOM通过这个属性和commitMount配置实现表单元素的autofocus功能
+  finalizeInitialChildren(parentInstance: Instance, type: Type, props: Props, rootContainerInstance: Container, hostContext: HostContext): boolean;
+  // 和finalizeInitialChildren配合使用，commitRoot会在’提交‘完成后(resetAfterCommit)执行, 也就是说组件树渲染完毕后执行
+  commitMount?(instance: Instance, type: Type, newProps: Props, internalInstanceHandle: OpaqueHandle): void;
 
-/**
- * 事件响应器的挂载和卸载，用于事件处理
- */
-export const mountResponderInstance = $$$hostConfig.mountResponderInstance;
-export const unmountResponderInstance = $$$hostConfig.unmountResponderInstance;
+  /**
+   * 节点更新
+   */
+  // 准备节点更新. 如果返回空则表示不更新，这时候commitUpdate则不会被调用
+  prepareUpdate(instance: Instance, type: Type, oldProps: Props, newProps: Props, rootContainerInstance: Container, hostContext: HostContext,): null | UpdatePayload;
+  // **下面都是副作用(Effect)，在’提交‘阶段被执行**
+  // 文本节点提交
+  commitTextUpdate?(textInstance: TextInstance, oldText: string, newText: string): void;
+  // 普通节点提交
+  commitUpdate?(instance: Instance, updatePayload: UpdatePayload, type: Type, oldProps: Props, newProps: Props, internalInstanceHandle: OpaqueHandle): void;
+  // 重置普通节点文本内容, 这个需要和shouldSetTextContent(返回true时)配合使用，
+  resetTextContent?(instance: Instance): void;
 
-/**
- * 如果supportsMutation为true，则需要提供这些方法, 用来操作节点。
- */
-export const appendChild = $$$hostConfig.appendChild;
-export const appendChildToContainer = $$$hostConfig.appendChildToContainer;
-export const commitTextUpdate = $$$hostConfig.commitTextUpdate;
-export const commitMount = $$$hostConfig.commitMount;
-export const commitUpdate = $$$hostConfig.commitUpdate;
-export const insertBefore = $$$hostConfig.insertBefore;
-export const insertInContainerBefore = $$$hostConfig.insertInContainerBefore;
-export const removeChild = $$$hostConfig.removeChild;
-export const removeChildFromContainer = $$$hostConfig.removeChildFromContainer;
-export const resetTextContent = $$$hostConfig.resetTextContent;
-export const hideInstance = $$$hostConfig.hideInstance;
-export const hideTextInstance = $$$hostConfig.hideTextInstance;
-export const unhideInstance = $$$hostConfig.unhideInstance;
-export const unhideTextInstance = $$$hostConfig.unhideTextInstance;
+  /**
+   * 提交
+   */
+  // 开始’提交‘之前被调用，比如这里可以保存一些状态，在’提交‘完成后恢复状态。比如ReactDOM会保存当前元素的焦点状态，在提交后恢复
+  // 执行完prepareForCommit，就会开始执行Effects(节点更新)
+  prepareForCommit(containerInfo: Container): void;
+  // 和prepareForCommit对应，在提交完成后被执行
+  resetAfterCommit(containerInfo: Container): void;
+
+
+  /**
+   * 调度
+   */
+  // This function is used by the reconciler in order to calculate current time for prioritising work. In case of react-dom, it uses performace.now if available or it falls back to Date.now Hence, lets just keep it as Date.now for our custom renderer.
+  // 这个函数将被Reconciler用来计算当前时间, 比如计算任务剩余时间 
+  // ReactDOM中会优先使用Performance.now, 普通场景用Date.now即可
+  now(): number;
+  // 自定义计时器
+  setTimeout(handler: (...args: any[]) => void, timeout: number): TimeoutHandle | NoTimeout;
+  // 取消计时器
+  clearTimeout(handle: TimeoutHandle | NoTimeout): void;
+  // 表示一个空的计时器，见👆clearTimeout的签名
+  noTimeout: NoTimeout;
+
+  // ? 功能未知
+  shouldDeprioritizeSubtree(type: Type, props: Props): boolean;
+  // 废弃
+  scheduleDeferredCallback(callback: () => any, options?: { timeout: number }): any;
+  // 废弃
+  cancelDeferredCallback(callbackID: any): void;
+
+
+  /**
+   * 功能开启
+   */
+  // 开启节点修改，一般渲染器都会开启，不然无法更新节点
+  supportsMutation: boolean;
+  // 开启持久化 ?
+  supportsPersistence: boolean;
+  // 开启hydrate，一般用于服务端渲染
+  supportsHydration: boolean;
+
+  /**
+   * 杂项
+   */
+  // 获取可公开的节点实例，即你愿意暴露给用户的节点信息，用户通过ref可以获取到这个对象。一般自定义渲染器原样返回即可, 除非你想有选择地给用户暴露信息
+  getPublicInstance(instance: Instance | TextInstance): PublicInstance;
+
+  // ... 还有很多参数，由于一般渲染器不会用到，暂时不讲了
+}
 ```
 
-通过上面可以知道，HostConfig配置比较丰富，涉及节点操作、调度、以及各种生命周期钩子。可以控制渲染器的各种行为, 下面会一步一步解释这些功能
+通过上面可以知道，HostConfig配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为. 看得有点蒙圈？没关系，下面会一点一点展开，解释这些功能。最后再回来看这里。
 
 <br>
 
@@ -261,8 +315,8 @@ const HostConfig = {
 
   // 判断是否需要创建TextInstance。如果返回true则不创建
   // 有一些场景是不需要创建文本节点的，而是由父节点内部消化。
-  // 举个例子，在ReactDOM中，如果某个节点设置了dangerouslySetInnerHTML，那么它的children将被忽略，这时候
-  // shouldSetTextContent则应该返回true
+  // 举个例子，在ReactDOM中，如果某个节点设置了dangerouslySetInnerHTML，那么它的children将被忽略，
+  // 这时候 shouldSetTextContent则应该返回true
   shouldSetTextContent(type, nextProps) {
     return false
   }
