@@ -141,7 +141,7 @@ export function render(element, container, callback) {
 }
 ```
 
-容器是根Fiber节点，根节点将会被Reconciler用来管理所有节点的更新。
+容器是根Fiber节点(FiberRoot)，根节点是整个组件树的入口，也是组件树挂载目标，将会被Reconciler用来管理所有节点的更新。关于Fiber架构的一些细节可以看这篇文章[\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 
 TODO: codesandbox 简单版渲染器
 
@@ -377,6 +377,7 @@ const HostConfig = {
    * 更新相关
    */
   // 在这里比对props，如果props没有变化则不进行更新，这和shouldComponentUpdate差不多
+  // 返回true表示更新该节点
   prepareUpdate(node: VNode, type: string, oldProps: any, newProps: any) {
     oldProps = processProps(oldProps, node.container, node.id);
     newProps = processProps(newProps, node.container, node.id);
@@ -407,6 +408,74 @@ const HostConfig = {
 
 }
 ```
+
+回顾一下自定义渲染器各种方法调用的流程, 首先看一下挂载的流程:
+
+假设我们的组件结构如下:
+
+```jsx
+const container = new Container()
+const MyComp = () => {
+  return (
+    <div>
+      <span>hello world</span>
+    </div>
+  )
+}
+
+render(
+  <div className="root">
+    <MyComp />
+    <span>--custom renderer</span>
+  </div>,
+  container,
+  () => {
+    console.log("rendered")
+  },
+)
+```
+
+组件的结构如下(左图)，但对于渲染器来说，结构是右图。自定义组件是React层级的东西，渲染器只需要关心最终需要渲染的视图结构, 也就是说只关心宿主组件:
+
+![](/images/remax/tree-compare.png)
+
+挂载会经历以下流程:
+
+![](/images/remax/mount.png)
+
+通过上面的流程图，可以很清晰看到每个构造的调用时机。同理，我们来看一下节点更新时的流程. 在此之前，我们稍微改造一下上面的程序，让它定时更新:
+
+```jsx
+const MyComp = () => {
+  const [count, setCount] = useState(1)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCount(c => c + 1)
+    }, 10000)
+
+    return () => clearInterval(timer)
+  }, [])
+  const isEven = count % 2 === 0
+  console.log("rendering MyComp")
+
+  return (
+    <div className="mycomp" style={{ color: isEven ? "red" : "blue" }}>
+      {isEven ? <div>even</div> : null}
+      <span className="foo">hello world {count}</span>
+    </div>
+  )
+}
+```
+
+下面是更新的流程:
+
+![](/images/remax/update.png)
+
+当MyComp的count由1变为2时，MyComp会被重新渲染，这时候新增了一个div节点(红色虚框), 另外`hello world 1`也变成了`hello world 2`. 
+
+新增的节点创建流程和挂载时一样，只不过它不会立即插入到父节点中，而是先放到Effect链表中，在`提交阶段`一次性来执行。同理`hello world {count}`文本节点的更新、以及其他节点的Props更新都是放到Effect链表中，最后时刻才更新. 如上图的`insertBefore`、`commitTextUpdate`、`commitUpdate`.
+
+另外一个比较重要的是`prepareUpdate`钩子，你可以在这里告诉Reconciler，节点是否需要更新，如果需要更新则返回true，这样`commitUpdate`才会被触发。
 
 <br>
 
@@ -470,12 +539,14 @@ export default class Container {
 渲染进程侧，则需要通过`WXS`机制，相对应地将`更新指令`恢复到`渲染树`中：
 
 ```js
+// 渲染树
 var tree = {
   root: {
     children: [],
   },
 };
 
+// 将指令应用到渲染树
 function reduce(action) {
   switch (action.type) {
     case 'splice':
@@ -499,7 +570,9 @@ function reduce(action) {
 }
 ```
 
-OK, 接着开始渲染:
+<br>
+
+OK, 接着开始渲染, Remax采用了模板的形式进行渲染:
 
 ```xml
 <wxs src="../../helper.wxs" module="helper" />
@@ -545,9 +618,14 @@ Remax为每个组件类型都生成了一个template，动态递归渲染整颗�
 <% } %>
 ```
 
+限于小程序的渲染机制，以下因素可能会影响渲染的性能:
+
+- 进程IPC。更新指令通过IPC通知到渲染进程，频繁更新可能会影响性能. ReactNative中涉及到Native和JS引擎之间的通信，也是存在这个问题的。所以小程序才有了WXS这些方案，用来处理复杂的视图交互问题，比如动画。未来Remax也需要考虑这个问题
+- react-reconciler这一层以及进行了diff，到渲染进程可能需要重复再做一遍？基于template的方案，局部更新是否会导致页面级别重新渲染？
+
 ## 总结
 
-本文以Remax为例，科普一个React自定义渲染器是如何运作的。对于Remax，目前还处于早期开发阶段，很多功能还不完善。至于性能如何，笔者还不好做评论，需要等待官方给出的基准测试。有能力的同学，可以参与贡献。
+本文以Remax为例，科普一个React自定义渲染器是如何运作的。对于Remax，目前还处于开发阶段，很多功能还不完善。至于[性能如何](https://github.com/remaxjs/remax/issues/156)，笔者还不好做评论，可以看官方给出的初步[基准测试](https://github.com/remaxjs/benchmark)。有能力的同学，可以参与代码贡献或者Issue讨论。
 
 <br>
 
@@ -556,3 +634,6 @@ Remax为每个组件类型都生成了一个template，动态递归渲染整颗�
 - [Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)
 - [Hello World Custom React Renderer - Shailesh - Medium](https://medium.com/@agent_hunt/hello-world-custom-react-renderer-9a95b7cd04bc)
 - [⚛️👆 Part 1/3 - Beginners guide to Custom React Renderers. How to build your own renderer from scratch?](https://blog.atulr.com/react-custom-renderer-1/) 这系列文章很棒
+- [谜之wxs，uni-app如何用它大幅提升性能](https://zhuanlan.zhihu.com/p/82741561)
+- [全新重构，uni-app实现微信端性能翻倍](https://zhuanlan.zhihu.com/p/59787245)
+- [浅谈小程序运行机制](https://www.zhihu.com/search?type=content&q=小程序原理)
