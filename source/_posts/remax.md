@@ -22,7 +22,7 @@ Taro号称是‘类React’的开发方案，但是它是使用静态编译的�
 
 ## 关于React的一些基本概念
 
-在深入阅读本文之前，先要确保理解一下几个基本概念:
+创建一个React自定义渲染器，你需要对React渲染的基本原理有一定的了解。所以在深入阅读本文之前，先要确保你能够理解一下几个基本概念:
 
 - **Element**: 我们可以通过`JSX`或`React.createElement`来创建Element，用来描述我们要创建的视图节点。比如:
 
@@ -121,24 +121,29 @@ Taro号称是‘类React’的开发方案，但是它是使用静态编译的�
 
 <br>
 
-本文的主题就是如何自定义Renderer. 大部分核心的工作已经在Reconciler完成，好在React的架构和模块划分还比较清晰，React官方也暴露了一些仓库，比较友好的支持第三方自定义渲染器。这极大简化了我们开发Renderer的难度。
+没理解？那么下文读起来对你可能比较吃力，建议阅读以下关于React基本原理的相关文章。
+
+就目前而言，React大部分核心的工作已经在Reconciler中完成，好在React的架构和模块划分还比较清晰，React官方也暴露了一些库，可以比较友好的支持第三方自定义渲染器。这极大简化了我们开发Renderer的难度。开始吧！
 
 <br>
 
 ## 自定义React渲染器
 
-React官方仓库暴露了一些库供开发者来扩展自定义渲染器：
+React官方暴露了一些库供开发者来扩展自定义渲染器：
 
 - [react-reconciler](https://github.com/facebook/react/tree/master/packages/react-reconciler) - 这是React的协调器, 这是React的核心所在。我们主要通过它来自定义渲染器。
 - [scheduler](https://github.com/facebook/react/tree/master/packages/scheduler) - 合作调度器的一些API。
 
-> 需要注意的是，这些包还是实验性的，主要React团队内部在用，API可能不太稳定。另外，没有文档，你可以看源代码，或者其他渲染器实现
+
+> 需要注意的是，这些包还是实验性的，主要是React团队内部在用，API可能不太稳定。另外，没有详细的文档，你需要查看源代码或者其他渲染器实现；本文以及扩展阅读中的文章也是很好的学习资料。
+
+<br>
 
 创建一个自定义渲染器只需两步:
 
 ![](/images/remax/04.png)
 
-第一步: 实现宿主配置，这是react-reconciler要求宿主提供的一些适配器方法和配置项。比如创建节点实例、添加和移除节点、提交修改等等
+第一步: **实现宿主配置**，这是`react-reconciler`要求宿主提供的一些适配器方法和配置项。这些配置项定义了如何创建节点实例、构建节点树、提交和更新等等。 下文会详细介绍这些配置项
 
 ```js
 const Reconciler = require('react-reconciler');
@@ -148,7 +153,7 @@ const HostConfig = {
 };
 ```
 
-第二步：实现渲染方法
+第二步：**实现渲染函数**，类似于[`ReactDOM.render()`](https://reactjs.org/docs/react-dom.html#render) 方法
 
 ```js
 // 创建Reconciler实例, 并将HostConfig传递给Reconciler
@@ -169,13 +174,17 @@ export function render(element, container, callback) {
 }
 ```
 
-容器是根Fiber节点(FiberRoot)，根节点是整个组件树的入口，也是组件树挂载目标，将会被Reconciler用来管理所有节点的更新。关于Fiber架构的一些细节可以看这篇文章[\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
+容器既是React组件树挂载的目标(例如ReactDOM我们通常会挂载到`#root`元素，`#root`就是一个容器)、也是组件树的`根Fiber节点(FiberRoot)`。根节点是整个组件树的入口，它将会被Reconciler用来保存一些信息，以及管理所有节点的更新和渲染。
+
+关于Fiber架构的一些细节可以看这些文章:
+- [\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
+- [React Fiber](https://juejin.im/post/5ab7b3a2f265da2378403e57) 有能力的同学，可以直接看[Lin Clark](https://www.youtube.com/watch?v=ZCuYPiUIONs)的演讲
 
 <br>
 
 ## HostConfig 渲染器适配器
 
-HostConfig支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 下面是一些自定义渲染器必须提供的参数：
+`HostConfig`支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 下面是一些自定义渲染器**必须**提供的参数：
 
 ```tsx
 interface HostConfig {
@@ -252,7 +261,6 @@ interface HostConfig {
   /**
    * 调度
    */
-  // This function is used by the reconciler in order to calculate current time for prioritising work. In case of react-dom, it uses performace.now if available or it falls back to Date.now Hence, lets just keep it as Date.now for our custom renderer.
   // 这个函数将被Reconciler用来计算当前时间, 比如计算任务剩余时间 
   // ReactDOM中会优先使用Performance.now, 普通场景用Date.now即可
   now(): number;
@@ -293,7 +301,7 @@ interface HostConfig {
 
 <br>
 
-如果按照Fiber的两个阶段来划分的话，接口分类是这样的:
+如果按照`Fiber的两个阶段`来划分的话，接口分类是这样的:
 
 | **协调阶段**  | **开始提交** |**提交阶段**  | **提交完成**|
 |-------------------------|----------------|--------------------------|-----------------|
@@ -310,9 +318,9 @@ interface HostConfig {
 
 <br>
 
-通过上面可以知道，HostConfig配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为. 
+通过上面可以知道，`HostConfig`配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为. 
 
-看得有点蒙圈？没关系, 你暂时没有必要了解所有的参数，下面会一点一点展开，解释这些功能。最后再回来看这里。
+看得有点蒙圈？没关系, 你暂时没有必要了解所有的参数，下面会一点一点展开解释这些功能。你可以最后再回来看这里。
 
 <br>
 
@@ -320,7 +328,9 @@ interface HostConfig {
 
 React中有两种组件类型，一种是`宿主组件(Host Component)`, 另一种是`复合组件(CompositeComponent)`. `宿主组件`是平台提供的，例如`ReactDOM`平台提供了`div`、`span`、`h`1...等组件，这些组件通常是字符串类型，直接渲染为平台下面的视图节点。而`复合组件`，也称为`自定义组件`，用于组合其他`复合组件`和`宿主组件`，通常是类或函数。
 
-渲染器不需要关心`复合组件`的处理: React组件树最终渲染出来的是一颗`宿主组件树`, 将它交给渲染器。在Remax中，定义了很多微信小程序特定的`宿主组件`，比如我们可以这样子使用它们:
+渲染器不需要关心`复合组件`的处理: React组件树最终渲染出来的是一颗`宿主组件树`, 再将它交给渲染器。
+
+当然在Remax中，也定义了很多小程序特定的`宿主组件`，比如我们可以这样子使用它们:
 
 ```ts
 function MyComp() {
@@ -358,9 +368,9 @@ const HostConfig = {
     return node;
   },
 
-  // 判断是否需要创建TextInstance。如果返回true则不创建
+  // 判断是否需要处理子节点。如果返回true则不创建，整个下级组件树都会被忽略。
   // 有一些场景是不需要创建文本节点的，而是由父节点内部消化。
-  // 举个例子，在ReactDOM中，如果某个节点设置了dangerouslySetInnerHTML，那么它的children将被忽略，
+  // 举个例子，在ReactDOM中，如果某个节点设置了dangerouslySetInnerHTML，那么它的children应该被忽略，
   // 这时候 shouldSetTextContent则应该返回true
   shouldSetTextContent(type, nextProps) {
     return false
@@ -369,7 +379,14 @@ const HostConfig = {
 
 ```
 
-在React DOM中上面两个方法分别会通过`document.createElement`和`document.createTextNode`来创建宿主组件(即DOM节点)。Remax用于小程序，在逻辑进程中是无法进行实际的渲染，所以在逻辑进程中需要创建一个虚拟节点，构成一颗镜像树，然后再同步到渲染进程中:
+在React DOM中上面两个方法分别会通过`document.createElement`和`document.createTextNode`来创建`宿主组件`(即`DOM节点`)。
+
+![](/images/remax/wxm.png)
+
+上面是微信小程序的架构图(图片来源: [一起脱去小程序的外套 - 微信小程序架构解析](https://mp.weixin.qq.com/s/3QE3g0NmaBAi91lbrihhVw))。
+**因为小程序隔离了`渲染进程`和`逻辑进程`。Remax是跑在`逻辑进程`上的，在`逻辑进程`中是无法进行实际的渲染, 只能通过`setData`方式将数据传递给`渲染进程`后，再进行解析渲染**。
+
+所以Remax选择在`逻辑进程`中先构成一颗`镜像树`(Mirror), 然后再同步到渲染进程中，如下图. 上面的`VNode`就是镜像树中的`虚拟节点`，主要用于保存一些节点信息，不做任何特殊处理。
 
 ![](/images/remax/03.png)
 
@@ -732,6 +749,7 @@ Remax为每个组件类型都生成了一个template，动态递归渲染整颗�
 
 - [Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)
 - [React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
+- [\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [Hello World Custom React Renderer - Shailesh - Medium](https://medium.com/@agent_hunt/hello-world-custom-react-renderer-9a95b7cd04bc)
 - [⚛️👆 Part 1/3 - Beginners guide to Custom React Renderers. How to build your own renderer from scratch?](https://blog.atulr.com/react-custom-renderer-1/) 这系列文章很棒
 - [谜之wxs，uni-app如何用它大幅提升性能](https://zhuanlan.zhihu.com/p/82741561)
