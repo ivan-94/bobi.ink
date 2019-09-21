@@ -4,19 +4,27 @@ date: 2019/9/15
 categories: 前端
 ---
 
-上个月蚂蚁金服前端发布了一个新的应用[`Remax`](https://github.com/remaxjs), 口号是**使用真正的、完整的React来开发小程序**，对于原本的React开发者来说'Learn once, write anywhere', 和ReactNative开发体验差不多，**而对于小程序来说则是全新的开发体验**。
+上个月蚂蚁金服前端发布了一个新的框架 [`Remax`](https://github.com/remaxjs), 口号是**使用真正的、完整的 React 来开发小程序**.
 
-[`Taro`](https://github.com/NervJS/taro)号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，[meck](https://www.zhihu.com/people/meck)在它的[Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)文章中也提到了这一点: `所谓静态编译，就是使用工具把代码语法分析一遍，把其中的 JSX 部分和逻辑部分抽取出来，分别生成小程序的模板和 Page 定义。` 这种方案实现起来比较复杂，且运行时并没有React存在。
+对于原本的 React 开发者来说 'Learn once, write anywhere' , 和 ReactNative 开发体验差不多，**而对于小程序来说则是全新的开发体验**。
+
+[`Taro`](https://github.com/NervJS/taro)号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，[边柳](https://www.zhihu.com/people/meck) 在它的 [《Remax - 使用真正的 React 构建小程序》](https://zhuanlan.zhihu.com/p/79788488)文章中也提到了这一点:
+
+`所谓静态编译，就是使用工具把代码语法分析一遍，把其中的 JSX 部分和逻辑部分抽取出来，分别生成小程序的模板和 Page 定义。`
+
+这种方案实现起来比较复杂，且运行时并没有 React 存在。
+
+<br>
+
+相比而言，[`Remax`](https://github.com/remaxjs) 的解决方案就简单很多，**它不过就是新的React渲染器**.
 
 ![](/images/remax/01.png)
 
-相比而言，Remax的解决方案就简单很多，**它不过就是新的React渲染器**.
+<br>
 
-> 因为Remax刚发布不久，核心代码比较简单，感兴趣的可以去[github](https://github.com/remaxjs/remax)观摩贡献
-
-> 可以通过 CodeSandbox 游乐场试玩自定义Renderer: [![Edit react-custom-renderer](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/react-custom-renderer-mm9kl?fontsize=14)
-
-> 文章看起来比较长，好戏在后头，一步一步来
+> 因为 [`Remax`](https://github.com/remaxjs) 刚发布不久，核心代码比较简单，感兴趣的可以去 [github](https://github.com/remaxjs/remax) 观摩贡献 <br>
+> 可以通过 CodeSandbox 游乐场试玩自定义Renderer: [Edit react-custom-renderer](https://codesandbox.io/s/react-custom-renderer-mm9kl?fontsize=14) <br>
+> 文章看起来比较长，好戏在后头，一步一步来 🦖
 
 <br>
 
@@ -42,110 +50,144 @@ categories: 前端
 
 ## 关于React的一些基本概念
 
-创建一个React自定义渲染器，你需要对React渲染的基本原理有一定的了解。所以在深入阅读本文之前，先要确保你能够理解以下几个基本概念:
+创建一个 React 自定义渲染器，你需要对React渲染的基本原理有一定的了解。所以在深入阅读本文之前，先要确保你能够理解以下几个基本概念:
 
-- **Element**: 我们可以通过`JSX`或`React.createElement`来创建Element，用来描述我们要创建的视图节点。比如:
+**1. Element**
 
-    ```jsx
-    <button class='button button-blue'>
-      <b>
-        OK!
-      </b>
-    </button>
-    ```
+我们可以通过 `JSX` 或者 `React.createElement` 来创建 Element，用来描述我们要创建的视图节点。比如:
 
-    jsx会被编译为:
+```jsx
+<button class='button button-blue'>
+  <b>
+    OK!
+  </b>
+</button>
+```
 
-    ```js
-    {
-      type: 'button',
+`JSX` 会被转义译为:
+
+```js
+React.createElement(
+  "button",
+  { class: 'button button-blue' },
+  React.createElement("b", null, "OK!")
+)
+```
+
+`React.createElement` 最终构建出类似这样的对象:
+
+```js
+{
+  type: 'button',
+  props: {
+    className: 'button button-blue',
+    children: {
+      type: 'b',
       props: {
-        className: 'button button-blue',
-        children: {
-          type: 'b',
-          props: {
-            children: 'OK!'
-          }
-        }
+        children: 'OK!'
       }
     }
-    ```
+  }
+}
+```
 
-    也就是说**Element就是一个普通的对象，描述用户创建的节点类型、props以及children**。这些Elements组合成树，描述用户界面
+也就是说 **Element 就是一个普通的对象，描述用户创建的节点类型、props 以及 children**。这些 Elements 组合成树，描述用户视图
 
-    <br>
-
-- **Component**: 可以认为是Element的类型，它有两种类型：
-  - **Host Component**: 宿主组件，这是由渲染的平台提供的‘内置’组件，例如React DOM平台下面的DOM节点，如`div`、`span`. 这些组件类型为字符串
-  - **Composite Component**: 复合组件，这是一种用户自定义的组件封装单位。通常包含自定义的逻辑、状态以及输出Element树。复合类型可以为类或函数
-
-    ```jsx
-    const DeleteAccount = () => (
-      <div>
-        <p>Are you sure?</p>
-        <DangerButton>Yep</DangerButton>
-        <Button color='blue'>Cancel</Button>
-      </div>
-    );
-    ```
-
-    <br>
-
-- **Instance**: 当React开始渲染一个Element时，会根据组件类型为它创建一个‘实例’，例如类组件，会调用new操作符实例化。这个实例会一直引用，直到Element从Element Tree中被移除。
+<br>
   
-    `首次渲染`: React会实例化一个MyButton实例，调用挂载相关的生命周期方法，并执行render方法，递归渲染下级
+**2. Component**
 
-    ```jsx
-    render(<MyButton>foo</MyButton>, container)
-    ```
+可以认为是 Element 的类型，它有两种类型：
 
-    `更新`: 因为组件类型没有变化，React不会再实例化，这个属于‘节点更新’，React会执行更新相关的生命周期方法，如shouldComponentUpdate。如果需要更新则再次执行render方法
+- **Host Component**: 宿主组件，这是由渲染的平台提供的‘内置’组件，例如`ReactDOM` 平台下面的 `DOM` 节点，如 `div`、`span`... 这些组件类型为字符串
 
-    ```jsx
-    render(<MyButton>bar</MyButton>, container)
-    ```
+- **Composite Component**: 复合组件，这是一种用户自定义的组件封装单位。通常包含自定义的逻辑、状态以及输出 Element 树。复合类型可以为类或函数
 
-    `卸载`: 组件类型不一样了, 原有的MyButton被替换. MyButton的实例将要被销毁，React会执行卸载相关的生命周期方法，如componentWillUnmount
+```jsx
+const DeleteAccount = () => (
+  <div>
+    <p>Are you sure?</p>
+    <DangerButton>Yep</DangerButton>
+    <Button color='blue'>Cancel</Button>
+  </div>
+);
+```
 
-    ```jsx
-    render(<button>bar</button>, container)
-    ```
+<br>
 
-    <br>
+**3. Instance**
 
-- **Reconciler** & **Renderer**: Reconciler和Renderer的关系可以通过下图缕清楚. Reconciler的职责是维护VirtualDOM树，内部实现了Diff/Fiber算法，决定什么时候更新、以及要更新什么；而Renderer负责具体平台的渲染工作，它会提供宿主组件、处理事件等等。例如ReactDOM就是一个渲染器，负责DOM节点的渲染和DOM事件处理。
+当 React 开始渲染一个 Element 时，会根据组件类型为它创建一个‘实例’，例如类组件，会调用`new`操作符实例化。这个实例会一直引用，直到 Element 从 Element Tree 中被移除。
+  
+`首次渲染`: React 会实例化一个 `MyButton` 实例，调用挂载相关的生命周期方法，并执行 `render` 方法，递归渲染下级
 
-  ![](/images/remax/02.png)
+```jsx
+render(<MyButton>foo</MyButton>, container)
+```
 
-  <br>
+<br>
 
-- **Fiber的两个阶段**: React 使用了Fiber架构之后，更新过程被分为两个阶段(Phase)
-    - **协调阶段(Reconciliation Phase)** 这个阶段React会找出需要更新的节点。这个阶段是可以被打断的，比如有优先级更高的事件要处理时。
-    - **提交阶段(Commit Phase)** 将上一个阶段计算出来的需要处理的**副作用(Effects)**一次性执行了。这个阶段必须同步执行，不能被打断
+`更新`: 因为组件类型没有变化，React 不会再实例化，这个属于‘节点更新’，React 会执行更新相关的生命周期方法，如`shouldComponentUpdate`。如果需要更新则再次执行`render`方法
 
-    <br>
+```jsx
+render(<MyButton>bar</MyButton>, container)
+```
 
-    如果按照render为界，可以将生命周期函数按照两个阶段进行划分：
+<br>
 
-    - 协调阶段
-      - constructor
-      - componentWillMount 废弃
-      - componentWillReceiveProps 废弃
-      - static getDerivedStateFromProps
-      - shouldComponentUpdate
-      - componentWillUpdate 废弃
-      - render
-      - getSnapshotBeforeUpdate()
-    - 提交阶段
-      - componentDidMount
-      - componentDidUpdate
-      - componentWillUnmount
+`卸载`: 组件类型不一样了, 原有的 MyButton 被替换. MyButton 的实例将要被销毁，React 会执行卸载相关的生命周期方法，如`componentWillUnmount`
+
+```jsx
+render(<button>bar</button>, container)
+```
+
+<br>
+
+**4. Reconciler** & **Renderer**
+
+`Reconciler` 和 `Renderer` 的关系可以通过下图缕清楚.
+
+**Reconciler 的职责是维护 VirtualDOM 树，内部实现了 Diff/Fiber 算法，决定什么时候更新、以及要更新什么**
+
+而 **Renderer 负责具体平台的渲染工作，它会提供宿主组件、处理事件等等**。例如ReactDOM就是一个渲染器，负责DOM节点的渲染和DOM事件处理。
+
+<br>
+
+![](/images/remax/02.png)
+
+<br>
+
+**5. Fiber 的两个阶段** 
+React 使用了 Fiber 架构之后，更新过程被分为两个阶段(Phase)
+
+- **协调阶段(Reconciliation Phase)** 这个阶段 React 会找出需要更新的节点。这个阶段是可以被打断的，比如有优先级更高的事件要处理时。
+- **提交阶段(Commit Phase)** 将上一个阶段计算出来的需要处理的**副作用(Effects)**一次性执行了。这个阶段必须同步执行，不能被打断
+
+<br>
+
+如果按照`render`为界，可以将生命周期函数按照两个阶段进行划分：
+
+- **协调阶段**
+  - `constructor`
+  - `componentWillMount` 废弃
+  - `componentWillReceiveProps` 废弃
+  - `static getDerivedStateFromProps`
+  - `shouldComponentUpdate`
+  - `componentWillUpdate` 废弃
+  - `render`
+  - `getSnapshotBeforeUpdate()`
+- **提交阶段**
+  - `componentDidMount`
+  - `componentDidUpdate`
+  - `componentWillUnmount`
 
 <br>
 
 > 没理解？那么下文读起来对你可能比较吃力，建议阅读一些关于React基本原理的相关文章。
 
-就目前而言，React大部分核心的工作已经在Reconciler中完成，好在React的架构和模块划分还比较清晰，React官方也暴露了一些库，比较友好地支持第三方开发渲染器。这极大简化了我们开发Renderer的难度。开始吧！
+<br>
+
+就目前而言，React 大部分核心的工作已经在 Reconciler 中完成，好在 React 的架构和模块划分还比较清晰，React官方也暴露了一些库，这极大简化了我们开发 Renderer 的难度。开始吧！
 
 <br>
 
@@ -153,8 +195,8 @@ categories: 前端
 
 React官方暴露了一些库供开发者来扩展自定义渲染器：
 
-- [react-reconciler](https://github.com/facebook/react/tree/master/packages/react-reconciler) - 这就是React的协调器, React的核心所在。我们主要通过它来开发渲染器。
-- [scheduler](https://github.com/facebook/react/tree/master/packages/scheduler) - 合作调度器的一些API。本文不会用到
+- [react-reconciler](https://github.com/facebook/react/tree/master/packages/react-reconciler) - 这就是 React 的协调器, React 的核心所在。我们主要通过它来开发渲染器。
+- [scheduler](https://github.com/facebook/react/tree/master/packages/scheduler) - 合作调度器的一些 API 。本文不会用到
 
 > 需要注意的是，**这些包还是实验性的**，API可能不太稳定。另外，没有详细的文档，你需要查看源代码或者其他渲染器实现；本文以及扩展阅读中的文章也是很好的学习资料。
 
@@ -197,19 +239,20 @@ export function render(element, container, callback) {
 }
 ```
 
-容器既是React组件树挂载的`目标`(例如ReactDOM我们通常会挂载到`#root`元素，`#root`就是一个容器)、也是组件树的`根Fiber节点(FiberRoot)`。根节点是整个组件树的入口，它将会被Reconciler用来保存一些信息，以及管理所有节点的更新和渲染。
+容器既是 React 组件树挂载的`目标`(例如 ReactDOM 我们通常会挂载到 `#root` 元素，`#root` 就是一个容器)、也是组件树的 `根Fiber节点(FiberRoot)`。根节点是整个组件树的入口，它将会被 Reconciler 用来保存一些信息，以及管理所有节点的更新和渲染。
 
-关于Fiber架构的一些细节可以看这些文章:
-- [<\[译\]深入React fiber架构及源码>](https://zhuanlan.zhihu.com/p/57346388)
-- [<React Fiber>](https://juejin.im/post/5ab7b3a2f265da2378403e57) 有能力的同学，可以直接看[Lin Clark](https://www.youtube.com/watch?v=ZCuYPiUIONs)的演讲
+关于 Fiber 架构的一些细节可以看这些文章:
+
+- [《译 深入React fiber架构及源码》](https://zhuanlan.zhihu.com/p/57346388)
+- [《React Fiber》](https://juejin.im/post/5ab7b3a2f265da2378403e57) 有能力的同学，可以直接看[Lin Clark](https://www.youtube.com/watch?v=ZCuYPiUIONs)的演讲
 
 <br>
 
 ## HostConfig 渲染器适配
 
-`HostConfig`支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 下面是一些自定义渲染器**必须**提供的参数：
+`HostConfig` 支持非常多的参数，完整列表可以看[这里](https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js). 下面是一些自定义渲染器**必须**提供的参数：
 
-```ts
+```js
 interface HostConfig {
   /**
    * 用于分享一些上下文信息
@@ -326,7 +369,8 @@ interface HostConfig {
 
 如果按照`Fiber的两个阶段`来划分的话，接口分类是这样的:
 
-| **协调阶段**  | **开始提交** |**提交阶段**  | **提交完成**|
+```shell
+| 协调阶段                 | 开始提交         | 提交阶段                  | 提交完成         |
 |-------------------------|----------------|--------------------------|-----------------|
 | createInstance          | prepareCommit  | appendChild              | resetAfterCommit|
 | createTextInstance      |                | appendChildToContainer   | commitMount     |
@@ -337,11 +381,12 @@ interface HostConfig {
 |                         |                | commitTextUpdate         |                 |
 |                         |                | commitUpdate             |                 |
 |                         |                | resetTextContent         |                 |
+```
 
 
 <br>
 
-通过上面接口定义可以知道`HostConfig`配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为.
+通过上面接口定义可以知道 `HostConfig` 配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为.
 
 看得有点蒙圈？没关系, 你暂时没有必要了解所有的参数，下面会一点一点展开解释这些功能。你可以最后再回来看这里。
 
@@ -349,13 +394,15 @@ interface HostConfig {
 
 ## 宿主组件
 
-React中有两种组件类型，一种是`宿主组件(Host Component)`, 另一种是`复合组件(CompositeComponent)`. `宿主组件`是平台提供的，例如`ReactDOM`平台提供了`div`、`span`、`h1`...等组件，这些组件通常是字符串类型，直接渲染为平台下面的视图节点。而`复合组件`，也称为`自定义组件`，用于组合其他`复合组件`和`宿主组件`，通常是类或函数。
+React中有两种组件类型，一种是`宿主组件(Host Component)`, 另一种是`复合组件(CompositeComponent)`. `宿主组件`是平台提供的，例如 `ReactDOM` 平台提供了 `div`、`span`、`h1`... 等组件. 这些组件通常是字符串类型，直接渲染为平台下面的视图节点。
 
-渲染器不需要关心`复合组件`的处理, Reconciler交给渲染器的是一颗`宿主组件树`。
+而`复合组件`，也称为`自定义组件`，用于组合其他`复合组件`和`宿主组件`，通常是类或函数。
 
-当然在Remax中，也定义了很多小程序特定的`宿主组件`，比如我们可以这样子使用它们:
+渲染器不需要关心`复合组件`的处理, Reconciler 交给渲染器的是一颗`宿主组件树`。
 
-```ts
+当然在 [`Remax`](https://github.com/remaxjs) 中，也定义了很多小程序特定的`宿主组件`，比如我们可以这样子使用它们:
+
+```jsx
 function MyComp() {
   return <view><text>hello world</text></view>
 }
@@ -363,7 +410,7 @@ function MyComp() {
 
 <br>
 
-`react-reconciler`会调用`HostConfig`的`createInstance`和`createTextInstance`来创建`宿主组件`的实例，所以自定义渲染器必须实现这两个方法. 看看`Remax`是怎么做的：
+`Reconciler` 会调用 `HostConfig` 的 `createInstance` 和`createTextInstance` 来创建`宿主组件`的实例，所以自定义渲染器必须实现这两个方法. 看看 `Remax` 是怎么做的：
 
 ```js
 const HostConfig = {
@@ -404,7 +451,7 @@ const HostConfig = {
 
 ```
 
-在React DOM中上面两个方法分别会通过`document.createElement`和`document.createTextNode`来创建`宿主组件`(即`DOM节点`)。
+在 ReactDOM 中上面两个方法分别会通过 `document.createElement` 和 `document.createTextNode` 来创建`宿主组件`(即`DOM节点`)。
 
 <br>
 
@@ -412,15 +459,15 @@ const HostConfig = {
 
 上面是微信小程序的架构图(图片来源: [一起脱去小程序的外套 - 微信小程序架构解析](https://mp.weixin.qq.com/s/3QE3g0NmaBAi91lbrihhVw))。
 
-**因为小程序隔离了`渲染进程`和`逻辑进程`。Remax是跑在`逻辑进程`上的，在`逻辑进程`中无法进行实际的渲染, 只能通过`setData`方式将更新指令传递给`渲染进程`后，再进行解析渲染**。
+**因为小程序隔离了`渲染进程`和`逻辑进程`。[`Remax`](https://github.com/remaxjs) 是跑在`逻辑进程`上的，在`逻辑进程`中无法进行实际的渲染, 只能通过`setData`方式将更新指令传递给`渲染进程`后，再进行解析渲染**。
 
-所以Remax选择在`逻辑进程`中先构成一颗`镜像树`(Mirror), 然后再同步到`渲染进程`中，如下图:
+所以[`Remax`](https://github.com/remaxjs)选择在`逻辑进程`中先构成一颗`镜像树`(Mirror Tree), 然后再同步到`渲染进程`中，如下图:
 
 ![](/images/remax/03.png)
 
 <br>
 
-**上面的`VNode`就是镜像树中的`虚拟节点`，主要用于保存一些节点信息，不做任何特殊处理**, 它的结构如下:
+**上面的 `VNode` 就是镜像树中的`虚拟节点`，主要用于保存一些节点信息，不做任何特殊处理**, 它的结构如下:
 
 ```js
 export default class VNode {
@@ -443,13 +490,13 @@ export default class VNode {
 }
 ```
 
-VNode的完整代码可以看[这里](https://github.com/remaxjs/remax/blob/master/packages/remax/src/VNode.ts)
+VNode 的完整代码可以看[这里](https://github.com/remaxjs/remax/blob/master/packages/remax/src/VNode.ts)
 
 <br>
 
 ## 镜像树的构建和操作
 
-要构建出完整的节点树需要实现HostConfig的`appendChild`、`insertBefore`、`removeChild`等方法, 如下， 这些方法都比较容易理解，所以不需要过多解释。
+要构建出完整的节点树需要实现`HostConfig` 的 `appendChild`、`insertBefore`、`removeChild` 等方法, 如下， 这些方法都比较容易理解，所以不需要过多解释。
 
 ```js
 const HostConfig = {
@@ -502,7 +549,7 @@ const HostConfig = {
 
 ## 节点更新
 
-上一节讲的是树结构层面的更新，当节点属性变动或者文本内容变动时，也需要进行更新。我们可以通过下列`HostConfig`配置来处理这类更新:
+上一节讲的是树结构层面的更新，当节点属性变动或者文本内容变动时，也需要进行更新。我们可以通过下列 `HostConfig` 配置来处理这类更新:
 
 ```js
 const HostConfig = {
@@ -543,13 +590,15 @@ const HostConfig = {
 }
 ```
 
-Ok, 这个也比较好理解。对于普通节点更新，Reconciler会先调用`prepareUpdate`, 确定是否要更新，如果返回非空数据，`Reconciler`就会将节点放入Effects链中，在`提交`阶段调用`commitUpdate`来执行更新。文本节点更新则直接调用`commitTextUpdate`，不在话下.
+Ok, 这个也比较好理解。
+对于普通节点更新，`Reconciler` 会先调用 `prepareUpdate`, 确定是否要更新，如果返回非空数据，`Reconciler` 就会将节点放入 `Effects` 链中，在`提交`阶段调用 `commitUpdate` 来执行更新。
+文本节点更新则直接调用 `commitTextUpdate`，不在话下.
 
 <br>
 
 ## 副作用提交
 
-React的`更新的两个阶段`这个概念非常重要，这个也体现在HostConfig上:
+React 的`更新的两个阶段`这个概念非常重要，这个也体现在HostConfig上:
 
 ```js
 const HostConfig = {
@@ -582,9 +631,9 @@ const HostConfig = {
 
 <br>
 
-那么对于Remax来说, 什么时候应该将'更新'提交到`渲染进程`呢？答案是上图所有在`提交阶段`的方法被调用时。
+那么对于 [`Remax`](https://github.com/remaxjs) 来说, 什么时候应该将'更新'提交到`渲染进程`呢？答案是上图所有在`提交阶段`的方法被调用时。
 
-`提交阶段`原意就是用于执行各种副作用的，例如视图更新、远程方法请求、订阅... 所以Remax也会在这个阶段收集`更新指令`，在下一个循环推送给渲染进程。
+`提交阶段`原意就是用于执行各种副作用的，例如视图更新、远程方法请求、订阅... 所以 [`Remax`](https://github.com/remaxjs) 也会在这个阶段收集`更新指令`，在下一个循环推送给渲染进程。
 
 <br>
 
@@ -616,7 +665,8 @@ render(
 )
 ```
 
-React组件树的结构如下(左图)，但对于渲染器来说，树结构是右图。自定义组件是React层级的东西，渲染器只需要关心最终需要渲染的视图结构, 换句话说渲染器只关心`宿主组件`:
+React 组件树的结构如下(左图)，但对于渲染器来说，树结构是右图。
+自定义组件是React 层级的东西，渲染器只需要关心最终需要渲染的视图结构, 换句话说渲染器只关心`宿主组件`:
 
 ![](/images/remax/tree-compare.png)
 
@@ -660,21 +710,29 @@ const MyComp = () => {
 
 ![](/images/remax/update.png)
 
-当`MyComp`的count由1变为2时，`MyComp`会被重新渲染，这时候新增了一个`div`节点(红色虚框), 另外`hello world 1`也变成了`hello world 2`. 
+<br>
 
-新增的`div`节点创建流程和挂载时一样，只不过它不会立即插入到父节点中，而是先放到Effect链表中，在`提交阶段`统一执行。同理`hello world {count}`文本节点的更新、以及其他节点的Props更新都是放到Effect链表中，最后时刻才更新提交. 如上图的`insertBefore`、`commitTextUpdate`、`commitUpdate`.
+当`MyComp`的 `count` 由1变为2时，`MyComp` 会被重新渲染，这时候新增了一个`div` 节点(红色虚框), 另外 `hello world 1` 也变成了 `hello world 2`。
 
-另外一个比较重要的是`prepareUpdate`钩子，你可以在这里告诉Reconciler，节点是否需要更新，如果需要更新则返回非空值，这样`commitUpdate`才会被触发。
+新增的 `div` 节点创建流程和挂载时一样，只不过它不会立即插入到父节点中，而是先放到`Effect`链表中，在`提交阶段`统一执行。
+
+同理`hello world {count}`文本节点的更新、以及其他节点的 Props 更新都是放到Effect链表中，最后时刻才更新提交. 如上图的 `insertBefore`、`commitTextUpdate`、`commitUpdate`.
+
+另外一个比较重要的是 `prepareUpdate` 钩子，你可以在这里告诉 Reconciler，节点是否需要更新，如果需要更新则返回非空值，这样 `commitUpdate` 才会被触发。
 
 <br>
 
 ## 同步到渲染进程
 
-React自定义渲染器差不多就这样了，接下来就是平台相关的事情了。Remax目前的做法是在触发更新后，通过小程序Page对象的setData方法将`更新指令`传递给渲染进程; `渲染进程`侧再通过[`WXS`](https://developers.weixin.qq.com/miniprogram/dev/framework/view/wxs/)机制，将`更新指令`恢复到树中； 最后再通过`模板`机制，将树递归渲染出来。
+React 自定义渲染器差不多就这样了，接下来就是平台相关的事情了。
+[`Remax`](https://github.com/remaxjs) 目前的做法是在触发更新后，通过小程序 `Page` 对象的 `setData` 方法将`更新指令`传递给渲染进程;
+`渲染进程`侧再通过 [`WXS`](https://developers.weixin.qq.com/miniprogram/dev/framework/view/wxs/) 机制，将`更新指令`恢复到树中； 最后再通过`模板`机制，将树递归渲染出来。
 
 整体的架构如下:
 
 ![](/images/remax/07.png)
+
+<br>
 
 先来看看`逻辑进程`侧是如何推送更新指令的：
 
@@ -726,9 +784,13 @@ export default class Container {
 }
 ```
 
-逻辑还是比较清楚的，即将需要更新的节点(包含节点路径、节点信息)推入更新队列，然后触发`setData`通知到`渲染进程`。
+<br>
 
-`渲染进程`侧，则需要通过`WXS`机制，相对应地将`更新指令`恢复到`渲染树`中：
+逻辑还是比较清楚的，即将需要更新的节点(包含节点路径、节点信息)推入更新队列，然后触发 `setData` 通知到`渲染进程`。
+
+<br>
+
+`渲染进程`侧，则需要通过 `WXS` 机制，相对应地将`更新指令`恢复到`渲染树`中：
 
 ```js
 // 渲染树
@@ -764,7 +826,7 @@ function reduce(action) {
 
 <br>
 
-OK, 接着开始渲染, Remax采用了`模板`的形式进行渲染:
+OK, 接着开始渲染, [`Remax`](https://github.com/remaxjs) 采用了`模板`的形式进行渲染:
 
 ```xml
 <wxs src="../../helper.wxs" module="helper" />
@@ -772,7 +834,7 @@ OK, 接着开始渲染, Remax采用了`模板`的形式进行渲染:
 <template is="REMAX_TPL" data="{{tree: helper.reduce(action)}}" />
 ```
 
-Remax为每个组件类型都生成了一个template，动态'递归'渲染整颗树:
+[`Remax`](https://github.com/remaxjs) 为每个组件类型都生成了一个`template`，动态'递归'渲染整颗树:
 
 ```xml
 <template name="REMAX_TPL">
@@ -810,17 +872,22 @@ Remax为每个组件类型都生成了一个template，动态'递归'渲染整�
 <% } %>
 ```
 
+<br>
+
 限于小程序的渲染机制，以下因素可能会影响渲染的性能:
 
-- 进程IPC。更新指令通过IPC通知到渲染进程，频繁更新可能会影响性能. ReactNative中涉及到Native和JS引擎之间的通信，也是存在这个问题的。所以小程序才有了`WXS`这类方案，用来处理复杂的视图交互问题，比如动画。未来Remax也需要考虑这个问题
-- `react-reconciler`这一层已经进行了diff，到`渲染进程`可能需要重复再做一遍？
+- 进程IPC。更新指令通过IPC通知到渲染进程，频繁更新可能会影响性能.  ReactNative 中涉及到 Native 和 JS引擎之间的通信，也是存在这个问题的。
+所以小程序才有了 `WXS` 这类方案，用来处理复杂的视图交互问题，比如动画。未来 [`Remax`](https://github.com/remaxjs) 也需要考虑这个问题
+- `Reconciler`这一层已经进行了 Diff，到`渲染进程`可能需要重复再做一遍？
 - 基于模板的方案，局部更新是否会导致页面级别重新渲染？和小程序原生的自定义组件相比性能如何？
 
 <br>
 
 ## 总结
 
-本文以Remax为例，科普一个React自定义渲染器是如何运作的。对于Remax，目前还处于开发阶段，很多功能还不完善。至于[性能如何](https://github.com/remaxjs/remax/issues/156)，笔者还不好做评论，可以看官方给出的初步[基准测试](https://github.com/remaxjs/benchmark)。有能力的同学，可以参与代码贡献或者Issue讨论。
+本文以 [`Remax`](https://github.com/remaxjs) 为例，科普一个 React 自定义渲染器是如何运作的。对于 [`Remax`](https://github.com/remaxjs)，目前还处于开发阶段，很多功能还不完善。至于[性能如何](https://github.com/remaxjs/remax/issues/156)，笔者还不好做评论，可以看官方给出的初步[基准测试](https://github.com/remaxjs/benchmark)。有能力的同学，可以参与代码贡献或者 Issue 讨论。
+
+最后谢谢[边柳](https://www.zhihu.com/people/meck)对本文审校和建议。
 
 <br>
 
@@ -828,7 +895,7 @@ Remax为每个组件类型都生成了一个template，动态'递归'渲染整�
 
 - [Remax - 使用真正的 React 构建小程序](https://zhuanlan.zhihu.com/p/79788488)
 - [React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
-- [\[译\]深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
+- [深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [Hello World Custom React Renderer - Shailesh - Medium](https://medium.com/@agent_hunt/hello-world-custom-react-renderer-9a95b7cd04bc)
 - [⚛️👆 Part 1/3 - Beginners guide to Custom React Renderers. How to build your own renderer from scratch?](https://blog.atulr.com/react-custom-renderer-1/) 这系列文章很棒
 - [谜之wxs，uni-app如何用它大幅提升性能](https://zhuanlan.zhihu.com/p/82741561)
