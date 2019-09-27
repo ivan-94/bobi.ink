@@ -53,6 +53,14 @@ categories: 前端
 
 <br>
 
+**系列文章**
+
+- [if 我是前端团队 Leader，怎么制定前端协作规范? 🔥](https://juejin.im/post/5d3a7134f265da1b5d57f1ed)
+- [if 我是前端团队 Leader，怎么做好概要设计](https://juejin.im/post/5d71cec6e51d4561b674c4d0)
+- [if 我是前端团队 Leader，怎么用好看板进行任务管理?](https://juejin.im/post/5d8d4557e51d4577fe41b62d)
+
+<br>
+
 > 这方面我的经验实践比较少, 也没有在大厂待过，所以本文只是我的一些思考和尝试, 可能不太现实。如果你或你的团队有这方面的更好的实践，欢迎分享给我。感激🙏
 
 <br>
