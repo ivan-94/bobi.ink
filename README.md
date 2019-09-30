@@ -48,3 +48,5 @@
 - angular 先进在哪里
 - 看板
 - macro
+- mobx异步更新
+- DOM 树查询算法
