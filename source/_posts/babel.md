@@ -369,7 +369,41 @@ Javascript采用的是词法作用域, 也就是根据源代码的词法结构�
 
 ![](/images/babel/scope.png)
 
-在词法区块(block)中，新建的变量、函数、类、函数参数等等，都属于这个区块. 在上面代码的基础上，我们再增加一下难度：
+在词法区块(block)中，由新建的变量、函数、类、函数参数等创建的标识符，都属于这个区块作用域. 在Babel中，使用`Scope`对象来表示作用域。
+我们可以通过Path对象的`scope`字段来获取当前节点的`Scope`对象. 它的结构如下:
+
+```js
+{
+  path: NodePath;
+  block: Node;         // 所属的词法区块节点, 例如函数节点、条件语句节点
+  parentBlock: Node;   // 所属的父级词法区块节点
+  parent: Scope;       // ⚛️指向父作用域
+  hub: Hub;  
+  bindings: { [name: string]: Binding; }; // ⚛️ 该作用域下面的所有绑定(即该作用域创建的标识符)
+}
+```
+
+`Scope`对象和`Path`对象差不多，它表示了作用域之间的关联关系(通过parent指向父作用域)，收集了作用域下面的所有绑定(bindings), 另外还提供了丰富的方法来对作用域仅限操作。
+
+我们可以通过`bindings`属性获取当前作用域下的所有绑定(即标识符)，它由`Binding`类来表示：
+
+```js
+export class Binding {
+  identifier: t.Identifier;
+  scope: Scope;
+  path: NodePath;
+  kind: "var" | "let" | "const" | "module";
+  referenced: boolean;
+  references: number;              // 被引用的数量
+  referencePaths: NodePath[];      // ⚛️获取所有应用该标识符的节点路径
+  constant: boolean;               // 是否是常量
+  constantViolations: NodePath[];
+}
+```
+
+通过`Binding`对象我们可以确定标识符被引用的情况。
+
+Ok，有了`Scope`和`Binding`, 现在可以安全地进行上面例子的变量重命名操作。 为了更好地展示作用域交互，在上面代码的基础上，我们再增加一下难度：
 
 ```js
 const a = 1, b = 2
@@ -382,22 +416,11 @@ function add(foo, bar) {
 }
 ```
 
-现在你要重命名函数参数`foo`, 不仅要考虑`外部的作用域`, 也要考虑下级作用域的变量声明情况，这两者都不能冲突。
+现在你要重命名函数参数`foo`, 不仅要考虑`外部的作用域`, 也要考虑下级作用域的变量声明情况，这两者都不能冲突。上面的代码作用域和标识符引用情况如下图所示:
 
-在Babel中，我们可以通过Path对象的scope字段来获取当前节点的`Scope`对象. 它的结构如下:
+![](/images/babel/scope2.png)
 
-```js
-{
-  path: NodePath;
-  block: Node;         // 所属的词法区块, 例如函数节点、条件语句节点
-  parentBlock: Node;   // 所属的父级词法区块
-  parent: Scope;       // 父作用域
-  hub: Hub;  
-  bindings: { [name: string]: Binding; }; // 该作用域下面的所有绑定(即该作用域创建的引用)
-}
-```
-
-`Scope`对象和`Path`对象差不多，它表示了作用域之间的关联关系，收集了作用域下面的所有绑定, 另外还提供了丰富的方法来对作用域仅限操作。
+<br>
 
 来吧，接受挑战，我们试着将函数的第一个参数重新命名:
 
@@ -485,7 +508,24 @@ traverse(ast, {
       return
     }
     let i = path.scope.generateUidIdentifier('_') // 也可以使用generateUid
+    const currentBinding = path.scope.getBinding(firstParam.node.name)
+    currentBinding.referencePaths.forEach(p => p.replaceWith(i))
     firstParam.replaceWith(i)
+  },
+})
+```
+
+能不能再短点!
+
+```js
+traverse(ast, {
+  FunctionDeclaration(path) {
+    const firstParam = path.get('params.0')
+    if (firstParam == null) {
+      return
+    }
+    let i = path.scope.generateUid('_') // 也可以使用generateUid
+    path.scope.rename(firstParam.node.name, i)
   },
 })
 ```
@@ -530,11 +570,37 @@ generateUid(name: string = "temp") {
 
 ## 搞一个插件呗
 
-等等别走，还没完
+等等别走，还没完呢，这才到一半。学了上面得了知识，还是写一个玩具插件试试水吧，
 
-深入学习如果对AST进行转换，可以看Babel Handbook
+现在打算模仿[babel-plugin-import](https://github.com/ant-design/babel-plugin-import), 写一个极简版插件，实现按需导入. 在这个插件中，我们会将类似这样的导入语句:
 
-![]()
+```js
+import {A, B, C} from 'foo'
+```
+
+转换为:
+
+```js
+import A from 'foo/A'
+import 'foo/A/style.css'
+import B from 'foo/B'
+import 'foo/B/style.css'
+import C from 'foo/C'
+import 'foo/C/style.css'
+```
+
+先通过[AST Explorer](https://astexplorer.net)看一下导入语句的AST节点结构:
+
+![](/images/babel/import.png)
+
+Ok，我们需要处理`ImportDeclaration`节点类型，将它的specifiers拿出来处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 开始吧!
+
+```js
+```
+
+封装为Babel插件，并上传到npm
+
+AST进行转换，可以看Babel Handbook
 
 babel-plugin-import
 
