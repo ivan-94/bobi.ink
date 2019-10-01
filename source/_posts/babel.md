@@ -1,8 +1,10 @@
 ---
-title: "国庆还有人看吗？剖析 Babel + babel-macro + 自己写个babel-macro插件"
+title: "国庆还有人看吗？就一次，深入浅出Babel"
 date: 2019/10/1
 categories: 前端
 ---
+
+慢慢的干货，赶紧点赞呗
 
 <!-- TOC -->
 
@@ -11,8 +13,8 @@ categories: 前端
 - [访问者模式](#访问者模式)
   - [节点的遍历](#节点的遍历)
   - [节点的上下文](#节点的上下文)
-- [副作用](#副作用)
-  - [作用域](#作用域)
+  - [副作用的处理](#副作用的处理)
+  - [作用域的处理](#作用域的处理)
 - [搞一个插件呗](#搞一个插件呗)
 - [既生 Plugin 何生 Macro](#既生-plugin-何生-macro)
 - [扩展](#扩展)
@@ -296,7 +298,7 @@ export class NodePath<T = Node> {
 
 <br>
 
-## 副作用
+### 副作用的处理
 
 实际上访问者的工作比我们想象的要复杂的多，上面示范的是静态AST的遍历过程。而AST转换本身是有副作用的，比如插件将旧的节点替换了，那么访问者就没有必要再向下访问旧节点了，而是继续访问新的节点, 代码如下。
 
@@ -313,26 +315,222 @@ traverse(ast, {
 
 ![](/images/babel/replace.png)
 
-我们可以对AST进行任意的操作，比如删除父节点的兄弟节点、删除第一个子节点, 新增兄弟节点... 当这些操作污染了AST树后，访问者需要记录这些状态，维护正确的遍历顺序，从而保证转译正确的结果。
+我们可以对AST进行任意的操作，比如删除父节点的兄弟节点、删除第一个子节点, 新增兄弟节点... **当这些操作'污染'了AST树后，访问者需要记录这些状态，，更新Path对象表示的关联关系, 维护正确的遍历顺序，从而保证转译正确的结果**。
 
 <br>
 
-### 作用域
+### 作用域的处理
 
-上下文，Path
+访问者可以确保正确地遍历和修改节点，但是对于转换器来说，另一个比较棘手的是对作用域的处理，这个责任落在了插件开发者的头上。插件开发者必须非常谨慎地处理作用域，不能破坏现有代码的执行逻辑。
 
-遍历的顺序，
-递归顺序
+```js
+const a = 1, b = 2
+function add(foo, bar) {
+  console.log(a, b)
+  return foo + bar
+}
+```
 
-避免副作用
+比如你要将add函数的`foo`标识符修改为`a`, 你就需要**递归**遍历子树，查出`foo`标识符的所有`引用`, 然后替换它。
 
-新增的节点，是否会触发重新遍历
+```js
+traverse(ast, {
+  // 将第一个参数名转换为a
+  FunctionDeclaration(path) {
+    const firstParams = path.get('params.0')
+    if (firstParams == null) {
+      return
+    }
 
-作用域，递归转换
+    const name = firstParams.node.name
+    // 递归遍历，这是插件常用的模式。这样可以避免影响到外部作用域
+    path.traverse({
+      Identifier(path) {
+        if (path.node.name === name) {
+          path.replaceWith(t.identifier('a'))
+        }
+      }
+    })
+  },
+})
 
-遍历的顺序
+console.log(generate(ast).code)
+// function add(a, bar) {
+//   console.log(a, b);
+//   return a + bar;
+// }
+```
+
+🤯慢着，好像没那么简单，替换成`a`之后, `console.log(a, b)`的行为就被破坏了。所以这里不能用a，得换个标识符, 如`c`. 
+
+这就是转换器需要考虑的作用域问题，AST转换的前提是保证程序的正确性。 我们在添加一个和修改一个`引用`时，需要确保与现有的所有引用不冲突。Babel本身不能检测这类异常，只能依靠插件开发者谨慎处理好作用域绑定。
+
+Javascript采用的是词法作用域, 也就是根据源代码的词法结构来确定作用域：
+
+![](/images/babel/scope.png)
+
+在词法区块(block)中，新建的变量、函数、类、函数参数等等，都属于这个区块. 在上面代码的基础上，我们再增加一下难度：
+
+```js
+const a = 1, b = 2
+function add(foo, bar) {
+  console.log(a, b)
+  return () => {
+    const a = '1' // 新增了一个变量声明
+    return a + (foo + bar)
+  }
+}
+```
+
+现在你要重命名函数参数`foo`, 不仅要考虑`外部的作用域`, 也要考虑下级作用域的变量声明情况，这两者都不能冲突。
+
+在Babel中，我们可以通过Path对象的scope字段来获取当前节点的`Scope`对象. 它的结构如下:
+
+```js
+{
+  path: NodePath;
+  block: Node;         // 所属的词法区块, 例如函数节点、条件语句节点
+  parentBlock: Node;   // 所属的父级词法区块
+  parent: Scope;       // 父作用域
+  hub: Hub;  
+  bindings: { [name: string]: Binding; }; // 该作用域下面的所有绑定(即该作用域创建的引用)
+}
+```
+
+`Scope`对象和`Path`对象差不多，它表示了作用域之间的关联关系，收集了作用域下面的所有绑定, 另外还提供了丰富的方法来对作用域仅限操作。
+
+来吧，接受挑战，我们试着将函数的第一个参数重新命名:
+
+```js
+const getUid = () => {
+  let uid = 0
+  return () => `_${uid++}`
+}
+
+const ast = babel.parseSync(code)
+traverse(ast, {
+  FunctionDeclaration(path) {
+    // 获取第一个参数
+    const firstParam = path.get('params.0')
+    if (firstParam == null) {
+      return
+    }
+
+    const currentName = firstParam.node.name
+    const currentBinding = path.scope.getBinding(currentName)
+    const gid = getUid()
+    let sname
+    // 循环找出没有被占用的变量名
+    while(true) {
+      sname = gid()
+
+      // 1️⃣首先看一下父作用域是否已定义了该变量
+      if (path.scope.parentHasBinding(sname)) {
+        continue
+      }
+
+      // 2️⃣ 检查当前作用域是否定义了变量
+      if (path.scope.hasOwnBinding(sname)) {
+        // 已占用
+        continue
+      }
+
+      //  再检查第一个参数的当前的引用情况,
+      // 如果它所在的作用域定义了同名的变量，我们也得放弃
+      if (currentBinding.references > 0) {
+        let findIt = false
+        for (const refNode of currentBinding.referencePaths) {
+          if (refNode.scope !== path.scope && refNode.scope.hasBinding(sname)) {
+            findIt = true
+            break
+          }
+        }
+        if (findIt) {
+          continue
+        }
+      }
+      break
+    }
+
+    // 开始替换掉
+    const i = t.identifier(sname)
+    currentBinding.referencePaths.forEach(p => p.replaceWith(i))
+    firstParam.replaceWith(i)
+  },
+})
+
+console.log(generate(ast).code)
+// const a = 1,
+//       b = 2;
+
+// function add(_0, bar) {
+//   console.log(a, b);
+//   return () => {
+//     const a = '1'; // 新增了一个变量声明
+
+//     return a + (_0 + bar);
+//   };
+// }
+```
+
+上面的例子虽然没有什么实用性，而且还有还有Bug(没考虑到label)，但是正好可以揭示了作用域处理的复杂性。
+
+Babel的`Scope`对象其实提供了一个`generateUid`方法来生成唯一的、不冲突的标识符。我们利用这个方法再简化一下我们的代码:
+
+```js
+traverse(ast, {
+  FunctionDeclaration(path) {
+    const firstParam = path.get('params.0')
+    if (firstParam == null) {
+      return
+    }
+    let i = path.scope.generateUidIdentifier('_') // 也可以使用generateUid
+    firstParam.replaceWith(i)
+  },
+})
+```
+
+<details>
+<summary>
+  查看generateUid的实现代码
+</summary>
+
+```js
+generateUid(name: string = "temp") {
+  name = t
+    .toIdentifier(name)
+    .replace(/^_+/, "")
+    .replace(/[0-9]+$/g, "");
+
+  let uid;
+  let i = 0;
+  do {
+    uid = this._generateUid(name, i);
+    i++;
+  } while (
+    this.hasLabel(uid) ||
+    this.hasBinding(uid) ||
+    this.hasGlobal(uid) ||
+    this.hasReference(uid)
+  );
+
+  const program = this.getProgramParent();
+  program.references[uid] = true;
+  program.uids[uid] = true;
+
+  return uid;
+}
+```
+
+</details>
+
+非常简洁哈？作用域操作最典型的场景是代码压缩，代码压缩会对变量名、函数名等进行压缩... 然而实际上很少的插件场景需要跟作用域进行复杂的交互，所以关于作用域这一块就讲到这里。
+
+<br>
 
 ## 搞一个插件呗
+
+等等别走，还没完
 
 深入学习如果对AST进行转换，可以看Babel Handbook
 
