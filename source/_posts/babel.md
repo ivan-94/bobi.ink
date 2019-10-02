@@ -4,11 +4,17 @@ date: 2019/10/1
 categories: 前端
 ---
 
-满满的干货，赶紧点赞呗
+国庆放假了，我还在利用碎片时间在写文章，不知道长假还有没有人看，试试水吧！
 
-国庆贺礼
+这个文章系列将带大家深入浅出 [`Babel`](https://babeljs.io), 这个系列将分为上下两篇：上篇主要介绍 Babel 的架构和原理，顺便实践一下插件开发的；下面会介绍 [`babel-plugin-macros ](https://github.com/kentcdodds/babel-plugin-macros), 利用它来写属于 Javascript 的’宏‘，
 
-分为上下两篇
+✨满满的干货，不容错过哦. 写文不易，点赞是最大的鼓励。
+
+> 注意: 本文不是 Babel 的基础使用教程！如果你对 Babel 尚不了解，请查看[官方网站](https://babeljs.io), 或者这个[用户手册](https://github.com/jamiebuilds/babel-handbook/blob/master/translations/zh-Hans/user-handbook.md)
+
+<br>
+
+**文章大纲**
 
 <!-- TOC -->
 
@@ -25,78 +31,131 @@ categories: 前端
 
 <!-- /TOC -->
 
+<br>
+
 ## Babel 的处理流程
 
-TODO: 流程解析 配图
+![](/images/babel/process.png)
+<i>Babel 的处理流程</i>
 
-首先从源码解析(Parsing)开始，解析包含了两个步骤:
+<br>
 
-**词法解析(Lexical Analysis)**: 词法解析器(Tokenizer)在这个阶段将字符串形式的代码转换为Tokens(令牌). Tokens可以视作是一些语法片段组成的数组. 例如`for (const item of items) {}` 词法解析后的结果如下:
+上图是 Babel 的处理流程, 如果读者学习过`编译器原理`，这个过程就相当亲切了.
+
+首先从源码 `解析(Parsing)` 开始，解析包含了两个步骤:
+
+**1️⃣词法解析(Lexical Analysis)**： `词法解析器(Tokenizer)`在这个阶段将字符串形式的代码转换为`Tokens(令牌)`. Tokens 可以视作是一些语法片段组成的数组. 例如`for (const item of items) {}` 词法解析后的结果如下:
 
 ![](/images/babel/tokens.png)
 
-从上图可以看，每个Token中包含了语法片段、位置信息、以及一些类型信息来描述该Token.
+从上图可以看，每个 Token 中包含了语法片段、位置信息、以及一些类型信息. 这些信息有助于后续的语法分析。
 
 <br>
 
-**语法解析(Syntactic Analysis)**: 这个阶段语法解析器(Parser)会把Tokens转换为抽象语法树(Abstract Syntax Tree，AST). 
+**2️⃣语法解析(Syntactic Analysis)**：这个阶段语法`解析器(Parser)`会把`Tokens`转换为`抽象语法树(Abstract Syntax Tree，AST)`
 
 **什么是AST**?
 
-它就是一棵对象树，用来表示代码的语法结构，例如`console.log('hello world')`会解析成为:
+它就是一棵'对象树'，用来表示代码的语法结构，例如`console.log('hello world')`会解析成为:
 
 ![](/images/babel/ast.png)
 
-`Program`、`CallExpression`、`Identifier`这些表示节点的类型，这些节点类型定义了一些属性来描述节点的信息。 JavaScript的语法现在也慢慢变得复杂，而且Babel还支持JSX、Flow、甚至是Typescript。可见AST树的节点类型有多少，其实我们不需要去记住这么多类型、也记不住，可以配合 [`ASTExplorer`](TODO:) 审查解析后的AST树。
+`Program`、`CallExpression`、`Identifier` **这些都是节点的类型，每个节点都是一个有意义的语法单元**。 这些节点类型定义了一些属性来描述节点的信息。
 
-AST是 Babel 转译的核心数据结构，后续的操作都依赖于AST。
+JavaScript的语法越来越复杂，而且 Babel 除了支持最新的JavaScript规范语法, 还支持 `JSX`、`Flow`、现在还有`Typescript`。想象一下 AST 的节点类型有多少，其实我们不需要去记住这么多类型、也记不住. **插件开发者会利用 [`ASTExplorer`](https://astexplorer.net) 来审查解析后的AST树**, 非常强大👍。
+
+AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST。
 
 <br>
 
-接着就是**转换(Transform)**了，转换阶段会对AST进行遍历，在这个过程中对节点进行增删查改。Babel 几乎所有插件都是在这个阶段工作。
+接着就是**转换(Transform)**了，转换阶段会对 AST 进行遍历，在这个过程中对节点进行增删查改。Babel 所有插件都是在这个阶段工作, 比如语法转换、代码压缩。
 
-Javascript In Javascript Out, 最后还是要把 AST 转换为字符串形式的Javascript，同时这个阶段还会生成Source Map。
+<br>
 
+**Javascript In Javascript Out**, 最后阶段还是要把 AST 转换回字符串形式的Javascript，同时这个阶段还会生成Source Map。
+
+<br>
 <br>
 
 ## Babel 的架构
 
-我在[透过现象看本质: 常见的前端架构风格和案例](https://juejin.im/post/5d7ffad551882545ff173083) 提及过 Babel 和 Webpack 为了适应负责的定制需求和功能变化，都使用了[微内核](https://juejin.im/post/5d7ffad551882545ff173083#heading-10) 的架构风格。也就是说它们的核心都比较小，大部分功能都是通过插件进行扩展来实现的。
+我在[《透过现象看本质: 常见的前端架构风格和案例🔥》](https://juejin.im/post/5d7ffad551882545ff173083) 提及 `Babel` 和 `Webpack` 为了适应复杂的定制需求和频繁的功能变化，都使用了[微内核](https://juejin.im/post/5d7ffad551882545ff173083#heading-10) 的架构风格。**也就是说它们的核心非常小，大部分功能都是通过插件扩展实现的**。
 
-所以在本文的开始，简单地了解一下 Babel 的架构和一些基本概念，对后续文章内容的理解还是有帮助的。
+<br>
 
-**一图胜千言**。仔细读过我文章的朋友会发现，我的风格就是能用图片说明的就不用文字、能用文字的就不用代码。虽然我的原创文章篇幅都很长，图片还是值得看看的。
+所以简单地了解一下 Babel 的架构和一些基本概念，对后续文章内容的理解, 以及Babel的使用还是有帮助的。
 
-![](TODO: 基本结构)
+**一图胜千言**。仔细读过我文章的朋友会发现，我的风格就是能用图片说明的就不用文字、能用文字的就不用代码。**虽然我的原创文章篇幅都很长，图片还是值得看看的**。
 
-Babel 是一个monorepo项目， 不过组织非常清晰，我们就从源码上我们能看到的模块进行一下分类， 配合上面的图让你对Babel有个大概的认识:
+![](/images/arch.png)
 
-- 核心
-  - 核心： @babel/core 这也是上面说的‘微内核’架构中的‘内核’。对于Babel来说，这个内核主要干这些事情：
-    - 加载和处理配置
-    - 加载插件
-    - 调用Parser进行语法解析，生成AST
-    - 调用Traverse遍历AST，并使用`访问者模式`应用插件对AST进行转换
-    - 生成代码，包括SourceMap转换和源代码生成
-  - 支撑
-    - Parser:  @babel/parser 解析源代码为AST就靠它了。它已经内置支持很多语法，例如JSX、Typescript、Flow、以及最新的ECMAScript规范。目前为了执行效率，parser是[不支持扩展的](https://babeljs.io/docs/en/babel-parser#faq)，由官方进行维护。如果你要支持自定义语法，可以fork它，不过这种场景非常少。
-    - Generator: @babel/generator 将AST转换为源代码，支持压缩、sourceMap
-    - Traverse: @babel/traverse 实现了`访问者模式`， 对AST进行遍历，`转换插件`会通过它获取感兴趣的AST节点，并对节点继续操作。
-    - 辅助
-      - @babel/template 一个简单的模板引擎，用于代码模板操作。比如在生成一些辅助代码(helper)时会应用到模板
-      - @babel/types AST节点构造和断言
-      - @babel/helper-* 一些辅助器，用于辅助插件开发，例如简化AST操作
-      - @babel/helper 辅助代码，单纯的语法转换可能无法让代码运行起来，比如低版本浏览器无法识别class关键字，这时候需要添加辅助代码，对class进行模拟。
-- 插件: 打开Babel的源代码，会发现有好几种类型的‘插件’。下文会具体介绍他们的区别
-  - 语法插件: @babel/plugin-syntax-* 上面说了@babel/parser 已经支持了很多Javascript语法特性，Parser也不支持扩展，因此`plugin-syntax-*`实际上只是用于开启或者配置Parser的某个功能特性。一般用户不需要关心这个，Transform插件里面已经包含了相关的syntax插件。
-  - 转换插件: 用于对AST进行转换，来支持你需要的Javascript运行环境. Babel仓库将转换插件划分为两种(只是命名不一样，都是转换插件):
-      - @babel/plugin-transform-*: 可以认为是文档的语言特性
-      - @babel/plugin-proposal-*: 还在提议阶段的语言特性, 目前有[这些](https://babeljs.io/docs/en/next/plugins#experimental)
-  - 预定义集合: @babel/presets-*: 插件集合，可以方便地对插件进行管理。 比如最新的语言特性、stage-3的特性、react、或者自定义。
-- 工具
-  - @babel/node Node.js CLI 通过它直接运行需要 Babel 处理的JavaScript文件
-  - @babel/register Patch NodeJs 的require方法，支持导入需要Babel处理的JavaScript模块
-  - @babel/cli CLI工具
+<br>
+
+Babel 是一个 [`MonoRepo`](https://github.com/lerna/lerna) 项目， 不过组织非常清晰，下面就源码上我们能看到的模块进行一下分类， 配合上面的架构图让你对Babel有个大概的认识:
+
+<br>
+
+**1️⃣ 核心**:
+
+`@babel/core` 这也是上面说的‘微内核’架构中的‘内核’。对于Babel来说，这个内核主要干这些事情：
+
+- 加载和处理配置(config)
+- 加载插件
+- 调用 `Parser` 进行语法解析，生成 `AST`
+- 调用 `Traverser` 遍历AST，并使用`访问者模式`应用'插件'对 AST 进行转换
+- 生成代码，包括SourceMap转换和源代码生成
+
+<br>
+
+**2️⃣ 核心周边支撑**
+
+- **Parser(`@babel/parser`)**： 将源代码解析为 AST 就靠它了。 它已经内置支持很多语法. 例如 JSX、Typescript、Flow、以及最新的ECMAScript规范。目前为了执行效率，parser是[不支持扩展的](https://babeljs.io/docs/en/babel-parser#faq)，由官方进行维护。如果你要支持自定义语法，可以 fork 它，不过这种场景非常少。
+
+- **Traverser(`@babel/traverse`)**：  实现了`访问者模式`，对 AST 进行遍历，`转换插件`会通过它获取感兴趣的AST节点，对节点继续操作, 下文会详细介绍`访问器模式`。
+
+- **Generator(`@babel/generator`)**： 将 AST 转换为源代码，支持 SourceMap
+
+<br>
+
+**3️⃣ 插件**
+
+打开 Babel 的源代码，会发现有好几种类型的‘插件’。
+
+- **语法插件(`@babel/plugin-syntax-*`)**：上面说了 `@babel/parser` 已经支持了很多 JavaScript 语法特性，Parser也不支持扩展. **因此`plugin-syntax-*`实际上只是用于开启或者配置Parser的某个功能特性**。
+  
+  一般用户不需要关心这个，Transform 插件里面已经包含了相关的`plugin-syntax-*`插件了。用户也可以通过[`parserOpts`](https://babeljs.io/docs/en/options#parseropts)配置项来直接配置 Parser
+
+- **转换插件**： 用于对 AST 进行转换, 实现转换为ES5代码、压缩、功能增强等目的. Babel仓库将转换插件划分为两种(只是命名上的区别)：
+
+    - `@babel/plugin-transform-*`： 普通的转换插件
+    - `@babel/plugin-proposal-*`： 还在'提议阶段'(非正式)的语言特性, 目前有[这些](https://babeljs.io/docs/en/next/plugins#experimental)
+
+- **预定义集合(`@babel/presets-*`)**： 插件集合或者分组，主要方便用户对插件进行管理和使用。比如`preset-env`含括所有的标准的最新特性; 再比如`preset-react`含括所有react相关的插件.
+
+<br>
+
+**4️⃣ 插件开发辅助**
+
+- `@babel/template`： 某些场景直接操作AST太麻烦，就比如我们直接操作DOM一样，所以Babel实现了这么一个简单的模板引擎，可以将字符串代码转换为AST。比如在生成一些辅助代码(helper)时会用到这个库
+
+- `@babel/types`： AST 节点构造器和断言. 插件开发时使用很频繁
+
+- `@babel/helper-*`： 一些辅助器，用于辅助插件开发，例如简化AST操作
+
+- `@babel/helper`： 辅助代码，单纯的语法转换可能无法让代码运行起来，比如低版本浏览器无法识别class关键字，这时候需要添加辅助代码，对class进行模拟。
+
+<br>
+
+**5️⃣ 工具**
+
+- `@babel/node`： Node.js CLI, 通过它直接运行需要 Babel 处理的JavaScript文件
+
+- `@babel/register`： Patch NodeJs 的require方法，支持导入需要Babel处理的JavaScript模块
+
+- `@babel/cli`： CLI工具
+
+<br>
+<br>
 
 ## 访问者模式
 
