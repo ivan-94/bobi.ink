@@ -4,9 +4,11 @@ date: 2019/10/1
 categories: 前端
 ---
 
+TODO: 高铁
+
 国庆放假了，我还在利用碎片时间在写文章，不知道长假还有没有人看，试试水吧！
 
-这个文章系列将带大家深入浅出 [`Babel`](https://babeljs.io), 这个系列将分为上下两篇：上篇主要介绍 Babel 的架构和原理，顺便实践一下插件开发的；下篇会介绍 [`babel-plugin-macros ](https://github.com/kentcdodds/babel-plugin-macros), 利用它来写属于 Javascript 的’宏‘，
+这个文章系列将带大家深入浅出 [`Babel`](https://babeljs.io), 这个系列将分为上下两篇：上篇主要介绍 Babel 的架构和原理，顺便实践一下插件开发的；下面会介绍 [`babel-plugin-macros ](https://github.com/kentcdodds/babel-plugin-macros), 利用它来写属于 Javascript 的’宏‘，
 
 ✨满满的干货，不容错过哦. 写文不易，点赞是最大的鼓励。
 
@@ -16,7 +18,7 @@ categories: 前端
 
 **文章大纲**
 
-<!-- TOC -->
+
 
 - [Babel 的处理流程](#babel-的处理流程)
 - [Babel 的架构](#babel-的架构)
@@ -29,13 +31,13 @@ categories: 前端
 - [最后](#最后)
 - [扩展](#扩展)
 
-<!-- /TOC -->
+
 
 <br>
 
 ## Babel 的处理流程
 
-![](/images/babel/process.png)
+![](https://bobi.ink/images/babel/process.png)
 <i>Babel 的处理流程</i>
 
 <br>
@@ -46,7 +48,7 @@ categories: 前端
 
 **1️⃣词法解析(Lexical Analysis)**： `词法解析器(Tokenizer)`在这个阶段将字符串形式的代码转换为`Tokens(令牌)`. Tokens 可以视作是一些语法片段组成的数组. 例如`for (const item of items) {}` 词法解析后的结果如下:
 
-![](/images/babel/tokens.png)
+![](https://bobi.ink/images/babel/tokens.png)
 
 从上图可以看，每个 Token 中包含了语法片段、位置信息、以及一些类型信息. 这些信息有助于后续的语法分析。
 
@@ -58,13 +60,13 @@ categories: 前端
 
 它就是一棵'对象树'，用来表示代码的语法结构，例如`console.log('hello world')`会解析成为:
 
-![](/images/babel/ast.png)
+![](https://bobi.ink/images/babel/ast.png)
 
 `Program`、`CallExpression`、`Identifier` **这些都是节点的类型，每个节点都是一个有意义的语法单元**。 这些节点类型定义了一些属性来描述节点的信息。
 
 JavaScript的语法越来越复杂，而且 Babel 除了支持最新的JavaScript规范语法, 还支持 `JSX`、`Flow`、现在还有`Typescript`。想象一下 AST 的节点类型有多少，其实我们不需要去记住这么多类型、也记不住. **插件开发者会利用 [`ASTExplorer`](https://astexplorer.net) 来审查解析后的AST树**, 非常强大👍。
 
-**AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST**。
+AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST。
 
 <br>
 
@@ -87,7 +89,7 @@ JavaScript的语法越来越复杂，而且 Babel 除了支持最新的JavaScrip
 
 **一图胜千言**。仔细读过我文章的朋友会发现，我的风格就是能用图片说明的就不用文字、能用文字的就不用代码。**虽然我的原创文章篇幅都很长，图片还是值得看看的**。
 
-![](/images/babel/arch.png)
+![](https://bobi.ink/images/arch.png)
 
 <br>
 
@@ -204,7 +206,7 @@ File
 
 访问者会以`深度优先`的顺序, 或者说递归地对 AST 进行遍历，其调用顺序如下图所示:
 
-![](/images/babel/traveser.png)
+![](https://bobi.ink/images/babel/traveser.png)
 
 <br>
 
@@ -335,7 +337,7 @@ Babel 会按照插件定义的顺序来应用访问方法，比如你注册了�
 
 ### 节点的上下文
 
-访问者在访问一个节点时, 会无差别地调用 `enter` 方法，我们怎么知道这个节点在什么位置以及和其他节点的关联关系呢？
+访问者在访问一个节点时, 会无差别地调用 `enter` 方法，我们怎么知道这个节点在什么位置呢？
 
 通过上面的代码，读者应该可以猜出几分，每个`visit`方法都接收一个 `Path` 对象, 你可以将它当做一个‘上下文’对象，类似于`JQuery`的 `JQuery`(`const $el = $('.el')`) 对象，这里面包含了很多信息：
 
@@ -398,7 +400,7 @@ traverse(ast, {
 
 上面的代码, 将`console.log('hello' + v + '!')`语句替换为`return "hello" + v;`, 下图是遍历的过程：
 
-![](/images/babel/replace.png)
+![](https://bobi.ink/images/babel/replace.png)
 
 <br>
 
@@ -460,7 +462,7 @@ console.log(generate(ast).code)
 
 Javascript采用的是词法作用域, 也就是根据源代码的词法结构来确定作用域：
 
-![](/images/babel/scope.png)
+![](https://bobi.ink/images/babel/scope.png)
 
 在**词法区块(block)**中，由于新建变量、函数、类、函数参数等创建的标识符，都属于这个区块作用域. 这些标识符也称为**绑定(Binding)**，而对这些绑定的使用称为**引用(Reference)**
 
@@ -515,7 +517,7 @@ function add(foo, bar) {
 
 上面的代码作用域和标识符引用情况如下图所示:
 
-![](/images/babel/scope2.png)
+![](https://bobi.ink/images/babel/scope2.png)
 
 <br>
 
@@ -638,7 +640,9 @@ traverse(ast, {
 <br>
 
 <details>
-<summary>查看generateUid的实现代码</summary>
+<summary>
+  查看generateUid的实现代码
+</summary>
 
 ```js
 generateUid(name: string = "temp") {
@@ -696,11 +700,9 @@ import 'foo/C/style.css'
 
 首先通过 [AST Explorer](https://astexplorer.net) 看一下导入语句的 AST 节点结构:
 
-![](/images/babel/import.png)
+![](https://bobi.ink/images/babel/import.png)
 
-<br>
-
-通过上面展示的结果，我们需要处理 `ImportDeclaration` 节点类型，将它的`specifiers`拿出来遍历处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 
+Ok，我们需要处理 `ImportDeclaration` 节点类型，将它的`specifiers`拿出来遍历处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 
 
 基本实现如下:
 
