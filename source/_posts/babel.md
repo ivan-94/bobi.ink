@@ -1,10 +1,14 @@
 ---
-title: "国庆还有人看吗？就一次，深入浅出Babel"
+title: "🇨🇳国庆还有人看吗？深入浅出 Babel 上篇：架构和原理 + 实战"
 date: 2019/10/1
 categories: 前端
 ---
 
-慢慢的干货，赶紧点赞呗
+满满的干货，赶紧点赞呗
+
+国庆贺礼
+
+分为上下两篇
 
 <!-- TOC -->
 
@@ -16,7 +20,7 @@ categories: 前端
   - [副作用的处理](#副作用的处理)
   - [作用域的处理](#作用域的处理)
 - [搞一个插件呗](#搞一个插件呗)
-- [既生 Plugin 何生 Macro](#既生-plugin-何生-macro)
+- [最后](#最后)
 - [扩展](#扩展)
 
 <!-- /TOC -->
@@ -570,7 +574,7 @@ generateUid(name: string = "temp") {
 
 ## 搞一个插件呗
 
-等等别走，还没完呢，这才到一半。学了上面得了知识，还是写一个玩具插件试试水吧，
+等等别走，还没完呢，这才到2/3。学了上面得了知识，总得写一个玩具插件试试水吧?
 
 现在打算模仿[babel-plugin-import](https://github.com/ant-design/babel-plugin-import), 写一个极简版插件，实现按需导入. 在这个插件中，我们会将类似这样的导入语句:
 
@@ -595,27 +599,131 @@ import 'foo/C/style.css'
 
 Ok，我们需要处理`ImportDeclaration`节点类型，将它的specifiers拿出来处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 开始吧!
 
+基本实现
+
 ```js
+// 要识别的模块
+const MODULE = 'foo'
+traverse(ast, {
+  ImportDeclaration(path) {
+    if (path.node.source.value !== MODULE) {
+      return
+    }
+
+    // 如果是空导入则直接删除掉
+    const specs = path.node.specifiers
+    if (specs.length === 0) {
+      path.remove()
+      return
+    }
+
+    // 判断是否包含了默认导入和命名空间导入
+    if (specs.some(i => t.isImportDefaultSpecifier(i) || t.isImportNamespaceSpecifier(i))) {
+      throw path.buildCodeFrameError("不能使用默认导入")
+    }
+
+    // 转换命名导入
+    const imports = []
+    for (const spec of specs) {
+      const named = MODULE + '/' + spec.imported.name
+      const local = spec.local
+      imports.push(t.importDeclaration([t.importDefaultSpecifier(local)], t.stringLiteral(named)))
+      imports.push(t.importDeclaration([], t.stringLiteral(`${named}/style.css`)))
+    }
+
+    path.replaceWithMultiple(imports)
+  }
+})
 ```
 
-封装为Babel插件，并上传到npm
+逻辑还算简单，`babel-plugin-import`可比这复杂得多。接下来，我们将它封装成标准的 Babel 插件。
 
-AST进行转换，可以看Babel Handbook
+按照规范，我们需要创建一个`babel-plugin-*`前缀的包名：
 
-babel-plugin-import
+```js
+mkdir babel-plugin-toy-import
+cd babel-plugin-toy-import
+yarn init -y
+touch index.js
+```
 
-## 既生 Plugin 何生 Macro
+> 你也可以通过 [generator-babel-plugin](https://github.com/babel/generator-babel-plugin/tree/master/generators/app/templates) 来生成项目模板.
 
-不是一个层级的
-babel-plugin-macro本身也是插件
+在`index.js`文件中填入我们的代码。`index.js`默认导出一个函数，函数结构如下:
 
-宏的作用
+```js
+export default function(babel) {
+  // 接受一个 babel-core 对象
+  const {types: t} = babel
+  return {
+    pre(state) {
+      // 前置操作，可选，可以用于准备一些资源
+    },
+    visitor: {
+      // 我们的访问者代码将放在这里
+      ImportDeclaration(path, state) {
+        // ...
+      }
+    },
+    post(state) {
+      // 后置操作，可选
+    }
+  }
+}
+```
 
-- 动态生成代码
-- 在不影响代码功能的前提下进行代码增强
+我们可以从访问器方法的第二个参数`state`中获取用户传入的参数。假设用户配置为:
+
+```js
+{
+  plugins: [['toy-plugin', {name: 'foo'}]]
+}
+```
+
+我们可以这样获取用户传入的参数:
+
+```js
+export default function(babel) {
+  const {types: t} = babel
+  return {
+    visitor: {
+      ImportDeclaration(path, state) {
+        const mod = state.opts && state.opts.name
+        if (mod == null) {
+          return
+        }
+        // ...
+      }
+    },
+  }
+}
+```
+
+打完收工 🙏，发布!
+
+```shell
+yarn publish # good luck
+```
+
+## 最后
+
+本文主要介绍了Babel的架构和原理，还实践了一下 Babel 插件开发，读到这里，算是入了门了：
+
+> 新世界的大门已经打开: ⛩
+
+接下来你可以去熟读[Babel手册](https://github.com/jamiebuilds/babel-handbook), 这是目前最好的教程,
+[ASTExplorer](https://astexplorer.net/#/KJ8AjD6maa)是最好的演练场，多写代码多思考。
+你也可以去看[Babel的官方插件实现](https://github.com/babel/babel/tree/master/packages), 迈向更高的台阶。
+
+本文还要下篇，我将在下篇文章中介绍[babel-plugin-macros](https://github.com/kentcdodds/babel-plugin-macros), 敬请期待！
+
+点赞是对我最好鼓励。
+
+<br>
 
 ## 扩展
 
 - [ASTExplorer](https://astexplorer.net/#/KJ8AjD6maa)
 - [babel-handbook](https://github.com/jamiebuilds/babel-handbook)
 - [generator-babel-plugin](https://github.com/babel/generator-babel-plugin)
+- [the-super-tiny-compiler](https://the-super-tiny-compiler.glitch.me)
