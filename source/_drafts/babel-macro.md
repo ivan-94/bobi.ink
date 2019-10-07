@@ -10,6 +10,8 @@ categories: 前端
 
 [Wiki](https://zh.wikipedia.org/wiki/巨集)上面对‘宏’的定义是：**宏(Macro), 是一种批处理的称谓，它根据一系列的预定义规则转换一定的文本模式。`解释器`或`编译器`在遇到宏时会自动进行这一模式转换，这个转换过程被称为“宏展开(Macro Expansion)”。对于编译语言，宏展开在编译时发生，进行宏展开的工具常被称为宏展开器。**
 
+你可以认为，宏就是用来生成代码的代码，它有能力进行一些句法解析和代码转换。
+
 ### 文本替换式
 
 相信大家或多或少有接触过宏，很多程序员第一门语言是`C/C++`, 在`C`中就有宏的概念。例如:
@@ -42,9 +44,59 @@ MIN(a + b, c + d)
 
 除此之外，[`GNU m4`](https://segmentfault.com/a/1190000004104696)是一个更专业/更强大/更通用的预处理器(宏展开器)。关于`m4`可以看[让这世界再多一份 GNU m4 教程](https://segmentfault.com/a/1190000004104696) 系列文章.
 
-这种宏很容易理解，因为它们只是纯文本替换。所以相对而言，这种形式的宏能力有限，它也不会检验语法是否合法, 使用它经常会出现问题。所以随着现代编程语言表达能力越来越强，这些语言都不推荐使用宏，而是使用语言本身的机制(如函数)来解决问题，这样更安全、更容易理解和调试. 所以反过来推导，之所以`C`语言需要宏，正是因为`C`语言的表达能力太弱了。
+这种宏很容易理解，因为它们只是纯文本替换, 换句话说它就是‘文本编辑器’。所以相对而言，这种形式的宏能力有限，它也不会检验语法是否合法, 使用它经常会出现问题。
+
+所以随着现代编程语言表达能力越来越强，这些语言都不推荐使用宏，而是使用语言本身的机制(如函数)来解决问题，这样更安全、更容易理解和调试. 所以反过来推导，之所以`C`语言需要宏，正是因为`C`语言的表达能力太弱了。
 
 <br>
+
+### 语法扩展式
+
+基于语法扩展式的宏起源于[`Lisp`](https://zh.wikipedia.org/wiki/LISP). 这个得意于Lisp语言本身的一些特性：
+
+![](/images/babel/lisp.png)
+
+- 它的语法非常简单。只有[S-表达式(s-expression)](https://zh.wikipedia.org/wiki/S-表达式), 一般特征为括号化的前缀表示法, 如上
+- 数据即代码，S-表达式本身就是树形数据结构.
+
+由于Lisp这种简单的语法结构，使得数据和程序之间只有一线之隔(**quote就是数据， 没有quote就是程序**), 这种`数据即程序、程序即数据`的概念，换句话说就是程序和数据之间可以灵活地转换，使得Lisp可以轻松地自定义宏. 不妨来看一下Lisp定义宏的示例：
+
+```clj
+; 使用defmacro定义一个nonsense宏, 接收一个function-name参数. 宏需要返回一个quote
+; ` 表示quote，即这段‘程序’是一段‘数据’, 或者说将‘程序’转换为‘数据’. quote不会被‘求值’
+; defun 定义一个函数
+; , 表示unquote，即将‘数据’转换为‘程序’. unquote会进行求值
+; intern 将字符串转换为symbol，即标识符
+(defmacro nonsense (function-name)
+  `(defun ,(intern (concat "nonsense-" function-name)) (input)
+     (print (concat ,function-name input))))
+```
+
+进行宏展开：
+
+```clj
+(nonsense "apple")           ; 展开宏，创建一个nonsense-apple函数
+(nonsense-apple " is good")  ; 调用刚刚创建的宏
+                             ; => "apple is good"
+```
+
+<br>
+
+**对于Lisp而言，宏有点像一个函数, 只不过这个函数必须返回一个`quoted数据`，当调用这个宏时，Lisp会使用`unquote`函数将`quoted数据`转换为`程序`。**
+
+![](/images/lisp-macro.png)
+
+<br>
+
+通过上面的示例，你会感叹Lisp的宏实现竟然如此清奇，如此简单。 搞得我想跟着[题叶](http://tiye.me)学一波[Clojure](https://clojure.org)，但是后来我学了[Elixir](https://elixir-lang.org)😂.
+
+Lisp宏的灵活性得益于简单的语法(S-表达式可以等价于它的AST)，对于复杂语法的语言(例如Javascript)，要实现类似Lisp的宏就难得多. 因此很少有现代语言提供宏机制也是因为这个原因。尽管如此，现在很多技术难点慢慢被解决，很多现代语言也引入类Lisp的宏机制，如[Rust](https://doc.rust-lang.org/book/ch19-06-macros.html)、[Julia](https://julialang.org), 还有Javascript的[Sweet.js](https://www.sweetjs.org/doc/tutorial)
+
+### Sweet.js
+
+hygiene
+
+特性
 
 宏的概念
 
@@ -55,9 +107,9 @@ C语言的宏
 
 Elixir官方教程里面就有一句话：**显式好于隐式，清晰的代码优于简洁的代码(Clear code is better than concise code)**
 
-hygiene
-
 Elixir macros have late resolution. This guarantees that a variable defined inside a quote won’t conflict with a variable defined in the context where that macro is expanded.
+
+<br>
 
 ## 既生 Plugin 何生 Macro
 
