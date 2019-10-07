@@ -4,11 +4,9 @@ date: 2019/10/1
 categories: 前端
 ---
 
-TODO: 高铁
-
 国庆放假了，我还在利用碎片时间在写文章，不知道长假还有没有人看，试试水吧！
 
-这个文章系列将带大家深入浅出 [`Babel`](https://babeljs.io), 这个系列将分为上下两篇：上篇主要介绍 Babel 的架构和原理，顺便实践一下插件开发的；下面会介绍 [`babel-plugin-macros ](https://github.com/kentcdodds/babel-plugin-macros), 利用它来写属于 Javascript 的’宏‘，
+这个文章系列将带大家深入浅出 [`Babel`](https://babeljs.io), 这个系列将分为上下两篇：上篇主要介绍 Babel 的架构和原理，顺便实践一下插件开发的；下篇会介绍 [`babel-plugin-macros ](https://github.com/kentcdodds/babel-plugin-macros), 利用它来写属于 Javascript 的’宏‘，
 
 ✨满满的干货，不容错过哦. 写文不易，点赞是最大的鼓励。
 
@@ -66,7 +64,7 @@ TODO: 高铁
 
 JavaScript的语法越来越复杂，而且 Babel 除了支持最新的JavaScript规范语法, 还支持 `JSX`、`Flow`、现在还有`Typescript`。想象一下 AST 的节点类型有多少，其实我们不需要去记住这么多类型、也记不住. **插件开发者会利用 [`ASTExplorer`](https://astexplorer.net) 来审查解析后的AST树**, 非常强大👍。
 
-AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST。
+**AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST**。
 
 <br>
 
@@ -89,7 +87,7 @@ AST 是 Babel 转译的核心数据结构，后续的操作都依赖于 AST。
 
 **一图胜千言**。仔细读过我文章的朋友会发现，我的风格就是能用图片说明的就不用文字、能用文字的就不用代码。**虽然我的原创文章篇幅都很长，图片还是值得看看的**。
 
-![](https://bobi.ink/images/arch.png)
+![](https://bobi.ink/images/babel/arch.png)
 
 <br>
 
@@ -337,7 +335,7 @@ Babel 会按照插件定义的顺序来应用访问方法，比如你注册了�
 
 ### 节点的上下文
 
-访问者在访问一个节点时, 会无差别地调用 `enter` 方法，我们怎么知道这个节点在什么位置呢？
+访问者在访问一个节点时, 会无差别地调用 `enter` 方法，我们怎么知道这个节点在什么位置以及和其他节点的关联关系呢？
 
 通过上面的代码，读者应该可以猜出几分，每个`visit`方法都接收一个 `Path` 对象, 你可以将它当做一个‘上下文’对象，类似于`JQuery`的 `JQuery`(`const $el = $('.el')`) 对象，这里面包含了很多信息：
 
@@ -640,9 +638,7 @@ traverse(ast, {
 <br>
 
 <details>
-<summary>
-  查看generateUid的实现代码
-</summary>
+<summary>查看generateUid的实现代码</summary>
 
 ```js
 generateUid(name: string = "temp") {
@@ -702,7 +698,9 @@ import 'foo/C/style.css'
 
 ![](https://bobi.ink/images/babel/import.png)
 
-Ok，我们需要处理 `ImportDeclaration` 节点类型，将它的`specifiers`拿出来遍历处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 
+<br>
+
+通过上面展示的结果，我们需要处理 `ImportDeclaration` 节点类型，将它的`specifiers`拿出来遍历处理一下。另外如果用户使用了`默认导入`语句，我们将抛出错误，提醒用户不能使用默认导入. 
 
 基本实现如下:
 
