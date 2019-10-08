@@ -266,19 +266,93 @@ Sweet.js和其他语言的宏一样，有了它你可以:
 
 ## 既生 Plugin 何生 Macro
 
-现在才是正文，一下子拓展得太远了，Babel 主角的风头已经被抢了，
+一下子扯了好远，掰回正题。既然 Babel 有了 Plugin 为什么又冒出了个 [`babel-plugin-macros`](https://github.com/kentcdodds/babel-plugin-macros)?
 
-为什么使用vue-cli, 约定大于配置，团队开发工具，parser
+> 如果你尚不了解Babel Macro，可以先读一下[官方文档](https://github.com/kentcdodds/babel-plugin-macros), 另外[Creact-React-APP](https://create-react-app.dev) 已经内置
 
-不是一个层级的
-babel-plugin-macro本身也是插件
+这个得从 [Create-React-App(CRA)](https://github.com/facebook/create-react-app) 说起，CRA 将所有的项目构建逻辑都封装在[`react-scripts`](https://github.com/facebook/create-react-app/tree/master/packages/react-scripts) 服务中。**这样的好处是，开发者不用再关心构建的细节, 另外构建工具的升级也变得非常方便**。直接升级 `react-scripts`即可。如果你要自己维护构建脚本，升一次级你需要升级一大堆的依赖，如果你要维护多个项目的构建脚本，那就更蛋疼了。
 
-宏的作用
+我在[《为什么要用vue-cli3?》](https://juejin.im/post/5d2fcaacf265da1b95708f63) 里阐述了 CRA 以及类似Vue-cli这样的工具对团队项目维护的重要性。CRA 是**强约定**的，它是按照React社区的最佳实践给你准备的，为了保护封装带来的红利，它不推荐你去配置Webpack、Babel... 所以才催生除了 babel-plugin-macros, 大家可以看这个 [Issue: RFC - babel-macros](https://github.com/facebook/create-react-app/issues/2730)
 
-- 动态生成代码
-- 在不影响代码功能的前提下进行代码增强
+> 两年前就有了，但是国内介绍它的文章很少，估计知道的读者也是少数
 
-必须是合法的Javascript语法
+**所以为 Babel 寻求一个'零配置'的机制是 `babel-plugin-macros` 诞生的主要动机**。这篇文章正好披露了这个动机：[《Zero-config code transformation with babel-plugin-macros》](https://babeljs.io/blog/2017/09/11/zero-config-with-babel-macros), 这篇文章引述了一个重要的观点："**Compilers are the New Frameworks**"
+
+的确，**Babel 在现代的前端开发中扮演着一个很重要的角色，越来越多的框架或库会创建自己的 Babel 插件，旨在编译阶段做一些优化，来提高用户体验、开发体验以及运行时的性能**。比如:
+
+- [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash) 将loadash转换为按需导入
+- [babel-plugin-import](https://github.com/ant-design/babel-plugin-import) 上篇文章提过的这个插件，也是实现按需导入
+- [babel-react-optimize](https://github.com/jamiebuilds/babel-react-optimize) 静态分析React代码，利用一定的措施优化运行效率。比如将静态的props或组件抽离为常量
+- [root-import](https://github.com/entwicklerstube/babel-plugin-root-import) 将基于根目录的导入路径重写为相对路径
+- [styled-components](https://www.styled-components.com/docs/tooling#babel-macro) 典型的CSS-in-js方案，利用Babel 插件来支持服务端渲染、预编译模板、样式压缩、清除死代码、提升调试体验。
+- [preval](https://github.com/kentcdodds/babel-plugin-preval) 在编译时预执行代码
+- [babel-plugin-graphql-tag](https://www.apollographql.com/docs/react/v2.5/recipes/babel/#using-babel-plugin-graphql-tag) 预编译GraphQL查询
+- ...
+
+上面列举的插件场景中，**不是所有插件都是通用的，它们要么是跟某一特定的框架绑定、要么用于处理特定的文件类型或数据。这些非通用的插件是最适合使用macro取代的**。
+
+用 `preval` 举个例子:
+
+使用插件形式: 首先要配置插件
+
+```js
+{
+  "plugins": ["preval"]
+}
+```
+
+代码：
+
+```js
+// 传递给preval的字符串会在编译阶段被执行
+// preval插件会查找preval标识符，将字符串提取出来执行，在将执行的结果赋值给greeting
+const greeting = preval`
+  const fs = require('fs')
+  module.exports = fs.readFileSync(require.resolve('./greeting.txt'), 'utf8')
+`
+```
+
+<br>
+
+使用Macro方式:
+
+```js
+// 首先你要显式导入
+import preval from 'preval.macro'
+
+// 和上面一样
+const greeting = preval`
+  const fs = require('fs')
+  module.exports = fs.readFileSync(require.resolve('./greeting.txt'), 'utf8')
+`
+```
+
+这两者达到的效果是一样的，但意义却不太一样。有哪些区别？
+
+- 1️⃣ 很显然，Macro不需要配置`.babelrc`(当然babel-plugin-macros这个需要装好). 这个对于CRA这种不推荐配置构建脚本的工具来说很有帮助
+- 2️⃣ **由隐式转换为了显式**。上一节就说了“显式好于隐式”。你必须在源代码中通过某些手段声明你使用了 Macro，基于插件的方式，你可能不知道`preval`这个标识符哪里来的，如何被应用？何时被应用？而且还需要其他工具的配合，例如ESlint、Typescript声明等等。
+    宏由代码显式地应用，我们更明确它被应用的目的和时机，对源代码的侵入性最小。因为中间多了babel-plugin-macro 这一层，我们降低了对构建环境的耦合，让我们的代码更方便被迁移。另外，当配置出错时，Macro可以得到更好的错误提示
+- 3️⃣ Macro相比Plugin 更容易被实现。因为它专注于具体的 AST 节点
+
+有利有弊，Babel Macro 肯定也有些缺陷，例如相对于插件来说只能显式转换，且显式的Macro代码可能会比较啰嗦，不过个人觉得在某些场景利大于弊。
+
+那么Babel Macro也是宏？相对于 Sweet.js 这些'正统'的宏机制有哪些不足？
+
+- **首先Babel Macro必须是合法的Javascript语法**。 不支持自定义语法，也要分两面讨论，合法的Javascript语法不至于打破现有的协作链，比如可以和ESLint、Typescript正常的配合。而不能自定义语法的‘宏’，显得不太地道，不够强大。
+- **再者，Babel Macro 和 Babel Plugin没有本质的区别**，相比Sweet.js提供了显式的宏语法，Babel Macro直接操作 AST 则要复杂得多，你还是需要了解一些编译原理，这把一般的开发者挡在了门外。
+
+<br>
+
+**总之，Babel Macro 本质上和Babel Plugin没有什么区别，它只是在Plugin 之上封装了一层(分层架构模式的强大)，创建了一个平台，让开发者可以在源代码层面显式地应用代码转换**。所以，**任何适合显式去转换的场景都适合用Babel Macro来做**：
+
+- 特定框架、库的代码转换。如 `styled-components`
+- 动态生成代码。`preval`
+- 特定文件、语言的处理。例如`graphql-tag.macro`、`yaml.macro`、`svgr.macro`
+- ... (查看[awesome-babel-macros](https://github.com/jgierer12/awesome-babel-macros#graphql))
+
+<br>
+
+## 如何写一个 Macro
 
 ## 扩展资料
 
@@ -292,3 +366,4 @@ babel-plugin-macro本身也是插件
 - [How does Elixir compile/execute code?](https://medium.com/@fxn/how-does-elixir-compile-execute-code-c1b36c9ec8cf)
 - [让这世界再多一份 GNU m4 教程 (1)](https://segmentfault.com/a/1190000004104696)
 - [宏语言为何不受欢迎](https://segmentfault.com/a/1190000004050807)
+- [awesome-babel](https://github.com/babel/awesome-babel)
