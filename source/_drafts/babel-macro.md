@@ -6,6 +6,20 @@ categories: 前端
 
 既然文章谈到了宏，那么我们就深入讲讲‘宏’是什么玩意。
 
+<!-- TOC -->
+
+- [关于宏](#关于宏)
+  - [文本替换式](#文本替换式)
+  - [语法扩展式](#语法扩展式)
+  - [Sweet.js](#sweetjs)
+  - [小结](#小结)
+- [既生 Plugin 何生 Macro](#既生-plugin-何生-macro)
+- [如何写一个 Babel Macro](#如何写一个-babel-macro)
+  - [实战](#实战)
+- [扩展资料](#扩展资料)
+
+<!-- /TOC -->
+
 ## 关于宏
 
 [Wiki](https://zh.wikipedia.org/wiki/巨集)上面对‘宏’的定义是：**宏(Macro), 是一种批处理的称谓，它根据一系列的预定义规则转换一定的文本模式。`解释器`或`编译器`在遇到宏时会自动进行这一模式转换，这个转换过程被称为“宏展开(Macro Expansion)”。对于编译语言，宏展开在编译时发生，进行宏展开的工具常被称为宏展开器。**
@@ -352,7 +366,68 @@ const greeting = preval`
 
 <br>
 
-## 如何写一个 Macro
+## 如何写一个 Babel Macro
+
+所以，Babel Macro是如何运作的呢？ `babel-plugin-macros` 要求开发者必须显式地导入 Macro，它会遍历匹配所有导入语句，如果导入源匹配`/[./]macro(\.js)?$/`正则，它就会认为你在启用Macro。例如下面这些导入语句都匹配正则：
+
+```js
+import foo from 'my.macro'
+import { bar } from './bar/macro'
+import { baz as _baz} from 'baz/macro.js'
+// 不支持命名空间导入
+```
+
+Ok, 到匹配到导入语句后，`babel-plugin-macros`就会去导入你指定的 `macro` 模块或者npm包。
+
+那么 `macro` 文件里面要包含什么内容呢？如下:
+
+```js
+const {createMacro} = require('babel-plugin-macros')
+
+module.exports = createMacro(({references, state, babel}) => {
+  // ... macro 逻辑
+})
+```
+
+`macro` 文件必须导出一个由 `ceateMacro` 创建的实例, 在其回调中可以获取到一些关键对象：
+
+- `babel` 和普通的Babel插件一样，Macro可以获取到一个 `babel-core` 对象
+- `state` 这个我们也比较熟悉，Babel插件的 visitor 方法第二个参数就是它, 我们可以通过它获取一些配置信息以及保存一些状态
+- `references` 获取Macro的所有引用。上一篇文章介绍了作用域，你应该还没忘记绑定和引用的概念
+
+假设用户这样子使用你的 Macro:
+
+```js
+import foo, {bar, baz as Baz} from './my.macro' // 创建三个绑定
+
+// 下面开始引用这些绑定
+foo(1)
+foo(2)
+
+bar`by tagged Template`
+;<Baz>by JSX</Baz>
+```
+
+那么你将拿到`references`结构是这样的：
+
+```js
+{
+  // key 为'绑定', value 为'引用数组'
+  default: [NodePath/*Identifier(foo)*/, NodePath/*Identifier(foo)*/], // 默认导出，即foo
+  bar: [NodePath/*Identifier(bar)*/],
+  baz: [NodePath/*JSXIdentifier(Baz)*/], // 注意key为baz，不是Baz
+}
+```
+
+> [AST Explorer](https://astexplorer.net) 也支持 babel-plugin-macros，可以玩一下
+
+接下来你就可以遍历`references`, 对这些节点进行转换，实现你想要的宏功能。开始实战
+
+<br>
+
+### 实战
+
+<br>
 
 ## 扩展资料
 
