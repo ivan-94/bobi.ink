@@ -1,14 +1,18 @@
 ---
 title: "深入浅出 Babel 下篇：既生 Plugin 何生 Macros"
-date: 2019/7/15
+date: 2019/10/10
 categories: 前端
 ---
 
 接着上篇文章: [《深入浅出 Babel 上篇：架构和原理 + 实战 🔥》](https://juejin.im/post/5d94bfbf5188256db95589be)
 
-这篇文章干货不少于上篇文章，让我们深入讨论一下宏这个玩意。很多程序员第一门语言就是C/C++, 我们对宏已经不会陌生；一些Lisp方言也支持宏(如Clojure、Scheme), 它们的实现更加优雅；一些现代的编程语言对宏也有一定的支持，如Rust、Nim、Julia、Elixir，它们是如何解决技术问题, 实现类Lisp的宏系统的？宏在这些语言中扮演这什么角色...
+<br>
+
+这篇文章干货不少于上篇文章，这篇我们深入讨论一下宏这个玩意 —— *我想我们对宏并不默认，因为很多程序员第一门语言就是 `C/C++`; 一些 `Lisp` 方言也支持宏(如 `Clojure`、`Scheme`), 听说它们的宏写起来很优雅；一些现代的编程语言对宏也有一定的支持，如 `Rust`、`Nim`、`Julia`、`Elixir`，它们是如何解决技术问题, 实现类Lisp的宏系统的？宏在这些语言中扮演这什么角色...*
 
 <br>
+
+**文章大纲**
 
 <!-- TOC -->
 
@@ -28,19 +32,21 @@ categories: 前端
 
 ## 关于宏
 
-[Wiki](https://zh.wikipedia.org/wiki/巨集)上面对‘宏’的定义是：**宏(Macro), 是一种批处理的称谓，它根据一系列的预定义规则转换一定的文本模式。`解释器`或`编译器`在遇到宏时会自动进行这一模式转换，这个转换过程被称为“宏展开(Macro Expansion)”。对于编译语言，宏展开在编译时发生，进行宏展开的工具常被称为宏展开器。**
+[`Wiki`](https://zh.wikipedia.org/wiki/巨集) 上面对‘宏’的定义是：**宏(Macro), 是一种批处理的称谓，它根据一系列的预定义规则转换一定的文本模式。`解释器`或`编译器`在遇到宏时会自动进行这一模式转换，这个转换过程被称为“宏展开(Macro Expansion)”。对于编译语言，宏展开在编译时发生，进行宏展开的工具常被称为宏展开器。**
 
-你可以认为，宏就是用来生成代码的代码，它有能力进行一些句法解析和代码转换。宏大致可以分为两种: **文本替换**和**语法扩展**
+你可以认为，**宏就是用来生成代码的代码，它有能力进行一些句法解析和代码转换**。宏大致可以分为两种: **文本替换**和**语法扩展**
+
+<br>
 
 ### 文本替换式
 
-相信大家或多或少有接触过宏，很多程序员第一门语言是`C/C++`, 在`C`中就有宏的概念。例如:
+大家或多或少有接触过宏，很多程序员第一门语言是`C/C++`(包括C的衍生语言`Objective-C`),  在`C`中就有宏的概念。使用`#define`指令定义一个宏:
 
 ```c
 #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
 ```
 
-我们的程序使用了这个宏，就会在编译阶段被展开，例如：
+如果我们的程序使用了这个宏，就会在编译阶段被展开，例如：
 
 ```c
 MIN(a + b, c + d)
@@ -52,22 +58,29 @@ MIN(a + b, c + d)
 ((a + b) < (c + d) ? (a + b) : (c + d))
 ```
 
-除了`函数宏`, `C` 中还有`对象宏`, 我们通常使用它来声明常量:
+<br>
+
+除了`函数宏`, `C` 中还有`对象宏`, 我们通常使用它来声明'常量':
 
 ```c
 #define PI 3.1214
 ```
 
+<br>
+
 ![](/images/babel/c-compile.gif)
 
-如上图，宏本质上不是`C`语言的一部分, 它由`C预处理器`提供，预处理器对源代码进行文本替换，生成‘真正’的`C`代码，再传递给编译器。
+如上图，**宏本质上不是`C`语言的一部分**, 它由`C预处理器`提供，预处理器在编译之前对源代码进行**文本替换**，生成‘真正’的 `C` 代码，再传递给编译器。
 
-除此之外，[`GNU m4`](https://segmentfault.com/a/1190000004104696)是一个更专业/更强大/更通用的预处理器(宏展开器)。关于`m4`可以看[让这世界再多一份 GNU m4 教程](https://segmentfault.com/a/1190000004104696) 系列文章.
+> 当然 C 预处理器不仅仅会处理宏，它还包含了头文件引入、条件编译、行控制等操作
 
-这种宏很容易理解，因为它们只是纯文本替换, 换句话说它就是‘文本编辑器’。所以相对而言，这种形式的宏能力有限，它也不会检验语法是否合法, 使用它经常会出现问题。
+除此之外，[`GNU m4`](https://segmentfault.com/a/1190000004104696)是一个更专业/更强大/更通用的预处理器(宏展开器)。这是一个通用的宏展开器，不仅可以用于 C，也可以用于其他语言和文本文件的处理(*参考这篇有趣的文章：[《使用 GNU m4 为 Markdown 添加目录支持》](https://segmentfault.com/a/1190000004342956)*)， 关于`m4`可以看[让这世界再多一份 GNU m4 教程](https://segmentfault.com/a/1190000004104696) 系列文章.
 
-所以随着现代编程语言表达能力越来越强，这些语言都不推荐使用宏，而是使用语言本身的机制(如函数)来解决问题，这样更安全、更容易理解和调试. 所以反过来推导，之所以`C`语言需要宏，正是因为`C`语言的表达能力太弱了。
+文本替换式宏很容易理解、实现也简单，因为它们只是纯文本替换, 换句话说它就像‘文本编辑器’。所以相对而言，**这种形式的宏能力有限，比如它不会检验语法是否合法, 使用它经常会出现问题**。
 
+所以**随着现代编程语言表达能力越来越强，很多语言都不再推荐使用宏/不提供宏，而是使用语言本身的机制(例如函数)来解决问题，这样更安全、更容易理解和调试。没用宏机制，现代语言可以通过提供强大的反射机制或者动态编程特性(如Javascript的Proxy、Python的装饰器)来弥补缺失宏导致的元编程短板。 所以反过来推导，之所以`C`语言需要宏，正是因为`C`语言的表达能力太弱了**。
+
+<br>
 <br>
 
 ### 语法扩展式
@@ -76,51 +89,73 @@ MIN(a + b, c + d)
 
 ![](/images/babel/lisp.png)
 
-- 它的语法非常简单。只有[S-表达式(s-expression)](https://zh.wikipedia.org/wiki/S-表达式), 一般特征为括号化的前缀表示法, 可以认为S-表达式就是Lisp的抽象语法树(AST)
-- 数据即代码，S-表达式本身就是树形数据结构.
+<br>
 
-由于Lisp这种简单的语法结构，使得数据和程序之间只有一线之隔(**quote就是数据， 没有quote就是程序**), 这种`数据即程序、程序即数据`的概念，换句话说就是程序和数据之间可以灵活地转换，使得Lisp可以轻松地自定义宏. 不妨来看一下Lisp定义宏的示例：
+- **它的语法非常简单**。只有[S-表达式(s-expression)](https://zh.wikipedia.org/wiki/S-表达式)(*特征为括号化的前缀表示法, 可以认为S-表达式就是近似的 Lisp 的抽象语法树(AST)*)
+- **数据即代码**。S-表达式本身就是树形数据结构。另外 Lisp 支持数据和代码之间的转换
+
+<br>
+
+由于 Lisp 这种简单的语法结构，使得数据和程序之间只有一线之隔(**quote修饰就是数据， 没有quote就是程序**), 换句话说就是程序和数据之间可以灵活地转换。这种`数据即程序、程序即数据`的概念，使得Lisp可以轻松地自定义宏. 不妨来看一下Lisp定义宏的示例：
 
 ```clj
-; 使用defmacro定义一个nonsense宏, 接收一个function-name参数. 宏需要返回一个quote
-; ` 表示quote，即这段‘程序’是一段‘数据’, 或者说将‘程序’转换为‘数据’. quote不会被‘求值’
+; 使用defmacro定义一个nonsense宏, 接收一个function-name参数. 宏需要返回一个quoted
+; ` 这是quote函数的简写，表示quote，即这段‘程序’是一段‘数据’, 或者说将‘程序’转换为‘数据’. quote不会被‘求值’
 ; defun 定义一个函数
-; , 表示unquote，即将‘数据’转换为‘程序’. unquote会进行求值
+; , 这是unquote函数的简写， 表示unquote，即将‘数据’转换为‘程序’. unquote会进行求值
 ; intern 将字符串转换为symbol，即标识符
+
 (defmacro nonsense (function-name)
-  `(defun ,(intern (concat "nonsense-" function-name)) (input)
-     (print (concat ,function-name input))))
+  `(defun ,(intern (concat "nonsense-" function-name)) (input) ; 定义一个nonsense-${function-name} 方法
+     (print (concat ,function-name input))))                   ; 输入`${function-name}${input}`
 ```
 
-进行宏展开：
+<details>
+  <summary>如果你不理解上面程序的含义，这里有一个Javascript的实现</summary>
+  注意：‘宏’一般在编译阶段被展开, 下面代码只是为了协作你理解上述的Lisp代码
+  ```js
+  function nonsense(name) {
+    let rtn
+    eval(`rtn = function nonsense${name}(input) {
+      console.log('${name}', input)
+    }`)
+    return rtn
+ }
+ ```
+</details>
+
+<br>
+
+应用宏展开：
 
 ```clj
-(nonsense "apple")           ; 展开宏，创建一个nonsense-apple函数
+(nonsense "apple")           ; 展开宏，这里会创建一个nonsense-apple函数
 (nonsense-apple " is good")  ; 调用刚刚创建的宏
                              ; => "apple is good"
 ```
 
 <br>
 
-**对于Lisp而言，宏有点像一个函数, 只不过这个函数必须返回一个`quoted数据`，当调用这个宏时，Lisp会使用`unquote`函数将`quoted数据`转换为`程序`。**
+**对于Lisp而言，宏有点像一个函数, 只不过这个函数必须返回一个`quoted数据`; 当调用这个宏时，Lisp会使用`unquote`函数将宏返回的`quoted数据`转换为`程序`**。
 
-![](/images/lisp-macro.png)
+![](/images/babel/lisp-macro.png)
 
 <br>
 
 通过上面的示例，你会感叹Lisp的宏实现竟然如此清奇，如此简单。 搞得我想跟着[题叶](http://tiye.me)学一波[Clojure](https://clojure.org)，但是后来我学了[Elixir](https://elixir-lang.org) 😂.
 
-Lisp宏的灵活性得益于简单的语法(S-表达式可以等价于它的AST)，对于复杂语法的语言(例如Javascript)，要实现类似Lisp的宏就难得多. 因此很少有现代语言提供宏机制也是因为这个原因。
+Lisp宏的灵活性得益于简单的语法(S-表达式可以等价于它的AST)，对于复杂语法的语言(例如Javascript)，要实现类似Lisp的宏就难得多. 因此很少有现代语言提供宏机制可能也是这个原因。
 
-尽管如此，现在很多技术难点慢慢被解决，很多现代语言也引入类Lisp的宏机制，如[Rust](https://doc.rust-lang.org/book/ch19-06-macros.html)、[Julia](https://julialang.org), 还有Javascript的[Sweet.js](https://www.sweetjs.org/doc/tutorial)
+尽管如此，现在很多技术难点慢慢被解决，很多现代语言也引入'类' Lisp的宏机制，如[Rust](https://doc.rust-lang.org/book/ch19-06-macros.html)、[Julia](https://julialang.org), 还有Javascript的 [Sweet.js](https://www.sweetjs.org/doc/tutorial)
 
+<br>
 <br>
 
 ### Sweet.js
 
-Sweet.js 和 Rust 师出同门，所以两个的宏语法和非常接近(初期)。 不过需要注意的是官方认为Sweet.js目前仍处于实验阶段，而且Github最后提交时间停留在2年前，社区上也未见大规模的使用。所以不要在生产环境中使用它，但是不妨碍我们去学习一个现代编程语言的宏机制。
+Sweet.js 和 Rust 师出同门，所以两个的宏语法和非常接近(初期)。 不过需要注意的是: **官方认为 Sweet.js 目前仍处于实验阶段**，而且Github最后提交时间停留在2年前，社区上也未见大规模的使用。所以不要在生产环境中使用它，但是不妨碍我们去学习一个现代编程语言的宏机制。
 
-我们先使用 `Sweet.js` 来实现上面我们通过 `Lisp` 实现的`nosense`宏, 对比看更容易理解:
+我们先使用 `Sweet.js` 来实现上面我们通过 `Lisp` 实现的`nosense`宏, 对比起来更容易理解:
 
 ```js
 import { unwrap, fromIdentifier, fromStringLiteral } from '@sweet-js/helpers' for syntax;
@@ -135,46 +170,60 @@ syntax nosense = function (ctx) {
 };
 
 nosense Apple
-nosenseApple(" is Good")
+nosenseApple(" is Good") // Apple is Good
 ```
 
-首先，Sweet.js使用`syntax`关键字来定义一个宏，其语法类似于`const`或者`let`。本质上一个宏就是一个函数，这个函数接收一个[`TransformerContext`](https://www.sweetjs.org/doc/reference#syntax-transformer)对象，你也通过这个对象获取用户传入的**语法对象(Syntax Object)数组**，最终这个宏也要返回**语法对象数组**。
+<br>
 
-什么是语法对象？语法对象是Sweet.js关于语法的内部表示。**你可以类比上文Lisp的 quoted 数据，只不过在复杂语法的语言中，没办法使用 quoted 这么简单的序列来表示语法，而使用 AST 则更复杂，开发者更难以驾驭。所以大部分实现会参考Lisp的S-表达式，取折中方案，将传入的程序转换为Tokens，再组装成类似quoted的数据结构**。
+首先，Sweet.js使用`syntax`关键字来定义一个宏，其语法类似于`const`或者`let`。
+
+**本质上一个宏就是一个函数, 只不过在编译阶段被执行**. 这个函数接收一个 [`TransformerContext`](https://www.sweetjs.org/doc/reference#syntax-transformer) 对象，你也通过这个对象获取宏应用传入的**语法对象(Syntax Object)数组**，最终这个宏也要返回**语法对象数组**。
+
+什么是语法对象？语法对象是 Sweet.js 关于语法的内部表示, 你可以类比上文Lisp的 quoted 数据。**在复杂语法的语言中，没办法使用 quoted 这么简单的序列来表示语法，而使用 AST 则更复杂，开发者更难以驾驭。所以大部分宏实现会参考 Lisp 的`S-表达式`，取折中方案，将传入的程序转换为Tokens，再组装成类似quoted的数据结构**。
 
 举个例子，Sweet.js 会将 `foo,bar('baz', 1)`转换成这样的数据结构:
 
 ![](/images/babel/syntaxobject.png)
 
-从上图可知，Sweet.js 会将传入的程序解析成**嵌套的Token序列**，这个结构和Lisp的S-表达式非常相似。也就是说对于闭合的词法单元会被嵌套存储，例如上例的`('baz', 1)`.
+从上图可知，Sweet.js 会将传入的程序解析成**嵌套的Token序列**，这个结构和Lisp的`S-表达式`非常相似。也就是, 说对于闭合的词法单元会被嵌套存储，例如上例的`('baz', 1)`.
 
-`TransformerContext`实现了迭代器方法，所以我们通过调用它的`next()`来遍历获取语法对象。最后宏必须返回一个语法对象数组，Sweet.js 使用了类似`字符串模板`的[语法](https://www.sweetjs.org/doc/reference#syntax-templates)(称为语法模板)来简化开发，这个模板最终转换为语法对象数组。
-
-> 需要注意的是语法模板的内嵌值只能是语法对象、语法对象序列或者TransformerContext.
-
-> 旧版本使用了[模式匹配](https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead)，和Rust语法类似，我个人更喜欢这个，不知为何废弃了
-> ```js
-> macro define {
->     rule { $x } => {
->         var $x
->     }
->
->     rule { $x = $expr } => {
->         var $x = $expr
->     }
-> }
->
-> define y;
-> define y = 5;
-> ```
+> Elixir 也采用了[类似的quote/unquote机制](https://elixir-lang.org/getting-started/meta/quote-and-unquote.html)，可以结合着一起理解
 
 <br>
 
-说了这么多，类似Sweet.js`语法对象`的设计是现代编程语言为了贴近Lisp宏的一个关键技术点。我发现Elixir、Rust等语言也使用了类似的设计。 除了数据结构的设计，现代编程语言的宏机制还包含以下特性：
+`TransformerContext`实现了迭代器方法，所以我们通过调用它的`next()`来遍历获取语法对象。最后宏必须返回一个语法对象数组，Sweet.js 使用了类似`字符串模板`的[语法](https://www.sweetjs.org/doc/reference#syntax-templates)(称为`语法模板`)来简化开发，这个模板最终转换为语法对象数组。
 
-**卫生宏(Hygiene)**
+> 需要注意的是`语法模板`的内嵌值只能是语法对象、语法对象序列或者TransformerContext.
 
-卫生宏指的是在宏内生成的变量不会污染外部作用域，也就是说，在宏展开时，Sweet会避免宏内定义的变量和外部冲突.
+<details>
+<summary>旧版本使用了[模式匹配](https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead)，和Rust语法类似，我个人更喜欢这个，不知为何废弃了</summary>
+
+```js
+macro define {
+    rule { $x } => {
+        var $x
+    }
+
+    rule { $x = $expr } => {
+        var $x = $expr
+    }
+}
+
+define y;
+define y = 5;
+```
+
+</details>
+
+<br>
+
+说了这么多，类似Sweet.js `语法对象` 的设计是现代编程语言为了贴近 Lisp 宏的一个关键技术点。我发现`Elixir`、`Rust`等语言也使用了类似的设计。 除了数据结构的设计，现代编程语言的宏机制还包含以下特性：
+
+<br>
+
+**1️⃣ 卫生宏(Hygiene)**
+
+卫生宏指的是在宏内生成的变量不会污染外部作用域，也就是说，在宏展开时，Sweet.js 会避免宏内定义的变量和外部冲突.
 
 举个例子，我们创建一个swap宏，交换变量的值:
 
@@ -193,7 +242,7 @@ syntax swap = (ctx) => {
 swap foo,bar
 ```
 
-最终会输出为(查看[示例](https://www.sweetjs.org/browser/editor.html#//%20The%20%60syntax%60%20keyword%20is%20used%20to%20create%20and%20name%20new%20macros.%0Asyntax%20swap%20=%20(ctx)%20=%3E%20%7B%0A%20const%20a%20=%20ctx.next().value%0A%20ctx.next()%20//%20吃掉','%0A%20const%20b%20=%20ctx.next().value%0A%20return%20#%60%0A%20let%20temp%20=%20$%7Ba%7D%0A%20$%7Ba%7D%20=%20$%7Bb%7D%0A%20$%7Bb%7D%20=%20temp%0A%20%60;%0A%7D%0A%0Aswap%20foo,bar%0A)):
+展开会输出为
 
 ```js
 let temp_10 = foo; // temp变量被重命名为temp_10
@@ -216,9 +265,9 @@ syntax swap = (ctx) => {
 
 <br>
 
-**模块化**
+**2️⃣ 模块化**
 
-Sweet.js的宏是模块化的：
+Sweet.js 的宏是模块化的：
 
 ```js
 'lang sweet.js';
@@ -245,7 +294,13 @@ class Droid {
 }
 ```
 
-**相对Babel(编译器)来说，Sweet.js的宏是模块化的。Babel你需要在配置文件中配置各种插件和选项，尤其是团队项目构建有统一规范和程序时，项目构建脚本修改比较麻烦。而模块化的宏是源代码的一部分，而不是构建脚本的一部分，这使得它们可以被灵活地使用、重构以及废弃**。 下文介绍的`babel-plugin-macros`最大的优势就在这里, 通常我们希望构建环境是统一的、稳定的、开发人员应该专注于代码的开发，而不是如何去构建程序，正是因为代码多变性，才催生出了这些方案。
+<br>
+
+**相对Babel(编译器)来说，Sweet.js的宏是模块化/显式的。Babel你需要在配置文件中配置各种插件和选项，尤其是团队项目构建有统一规范和环境时，项目构建脚本修改可能有限制。而模块化的宏是源代码的一部分，而不是构建脚本的一部分，这使得它们可以被灵活地使用、重构以及废弃**。
+
+下文介绍的 `babel-plugin-macros` 最大的优势就在这里, 通常**我们希望构建环境是统一的、稳定的、开发人员应该专注于代码的开发，而不是如何去构建程序，正是因为代码多变性，才催生出了这些方案**。
+
+<br>
 
 需要注意的是**宏是在编译阶段展开**的，所以无法运行用户代码，例如:
 
@@ -261,7 +316,7 @@ syntax m = ctx => {
 
 <br>
 
-Sweet.js和其他语言的宏一样，有了它你可以:
+Sweet.js 和其他语言的宏一样，有了它你可以:
 
 - 新增语法糖(和Sweet.js 一样甜), 实现复合自己口味的语法或者某些实验性的语言特性
 - 自定义[操作符](https://www.sweetjs.org/doc/tutorial#sweet-operators), 很强大
@@ -269,9 +324,11 @@ Sweet.js和其他语言的宏一样，有了它你可以:
 - ...
 - 别炫技
 
-🤕很遗憾！Sweet.js 基本死了。所以现在当个玩具玩玩尚可，切勿用于生产环境。即使没有如此，Sweet.js这种非标准的语法、开发和调试都会比较麻烦(比如我想和Typescript配合使用).
+<br>
 
-归根到底，Sweet.js 的失败，估计是社区抛弃了它。Javascript语言表达能力越来越强，版本迭代快速，加上Babel和Typescript这些解决方案，实在拿不出什么理由来使用Sweet.js
+🤕很遗憾！Sweet.js 基本死了。所以现在当个玩具玩玩尚可，切勿用于生产环境。即使没有死，Sweet.js 这种非标准的语法, 和现有的Javascript工具链生态格格不入，开发和调试都会比较麻烦(比如Typescript).
+
+归根到底，Sweet.js 的失败，是社区抛弃了它。Javascript语言表达能力越来越强，版本迭代快速，加上有了Babel和Typescript这些解决方案，实在拿不出什么理由来使用 Sweet.js
 
 > Sweet.js 相关论文可以看[这里](https://github.com/sweet-js/sweet-core/wiki/Macro-resources)
 
@@ -281,14 +338,14 @@ Sweet.js和其他语言的宏一样，有了它你可以:
 
 这一节扯得有点多，将宏的历史和分类讲了个遍。 最后的总结是Elixir官方教程里面的一句话：**显式好于隐式，清晰的代码优于简洁的代码(Clear code is better than concise code)**
 
-能力越大、责任越大。 宏越强大，相比正常的程序可能就越远，比正常程序要更难以驾驭，你可能需要一定的成本去学习和理解它, 所以能不用宏就不用宏，**宏是最后的招数**.
+能力越大、责任越大。宏强大，比正常程序要更难以驾驭，你可能需要一定的成本去学习和理解它, 所以能不用宏就不用宏，**宏是应该最后的法宝**.
 
-
+<br>
 <br>
 
 ## 既生 Plugin 何生 Macro
 
-一下子扯了好远，掰回正题。既然 Babel 有了 Plugin 为什么又冒出了个 [`babel-plugin-macros`](https://github.com/kentcdodds/babel-plugin-macros)?
+🤓还没完， 一下子扯了好远，掰回正题。既然 Babel 有了 Plugin 为什么又冒出了个 [`babel-plugin-macros`](https://github.com/kentcdodds/babel-plugin-macros)?
 
 > 如果你尚不了解Babel Macro，可以先读一下[官方文档](https://github.com/kentcdodds/babel-plugin-macros), 另外[Creact-React-APP](https://create-react-app.dev) 已经内置
 
