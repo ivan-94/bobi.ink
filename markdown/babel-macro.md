@@ -16,7 +16,7 @@ categories: 前端
 
 **文章大纲**
 
-<!-- TOC -->
+
 
 - [关于宏](#关于宏)
   - [文本替换式](#文本替换式)
@@ -28,7 +28,7 @@ categories: 前端
   - [实战](#实战)
 - [扩展资料](#扩展资料)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -70,7 +70,7 @@ MIN(a + b, c + d)
 
 <br>
 
-![](/images/babel/c-compile.gif)
+![](https://bobi.ink/images/babel/c-compile.gif)
 
 如上图，**宏本质上不是`C`语言的一部分**, 它由`C预处理器`提供，预处理器在编译之前对源代码进行**文本替换**，生成‘真正’的 `C` 代码，再传递给编译器。
 
@@ -89,7 +89,7 @@ MIN(a + b, c + d)
 
 ‘真正’的宏起源于[`Lisp`](https://zh.wikipedia.org/wiki/LISP). 这个得益于Lisp语言本身的一些特性：
 
-![](/images/babel/lisp.png)
+![](https://bobi.ink/images/babel/lisp.png)
 
 <br>
 
@@ -140,7 +140,7 @@ MIN(a + b, c + d)
 
 **对于Lisp而言，宏有点像一个函数, 只不过这个函数必须返回一个`quoted数据`; 当调用这个宏时，Lisp会使用`unquote`函数将宏返回的`quoted数据`转换为`程序`**。
 
-![](/images/babel/lisp-macro.png)
+![](https://bobi.ink/images/babel/lisp-macro.png)
 
 <br>
 
@@ -185,7 +185,7 @@ nosenseApple(" is Good") // Apple is Good
 
 举个例子，Sweet.js 会将 `foo,bar('baz', 1)`转换成这样的数据结构:
 
-![](/images/babel/syntaxobject.png)
+![](https://bobi.ink/images/babel/syntaxobject.png)
 
 从上图可知，Sweet.js 会将传入的程序解析成**嵌套的Token序列**，这个结构和Lisp的`S-表达式`非常相似。也就是, 说对于闭合的词法单元会被嵌套存储，例如上例的`('baz', 1)`.
 
@@ -577,7 +577,7 @@ hello world ${foo} + ${bar + baz}
 
 其 AST 结构如下:
 
-![](/images/babel/tag-template.png)
+![](https://bobi.ink/images/babel/tag-template.png)
 
 <br>
 
@@ -658,7 +658,7 @@ Babel Macro 本质上还是Babel 插件，只不过它是模块化的，你要�
 
 <br>
 
-![](/images/sponsor.jpg)
+![](https://bobi.ink/images/sponsor.jpg)
 
 <br>
 

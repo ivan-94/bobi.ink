@@ -1,5 +1,5 @@
 ---
-title: "🇨🇳国庆还有人看吗？深入浅出 Babel 上篇：架构和原理 + 实战"
+title: "深入浅出 Babel 上篇：架构和原理 + 实战"
 date: 2019/10/1
 categories: 前端
 ---
@@ -837,6 +837,10 @@ yarn publish # good luck
 本文还有下篇，我将在下篇文章中介绍[babel-plugin-macros](https://github.com/kentcdodds/babel-plugin-macros), 敬请期待！
 
 点赞是对我最好鼓励。
+
+<br>
+
+![](https://bobi.ink/images/sponsor.jpg)
 
 <br>
 
