@@ -146,6 +146,10 @@ MIN(a + b, c + d)
 
 通过上面的示例，你会感叹Lisp的宏实现竟然如此清奇，如此简单。 搞得我想跟着[题叶](http://tiye.me)学一波[Clojure](https://clojure.org)，但是后来我学了[Elixir](https://elixir-lang.org) 😂.
 
+![](/images/babel/sicp.png)
+
+<br>
+
 Lisp宏的灵活性得益于简单的语法(S-表达式可以等价于它的AST)，对于复杂语法的语言(例如Javascript)，要实现类似Lisp的宏就难得多. 因此很少有现代语言提供宏机制可能也是这个原因。
 
 尽管如此，现在很多技术难点慢慢被解决，很多现代语言也引入'类' Lisp的宏机制，如[Rust](https://doc.rust-lang.org/book/ch19-06-macros.html)、[Julia](https://julialang.org), 还有Javascript的 [Sweet.js](https://www.sweetjs.org/doc/tutorial)
