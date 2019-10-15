@@ -114,6 +114,7 @@ MIN(a + b, c + d)
 
 <details>
   <summary>如果你不理解上面程序的含义，这里有一个Javascript的实现</summary>
+
   注意：‘宏’一般在编译阶段被展开, 下面代码只是为了协作你理解上述的Lisp代码
   ```js
   function nonsense(name) {
@@ -202,7 +203,7 @@ nosenseApple(" is Good") // Apple is Good
 > 需要注意的是`语法模板`的内嵌值只能是语法对象、语法对象序列或者TransformerContext.
 
 <details>
-<summary>旧版本使用了[模式匹配](https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead)，和Rust语法类似，我个人更喜欢这个，不知为何废弃了</summary>
+<summary>旧版本使用了<a href="https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead">模式匹配</a>，和Rust语法类似，我个人更喜欢这个，不知为何废弃了</summary>
 
 ```js
 macro define {
