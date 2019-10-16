@@ -12,6 +12,8 @@ Fiber 门槛很高，不理解后续React Killer Feature可能无法理解
 
 一年一度的React Conf
 
+篇幅有点长，当小说看吧， 最浅显易懂的语言
+
 还没有，目前异步功能在官方React也要到17才支持
 
 ## 单核进程调度: Fiber 不是一个新的东西
@@ -176,11 +178,13 @@ JavaScript 是单线程运行的，而且在浏览器环境屁事非常多，它
 
 对于 React 来说，Fiber 可以从两个角度理解:
 
-**1. 一种流程控制原语**
+### 1. 一种流程控制原语
 
 Fiber 也称协程、或者纤程, 。笔者第一次接触这个概念是在学习Ruby的时候，Ruby就将协程称为 Fiber。后来发现很多语言都有类似的机制，例如Lua 的`Coroutine`, 还有前端开发者比较熟悉的 `ES6` 新增的[`Generator`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Generator)。
 
 **🔴 其实协程和线程并不一样，协程本身是没有并发或者并行能力的（需要配合线程），它只是一种控制流程的让出机制**。要理解协程，你得和普通函数一起来看, 以Generator为例:
+
+> 不要去纠结 [Processes, threads, green threads, protothreads, fibers, coroutines: what's the difference?](https://stackoverflow.com/questions/3324643/processes-threads-green-threads-protothreads-fibers-coroutines-whats-the/16375591#16375591)
 
 普通函数执行的过程中无法**被中断和恢复**：
 
@@ -205,7 +209,7 @@ function * run() {
     // 🔴 判断是否有高优先级事件需要处理
     // 有的话让出控制权
     if (hasHighPriorityEvent()) {
-      yield 
+      yield
     }
 
     // 处理完高优先级事件后，恢复函数调用栈，继续执行...
@@ -213,6 +217,91 @@ function * run() {
   }
 }
 ```
+
+<br>
+
+React Fiber 的思想和协程的概念是契合的: *React 渲染的过程可以被中断，可以将控制权交回浏览器，让位给高优先级的任务，浏览器空闲后再恢复渲染*。
+
+现在你应该有以下疑问:
+
+- ① 浏览器没有抢占的条件
+- ② 无法确定未来的行为，即什么时候让出？
+- ③ React 那为什么不使用 Generator？
+
+<br>
+
+**答1: 主动让出机制**
+
+一是浏览器中没有类似进程的概念，’任务‘之间的界限很模糊，没有上下文，不具备中断/恢复的条件。二是没有抢占的机制，我们无法中断一个正在执行的程序。
+
+所以我们只能采用类似协程的控制权让出机制。这个和上文提到的进程调度策略都不同，它有更一个专业的名词：[**合作式调度(Cooperative Scheduling)**](https://juejin.im/post/5d12c907f265da1b6d4033c5#heading-7)。
+
+**这是一种契约调度，要求我们的程序和浏览器紧密结合，互相信任**。比如由浏览器给我们分配执行时间片(比如通过`requestIdleCallback`实现, 下文会介绍)，我们要按照约定在这个时间内执行完毕，并将控制权还给浏览器。
+
+这种调度方式很有趣，你会发现这是一种身份的对调，以前我们是老爷，想怎么执行就怎么执行，执行多久就执行多久. 现在为了我们共同的用户体验统一了战线。一切听由浏览器指挥调度，这时候我们要跟浏览器申请执行权，而且这个执行权有期限，借了后要按照约定归还给浏览器。当然你超时不还浏览器也拿你没办法 🤷‍..
+
+<br>
+<br>
+
+**答2: 还是协作式调度**
+
+上面代码示例中的 `hasHighPriorityEvent` 在目前浏览器中是无法实现的，即我们没办法判断当前是否有更高优先级的任务等待被执行。除非你把浏览器`事件循环`中的队列剖出来，且这些任务都表明了自己的优先级。
+
+解决办法还是跟浏览器协商好，React 目前的做法是使用 `requestIdleCallback`：
+
+```ts
+window.requestIdleCallback(
+  callback: (dealine: IdleDeadline) => void,
+  option?: {timeout: number}
+  )
+```
+
+IdleDeadline的结构如下：
+
+```ts
+interface IdleDealine {
+  didTimeout: boolean // 表示任务执行是否超过约定时间
+  timeRemaining(): DOMHighResTimeStamp // 任务可供执行的剩余时间
+}
+```
+
+也就是说**`requestIdleCallback`让浏览器'有空'的时候就执行我们的回调，这个回调会传入一个期限，表示回调理想的执行时间, 我们最好在这个时间范围内执行完毕**。
+
+<br>
+
+**那浏览器什么时候有空？**
+
+我们先来看一下浏览器在一帧(Frame，事件循环的一次循环)内可能会做什么事情:
+
+![](/images/react-fiber/perf.png) TODO: 标记
+
+![](/images/react-fiber/frame-life.png)
+<i>图片来源: <a href="https://juejin.im/post/5ad71f39f265da239f07e862">你应该知道的requestIdleCallback</a></i>
+
+浏览器在一帧内按照优先级会做下列事情:
+
+- 处理用户输入事件
+- Javascript执行
+- requestAnimation调用
+- 布局
+- 绘制
+
+理想的一帧时间是16ms，如果处理完上述的任务，还有盈余时间，浏览器就会调用 `requestIdleCallback` 的回调。
+
+![](/images/react-fiber/ric.png)
+
+但是在浏览器繁忙的时候，可能不会有盈余时间，这时候`requestIdleCallback`回调就得不到执行, 为了避免饿死，可以通过requestIdleCallback的第二个参数指定一个超时时间。
+
+另外还不建议在requestIdleCallback中进行DOM操作，这可能触发强制重排，影响渲染性能。
+
+<br>
+
+**优先级**
+
+<br>
+<br>
+
+**答3: 基于时间片的主动让出机制**
 
 Ruby Fiber, Generator, 让出机制
 
@@ -223,8 +312,9 @@ Ruby Fiber, Generator, 让出机制
 优先级机制
 
 <br>
+<br>
 
-**2. 一种数据结构**
+### 2. 一种数据结构
 
 anujs 站在巨人的肩膀上
 
@@ -254,3 +344,11 @@ requestIdleCallback
 ## 缺陷
 
 高优先级任务太多，低优先级
+
+## 扩展阅读
+
+- [React Fiber 漫谈](https://blog.wuchengran.com/2018/08/16/React%20Fiber%20漫谈/)
+- [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
+- [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
+- [Accurately measuring layout on the web](https://nolanlawson.com/2018/09/25/accurately-measuring-layout-on-the-web/)
+- [Fiber Principles: Contributing To Fiber](https://github.com/facebook/react/issues/7942)
