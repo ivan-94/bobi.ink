@@ -174,7 +174,47 @@ JavaScript 是单线程运行的，而且在浏览器环境屁事非常多，它
 
 ## 何为 Fiber?
 
-Ruby Fiber, Geneerator, 让出机制
+对于 React 来说，Fiber 可以从两个角度理解:
+
+**1. 一种流程控制原语**
+
+Fiber 也称协程、或者纤程, 。笔者第一次接触这个概念是在学习Ruby的时候，Ruby就将协程称为 Fiber。后来发现很多语言都有类似的机制，例如Lua 的`Coroutine`, 还有前端开发者比较熟悉的 `ES6` 新增的[`Generator`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Generator)。
+
+**🔴 其实协程和线程并不一样，协程本身是没有并发或者并行能力的（需要配合线程），它只是一种控制流程的让出机制**。要理解协程，你得和普通函数一起来看, 以Generator为例:
+
+普通函数执行的过程中无法**被中断和恢复**：
+
+```js
+const tasks = []
+function run() {
+  let task
+  while (task = tasks.shift()) {
+    execute(task)
+  }
+}
+```
+
+而 Generator 可以:
+
+```js
+const tasks = []
+function * run() {
+  let task
+
+  while (task = tasks.shift()) {
+    // 🔴 判断是否有高优先级事件需要处理
+    // 有的话让出控制权
+    if (hasHighPriorityEvent()) {
+      yield 
+    }
+
+    // 处理完高优先级事件后，恢复函数调用栈，继续执行...
+    execute(task)
+  }
+}
+```
+
+Ruby Fiber, Generator, 让出机制
 
 没办法抢占
 
@@ -182,24 +222,34 @@ Ruby Fiber, Geneerator, 让出机制
 
 优先级机制
 
+<br>
+
+**2. 一种数据结构**
+
 anujs 站在巨人的肩膀上
 
-## 检查点与任务的拆分
+<br>
+
+## Fiber 实现浅谈
+
+### 检查点与任务的拆分
 
 两个阶段
 更新节点任务
 
-## 数据结构的调整
+### 数据结构的调整
 
 栈 vs 链表
 
-## 优先级与调度
+### 优先级与调度
 
 requestIdleCallback
 
-## 中断和恢复
+### 中断和恢复
 
 超时终端，更新恢复/合并
+
+<br>
 
 ## 缺陷
 
