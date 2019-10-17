@@ -452,7 +452,7 @@ function workLoop(deadline: IdleDeadline) {
 
 上文中提到 React 16 之前，Reconcilation 是同步的、递归执行的。也就是说这是基于函数’调用栈‘的Reconcilation算法，所以我们通常称它为`Stack Reconcilation`. 你可以通过这篇文章[《从Preact中了解React组件和hooks基本原理》](https://juejin.im/post/5cfa29e151882539c33e4f5e) 来回顾一下。
 
-栈挺好的，代码量少，递归容易理解, 至少比React Fiber架构好理解, 它非常适合树这种嵌套数据结构的处理。只不过这种依赖于调用栈的形式不能随意中断、也很难被恢复。你要恢复递归现场，需要从头开始。
+栈挺好的，代码量少，递归容易理解, 至少比React Fiber架构好理解, 它非常适合树这种嵌套数据结构的处理。只不过这种依赖于调用栈的形式不能随意中断、也很难被恢复, 另外它还不利于异步处理。如果你要恢复递归现场，可能需要从头开始, 恢复到之前的调用栈。
 
 因此**首先我们需要对React现有的数据结构进行调整，将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
 
@@ -529,6 +529,46 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 <br>
 
 ### 两个阶段的拆分
+
+![](/images/react-fiber/fiber-reconciler.png)
+
+如果你现在使用最新的 React 版本(v16), 使用 Chrome 的 Performance 工具，可以很清晰地看到每次渲染有两个阶段：`Reconciliation`(协调阶段) 和 `Commit`(提交阶段).
+
+> 我在之前的多篇文章中都有提及: [《自己写个React渲染器: 以 Remax 为例(用React写小程序)》](https://juejin.im/post/5d8395646fb9a06ad16faa57)
+
+两阶段的拆分也是一个非常重要的改造，在此之前都是一边Diff一边提交的。先来看看这两者的区别:
+
+- **⚛️ 协调阶段**: 可以认为是 Diff 阶段, 这个阶段会找出所有节点变更，例如节点新增、删除、属性变更等等, 这些变更React 称之为'`副作用`(Effect)'. **这个阶段可以被中断**. 以下生命周期钩子在协调阶段被调用：
+
+  - constructor
+  - componentWillMount 废弃
+  - componentWillReceiveProps 废弃
+  - static getDerivedStateFromProps
+  - shouldComponentUpdate
+  - componentWillUpdate 废弃
+  - render
+  - getSnapshotBeforeUpdate()
+
+**⚛️ 提交阶段**: 将上一个阶段计算出来的需要处理的**副作用(Effects)**一次性执行了。**这个阶段必须同步执行，不能被打断**. 这些生命周期钩子在提交阶段被执行:
+
+  - componentDidMount
+  - componentDidUpdate
+  - componentWillUnmount
+
+
+<br>
+
+也就是说，在协调阶段如果时间片用完，React就会选择让出控制权。因为协调阶段执行的工作不会导致任何用户可见的变更，所以在这个阶段让出控制权不会有什么问题。需要注意的是：**React 不能保证协调阶段的某些生命周期钩子只被执行一次**, 例如 `componentWillMount` 可能会被调用两次. 
+
+因此**协调阶段的生命周期钩子不应该包含副作用**，索性 React 就废弃了这些可能包含副作用的生命周期方法，例如`componentWillMount`、`componentWillMount`. v17后我们就不能再用它们了, 所以现有的应用应该尽快迁移.
+
+<br>
+
+现在你应该知道为什么'提交阶段'必须同步执行，不能中断的吧？ 因为我们要正确地处理各种副作用，包括DOM变更、还有你在`componentWillMount`中发起的异步请求、useEffect 中定义的副作用... 这些副作用可能是用户可以察觉到的, 不容差池。
+
+<br>
+
+### 副作用的收集
 
 中间状态 副作用
 
