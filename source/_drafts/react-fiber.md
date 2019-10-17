@@ -16,6 +16,8 @@ Fiber 门槛很高，不理解后续React Killer Feature可能无法理解
 
 还没有，目前异步功能在官方React也要到17才支持
 
+伪代码
+
 ## 单核进程调度: Fiber 不是一个新的东西
 
 ![](/images/react-fiber/dos.jpg)
@@ -536,7 +538,8 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 > 我在之前的多篇文章中都有提及: [《自己写个React渲染器: 以 Remax 为例(用React写小程序)》](https://juejin.im/post/5d8395646fb9a06ad16faa57)
 
-两阶段的拆分也是一个非常重要的改造，在此之前都是一边Diff一边提交的。先来看看这两者的区别:
+
+除了Fiber 工作单元的拆分，两阶段的拆分也是一个非常重要的改造，在此之前都是一边Diff一边提交的。先来看看这两者的区别:
 
 - **⚛️ 协调阶段**: 可以认为是 Diff 阶段, 这个阶段会找出所有节点变更，例如节点新增、删除、属性变更等等, 这些变更React 称之为'`副作用`(Effect)'. **这个阶段可以被中断**. 以下生命周期钩子在协调阶段被调用：
 
@@ -575,8 +578,6 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 两个阶段
 更新节点任务
 
-双缓存技术 缓存中间状态
-
 栈 vs 链表
 
 ### 优先级与调度
@@ -588,12 +589,17 @@ requestIdleCallback
 ### 中断和恢复
 
 超时终端，更新恢复/合并
+双缓存技术 缓存中间状态
 
 <br>
 
 ## 缺陷
 
 高优先级任务太多，低优先级
+无法阻止用户干傻事， 非抢占
+
+
+## 轻功水上漂
 
 ## 扩展阅读
 
