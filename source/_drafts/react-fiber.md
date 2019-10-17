@@ -240,6 +240,10 @@ React Fiber 的思想和协程的概念是契合的: *React 渲染的过程可�
 
 **这是一种契约调度，要求我们的程序和浏览器紧密结合，互相信任**。比如由浏览器给我们分配执行时间片(比如通过`requestIdleCallback`实现, 下文会介绍)，我们要按照约定在这个时间内执行完毕，并将控制权还给浏览器。
 
+![](/images/react-fiber/cs.png)
+
+<br>
+
 这种调度方式很有趣，你会发现这是一种身份的对调，以前我们是老爷，想怎么执行就怎么执行，执行多久就执行多久. 现在为了我们共同的用户体验统一了战线。一切听由浏览器指挥调度，这时候我们要跟浏览器申请执行权，而且这个执行权有期限，借了后要按照约定归还给浏览器。当然你超时不还浏览器也拿你没办法 🤷‍..
 
 <br>
@@ -401,7 +405,7 @@ function performWork(deadline) {
   }
 
   // 3️⃣ 如果在本次执行中，未能将所有任务执行完毕，那就再请求浏览器调度
-  if (nextUnitOfWork || updateQueue.length > 0) {
+  if (updateQueue.length > 0) {
     requestIdleCallback(performWork);
   }
 }
@@ -410,17 +414,21 @@ function performWork(deadline) {
 **`workLoop` 的工作大概猜到了，它会从更新队列(updateQueue)中弹出更新任务来执行，每执行完一个‘`工作单元`‘，就检查一下剩余时间是否充足，如果充足就进行执行下一个`工作单元`，反之则停止执行，保存现场，等下一次有执行权时恢复**:
 
 ```js
-function workLoop(deadline) {
+// 保存当前的处理现场
+let nextUnitOfWork: FiberNode | undefined // 保存下一个需要处理的工作单元
+let topWork: FiberNode | undefined        // 保存第一个工作单元
+
+function workLoop(deadline: IdleDeadline) {
   // updateQueue中获取下一个或者恢复上一次中断的执行单元
-  if (!nextUnitOfWork) {
-    getNextUnitOfWork();
+  if (nextUnitOfWork == null) {
+    nextUnitOfWork = topWork = getNextUnitOfWork();
   }
 
-  // 🔴 没执行完一个执行单元，检查一次剩余时间
+  // 🔴 每执行完一个执行单元，检查一次剩余时间
   // 如果被中断，下一次执行还是从 nextUnitOfWork 开始处理
   while (nextUnitOfWork && deadline.timeRemaining() > ENOUGH_TIME) {
     // 下文我们再看performUnitOfWork
-    nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
+    nextUnitOfWork = performUnitOfWork(nextUnitOfWork, topWork);
   }
 
   // 提交工作，下文会介绍
@@ -438,16 +446,102 @@ function workLoop(deadline) {
 
 ## React 的Fiber改造
 
-### 检查点与任务的拆分
+现在来进一步看看React 为Fiber做了哪些改造:
+
+### 数据结构的调整
+
+上文中提到 React 16 之前，Reconcilation 是同步的、递归执行的。也就是说这是基于函数’调用栈‘的Reconcilation算法，所以我们通常称它为`Stack Reconcilation`. 你可以通过这篇文章[《从Preact中了解React组件和hooks基本原理》](https://juejin.im/post/5cfa29e151882539c33e4f5e) 来回顾一下。
+
+栈挺好的，代码量少，递归容易理解, 至少比React Fiber架构好理解, 它非常适合树这种嵌套数据结构的处理。只不过这种依赖于调用栈的形式不能随意中断、也很难被恢复。你要恢复递归现场，需要从头开始。
+
+因此**首先我们需要对React现有的数据结构进行调整，将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
+
+<br>
+
+React 目前的做法是使用链表, 每个节点实例内部现在使用 `FiberNode`表示, 它的结构大概如下:
+
+```js
+export type Fiber = {
+  // Fiber 类型信息
+  tag: WorkTag,
+  key: null | string,
+  elementType: any,
+  type: any,
+  stateNode: any,
+
+  // ⚛️ 链表结构
+  // 指向父节点，或者render该节点的组件
+  return: Fiber | null,
+  // 指向第一个子节点
+  child: Fiber | null,
+  // 指向下一个兄弟节点
+  sibling: Fiber | null,
+}
+```
+
+用图片来展示这种关系会更直观一些：
+
+![](/images/react-fiber/fiber-node.png)
+
+有了这个数据结构调整，现在可以以迭代的方式来处理这些节点了。来看看 `performUnitOfWork` 的实现, 它其实就是一个深度优先的遍历：
+
+```js
+/**
+ * @params fiber 当前需要处理的节点
+ * @params topWork 本次更新的开始节点
+ */ 
+function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
+  beginWork(fiber);
+  // 如果存在子节点，那么下一个待处理的就是子节点
+  if (fiber.child) {
+    return fiber.child;
+  }
+
+  // 没有子节点了，上溯查找兄弟节点
+  let temp = fiber;
+  while (temp) {
+    completeWork(temp);
+
+    // 到顶层节点了, 退出
+    if (temp === topWork) {
+      break
+    }
+
+    // 找到，下一个要处理的就是兄弟节点
+    if (temp.sibling) {
+      return temp.sibling;
+    }
+
+    // 没有, 继续上溯
+    temp = temp.return;
+  }
+}
+```
+
+你可以配合上文的 `workLoop` 一起看，FiberNode 就是我们所说的工作单元，`performUnitOfWork` 负责对 `FiberNode` 进行操作，并按照深度遍历的顺序返回下一个FiberNode。
+
+**因为使用了链表结构，即使处理被中断了，我们随时可以从上次未处理完的`FiberNode`继续遍历下去**。
+
+整个迭代顺序和之前递归的一样, 下图假设在 `div.app` 进行了更新：
+
+![](/images/react-fiber/work-order.png)
+
+<br>
+
+### 两个阶段的拆分
+
+中间状态 副作用
 
 两个阶段
 更新节点任务
 
-### 数据结构的调整
+双缓存技术 缓存中间状态
 
 栈 vs 链表
 
 ### 优先级与调度
+
+事件处理
 
 requestIdleCallback
 
@@ -471,3 +565,4 @@ requestIdleCallback
 - [协程](https://www.liaoxuefeng.com/wiki/897692888725344/923057403198272)
 - [Scheduling in React](https://philippspiess.com/scheduling-in-react/)
 - [深入剖析 React Concurrent](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
+- [Didact Fiber: Incremental reconciliation](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
