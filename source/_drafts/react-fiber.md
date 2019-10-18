@@ -4,19 +4,25 @@ date: 2019/10/18
 categories: 前端
 ---
 
-这个Flag立了很久，今天终于下定决心好好写一篇关于React Fiber的文章。这篇文章不会展示Fiber的源代码，会以最通俗的方式将它讲透。
+关于写Fiber 这个 Flag 立了很久，最近的在掘金的文章获得很多关注和鼓励，所以下定决心好好写一篇关于React Fiber的文章. 我会以最通俗的方式将它讲透, 因此这算是一篇科普式的文章。不管你是使用React、还是Vue，这里面的思想还是值得学习学习!
 
-Fiber 门槛很高，不理解后续React Killer Feature可能无法理解
+<br>
 
-科普
+![](/images/react-fiber/react-conf.png)
 
-一年一度的React Conf
+一年一度的React 春晚: [React Conf](https://conf.reactjs.org/schedule.html) 即将到来，不知道今年会不会有什么惊喜，去年是 React Hooks，前年是 React Fiber...所以我要赶着React Conf之前发布这篇文章:
 
-一不小心篇幅有点长，当小说看吧， 最浅显易懂的语言
+- 😲 React Fiber 已经出来这么久了， 这文章是老酒装新瓶吧? *对于我来说，通过这篇文章我重新认识了 React Fiber，它不是一个新东西, 它也是老酒装新瓶，不信你就看吧...*
+- 😦 了解它有啥用? *React Fiber 代码很复杂，门槛很高，你不了解它，后面 React 新出的 Killer Feature 你可能就不能理解了*
+- 🤥 我不是升到React v16了吗? 没什么出奇的啊? *真正要体会到React Fiber重构效果，可能要等到 v17，也就是说，现在的React 还是同步渲染的，一直在跳票、不是说今年第二季度就出来了吗？*
+- 😁 *不好意思，一不小心又写得有点长，你就当小说看吧, 代码都是伪代码*
 
-还没有，目前异步功能在官方React也要到17才支持
+**文章大纲**
 
-伪代码
+TODO:
+
+<br>
+<br>
 
 ## 单核进程调度: Fiber 不是一个新的东西
 
@@ -871,6 +877,7 @@ React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-
 
 - [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
 - [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
+- [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662)
 - [淡苍：深入剖析 React Concurrent](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
 - [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
 - [Fiber Principles: Contributing To Fiber](https://github.com/facebook/react/issues/7942)
@@ -894,6 +901,17 @@ React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-
 - [浅谈React性能优化的方向](https://juejin.im/post/5d045350f265da1b695d5bf2)
 - [从Preact中了解React组件和hooks基本原理](https://juejin.im/post/5cfa29e151882539c33e4f5e)
 - [React性能测量和分析](https://juejin.im/post/5d06bf0a51882528194a9736)
+
+<br>
+
+问卷调查，你觉得这种文章风格怎样？
+
+A. 事无巨细，太啰嗦了
+B. 娓娓道来，深入浅出我喜欢
+C. 内容不够深入
+D. 文章篇幅太长，可以拆分
+
+多选，下方评论，谢谢
 
 <br>
 
