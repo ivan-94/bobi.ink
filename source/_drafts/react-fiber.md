@@ -567,10 +567,11 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 现在你应该知道为什么'提交阶段'必须同步执行，不能中断的吧？ 因为我们要正确地处理各种副作用，包括DOM变更、还有你在`componentWillMount`中发起的异步请求、useEffect 中定义的副作用... 这些副作用可能是用户可以察觉到的, 不容差池。
 
 <br>
+<br>
 
-### Reconcilation 和副作用的收集
+### Reconcilation
 
-接下来就是就是我们熟知的`Reconcilation`(为了方面理解，本文不区分Diff和Reconcilation, 两者是同一个东西)阶段了，**这个思路和Fiber重构之前差不大, 只不过这里不会再递归去比对、而且不会马上提交变更**。
+接下来就是就是我们熟知的`Reconcilation`(为了方面理解，本文不区分Diff和Reconcilation, 两者是同一个东西)阶段了. **思路和 Fiber 重构之前差别不大, 只不过这里不会再递归去比对、而且不会马上提交变更**。
 
 首先再进一步看一下`FiberNode`的结构:
 
@@ -581,33 +582,33 @@ interface FiberNode {
    */
   // 标记 Fiber 节点的类型, 例如函数组件、类组件、宿主组件
   tag: WorkTag,
-
-  // 节点元素的类型, 可以是类组件、函数组件、宿主组件(字符串)
+  // 节点元素的具体类型, 可以是类组件、函数组件、宿主组件(字符串)
   type: any,
 
+  /**
+   * ⚛️ 结构信息
+   */ 
+  return: Fiber | null,
+  child: Fiber | null,
+  sibling: Fiber | null,
   // 子节点的唯一键, 即我们渲染列表传入的key属性
   key: null | string,
 
   /**
-   * ⚛️ 节点状态信息
+   * ⚛️ 节点的状态
    */
   // 节点实例(状态)：
   //        对于宿主组件，这里保存宿主组件的实例, 例如DOM节点。
   //        对于类组件来说，这里保存类组件的实例
   //        对于函数组件说，这里为空，因为函数组件没有实例
   stateNode: any,
-  // 🔴 指向上一次渲染的Fiber节点
-  alternate: Fiber | null,
-
-  /**
-   * ⚛️ 节点的输入
-   */
   // 新的、待处理的props
   pendingProps: any,
   // 上一次渲染的props
   memoizedProps: any, // The props used to create the output.
   // 上一次渲染的组件状态
   memoizedState: any,
+
 
   /**
    * ⚛️ 副作用
@@ -616,17 +617,29 @@ interface FiberNode {
   effectTag: SideEffectTag,
   // 和节点关系一样，React 同样使用链表来将所有有副作用的FiberNode连接起来
   nextEffect: Fiber | null,
-  firstEffect: Fiber | null,
-  lastEffect: Fiber | null,
 
+  /**
+   * ⚛️ 替身
+   * 指向旧树中的节点
+   */
+  alternate: Fiber | null,
 }
 ```
 
 <br>
 
-**Reconcilation**
+FiberNode 包含的属性可以划分为 5 个部分:
 
-现在可以放大看看`beginWork` 是如何对FiberNode 进行比对的:
+- **🆕 结构信息** - 这个上文我们已经见过了，FiberNode 使用链表的形式来表示节点在树中的定位
+- **节点类型信息** - 这个也容易理解，tag表示节点的分类、type 保存具体的类型值，如div、MyComp
+- **节点的状态** - 节点的组件实例、props、state等，它们将影响组件的输出
+- **🆕 副作用** - 这个也是新东西. 在 Reconciliation 过程中发现的'副作用'(变更需求)就保存在节点的`effectTag` 中(打上一个标记). 那么怎么将本次渲染的所有节点副作用都收集起来呢？ 这里也使用了链表结构，在遍历过程中React会将所有有‘副作用’的节点都连接起来
+- **🆕 替身** - React 在 Reconciliation 过程中会构建一颗新的树(官方称为workInProgress tree，**WIP树**)，可以认为是一颗表示当前工作进度的树。还有一颗表示已渲染界面的**旧树**，React就是一边和旧树比对，一边构建WIP树的。 alternate 指向旧树的同等节点。
+
+<br>
+
+
+现在可以放大看看`beginWork`  是如何对FiberNode 进行比对的:
 
 ```ts
 function beginWork(fiber: FiberNode): FiberNode | undefined {
@@ -645,6 +658,8 @@ function beginWork(fiber: FiberNode): FiberNode | undefined {
 }
 ```
 
+<br>
+
 宿主节点比对:
 
 ```ts
@@ -660,6 +675,8 @@ function diffHostComponent(fiber: Fiber) {
   diffChildren(fiber, newChildren);
 }
 ```
+
+<br>
 
 类组件节点比对也差不多:
 
@@ -687,6 +704,8 @@ function diffClassComponent(fiber: FiberNode) {
 }
 ```
 
+<br>
+
 子节点比对:
 
 ```ts
@@ -712,6 +731,7 @@ function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
       newFiber = cloneFiber(oldFiber, element)
       // 更新关系
       newFiber.alternate = oldFiber
+      // 打上Tag
       newFiber.effectTag = UPDATE
       newFiber.return = fiber
     }
@@ -745,37 +765,83 @@ function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
 }
 ```
 
-这里双缓存技术 缓存中间状态
 
-写文章，能不用代码就不用代码，图形化解释更新的过程
+上面的代码很粗糙地还原了 Reconciliation 的过程, 但是对于理解React的基本原理已经足够了. 
 
-接下来
+这里引用一下[Youtube: Lin Clark presentation in ReactConf 2017](https://www.youtube.com/watch?v=ZCuYPiUIONs) 的Slide，来还原 Reconciliation 的过程，Lin Clark 这个演讲太经典了， 几乎所有介绍 React Fiber 的文章都会引用它的Slide. 偷个懒，我也用下:
 
-中间状态 副作用
+> 这篇文章[《React Fiber》](https://juejin.im/post/5ab7b3a2f265da2378403e57) 用文字版解释了Link Clark Slide.
 
-<br>
+![](/images/react-fiber/effect-tag.png)
 
-**副作用的收集**
+上图是 Reconciliation 完成后的状态，左边是旧树，右边是WIP树。对于需要变更的节点，都打上了标签。
 
-两个阶段
-更新节点任务
+`WIP 树`构建这种技术类似于图形绘制领域的'**双缓存(Double Buffering)**'技术, 图形绘制引擎一般会使用双缓冲技术，先将图片绘制到一个缓冲区，再一次性传递给屏幕进行显示，这样可以防止屏幕抖动，优化渲染性能
 
-### 提交
+放到React 中，WIP树就是一个缓冲，它在Reconciliation 完毕后一次性提交给浏览器进行渲染。为了减少内存分配和垃圾回收，WIP 的节点不完全是新的，比如某颗子树不需要变动，React会克隆复用旧树中的子树。
 
-### 优先级与调度
-
-事件处理
-
-requestIdleCallback
+双缓存技术还有另外一个重要的优点就是异常的处理，比如当一个节点处理异常时，这个节点可以继续沿用旧树的状态，避免整棵树挂掉。
 
 <br>
+
+### 副作用的收集和提交
+
+接下来就是将所有打了 Effect 标签节点串联起来，这个可以在`completeWork`中做, 例如:
+
+```ts
+function completeWork(fiber) {
+  const parent = fiber.return
+
+  // 到达顶端
+  if (parent == null || fiber === topWork) {
+    pendingCommit = fiber
+    return
+  }
+
+  if (fiber.effectTag != null) {
+    if (parent.nextEffect) {
+      parent.nextEffect.nextEffect = fiber
+    } else {
+      parent.nextEffect = fiber
+    }
+  } else if (fiber.nextEffect) {
+    parent.nextEffect = fiber.nextEffect
+  }
+}
+```
+
+最后了，将所有副作用提交了:
+
+```ts
+function commitAllWork(fiber) {
+  let next = fiber
+  while(next) {
+    if (fiber.effectTag) {
+      // 提交，偷一下懒，这里就不展开了
+      commitWork(fiber)
+    }
+    next = fiber.nextEffect
+  }
+
+  // 清理现场
+  pendingCommit = nextUnitOfWork = topWork = null
+}
+```
+
+打完收工...
+
+<br>
+<br>
+
+## 轻功水上漂
+
+![](/images/react-fiber/new-frame.png)
 
 ## 缺陷
 
 高优先级任务太多，低优先级
 无法阻止用户干傻事， 非抢占
 
-## 轻功水上漂
 
 Link Clark 栈图
 
