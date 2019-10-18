@@ -465,11 +465,8 @@ React 目前的做法是使用链表, 每个节点实例内部现在使用 `Fibe
 ```js
 export type Fiber = {
   // Fiber 类型信息
-  tag: WorkTag,
-  key: null | string,
-  elementType: any,
   type: any,
-  stateNode: any,
+  // ...
 
   // ⚛️ 链表结构
   // 指向父节点，或者render该节点的组件
@@ -522,7 +519,7 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 你可以配合上文的 `workLoop` 一起看，FiberNode 就是我们所说的工作单元，`performUnitOfWork` 负责对 `FiberNode` 进行操作，并按照深度遍历的顺序返回下一个FiberNode。
 
-**因为使用了链表结构，即使处理被中断了，我们随时可以从上次未处理完的`FiberNode`继续遍历下去**。
+**因为使用了链表结构，将递归转换为了迭代, 即使处理被中断了，我们随时可以从上次未处理完的`FiberNode`继续遍历下去**。
 
 整个迭代顺序和之前递归的一样, 下图假设在 `div.app` 进行了更新：
 
@@ -571,25 +568,205 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 <br>
 
-### 副作用的收集
+### Reconcilation 和副作用的收集
+
+接下来就是就是我们熟知的`Reconcilation`(为了方面理解，本文不区分Diff和Reconcilation, 两者是同一个东西)阶段了，**这个思路和Fiber重构之前差不大, 只不过这里不会再递归去比对、而且不会马上提交变更**。
+
+首先再进一步看一下`FiberNode`的结构:
+
+```ts
+interface FiberNode {
+  /**
+   * ⚛️ 节点的类型信息
+   */
+  // 标记 Fiber 节点的类型, 例如函数组件、类组件、宿主组件
+  tag: WorkTag,
+
+  // 节点元素的类型, 可以是类组件、函数组件、宿主组件(字符串)
+  type: any,
+
+  // 子节点的唯一键, 即我们渲染列表传入的key属性
+  key: null | string,
+
+  /**
+   * ⚛️ 节点状态信息
+   */
+  // 节点实例(状态)：
+  //        对于宿主组件，这里保存宿主组件的实例, 例如DOM节点。
+  //        对于类组件来说，这里保存类组件的实例
+  //        对于函数组件说，这里为空，因为函数组件没有实例
+  stateNode: any,
+  // 🔴 指向上一次渲染的Fiber节点
+  alternate: Fiber | null,
+
+  /**
+   * ⚛️ 节点的输入
+   */
+  // 新的、待处理的props
+  pendingProps: any,
+  // 上一次渲染的props
+  memoizedProps: any, // The props used to create the output.
+  // 上一次渲染的组件状态
+  memoizedState: any,
+
+  /**
+   * ⚛️ 副作用
+   */
+  // 当前节点的副作用类型，例如节点更新、删除、移动
+  effectTag: SideEffectTag,
+  // 和节点关系一样，React 同样使用链表来将所有有副作用的FiberNode连接起来
+  nextEffect: Fiber | null,
+  firstEffect: Fiber | null,
+  lastEffect: Fiber | null,
+
+}
+```
+
+<br>
+
+**Reconcilation**
+
+现在可以放大看看`beginWork` 是如何对FiberNode 进行比对的:
+
+```ts
+function beginWork(fiber: FiberNode): FiberNode | undefined {
+  if (fiber.tag === WorkTag.HostComponent) {
+    // 宿主节点diff
+    diffHostComponent(fiber)
+  } else if (fiber.tag === WorkTag.ClassComponent) {
+    // 类组件节点diff
+    diffClassComponent(fiber)
+  } else if (fiber.tag === WorkTag.FunctionComponent) {
+    // 函数组件节点diff
+    diffFunctionalComponent(fiber)
+  } else {
+    // ... 其他类型节点，省略
+  }
+}
+```
+
+宿主节点比对:
+
+```ts
+function diffHostComponent(fiber: Fiber) {
+  // 新增节点
+  if (fiber.stateNode == null) {
+    fiber.stateNode = createHostComponent(fiber)
+  }
+
+  const newChildren = fiber.pendingProps.children;
+
+  // 比对子节点
+  diffChildren(fiber, newChildren);
+}
+```
+
+类组件节点比对也差不多:
+
+```ts
+function diffClassComponent(fiber: FiberNode) {
+  // 创建组件实例
+  if (fiber.stateNode == null) {
+    fiber.stateNode = createInstance(fiber);
+  }
+
+  if (fiber.hasMounted) {
+    // 调用更新前生命周期钩子
+    applybeforeUpdateHooks(fiber)
+  } else {
+    // 调用挂载前生命周期钩子
+    applybeforeMountHooks(fiber)
+  }
+
+  // 渲染新节点
+  const newChildren = fiber.stateNode.render();
+  // 比对子节点
+  diffChildren(fiber, newChildren);
+
+  fiber.memoizedState = fiber.stateNode.state
+}
+```
+
+子节点比对:
+
+```ts
+function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
+  let oldFiber = fiber.alternate ? fiber.alternate.child : null;
+  // 全新节点，直接挂载
+  if (oldFiber == null) {
+    mountChildFibers(fiber, newChildren)
+    return
+  }
+
+  let index = 0;
+  let newFiber = null;
+  // 新子节点
+  const elements = extraElements(newChildren)
+
+  // 比对子元素
+  while (index < elements.length || oldFiber != null) {
+    const prevFiber = newFiber;
+    const element = elements[index]
+    const sameType = isSameType(element, oldFiber)
+    if (sameType) {
+      newFiber = cloneFiber(oldFiber, element)
+      // 更新关系
+      newFiber.alternate = oldFiber
+      newFiber.effectTag = UPDATE
+      newFiber.return = fiber
+    }
+
+    // 新节点
+    if (element && !sameType) {
+      newFiber = createFiber(element)
+      newFiber.effectTag = PLACEMENT
+      newFiber.return = fiber
+    }
+
+    // 删除旧节点
+    if (oldFiber && !sameType) {
+      oldFiber.effectTag = DELETION;
+      oldFiber.nextEffect = fiber.nextEffect
+      fiber.nextEffect = oldFiber
+    }
+
+    if (oldFiber) {
+      oldFiber = oldFiber.sibling;
+    }
+
+    if (index == 0) {
+      fiber.child = newFiber;
+    } else if (prevFiber && element) {
+      prevFiber.sibling = newFiber;
+    }
+
+    index++
+  }
+}
+```
+
+这里双缓存技术 缓存中间状态
+
+写文章，能不用代码就不用代码，图形化解释更新的过程
+
+接下来
 
 中间状态 副作用
+
+<br>
+
+**副作用的收集**
 
 两个阶段
 更新节点任务
 
-栈 vs 链表
+### 提交
 
 ### 优先级与调度
 
 事件处理
 
 requestIdleCallback
-
-### 中断和恢复
-
-超时终端，更新恢复/合并
-双缓存技术 缓存中间状态
 
 <br>
 
@@ -598,8 +775,16 @@ requestIdleCallback
 高优先级任务太多，低优先级
 无法阻止用户干傻事， 非抢占
 
-
 ## 轻功水上漂
+
+Link Clark 栈图
+
+站在巨人的肩膀上:
+
+迷你Fiber实现:
+react代码太复杂
+文章篇幅有限还有很多东西没说完，例如Context、错误边界、Suspend...
+关于Fiber的精品文章:
 
 ## 扩展阅读
 
