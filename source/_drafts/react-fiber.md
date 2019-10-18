@@ -1,6 +1,6 @@
 ---
-title: "换个角度理解 React Fiber"
-date: 2019/7/10
+title: "深入浅出 React Fiber"
+date: 2019/10/18
 categories: 前端
 ---
 
@@ -151,7 +151,7 @@ JavaScript 是单线程运行的，而且在浏览器环境屁事非常多，它
 
 所以，React 为什么要引入Fiber架构？ 看看上面火焰图，这是React V15 下面的一个列表渲染资源消耗情况。整个渲染花费了130ms, **🔴在这里面 React 会*递归*比对需要更新的Virtual-DOM树，找出需要变动的节点，然后同步更新它们, 一气呵成。这个过程React称为 Reconcilation**.
 
-在 Reconcilation 区间，React 会霸占着浏览器资源，这会导致用户触发的事件得不到响应，从而影响用户体验。这么说，你可能没办法体会到，通过下面两个图片来体会一下(图片来源于：[《Scheduling in React》](https://philippspiess.com/scheduling-in-react/)):
+在 Reconcilation 区间，React 会霸占着浏览器资源，这会导致用户触发的事件得不到响应，从而影响用户体验。这么说，你可能没办法体会到，通过下面两个图片来体会一下(图片来源于：[Dan Abramov](https://twitter.com/dan_abramov) 的 [Beyond React 16](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html) 演讲):
 
 同步模式:
 
@@ -833,33 +833,72 @@ function commitAllWork(fiber) {
 <br>
 <br>
 
-## 轻功水上漂
+## 凌波微步
 
-![](/images/react-fiber/new-frame.png)
+![](/images/react-fiber/new-frame.jpg)
+<i>同样来自Link Clark 的 Slide</i>
 
-## 缺陷
+前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚上踩着的是浏览器的调用栈。
 
-高优先级任务太多，低优先级
-无法阻止用户干傻事， 非抢占
+React Fiber开启异步渲染之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就休息少一点。
+
+但是它肯定不是完美的，因为浏览器无法实现抢占式调度，React 是无法阻止开发者做傻事的，开发者可以随心所欲，挖一个大坑。
+
+为了共同创造美好的世界，我们该做的优化还需要做: 纯组件、虚表、简化组件工作、缓存... 不要期望Fiber 能给你现有应用带来质的提升，除非是复杂的实时交互场景.
 
 
-Link Clark 栈图
+<br>
+<br>
 
-站在巨人的肩膀上:
+## 站在巨人的肩膀上
 
-迷你Fiber实现:
-react代码太复杂
-文章篇幅有限还有很多东西没说完，例如Context、错误边界、Suspend...
-关于Fiber的精品文章:
+本文之所以能成文，离不开社区上优质的开源项目和资料:
 
-## 扩展阅读
+**迷你 Fiber 实现**:
 
-- [React Fiber 漫谈](https://blog.wuchengran.com/2018/08/16/React%20Fiber%20漫谈/)
+React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-jun) 在 [《为什么社区里那些类 React 库至今没有选择实现 Fiber 架构？》 ](https://www.zhihu.com/question/270428598/answer/354017709) 就开玩笑说: Fiber 性价比略低... 到了这个阶段，竞品太多，facebook 就搞一个 fiber 来作为护城河……
+
+如果你只是想了解 Fiber，去读 React 的源码性价比也很低，不妨看看这些Mini 版实现, 感受其精髓，不求甚解:
+
+- [anu](https://github.com/RubyLouvre/anu) [司徒正美](https://github.com/RubyLouvre) 开发的类React框架
+- [Fre](https://github.com/132yse/fre) [伊撒尔](https://www.zhihu.com/people/132yse) 开发的类React框架，代码很精简
+- [Luy](https://github.com/Foveluy/Luy)
+- [didact](https://github.com/pomber/didact)
+
+<br>
+
+**优秀的文章**
+
 - [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
 - [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
-- [Accurately measuring layout on the web](https://nolanlawson.com/2018/09/25/accurately-measuring-layout-on-the-web/)
+- [淡苍：深入剖析 React Concurrent](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
+- [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
 - [Fiber Principles: Contributing To Fiber](https://github.com/facebook/react/issues/7942)
-- [协程](https://www.liaoxuefeng.com/wiki/897692888725344/923057403198272)
+- [Accurately measuring layout on the web](https://nolanlawson.com/2018/09/25/accurately-measuring-layout-on-the-web/)
 - [Scheduling in React](https://philippspiess.com/scheduling-in-react/)
-- [深入剖析 React Concurrent](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
 - [Didact Fiber: Incremental reconciliation](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
+- [桃翁: Deep In React 之浅谈 React Fiber 架构（一）](https://juejin.im/post/5d12c907f265da1b6d4033c5)
+- [为 Luy 实现 React Fiber 架构](https://juejin.im/post/5b028db26fb9a07ac162ba68#heading-12)
+- [妖僧风月: React Fiber](https://juejin.im/post/5ab7b3a2f265da2378403e57)
+- [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
+- [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
+
+<br>
+
+**自荐React 相关文章**
+
+- [React组件设计实践总结 系列 共5篇](https://juejin.im/post/5cd7f2c4e51d453a7d63b715)
+- [自己写个React渲染器: 以 Remax 为例(用React写小程序)](https://juejin.im/post/5d8395646fb9a06ad16faa57)
+- [谈谈React事件机制和未来(react-events)](https://juejin.im/post/5d44e3745188255d5861d654)
+- [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
+- [浅谈React性能优化的方向](https://juejin.im/post/5d045350f265da1b695d5bf2)
+- [从Preact中了解React组件和hooks基本原理](https://juejin.im/post/5cfa29e151882539c33e4f5e)
+- [React性能测量和分析](https://juejin.im/post/5d06bf0a51882528194a9736)
+
+<br>
+
+还有很多没讲完，后面的文章见！
+
+<br>
+
+![](/images/sponsor.jpg)
