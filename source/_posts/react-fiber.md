@@ -1,5 +1,5 @@
 ---
-title: "深入浅出 React Fiber: 这不是一个新的东西"
+title: "这是最通俗的 React Fiber 打开方式"
 date: 2019/10/18
 categories: 前端
 ---
