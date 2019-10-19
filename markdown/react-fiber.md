@@ -8,7 +8,7 @@ categories: 前端
 
 <br>
 
-![](/images/react-fiber/react-conf.png)
+![](https://bobi.ink/images/react-fiber/react-conf.png)
 
 一年一度的React 春晚: [React Conf](https://conf.reactjs.org/schedule.html) 即将到来，不知道今年会不会有什么惊喜，去年是 React Hooks，前年是 React Fiber...所以我要赶着React Conf之前发布这篇文章:
 
@@ -26,7 +26,7 @@ TODO:
 
 ## 单核进程调度: Fiber 不是一个新的东西
 
-![](/images/react-fiber/dos.jpg)
+![](https://bobi.ink/images/react-fiber/dos.jpg)
 
 `DOS`是一个`单任务操作系统`, 也就说同一个时间只允许运行一个程序. [invalid s](https://www.zhihu.com/people/s.invalid)在[《在没有GUI的时代(只有一个文本界面），人们是怎么运行多个程序的？ - invalid s的回答》](https://www.zhihu.com/question/319595914/answer/683541635) 中将其称为**是一种压根没有任务调度的“残疾”操作系统**， 在这种系统中，想执行多个任务，只能等待前一个进程退出，然后再载入一个新的进程。
 
@@ -38,11 +38,11 @@ TODO:
 
 **说白了，为了实现进程的并发，操作系统会按照一定的调度策略，让多个进程都有被执行的机会，将CPU的执行权分配给多个进程，让它们交替执行，形成一种“同时在运行”假象, 因为CPU速度太快，人类根本感觉不到。本质上在单核的物理环境下同时只能有一个程序在运行。**
 
-![](/images/reat-fiber/longzhu.jpg)
+![](https://bobi.ink/images/reat-fiber/longzhu.jpg)
 
 这让我想起了“龙珠”中的分身术(小时候看过，说错了别喷)，本质上是一个人，只不过是它运动速度太快，看起来就是分身. 这就是**并发**。
 
-![](/images/reat-fiber/naruto.jpg)
+![](https://bobi.ink/images/reat-fiber/naruto.jpg)
 
 相比火影忍者中的分身术，是物理存在的，他们可以实现同时处理多个任务，这就是**并行**。严格地讲这是`Master-Slave`架构，因为分身虽然物理存在，但应该没有独立的意志。
 所以说并行是并发，而并发不一定是并行，两种不能划等号。
@@ -133,7 +133,7 @@ SPN、SRT、HRRN都需要对进程时间进行评估和统计，实现比较复�
 
 <br>
 
-![](/images/react-fiber/process-schedule.png)
+![](https://bobi.ink/images/react-fiber/process-schedule.png)
 
 通过上文可以知道，没有一种调度策略是万能的, 它考虑很多因素:
 
@@ -148,12 +148,12 @@ SPN、SRT、HRRN都需要对进程时间进行评估和统计，实现比较复�
 
 ## 类比浏览器JavaScript执行环境
 
-![](/images/singleroad.jpg)
+![](https://bobi.ink/images/singleroad.jpg)
 <i>JavaScript 就像单行道</i>
 
 JavaScript 是单线程运行的，而且在浏览器环境屁事非常多，它要负责页面的绘制、事件处理、JS解析和执行、静态资源处理。它是一个JavaScript，同时只能做一件事情，这个和DOS的单任务操作系统一样的，事情只能一件一件的干。要是前面有一个傻叉程序长期霸占CPU，后面什么事情都干不了，浏览器会呈现卡死的状态，这样用户体验就会非常差
 
-![](/images/react-fiber/perf.png)
+![](https://bobi.ink/images/react-fiber/perf.png)
 
 所以，React 为什么要引入Fiber架构？ 看看上面火焰图，这是React V15 下面的一个列表渲染资源消耗情况。整个渲染花费了130ms, **🔴在这里面 React 会*递归*比对需要更新的Virtual-DOM树，找出需要变动的节点，然后同步更新它们, 一气呵成。这个过程React称为 Reconcilation**.
 
@@ -161,13 +161,13 @@ JavaScript 是单线程运行的，而且在浏览器环境屁事非常多，它
 
 同步模式:
 
-![](/images/react-fiber/sync-mode.gif)
+![](https://bobi.ink/images/react-fiber/sync-mode.gif)
 
 <br>
 
 优化后的异步模式:
 
-![](/images/react-fiber/concurrent-mode.gif)
+![](https://bobi.ink/images/react-fiber/concurrent-mode.gif)
 
 <br>
 
@@ -248,7 +248,7 @@ React Fiber 的思想和协程的概念是契合的: *React 渲染的过程可�
 
 **这是一种契约调度，要求我们的程序和浏览器紧密结合，互相信任**。比如由浏览器给我们分配执行时间片(比如通过`requestIdleCallback`实现, 下文会介绍)，我们要按照约定在这个时间内执行完毕，并将控制权还给浏览器。
 
-![](/images/react-fiber/cs.png)
+![](https://bobi.ink/images/react-fiber/cs.png)
 
 <br>
 
@@ -289,9 +289,9 @@ interface IdleDealine {
 
 我们先来看一下浏览器在一帧(Frame，事件循环的一次循环)内可能会做什么事情:
 
-![](/images/react-fiber/perf.png) TODO: 标记
+![](https://bobi.ink/images/react-fiber/perf.png) TODO: 标记
 
-![](/images/react-fiber/frame-life.png)
+![](https://bobi.ink/images/react-fiber/frame-life.png)
 <i>图片来源: <a href="https://juejin.im/post/5ad71f39f265da239f07e862">你应该知道的requestIdleCallback</a></i>
 
 浏览器在一帧内会依次做下列事情:
@@ -306,7 +306,7 @@ interface IdleDealine {
 
 理想的一帧时间是16ms(1000ms / 60)，如果处理完上述的任务(布局和绘制之后)，还有盈余时间，浏览器就会调用 `requestIdleCallback` 的回调。
 
-![](/images/react-fiber/ric.png)
+![](https://bobi.ink/images/react-fiber/ric.png)
 
 **但是在浏览器繁忙的时候，可能不会有盈余时间，这时候`requestIdleCallback`回调就得不到执行, 为了避免饿死，可以通过requestIdleCallback的第二个参数指定一个超时时间**。
 
@@ -316,7 +316,7 @@ interface IdleDealine {
 
 目前 `requestIdleCallback` 目前只有Chrome支持。所以目前 React [自己实现了一个](https://github.com/facebook/react/blob/master/packages/scheduler/src/forks/SchedulerHostConfig.default.js)。它利用[`MessageChannel`](https://developer.mozilla.org/zh-CN/docs/Web/API/MessageChannel) 将回调延迟到'绘制操作'之后执行:
 
-![](/images/react-fiber/mc.png)
+![](https://bobi.ink/images/react-fiber/mc.png)
 
 <br>
 
@@ -448,7 +448,7 @@ function workLoop(deadline: IdleDeadline) {
 
 画个流程图吧！
 
-![](/images/react-fiber/workloop.png)
+![](https://bobi.ink/images/react-fiber/workloop.png)
 
 <br>
 
@@ -486,7 +486,7 @@ export type Fiber = {
 
 用图片来展示这种关系会更直观一些：
 
-![](/images/react-fiber/fiber-node.png)
+![](https://bobi.ink/images/react-fiber/fiber-node.png)
 
 有了这个数据结构调整，现在可以以迭代的方式来处理这些节点了。来看看 `performUnitOfWork` 的实现, 它其实就是一个深度优先的遍历：
 
@@ -529,13 +529,13 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 整个迭代顺序和之前递归的一样, 下图假设在 `div.app` 进行了更新：
 
-![](/images/react-fiber/work-order.png)
+![](https://bobi.ink/images/react-fiber/work-order.png)
 
 <br>
 
 ### 两个阶段的拆分
 
-![](/images/react-fiber/fiber-reconciler.png)
+![](https://bobi.ink/images/react-fiber/fiber-reconciler.png)
 
 如果你现在使用最新的 React 版本(v16), 使用 Chrome 的 Performance 工具，可以很清晰地看到每次渲染有两个阶段：`Reconciliation`(协调阶段) 和 `Commit`(提交阶段).
 
@@ -778,7 +778,7 @@ function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
 
 > 这篇文章[《React Fiber》](https://juejin.im/post/5ab7b3a2f265da2378403e57) 用文字版解释了Link Clark Slide.
 
-![](/images/react-fiber/effect-tag.png)
+![](https://bobi.ink/images/react-fiber/effect-tag.png)
 
 上图是 Reconciliation 完成后的状态，左边是旧树，右边是WIP树。对于需要变更的节点，都打上了标签。
 
@@ -841,7 +841,7 @@ function commitAllWork(fiber) {
 
 ## 凌波微步
 
-![](/images/react-fiber/new-frame.jpg)
+![](https://bobi.ink/images/react-fiber/new-frame.jpg)
 <i>同样来自Link Clark 的 Slide</i>
 
 前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚上踩着的是浏览器的调用栈。
@@ -889,6 +889,7 @@ React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-
 - [妖僧风月: React Fiber](https://juejin.im/post/5ab7b3a2f265da2378403e57)
 - [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
+- [展望 React 17，回顾 React 往事](https://www.zhihu.com/people/NE_SmallTown/posts)
 
 <br>
 
@@ -919,4 +920,4 @@ D. 文章篇幅太长，可以拆分
 
 <br>
 
-![](/images/sponsor.jpg)
+![](https://bobi.ink/images/sponsor.jpg)
