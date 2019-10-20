@@ -537,8 +537,8 @@ function performWork(deadline) {
 
 ```js
 // 保存当前的处理现场
-let nextUnitOfWork: FiberNode | undefined // 保存下一个需要处理的工作单元
-let topWork: FiberNode | undefined        // 保存第一个工作单元
+let nextUnitOfWork: Fiber | undefined // 保存下一个需要处理的工作单元
+let topWork: Fiber | undefined        // 保存第一个工作单元
 
 function workLoop(deadline: IdleDeadline) {
   // updateQueue中获取下一个或者恢复上一次中断的执行单元
@@ -588,13 +588,13 @@ Fiber 的核心内容已经介绍完了，现在来进一步看看React 为 Fibe
 
 栈挺好的，代码量少，递归容易理解, 至少比现在的 React Fiber架构好理解😂, 递归非常适合树这种嵌套数据结构的处理。
 
-只不过这种依赖于调用栈的方式不能随意中断、也很难被恢复, 另外它还不利于异步处理。如果你要恢复递归现场，可能需要从头开始, 恢复到之前的调用栈。
+只不过这种依赖于调用栈的方式不能随意中断、也很难被恢复, 不利于异步处理。 这种调用栈，不是程序所能控制的， 如果你要恢复递归现场，可能需要从头开始, 恢复到之前的调用栈。
 
-因此**首先我们需要对React现有的数据结构进行调整，`模拟函数调用栈`, 将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
+因此**首先我们需要对React现有的数据结构进行调整，[`模拟函数调用栈`](https://zhuanlan.zhihu.com/p/36425839), 将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
 
 <br>
 
-React 目前的做法是使用`链表`, 每个 VirtualDOM 节点内部现在使用 `FiberNode`表示, 它的结构大概如下:
+React 目前的做法是使用`链表`, 每个 VirtualDOM 节点内部现在使用 `Fiber`表示, 它的结构大概如下:
 
 ```js
 export type Fiber = {
@@ -620,14 +620,40 @@ export type Fiber = {
 
 <br>
 
+**使用链表结构只是一个结果，而不是目的，React 开发者一开始的目的是冲着模拟调用栈去的**。这个很多关于Fiber 的文章都有提及, 关于调用栈的详细定义参见[Wiki](https://en.wikipedia.org/wiki/Call_stack)：
+
+![](https://bobi.ink/images/react-fiber/callstack.png)
+
+> 调用栈最经常被用于存放子程序的**返回地址**。在调用任何子程序时，主程序都必须暂存子程序运行完毕后应该返回到的地址。因此，如果被调用的子程序还要调用其他的子程序，其自身的返回地址就必须存入调用栈，在其自身运行完毕后再行取回。除了返回地址，还会保存`本地变量`、`函数参数`、`环境传递`(Scope?)
+
+<br>
+
+React Fiber 也被称为虚拟栈帧(Virtual Stack Frame), 你可以拿它和函数调用栈类比一下, 两者结构非常像:
+
+|         | 函数调用栈 |  Fiber |
+|---------|----------|-----------|
+|基本单位  | 函数      | Virtual DOM 节点 |
+|参数     | 函数参数   | Props |
+|本地状态  | 本地变量   | State |
+|下级      | 嵌套函数调用  | 子节点(child) |
+|上级引用  | 返回地址  | 父节点(return) |
+
+<br>
+
+Fiber 和调用栈帧一样, 保存了节点处理的上下文信息，因为是手动实现的，所以更为可控，我们可以保存在内存中，随时中断和恢复。
+
+<br>
+
 有了这个数据结构调整，现在可以以迭代的方式来处理这些节点了。来看看 `performUnitOfWork` 的实现, 它其实就是一个深度优先的遍历：
+
+<br>
 
 ```js
 /**
  * @params fiber 当前需要处理的节点
  * @params topWork 本次更新的根节点
- */ 
-function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
+ */
+function performUnitOfWork(fiber: Fiber, topWork: Fiber) {
   // 对该节点进行处理
   beginWork(fiber);
 
@@ -659,9 +685,9 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 <br>
 
-你可以配合上文的 `workLoop` 一起看，**FiberNode 就是我们所说的工作单元，`performUnitOfWork` 负责对 `FiberNode` 进行操作，并按照深度遍历的顺序返回下一个 FiberNode**。
+你可以配合上文的 `workLoop` 一起看，**Fiber 就是我们所说的工作单元，`performUnitOfWork` 负责对 `Fiber` 进行操作，并按照深度遍历的顺序返回下一个 Fiber**。
 
-**因为使用了链表结构，即使处理流程被中断了，我们随时可以从上次未处理完的`FiberNode`继续遍历下去**。
+**因为使用了链表结构，即使处理流程被中断了，我们随时可以从上次未处理完的`Fiber`继续遍历下去**。
 
 整个迭代顺序和之前递归的一样, 下图假设在 `div.app` 进行了更新：
 
@@ -727,10 +753,10 @@ function performUnitOfWork(fiber: FiberNode, topWork: FiberNode) {
 
 接下来就是就是我们熟知的`Reconcilation`(为了方便理解，本文不区分Diff和Reconcilation, 两者是同一个东西)阶段了. **思路和 Fiber 重构之前差别不大, 只不过这里不会再递归去比对、而且不会马上提交变更**。
 
-首先再进一步看一下`FiberNode`的结构:
+首先再进一步看一下`Fiber`的结构:
 
 ```ts
-interface FiberNode {
+interface Fiber {
   /**
    * ⚛️ 节点的类型信息
    */
@@ -769,7 +795,7 @@ interface FiberNode {
    */
   // 当前节点的副作用类型，例如节点更新、删除、移动
   effectTag: SideEffectTag,
-  // 和节点关系一样，React 同样使用链表来将所有有副作用的FiberNode连接起来
+  // 和节点关系一样，React 同样使用链表来将所有有副作用的Fiber连接起来
   nextEffect: Fiber | null,
 
   /**
@@ -782,9 +808,9 @@ interface FiberNode {
 
 <br>
 
-FiberNode 包含的属性可以划分为 5 个部分:
+Fiber 包含的属性可以划分为 5 个部分:
 
-- **🆕 结构信息** - 这个上文我们已经见过了，FiberNode 使用链表的形式来表示节点在树中的定位
+- **🆕 结构信息** - 这个上文我们已经见过了，Fiber 使用链表的形式来表示节点在树中的定位
 - **节点类型信息** - 这个也容易理解，tag表示节点的分类、type 保存具体的类型值，如div、MyComp
 - **节点的状态** - 节点的组件实例、props、state等，它们将影响组件的输出
 - **🆕 副作用** - 这个也是新东西. 在 Reconciliation 过程中发现的'副作用'(变更需求)就保存在节点的`effectTag` 中(想象为打上一个标记).
@@ -795,10 +821,10 @@ FiberNode 包含的属性可以划分为 5 个部分:
 <br>
 
 
-现在可以放大看看`beginWork`  是如何对 FiberNode 进行比对的:
+现在可以放大看看`beginWork`  是如何对 Fiber 进行比对的:
 
 ```ts
-function beginWork(fiber: FiberNode): FiberNode | undefined {
+function beginWork(fiber: Fiber): Fiber | undefined {
   if (fiber.tag === WorkTag.HostComponent) {
     // 宿主节点diff
     diffHostComponent(fiber)
@@ -839,7 +865,7 @@ function diffHostComponent(fiber: Fiber) {
 类组件节点比对也差不多:
 
 ```ts
-function diffClassComponent(fiber: FiberNode) {
+function diffClassComponent(fiber: Fiber) {
   // 创建组件实例
   if (fiber.stateNode == null) {
     fiber.stateNode = createInstance(fiber);
@@ -867,7 +893,7 @@ function diffClassComponent(fiber: FiberNode) {
 子节点比对:
 
 ```ts
-function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
+function diffChildren(fiber: Fiber, newChildren: React.ReactNode) {
   let oldFiber = fiber.alternate ? fiber.alternate.child : null;
   // 全新节点，直接挂载
   if (oldFiber == null) {
