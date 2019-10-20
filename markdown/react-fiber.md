@@ -42,6 +42,7 @@ categories: 前端
   - [3. Reconcilation](#3-reconcilation)
   - [4. 双缓冲](#4-双缓冲)
   - [5. 副作用的收集和提交](#5-副作用的收集和提交)
+- [⚠️ 未展开部分 🚧 -- 中断和恢复](#⚠️-未展开部分-🚧----中断和恢复)
 - [凌波微步](#凌波微步)
 - [站在巨人的肩膀上](#站在巨人的肩膀上)
 
@@ -226,7 +227,7 @@ React 为什么要引入 Fiber 架构？ 看看下面的火焰图，这是React 
 
 在 Reconcilation 期间，React 会霸占着浏览器资源，一则会导致用户触发的事件得不到响应, 二则会导致掉帧，用户可以感知到这些卡顿。
 
-这样说，你可能没办法体会到，通过下面两个图片来体会一下(*图片来源于：[Dan Abramov](https://twitter.com/dan_abramov) 的 [Beyond React 16](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html) 演讲, 推荐看一下*):
+这样说，你可能没办法体会到，通过下面两个图片来体会一下(*图片来源于：[Dan Abramov](https://twitter.com/dan_abramov) 的 [Beyond React 16](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html) 演讲, 推荐看一下👍. 另外非常感谢[淡苍](https://www.zhihu.com/people/BlackGanglion/activities) 将一个[类似的DEMO 分享在了 CodeSandbox](https://codesandbox.io/s/koyz664q35)上🎉，大家自行体验*):
 
 <br>
 
@@ -584,7 +585,7 @@ Fiber 的核心内容已经介绍完了，现在来进一步看看React 为 Fibe
 
 只不过这种依赖于调用栈的方式不能随意中断、也很难被恢复, 另外它还不利于异步处理。如果你要恢复递归现场，可能需要从头开始, 恢复到之前的调用栈。
 
-因此**首先我们需要对React现有的数据结构进行调整，将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
+因此**首先我们需要对React现有的数据结构进行调整，模拟函数调用栈, 将之前需要递归进行处理的事情分解成增量的执行单元，将递归转换成迭代**.
 
 <br>
 
@@ -940,7 +941,7 @@ function diffChildren(fiber: FiberNode, newChildren: React.ReactNode) {
 
 双缓存技术还有另外一个重要的场景就是异常的处理，比如当一个节点抛出异常，仍然可以继续沿用旧树的节点，避免整棵树挂掉。
 
-Dan 在 [Beyond React 16](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html) 演讲中用了一个非常恰当的比喻，那就是Git 功能分支，**你可以将 WIP 树想象成从旧树中 Fork 出来的功能分支，你在这新分支中添加或移除特性，即使是操作失误也不会影响旧的分支。当你这个分支经过了测试和完善，就可以合并到旧分支，将其替换掉**:
+Dan 在 [Beyond React 16](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html) 演讲中用了一个非常恰当的比喻，那就是Git 功能分支，**你可以将 WIP 树想象成从旧树中 Fork 出来的功能分支，你在这新分支中添加或移除特性，即使是操作失误也不会影响旧的分支。当你这个分支经过了测试和完善，就可以合并到旧分支，将其替换掉. 这或许就是’提交(commit)阶段‘的提交一词的来源吧？**:
 
 <br>
 
@@ -995,7 +996,56 @@ function commitAllWork(fiber) {
 }
 ```
 
-打完收工...
+<br>
+<br>
+
+## ⚠️ 未展开部分 🚧 -- 中断和恢复
+
+上文只是介绍了简单的中断和恢复机制，我们从哪里跌倒就从哪里站起来，在哪个节点中断就从哪个节点继续处理下去。 也就是说，到目前为止：**⚠️更新任务还是串行执行的，我们只是将整个过程碎片化了. 对于那些需要优先处理的更新任务还是会被阻塞**。我个人觉得这才是 React Fiber 中最难处理的一部分。
+
+**实际情况是，在 React 得到控制权后，应该优先处理高优先级的任务**。也就是说中断时正在处理的任务，在恢复时会让位给高优先级任务，原本中断的任务可能会被放弃或者重做。
+
+**但是如果不按顺序执行任务，可能会导致前后的状态不一致**。 比如低优先级任务将 `a` 设置为0，而高优先级任务将 `a` 递增1, 两个任务的执行顺序会影响最终的渲染结果。因此**要让高优先级任务插队, 首先要保证状态更新的时序**。
+
+<br>
+
+解决办法是: **所有更新任务按照顺序插入一个队列, 状态必须按照插入顺序进行计算，但任务可以按优先级顺序执行**, 例如：
+
+<br>
+
+![](https://bobi.ink/images/react-fiber/resume-1.png)
+
+<br>
+
+红色表示高优先级任务。要计算它的状态必须基于前序任务计算出来的状态, 从而保证**状态的最终一致性**：
+
+<br>
+
+![](https://bobi.ink/images/react-fiber/resume-2.png)
+
+最终红色的高优先级任务 `C` 执行时的状态值是`a=5,b=3`. 在恢复控制权时，会按照优先级先执行 `C`, 前面的`A`、 `B`暂时跳过
+
+<br>
+
+![](https://bobi.ink/images/react-fiber/resume-3.png)
+
+<br>
+
+上面被跳过任务不会被移除，在执行完高优先级任务后它们还是会被执行的。因为不同的更新任务影响的节点树范围可能是不一样的，举个例子 `a`、`b` 可能会影响 `Foo` 组件树，而 `c` 会影响 `Bar` 组件树。所以为了保证**视图的最终一致性**, 所有更新任务都要被执行。
+
+<br>
+
+![](https://bobi.ink/images/react-fiber/resume-4.png)
+
+首先 `C` 先被执行，它更新了 `Foo` 组件
+
+接着执行 `A` 任务，它更新了`Foo` 和 `Bar` 组件，由于 `C` 已经以最终状态`a=5, b=3`更新了`Foo`组件，这里可以做一下性能优化，可以直接复用C的更新结果， 不必触发重新渲染。因此 `A` 仅需更新 `Bar` 组件即可。
+
+接着执行 `B`，同理可以复用 Foo 更新结果。
+
+<br>
+
+道理讲起来都很简单，React Fiber 实际上非常复杂，不过执行的过程怎样拆分、以什么顺序执行，最重要的是保证**状态的一致性**和**视图的一致性**，这给了 React 团队很大的考验，以致于现在都没有正式release出来。
 
 <br>
 <br>
@@ -1005,7 +1055,7 @@ function commitAllWork(fiber) {
 ![](https://bobi.ink/images/react-fiber/new-frame.jpg)
 <i>同样来自Link Clark 的 Slider</i>
 
-前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚下的坑是浏览器的调用栈。
+前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的基本改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚下的坑是浏览器的调用栈。
 
 React Fiber开启异步渲染之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就休息少一点。
 
@@ -1020,7 +1070,7 @@ React Fiber开启异步渲染之后就不会挖大坑了，而是一小坑一坑
 
 <br>
 
-本文之所以能成文，离不开社区上优质的开源项目和资料:
+本文之所以能成文，离不开社区上优质的开源项目和资料。
 
 **迷你 Fiber 实现**:
 
@@ -1035,28 +1085,34 @@ React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-
 
 <br>
 
-**优秀的文章**
+**优秀的文章 & 演讲**
 
-- [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
-- [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
+本文只是对React Fiber进行了简单的科普，实际上React 的实现比本文复杂的多，如果你想深入理解React Fiber的，下面这些文章不容错过:
+
+- [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍](https://www.youtube.com/watch?v=ZCuYPiUIONs)
 - [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662)
-- [淡苍：深入剖析 React Concurrent](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
+- [淡苍：深入剖析 React Concurrent 👍](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
+- [Didact Fiber: Incremental reconciliation  👍](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
+- [浅入 React16/fiber 系列 👍](https://zhuanlan.zhihu.com/p/36425839)
+- [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
+- [展望 React 17，回顾 React 往事](https://www.zhihu.com/people/NE_SmallTown/posts)
+- [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
 - [Fiber Principles: Contributing To Fiber](https://github.com/facebook/react/issues/7942)
-- [Accurately measuring layout on the web](https://nolanlawson.com/2018/09/25/accurately-measuring-layout-on-the-web/)
 - [Scheduling in React](https://philippspiess.com/scheduling-in-react/)
-- [Didact Fiber: Incremental reconciliation](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
 - [桃翁: Deep In React 之浅谈 React Fiber 架构（一）](https://juejin.im/post/5d12c907f265da1b6d4033c5)
 - [为 Luy 实现 React Fiber 架构](https://juejin.im/post/5b028db26fb9a07ac162ba68#heading-12)
 - [妖僧风月: React Fiber](https://juejin.im/post/5ab7b3a2f265da2378403e57)
-- [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
-- [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
-- [展望 React 17，回顾 React 往事](https://www.zhihu.com/people/NE_SmallTown/posts)
 - [Web Fundamentals > Performance](https://developers.google.com/web/fundamentals/performance/rendering)
+- [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
+- [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
+- [Accurately measuring layout on the web](https://nolanlawson.com/2018/09/25/accurately-measuring-layout-on-the-web/)
 
 <br>
 
 **自荐React 相关文章**
+
+回顾一下今年写的关于 React 的相关文章
 
 - [React组件设计实践总结 系列 共5篇](https://juejin.im/post/5cd7f2c4e51d453a7d63b715)
 - [自己写个React渲染器: 以 Remax 为例(用React写小程序)](https://juejin.im/post/5d8395646fb9a06ad16faa57)
@@ -1075,7 +1131,7 @@ B. 娓娓道来，深入浅出我喜欢
 C. 内容不够深入
 D. 文章篇幅太长，可以拆分
 
-多选，下方评论，谢谢
+多选，下方评论，点赞走起
 
 <br>
 
