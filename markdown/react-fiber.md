@@ -577,6 +577,11 @@ Fiber 的核心内容已经介绍完了，现在来进一步看看React 为 Fibe
 
 ### 1. 数据结构的调整
 
+![](https://bobi.ink/images/react-fiber/diff.png)
+<i>左侧是Virtual DOM，右侧可以看作diff的递归调用栈</i>
+
+<br>
+
 上文中提到 React 16 之前，Reconcilation 是同步的、递归执行的。也就是说这是基于函数’调用栈‘的Reconcilation算法，因此通常也称它为`Stack Reconcilation`. 你可以通过这篇文章[《从Preact中了解React组件和hooks基本原理》](https://juejin.im/post/5cfa29e151882539c33e4f5e) 来回顾一下历史。
 
 <br>
