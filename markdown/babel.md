@@ -274,7 +274,7 @@ traverse(ast, {
 ```js
 traverse(ast, {
   // 访问标识符
-  Idenfifier(path) {
+  Identifier(path) {
     console.log(`enter Identifier`)
   },
   // 访问调用表达式

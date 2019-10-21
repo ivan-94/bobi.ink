@@ -21,7 +21,7 @@ categories: 前端
 
 - 😦 **了解它有啥用**? *React Fiber 代码很复杂，门槛很高，你不了解它，后面 React 新出的 Killer Feature 你可能就更不能理解了*
 
-- 🤥 **我不是升到React v16了吗? 没什么出奇的啊**? *真正要体会到 React Fiber 重构效果，可能要等到 v17，也就是说，现在的React 还是同步渲染的，一直在跳票、不是说今年第二季度就出来了吗*？
+- 🤥 **我不是升到React v16了吗? 没什么出奇的啊**? *真正要体会到 React Fiber 重构效果，可能下个月、可能要等到 v17。v16 只是一个过渡版本，也就是说，现在的React 还是同步渲染的，一直在跳票、不是说今年第二季度就出来了吗*？
 
 - 😁 **不好意思，一不小心又写得有点长，你就当小说看吧, 代码都是伪代码**
 
@@ -1090,15 +1090,25 @@ function commitAllWork(fiber) {
 
 前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的基本改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚下的坑是浏览器的调用栈。
 
-React Fiber开启 Concurrent Mode 之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就休息少一点。
+React Fiber开启 Concurrent Mode 之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就优先去做。
+
+![](/images/react-fiber/benifit.png)
+<i>来源：<a href="https://www.youtube.com/watch?v=V1Ly-8Z1wQA&t=207s">Flarnie Marchan - Ready for Concurrent Mode?</a></i>
+
+开启Concurrent Mode后，我们可以得到以下好处:
+
+- 快速响应用户操作和输入，提升用户交互体验
+- 必要时降低加载状态(load state)的优先级，减少闪屏. 比如数据很快返回时，可以不必显示加载状态，而是直接显示出来，避免闪屏
+- 利用好I/O 操作空闲期或者CPU空闲期，进行一些预渲染
+- 让动画更加流畅，通过调度，可以让应用保持高帧率
 
 但是它肯定不是完美的，因为浏览器无法实现抢占式调度，无法阻止开发者做傻事的，开发者可以随心所欲，想挖多大的坑，就挖多大的坑。
 
-为了共同创造美好的世界，我们要严律于己， 该做的优化还需要做: 纯组件、虚表、简化组件、缓存...
+为了共同创造美好的世界，我们要严律于己，该做的优化还需要做: 纯组件、虚表、简化组件、缓存...
 
 尤雨溪在今年的[Vue Conf](https://www.yuque.com/vueconf/2019)一个观点让我印象深刻：**如果我们可以把更新做得足够快的话，理论上就不需要时间分片了**。
 
-**时间分片并没有降低整体的工作量，该做的还是要做**。 所以说 React Fiber 本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
+**时间分片并没有降低整体的工作量，该做的还是要做**, 因此React 也在考虑利用CPU空闲或者I/O空闲期间做一些预渲染。所以说 React Fiber 本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
 
 <br>
 <br>
@@ -1126,12 +1136,13 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 本文只是对React Fiber进行了简单的科普，实际上React 的实现比本文复杂的多，如果你想深入理解React Fiber的，下面这些文章不容错过:
 
-- [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍](https://www.youtube.com/watch?v=ZCuYPiUIONs)
-- [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662)
-- [展望 React 17，回顾 React 往事 👍](https://www.zhihu.com/people/NE_SmallTown/posts)
+- [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍🎦](https://www.youtube.com/watch?v=ZCuYPiUIONs) React Fiber 启蒙
+- [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662) 看不如写
+- [展望 React 17，回顾 React 往事 👍](https://www.zhihu.com/people/NE_SmallTown/posts) 看完 [Heaven](https://www.zhihu.com/people/NE_SmallTown) 的相关文章，会觉得你了解的React 知识真的只是[冰山一角](https://zhuanlan.zhihu.com/jheaven)，我们都没资格说我们懂 React。
+- [浅入 React16/fiber 系列 👍](https://zhuanlan.zhihu.com/p/36425839) 同样来自 Heaven
 - [淡苍：深入剖析 React Concurrent 👍](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
-- [Didact Fiber: Incremental reconciliation  👍](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
-- [浅入 React16/fiber 系列 👍](https://zhuanlan.zhihu.com/p/36425839)
+- [Didact Fiber: Incremental reconciliation  👍](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec) 实现了简单的 React Fiber
+- [Concurrent Rendering in React - Andrew Clark and Brian Vaughn 🎦](https://www.youtube.com/watch?v=ByBPyMBTzM0&t=151s)
 - [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
 - [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
@@ -1140,6 +1151,7 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 - [桃翁: Deep In React 之浅谈 React Fiber 架构（一）](https://juejin.im/post/5d12c907f265da1b6d4033c5)
 - [为 Luy 实现 React Fiber 架构](https://juejin.im/post/5b028db26fb9a07ac162ba68#heading-12)
 - [妖僧风月: React Fiber](https://juejin.im/post/5ab7b3a2f265da2378403e57)
+- [Flarnie Marchan - Ready for Concurrent Mode? 🎦](https://www.youtube.com/watch?v=V1Ly-8Z1wQA&t=207s)
 - [Web Fundamentals > Performance](https://developers.google.com/web/fundamentals/performance/rendering)
 - [你应该知道的requestIdleCallback](https://juejin.im/post/5ad71f39f265da239f07e862)
 - [深入探究 eventloop 与浏览器渲染的时序问题](https://www.404forest.com/2017/07/18/how-javascript-actually-works-eventloop-and-uirendering/)
@@ -1173,6 +1185,8 @@ C. 内容不够深入
 D. 文章篇幅太长，可以拆分
 
 多选，下方评论，👍点赞走起
+
+改了一个正经一点的网名：_sx_(傻叉) -> 荒山 ⛰
 
 <br>
 
