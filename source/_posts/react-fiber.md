@@ -80,7 +80,7 @@ categories: 前端
 
 <br>
 
-这让我想起了“龙珠”中的分身术(小时候看过，说错了别喷)，实质上是一个人，只不过是他运动速度太快，看起来就像分身了. 这就是所谓的**并发**。
+这让我想起了“龙珠”中的分身术(小时候看过，说错了别喷)，实质上是一个人，只不过是他运动速度太快，看起来就像分身了. 这就是所谓的**并发(Concurrent)**(单处理器)。
 
 <br>
 
@@ -243,7 +243,7 @@ React 为什么要引入 Fiber 架构？ 看看下面的火焰图，这是React 
 
 <br>
 
-React 的 Reconcilation 是CPU密集型的操作, 它就相当于我们上面说的’长进程‘。所以初衷和进程调度一样，我们要让高优先级的进程或者短进程优先运行，不能让长进程长期霸占资源.
+React 的 Reconcilation 是CPU密集型的操作, 它就相当于我们上面说的’长进程‘。所以初衷和进程调度一样，我们要让高优先级的进程或者短进程优先运行，不能让长进程长期霸占资源。
 
 所以React 是怎么优化的？ 划重点， **🔴为了给用户制造一种应用很快的'假象'，我们不能让一个程序长期霸占着资源. 你可以将浏览器的渲染、布局、绘制、资源加载(例如HTML解析)、事件响应、脚本执行视作操作系统的'进程'，我们需要通过某些调度策略合理地分配CPU资源，从而提高浏览器的用户响应速率, 同时兼顾任务执行效率**。
 
@@ -1115,9 +1115,9 @@ React Fiber本质上是为了解决 React 更新低效率的问题，**不要期
 
 **迷你 Fiber 实现**:
 
-React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-jun) 在 [《为什么社区里那些类 React 库至今没有选择实现 Fiber 架构？》 ](https://www.zhihu.com/question/270428598/answer/354017709) 就开玩笑说: Fiber 性价比略低... 到了这个阶段，竞品太多，facebook 就搞一个 fiber 来作为护城河……
+React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Hax](https://www.zhihu.com/people/he-shi-jun) 在 [《为什么社区里那些类 React 库至今没有选择实现 Fiber 架构？》 ](https://www.zhihu.com/question/270428598/answer/354017709) 就开玩笑说: Fiber 性价比略低... 到了这个阶段，竞品太多，facebook 就搞一个 fiber 来作为护城河……
 
-如果你只是想了解 Fiber，去读 React 的源码性价比也很低，不妨看看这些 Mini 版实现, 感受其精髓，不求甚解:
+这种工程量不是一般团队能Hold住的， 如果你只是想了解 Fiber，去读 React 的源码性价比也很低，不妨看看这些 Mini 版实现, 感受其精髓，不求甚解:
 
 - [anu](https://github.com/RubyLouvre/anu) [司徒正美](https://github.com/RubyLouvre) 开发的类React框架
 - [Fre](https://github.com/132yse/fre) [伊撒尔](https://www.zhihu.com/people/132yse) 开发的类React框架，代码很精简⁉️
@@ -1165,6 +1165,10 @@ React 现在的代码库太复杂了! [Hax](https://www.zhihu.com/people/he-shi-
 
 <br>
 
+本文讲了 React 如何优化 CPU 问题，React 野心远不在于此, I/O 方向的优化也在实践，例如 Suspend...  还有很多没讲完，后面的文章见！
+
+<br>
+
 问卷调查，你觉得这种文章风格怎样？
 
 A. 事无巨细，太啰嗦了
@@ -1172,11 +1176,7 @@ B. 娓娓道来，深入浅出我喜欢
 C. 内容不够深入
 D. 文章篇幅太长，可以拆分
 
-多选，下方评论，点赞走起
-
-<br>
-
-还有很多没讲完，后面的文章见！
+多选，下方评论，👍点赞走起
 
 <br>
 
