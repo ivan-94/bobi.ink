@@ -29,24 +29,7 @@ categories: 前端
 
 **以下文章大纲**
 
-<!-- TOC -->
-
-- [单处理进程调度: Fiber 不是一个新的东西](#单处理进程调度-fiber-不是一个新的东西)
-- [类比浏览器JavaScript执行环境](#类比浏览器javascript执行环境)
-- [何为 Fiber](#何为-fiber)
-  - [1. 一种流程控制原语](#1-一种流程控制原语)
-  - [2. 一个执行单元](#2-一个执行单元)
-- [React 的Fiber改造](#react-的fiber改造)
-  - [1. 数据结构的调整](#1-数据结构的调整)
-  - [2. 两个阶段的拆分](#2-两个阶段的拆分)
-  - [3. Reconcilation](#3-reconcilation)
-  - [4. 双缓冲](#4-双缓冲)
-  - [5. 副作用的收集和提交](#5-副作用的收集和提交)
-- [⚠️ 未展开部分 🚧 -- 中断和恢复](#⚠️-未展开部分-🚧----中断和恢复)
-- [凌波微步](#凌波微步)
-- [站在巨人的肩膀上](#站在巨人的肩膀上)
-
-<!-- /TOC -->
+<!-- TOC -->autoauto- [单处理进程调度: Fiber 不是一个新的东西](#单处理进程调度-fiber-不是一个新的东西)auto- [类比浏览器JavaScript执行环境](#类比浏览器javascript执行环境)auto- [何为 Fiber](#何为-fiber)auto  - [1. 一种流程控制原语](#1-一种流程控制原语)auto  - [2. 一个执行单元](#2-一个执行单元)auto- [React 的Fiber改造](#react-的fiber改造)auto  - [1. 数据结构的调整](#1-数据结构的调整)auto  - [2. 两个阶段的拆分](#2-两个阶段的拆分)auto  - [3. Reconcilation](#3-reconcilation)auto  - [4. 双缓冲](#4-双缓冲)auto  - [5. 副作用的收集和提交](#5-副作用的收集和提交)auto- [⚠️ 未展开部分 🚧 -- 中断和恢复](#⚠️-未展开部分-🚧----中断和恢复)auto- [凌波微步](#凌波微步)auto- [站在巨人的肩膀上](#站在巨人的肩膀上)autoauto<!-- /TOC -->
 
 <br>
 <br>
@@ -219,11 +202,11 @@ JavaScript 是[单线程运行](https://juejin.im/post/5a6547d0f265da3e283a1df7)
 
 **对于’前端框架‘来说，解决这种问题有三个方向**:
 
-- 1️⃣ 优化每个任务，让它有多快就多快。挤压CPU运算本身的性能
+- 1️⃣ 优化每个任务，让它有多快就多快。挤压CPU运算量
 - 2️⃣ 快速响应用户，让用户觉得够快，不能阻塞用户的交互
-- 3️⃣ 尝试多线程
+- 3️⃣ 尝试 Worker 多线程
 
-Vue 选择的是第1️⃣, 因为对于Vue来说，使用`模板`让它有了很多优化的空间，配合响应式机制可以让Vue可以精确地进行节点更新；而 React 选择了后者。读者可以去看一下[今年Vue Conf 尤雨溪的演讲](https://www.yuque.com/vueconf/2019/gwn1z0)，非常棒!
+Vue 选择的是第1️⃣, 因为对于Vue来说，使用`模板`让它有了很多优化的空间，配合响应式机制可以让Vue可以精确地进行节点更新, 读者可以去看一下[今年Vue Conf 尤雨溪的演讲](https://www.yuque.com/vueconf/2019/gwn1z0)，非常棒!；而 React 选择了2️⃣ 。对于Worker 多线程渲染方案也有人尝试，要保证状态和视图的一致性相当麻烦。
 
 <br>
 
@@ -753,11 +736,13 @@ function performUnitOfWork(fiber: Fiber, topWork: Fiber) {
 
 需要注意的是：因为协调阶段可能被中断、恢复，甚至重做，**⚠️React 协调阶段的生命周期钩子可能会被调用多次!**, 例如 `componentWillMount` 可能会被调用两次。 
 
-因此建议 **协调阶段的生命周期钩子不应该包含副作用**. 索性 React 就废弃了这部分可能包含副作用的生命周期方法，例如`componentWillMount`、`componentWillMount`. v17后我们就不能再用它们了, 所以现有的应用应该尽快迁移.
+因此建议 **协调阶段的生命周期钩子不要包含副作用**. 索性 React 就废弃了这部分可能包含副作用的生命周期方法，例如`componentWillMount`、`componentWillMount`. v17后我们就不能再用它们了, 所以现有的应用应该尽快迁移.
 
 <br>
 
 现在你应该知道为什么'提交阶段'必须同步执行，不能中断的吧？ 因为我们要正确地处理各种副作用，包括DOM变更、还有你在`componentDidMount`中发起的异步请求、useEffect 中定义的副作用... 因为有副作用，所以必须保证按照次序只调用一次，况且会有用户可以察觉到的变更, 不容差池。
+
+关于为什么要拆分两个阶段，[这里](https://github.com/facebook/react/issues/13186#issuecomment-403959161)有更详细的解释。
 
 <br>
 <br>
@@ -1113,7 +1098,7 @@ React Fiber开启 Concurrent Mode 之后就不会挖大坑了，而是一小坑�
 
 尤雨溪在今年的[Vue Conf](https://www.yuque.com/vueconf/2019)一个观点让我印象深刻：**如果我们可以把更新做得足够快的话，理论上就不需要时间分片了**。
 
-React Fiber本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
+**时间分片并没有降低整体的工作量，该做的还是要做**。 所以说 React Fiber 本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
 
 <br>
 <br>
@@ -1143,11 +1128,11 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 - [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍](https://www.youtube.com/watch?v=ZCuYPiUIONs)
 - [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662)
+- [展望 React 17，回顾 React 往事 👍](https://www.zhihu.com/people/NE_SmallTown/posts)
 - [淡苍：深入剖析 React Concurrent 👍](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
 - [Didact Fiber: Incremental reconciliation  👍](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec)
 - [浅入 React16/fiber 系列 👍](https://zhuanlan.zhihu.com/p/36425839)
 - [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
-- [展望 React 17，回顾 React 往事](https://www.zhihu.com/people/NE_SmallTown/posts)
 - [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
 - [Fiber Principles: Contributing To Fiber](https://github.com/facebook/react/issues/7942)
