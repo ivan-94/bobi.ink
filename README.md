@@ -26,15 +26,12 @@
 - polyfill 服务
 - jest单元测试
 - webassembly
-- Apollo
 - 长列表的性能优化
 - 为CLI添加Web界面
 - 使用 gitlab 进行项目管理
 - dart for typescripter
 - 微前端
 - react 代码技巧
-- react-hooks 实例
-- babel插件
 - 小程序
 - workerize
 - 元编程
@@ -43,11 +40,9 @@
   - ruby
   - go
 - react performance user timing
-- react fiber
 - 大企业是怎么管理前端静态资源的?
 - angular 先进在哪里
-- 看板
-- macro
 - mobx异步更新
 - DOM 树查询算法
 - react 服务端流
+- Apollo 与 状态管理

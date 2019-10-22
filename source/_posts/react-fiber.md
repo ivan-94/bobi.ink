@@ -29,7 +29,21 @@ categories: 前端
 
 **以下文章大纲**
 
-<!-- TOC -->autoauto- [单处理进程调度: Fiber 不是一个新的东西](#单处理进程调度-fiber-不是一个新的东西)auto- [类比浏览器JavaScript执行环境](#类比浏览器javascript执行环境)auto- [何为 Fiber](#何为-fiber)auto  - [1. 一种流程控制原语](#1-一种流程控制原语)auto  - [2. 一个执行单元](#2-一个执行单元)auto- [React 的Fiber改造](#react-的fiber改造)auto  - [1. 数据结构的调整](#1-数据结构的调整)auto  - [2. 两个阶段的拆分](#2-两个阶段的拆分)auto  - [3. Reconcilation](#3-reconcilation)auto  - [4. 双缓冲](#4-双缓冲)auto  - [5. 副作用的收集和提交](#5-副作用的收集和提交)auto- [⚠️ 未展开部分 🚧 -- 中断和恢复](#⚠️-未展开部分-🚧----中断和恢复)auto- [凌波微步](#凌波微步)auto- [站在巨人的肩膀上](#站在巨人的肩膀上)autoauto<!-- /TOC -->
+- [单处理进程调度: Fiber 不是一个新的东西](#单处理进程调度-fiber-不是一个新的东西)
+- [类比浏览器JavaScript执行环境](#类比浏览器javascript执行环境)
+- [何为 Fiber](#何为-fiber)
+  - [1. 一种流程控制原语](#1-一种流程控制原语)
+  - [2. 一个执行单元](#2-一个执行单元)
+- [React 的Fiber改造](#react-的fiber改造)
+  - [1. 数据结构的调整](#1-数据结构的调整)
+  - [2. 两个阶段的拆分](#2-两个阶段的拆分)
+  - [3. Reconcilation](#3-reconcilation)
+  - [4. 双缓冲](#4-双缓冲)
+  - [5. 副作用的收集和提交](#5-副作用的收集和提交)
+- [⚠️ 未展开部分 🚧 -- 中断和恢复](#⚠️-未展开部分-🚧----中断和恢复)
+- [凌波微步](#凌波微步)
+- [站在巨人的肩膀上](#站在巨人的肩膀上)
+
 
 <br>
 <br>
@@ -1090,17 +1104,23 @@ function commitAllWork(fiber) {
 
 前面说了一大堆，从操作系统进程调度、到浏览器原理、再到合作式调度、最后谈了React的基本改造工作, 地老天荒... 就是为了上面的小人可以在练就凌波微步, 它脚下的坑是浏览器的调用栈。
 
-React Fiber开启 Concurrent Mode 之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就优先去做。
+React 开启 `Concurrent Mode` 之后就不会挖大坑了，而是一小坑一坑的挖，挖一下休息一下，有紧急任务就优先去做。
+
+<br>
 
 ![](/images/react-fiber/benifit.png)
 <i>来源：<a href="https://www.youtube.com/watch?v=V1Ly-8Z1wQA&t=207s">Flarnie Marchan - Ready for Concurrent Mode?</a></i>
 
-开启Concurrent Mode后，我们可以得到以下好处:
+<br>
+
+开启 `Concurrent Mode` 后，我们可以得到以下好处(详见[Concurrent Rendering in React](https://www.youtube.com/watch?v=ByBPyMBTzM0)):
 
 - 快速响应用户操作和输入，提升用户交互体验
-- 必要时降低加载状态(load state)的优先级，减少闪屏. 比如数据很快返回时，可以不必显示加载状态，而是直接显示出来，避免闪屏
-- 利用好I/O 操作空闲期或者CPU空闲期，进行一些预渲染
 - 让动画更加流畅，通过调度，可以让应用保持高帧率
+- 利用好I/O 操作空闲期或者CPU空闲期，进行一些预渲染。 比如离屏(offscreen)不可见的内容，优先级最低，可以让 React 等到CPU空闲时才去渲染这部分内容。这和浏览器的preload等预加载技术差不多。
+- 用`Suspense` 降低加载状态(load state)的优先级，减少闪屏。 比如数据很快返回时，可以不必显示加载状态，而是直接显示出来，避免闪屏；如果超时没有返回才显式加载状态。
+
+<br>
 
 但是它肯定不是完美的，因为浏览器无法实现抢占式调度，无法阻止开发者做傻事的，开发者可以随心所欲，想挖多大的坑，就挖多大的坑。
 
@@ -1108,7 +1128,7 @@ React Fiber开启 Concurrent Mode 之后就不会挖大坑了，而是一小坑�
 
 尤雨溪在今年的[Vue Conf](https://www.yuque.com/vueconf/2019)一个观点让我印象深刻：**如果我们可以把更新做得足够快的话，理论上就不需要时间分片了**。
 
-**时间分片并没有降低整体的工作量，该做的还是要做**, 因此React 也在考虑利用CPU空闲或者I/O空闲期间做一些预渲染。所以说 React Fiber 本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
+**时间分片并没有降低整体的工作量，该做的还是要做**, 因此React 也在考虑利用CPU空闲或者I/O空闲期间做一些预渲染。所以跟尤雨溪说的一样：React Fiber 本质上是为了解决 React 更新低效率的问题，**不要期望 Fiber 能给你现有应用带来质的提升, 如果性能问题是自己造成的，自己的锅还是得自己背**.
 
 <br>
 <br>
@@ -1136,13 +1156,14 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 本文只是对React Fiber进行了简单的科普，实际上React 的实现比本文复杂的多，如果你想深入理解React Fiber的，下面这些文章不容错过:
 
-- [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍🎦](https://www.youtube.com/watch?v=ZCuYPiUIONs) React Fiber 启蒙
+- [Lin Clark - A Cartoon Intro to Fiber - React Conf 2017 👍🎦](https://www.youtube.com/watch?v=ZCuYPiUIONs) React Fiber 启蒙，YouTube
+- [Beyond React 16 - Dan Abramov 👍🎦](https://reactjs.org/blog/2018/03/01/sneak-peek-beyond-react-16.html)
+- [Concurrent Rendering in React - Andrew Clark and Brian Vaughn 👍🎦](https://www.youtube.com/watch?v=ByBPyMBTzM0&t=151s)
 - [司徒正美: React Fiber架构 👍](https://zhuanlan.zhihu.com/p/37095662) 看不如写
 - [展望 React 17，回顾 React 往事 👍](https://www.zhihu.com/people/NE_SmallTown/posts) 看完 [Heaven](https://www.zhihu.com/people/NE_SmallTown) 的相关文章，会觉得你了解的React 知识真的只是[冰山一角](https://zhuanlan.zhihu.com/jheaven)，我们都没资格说我们懂 React。
 - [浅入 React16/fiber 系列 👍](https://zhuanlan.zhihu.com/p/36425839) 同样来自 Heaven
 - [淡苍：深入剖析 React Concurrent 👍](https://www.zhihu.com/search?type=content&q=requestIdleCallback)
 - [Didact Fiber: Incremental reconciliation  👍](https://engineering.hexacta.com/didact-fiber-incremental-reconciliation-b2fe028dcaec) 实现了简单的 React Fiber
-- [Concurrent Rendering in React - Andrew Clark and Brian Vaughn 🎦](https://www.youtube.com/watch?v=ByBPyMBTzM0&t=151s)
 - [程墨: React Fiber是什么](https://zhuanlan.zhihu.com/p/26027085)
 - [译 深入React fiber架构及源码](https://zhuanlan.zhihu.com/p/57346388)
 - [黯羽轻扬: 完全理解React Fiber](http://www.ayqy.net/blog/dive-into-react-fiber/)
@@ -1179,14 +1200,14 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 问卷调查，你觉得这种文章风格怎样？
 
-A. 事无巨细，太啰嗦了
-B. 娓娓道来，深入浅出我喜欢
-C. 内容不够深入
-D. 文章篇幅太长，可以拆分
+- A. 事无巨细，太啰嗦了
+- B. 娓娓道来，深入浅出我喜欢
+- C. 内容不够深入
+- D. 文章篇幅太长，可以拆分
 
 多选，下方评论，👍点赞走起
 
-改了一个正经一点的网名：_sx_(傻叉) -> 荒山 ⛰
+> **改了一个正经一点的网名：_sx_(傻叉) -> 荒山 ⛰**
 
 <br>
 
