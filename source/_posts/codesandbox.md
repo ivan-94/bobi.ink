@@ -1,5 +1,5 @@
 ---
-title: "[技术地图] CodeSandbox 如何工作? 上篇"
+title: "CodeSandbox 如何工作? 上篇"
 date: 2019/6/20
 categories: 前端
 ---
