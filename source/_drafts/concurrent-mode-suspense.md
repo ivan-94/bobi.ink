@@ -12,6 +12,24 @@ categories: 前端
 
 <br>
 
+<!-- TOC -->
+
+- [什么是Concurrent Mode?](#什么是concurrent-mode)
+- [开启](#开启)
+- [Suspense](#suspense)
+- [Suspense 的实现原理](#suspense-的实现原理)
+- [缓存 Suspense 的状态](#缓存-suspense-的状态)
+- [并发发起请求](#并发发起请求)
+- [处理竞态](#处理竞态)
+- [错误处理](#错误处理)
+- [Suspense 编排](#suspense-编排)
+  - [过渡](#过渡)
+- [CPU: Time Slicing](#cpu-time-slicing)
+
+<!-- /TOC -->
+
+<br>
+
 ## 什么是Concurrent Mode?
 
 ![](/images/concurrent-mode/cpu-vs-io.jpg)
@@ -280,22 +298,167 @@ function ComponentThatThrowResolvedPromise() {
 - 由父级组件来缓存状态
 - 使用 Context API
 
-同步的方式来加载异步数据
+<br>
 
-react-cache
+本文就用 Context API 作为例子，简单介绍如何缓存 `Suspense` 异步操作的状态。我们的异步状态定义如下：
 
-branch
+```js
+export enum PromiseState {
+  Initial,  // 初始化状态，即首次创建
+  Pending,  // Promise 处于pending 状态
+  Resolved, // 正常结束
+  Rejected, // 异常
+}
+
+// 我们将保存在 Context 中的状态
+export interface PromiseValue {
+  state: PromiseState
+  value: any
+}
+```
+
+创建一个 Context 专门来缓存异步状态, 为了行文简洁，我们这个Context很简单，就是一个key-value存储：
+
+```js
+interface ContextValues {
+  getResult(key: string): PromiseValue
+  resetResult(key: string): void
+}
+
+const Context = React.createContext<ContextValues>({} as any)
+
+export const SimplePromiseCache: FC = props => {
+  const cache = useRef<Map<string, PromiseValue> | undefined>()
+
+  // 根据key获取缓存
+  const getResult = useCallback((key: string) => {
+    cache.current = cache.current || new Map()
+
+    if (cache.current.has(key)) {
+      return cache.current.get(key)!
+    }
+
+    const result = { state: PromiseState.Initial, value: undefined }
+
+    cache.current.set(key, result)
+    return result
+  }, [])
+
+  // 根据key c重置缓存
+  const resetResult = useCallback((key: string) => {
+    if (cache.current != null)  cache.current.delete(key)
+  }, [])
+
+  const value = useMemo(() => ({ getResult, resetResult, }), [])
+
+  return <Context.Provider value={value}>{props.children}</Context.Provider>
+}
+```
+
+后面是重头戏，我们创建一个 `usePromise` 钩子来封装 Promise, 简化繁琐的步骤:
+
+```ts
+export function usePromise<R>(prom: Promise<R>, key: string): { data: R; reset: () => void } {
+  const [, setCount] = useState(0)
+  const context = useContext(Context)
+
+  // ⚛️ 监听key变化，并重新发起请求
+  useEffect(
+    () => {
+      setCount(c => c + 1)
+    },
+    [key],
+  )
+
+  // ️⚛️ 异步处理
+  // 从 Context 中取出缓存
+  const result = context.getResult(key)
+  switch (result.state) {
+    case PromiseState.Initial:
+      // ⚛️初始状态
+      result.state = PromiseState.Pending
+      result.value = prom
+      prom.then(
+        value => {
+          if (result.state === PromiseState.Pending) {
+            result.state = PromiseState.Resolved
+            result.value = value
+          }
+        },
+        err => {
+          if (result.state === PromiseState.Pending) {
+            result.state = PromiseState.Rejected
+            result.value = err
+          }
+        },
+      )
+      // 抛出promise，并中断渲染
+      throw prom
+    case PromiseState.Pending:
+      // ⚛️ 还处于请求状态，一个任务可能有多个组件触发，后面的渲染的组件可能会拿到Pending状态
+      throw result.value
+    case PromiseState.Resolved:
+      // ⚛️ 已正常结束
+      return {
+        data: result.value,
+        reset: () => {
+          context.resetResult(key)
+          setCount(c => c + 1)
+        },
+      }
+    case PromiseState.Rejected:
+      // ⚛️ 异常结束，抛出错误
+      throw result.value
+  }
+}
+```
+
+上面的代码也没有特别难的地方，就是根据当前的异常请求的状态决定要抛出Promise还是返回异步请求的结果。
+
+等不及，赶紧用起来, 首先用`SimplePromiseCache` 包裹Suspense的上级组件，以便下级组件可以获取到缓存:
+
+```tsx
+function App() {
+  return (<SimplePromiseCache>
+    <Suspense fallback="loading...">
+      <DelayShow timeout={3000}/>
+    </Suspense>
+  </SimplePromiseCache>)
+}
+```
+
+小试牛刀:
+
+```tsx
+function DelayShow({timeout}: {timeout: number}) {
+  const { data } = usePromise(
+    new Promise<number>(res => {
+      setTimeout(() => res(timeout), timeout)
+    }),
+    'delayShow', // 缓存键
+  )
+
+  return <div>DelayShow: {data}</div>
+}
+```
+
+上面代码的运行效果如下：
+
+![](/images/concurrent-mode/usepromise.gif)
+
+这一节展示了如何使用 Context API来对异步操作进行缓存，这可能比你想象的要复杂的点，手动去管理这些缓存是一个棘手的问题。包括 React 官方也没有给出一个完美的答案, 这个坑还是留给社区去探索吧。
+
+不过对于普通 React 开发者来说不必过早关注这些细节，相信很快会有很多 React 数据请求相关的第三方库会跟进 Suspense。
 
 <br>
 
-提供了内置的异步操作和异常处理原语
+## 并发发起请求
 
+## 处理竞态
 
-### 并发发起请求
+## 错误处理
 
-### 处理竞态
-
-### 错误处理
+## Suspense 编排
 
 ### 过渡
 
