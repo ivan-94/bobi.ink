@@ -750,7 +750,7 @@ function performUnitOfWork(fiber: Fiber, topWork: Fiber) {
 
 需要注意的是：因为协调阶段可能被中断、恢复，甚至重做，**⚠️React 协调阶段的生命周期钩子可能会被调用多次!**, 例如 `componentWillMount` 可能会被调用两次。 
 
-因此建议 **协调阶段的生命周期钩子不要包含副作用**. 索性 React 就废弃了这部分可能包含副作用的生命周期方法，例如`componentWillMount`、`componentWillMount`. v17后我们就不能再用它们了, 所以现有的应用应该尽快迁移.
+因此建议 **协调阶段的生命周期钩子不要包含副作用**. 索性 React 就废弃了这部分可能包含副作用的生命周期方法，例如`componentWillMount`、`componentWillUpdate`. v17后我们就不能再用它们了, 所以现有的应用应该尽快迁移.
 
 <br>
 
