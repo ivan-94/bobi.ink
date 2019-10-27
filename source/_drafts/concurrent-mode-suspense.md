@@ -25,6 +25,7 @@ categories: 前端
 - [处理竞态](#处理竞态)
 - [错误处理](#错误处理)
 - [Suspense 编排](#suspense-编排)
+- [总结](#总结)
 
 <!-- /TOC -->
 
@@ -905,3 +906,80 @@ export default sup(
 <br>
 
 ## Suspense 编排
+
+所有页面上有很多 Suspense, 那么多个圈在转，用户体验并不好，会给人一种加载慢的感觉。但是我们又不好直接将它们合并，因为每一块加载优先级、生命周期都不一样，强行绑在也不好。例如:
+
+```tsx
+function UserPage() {
+  return (<Suspense fallback="loading...">
+    <UserInfo resource={infoResource} />
+    <UserPost resource={postResource} />
+  </Suspense>)
+}
+```
+
+例如 UserPost 需要进行分页，每次点击下一页都会导致整个 `UserPage` loading... 这肯定无法接受...
+
+因此Concurrent 模式引入了一个新的API `SuspenseList`, 用来对多个 Suspense 的加载状态进行编排。
+
+```tsx
+function Page({ resource }) {
+  return (
+    <SuspenseList revealOrder="forwards">
+      <Suspense fallback={<h2>Loading Foo...</h2>}>
+        <Foo resource={resource} />
+      </Suspense>
+      <Suspense fallback={<h2>Loading Bar...</h2>}>
+        <Bar resource={resource} />
+      </Suspense>
+    </SuspenseList>
+  );
+}
+```
+
+revealOrder 表示显式的顺序，它目前有三个可选值: forwards, backwards, together:
+
+- forwards, 由前到后显示。也就说前面的没有加载完成，后面的不会显式处理，即使后面的提前完成异步操作，也需要等待前面的执行完成
+  假设Bar完成时间是100ms，Foo完成是1s。展示过程如下：
+  
+  ```txt
+  Loading Foo...
+  Loading Bar...
+  ```
+
+  尽管Bar提前完成了，但是前面的Foo没完成，所以还需继续等待, 1s后一起显示出来
+
+- barwards, 和forwards相反, 由后到前依次显示.
+
+  这时候Bar先完成, 所以会先显示:
+
+  ```txt
+  Loading Foo...
+  Bar's Content
+  ```
+
+  接着Foo 加载完成：
+
+  ```txt
+  Foo's Content
+  Bar's Content
+  ```
+
+- together，等所有Suspense 加载完成后一起显示 
+
+<br>
+
+除此之外 SuspenseList 还有另外一个属性`tail`, 用来表示是否要折叠这些Suspense，有三个值 undefined, collapsed, hidden
+
+- 默认值, 全部显示
+- collapsed, 折叠，只显示第一个正在加载的Suspense
+- hidden, 不显示任何加载状态 
+
+<br>
+
+SuspenseList 是可组合的，SuspenseList 下级可以包含其他 SuspenseList
+
+<br>
+<br>
+
+## 总结
