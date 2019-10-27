@@ -848,6 +848,59 @@ function UserPage({id}: {id: string}) {
 
 ## 错误处理
 
+如果异步请求异常了怎么解决？ 我们在上文 Suspense 实现原理 一节已经说了，如果异步请求失败，React 会抛出异常，我们可以通过 ErrorBoundary 机制将其捕获。我们可以写一个高阶组件来简化Suspense 和 异常处理的过程:
+
+```tsx
+export default function sup<P>(
+  fallback: NonNullable<React.ReactNode>,
+  catcher: (err: any) => NonNullable<React.ReactNode>,
+) {
+  return (Comp: React.ComponentType<P>) => {
+    interface State {
+      error?: any
+    }
+
+    class Sup extends React.Component<P, State> {
+      state: State = {}
+
+      // 捕获异常
+      static getDerivedStateFromError(error: any) {
+        return { error }
+      }
+
+      render() {
+        return (
+          <Suspense fallback={fallback}>
+            {this.state.error ? catcher(this.state.error) : <Comp {...this.props} />}
+          </Suspense>
+        )
+      }
+    }
+
+    return Sup
+  }
+}
+```
+
+<br>
+
+用起来:
+
+```ts
+// UserInfo.tsx
+
+const UserInfo: FC<UserInfoProps> = (props) => {/* ... */}
+
+export default sup(
+  <Loading text="用户加载中..."/>,
+  (err) => <ErrorMessage error={err} />
+)(UserInfo)
+```
+
+<br>
+
+减少了一些样板代码，还算比较简洁。
+
 <br>
 <br>
 
