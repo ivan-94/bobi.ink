@@ -1,5 +1,5 @@
 ---
-title: "React Concurrent Mode 抢先预览: Suspense 篇"
+title: "React Concurrent Mode 抢先预览: Suspense 原理与实战"
 date: 2019/10/26
 categories: 前端
 ---
@@ -25,8 +25,6 @@ categories: 前端
 - [处理竞态](#处理竞态)
 - [错误处理](#错误处理)
 - [Suspense 编排](#suspense-编排)
-  - [过渡](#过渡)
-- [CPU: Time Slicing](#cpu-time-slicing)
 
 <!-- /TOC -->
 
@@ -754,14 +752,103 @@ function ProfileTimeline() {
 
 ## 处理竞态
 
+就算 Javascript 是单线程的, 也可能需要处理竞争状态，因为异步操作的时序是无法被保证的。
+
+少卖关子，讲个实例。有这个一个组件，它依赖外部传递进来的 id 来获取并渲染数据:
+
+```tsx
+function UserInfo({id}: {id: string}) {
+  const [user, setUser] = useState<User|undefined>()
+
+  /**
+   * ⚛️ 监听id变化并发起请求
+   */
+  useEffect(() => {
+    fetchUserInfo().then(user => setUser(user))
+  }, [id])
+
+  return user == null ? <Loading /> : renderUser(user)
+}
+```
+
+<br>
+
+上面的代码有什么问题呢？假设id变化了多次，这里会发起多个请求，但是这个请求完成的顺序是没办法保证的，这就会导致竞态，先发起的请求可能最后才完成，这就导致页面呈现错误的数据。
+
+怎么解决？也比较好解决，利用类似乐观锁的机制。我们可以保存本次请求的id，如果请求结束时id不一致，就说明已经有新的请求发起:
+
+```tsx
+function UserInfo({id}: {id: string}) {
+  const [user, setUser] = setState<User|undefined>()
+  const currentId = useRef<string>()
+
+  /**
+   * ⚛️ 监听id变化并发起请求
+   */
+  useEffect(() => {
+    currentId.current = id
+    fetchUserInfo().then(user => {
+      // id 不一致，说明已经有新的请求发起了, 放弃
+      if (id !== currentId.current) {
+        return
+      }
+
+      setUser(user)
+    })
+  }, [id])
+
+  return user == null ? <Loading /> : renderUser(user)
+}
+```
+
+<br>
+
+Suspense 下面不存在静态问题，上面的代码用 Suspense 实现如下:
+
+```tsx
+function UserInfo({resource}: {resource: Resource<User>}) {
+  const user = resource.read()
+  return renderUser(user)
+}
+```
+
+我靠这么简洁！看看它的上级组件:
+
+```tsx
+
+function createUserResource(id: string) {
+  return {
+    info: createResource(() => fecthUserInfo(id)),
+    timeline: createResource(() => fecthTimeline(id)),
+  }
+}
+
+function UserPage({id}: {id: string}) {
+  const [resource, setResource] = useState(() => createUserResource(id))
+
+  // ⚛️ 将id的监听迁移到了这里
+  useEffect(() => {
+    // 重新设置resource
+    setResource(createUserResource(id))
+  }, [id])
+
+  return (<div className="user-page">
+    <Suspense loading="Loading User...">
+      <UserInfo resource={resource.info} />
+      <Timeline resource={resource.timeline} />
+    </Suspense>
+  </div>)
+}
+```
+
+完美解决了异步请求的竞态问题，在这里'异步请求'就跟'同步请求'一样...
+
+<br>
+<br>
+
 ## 错误处理
 
+<br>
+<br>
+
 ## Suspense 编排
-
-### 过渡
-
-提供了多个‘复杂’的接口来实现页面的过渡
-
-一次性刷新页面
-
-## CPU: Time Slicing
