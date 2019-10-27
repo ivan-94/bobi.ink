@@ -19,6 +19,8 @@ categories: 前端
 - [Suspense](#suspense)
 - [Suspense 的实现原理](#suspense-的实现原理)
 - [缓存 Suspense 的状态](#缓存-suspense-的状态)
+  - [使用 Context API](#使用-context-api)
+  - [将缓存状态提取到父级](#将缓存状态提取到父级)
 - [并发发起请求](#并发发起请求)
 - [处理竞态](#处理竞态)
 - [错误处理](#错误处理)
@@ -300,7 +302,9 @@ function ComponentThatThrowResolvedPromise() {
 
 <br>
 
-本文就用 Context API 作为例子，简单介绍如何缓存 `Suspense` 异步操作的状态。我们的异步状态定义如下：
+### 使用 Context API
+
+我们先用 Context API 作为例子，简单介绍如何缓存 `Suspense` 异步操作的状态。我们的异步状态定义如下：
 
 ```js
 export enum PromiseState {
@@ -449,6 +453,139 @@ function DelayShow({timeout}: {timeout: number}) {
 这一节展示了如何使用 Context API来对异步操作进行缓存，这可能比你想象的要复杂的点，手动去管理这些缓存是一个棘手的问题。包括 React 官方也没有给出一个完美的答案, 这个坑还是留给社区去探索吧。
 
 不过对于普通 React 开发者来说不必过早关注这些细节，相信很快会有很多 React 数据请求相关的第三方库会跟进 Suspense。
+
+### 将缓存状态提取到父级
+
+相比Context API，我觉得这是一种更普适的方式，既然无法在Suspense的子组件中缓存异步状态，那就提到父级，这样可以避免全局状态，不需要缓存键, 可以灵活地管理这些状态，另外也简化了下级组件。
+
+So，怎么做？我们基于 `usePromise`, 创建一个`createResource` 函数, 它不再是一个Hooks，而是创建一个资源对象, 接口如下:
+
+```ts
+function createResource<R>(prom: () => Promise<R>): Resource<R>
+```
+
+createResource 返回一个 `Resource` 对象:
+
+```ts
+interface Resource<R> {
+  // 读取'资源', 在Suspense包裹的下级组件中调用, 和上文的usePromise一样的效果
+  read(): R
+  // ⚛️外加的好处，预加载
+  preload(): void
+}
+```
+
+因为 Resource 在父级组件创建，这有一个外加的好处，我们可以在下级组件调用 `read()` 之前，执行 `preload()` 预执行异步操作。从而加快下级组件的渲染。
+
+<br>
+
+createResource 实现：
+
+```ts
+export default function createResource<R>(prom: () => Promise<R>): Resource<R> {
+  const result: PromiseValue = {
+    state: PromiseState.Initial,
+    value: prom,
+  }
+
+  function initial() {
+    if (result.state !== PromiseState.Initial) {
+      return
+    }
+    result.state = PromiseState.Pending
+    const p = (result.value = result.value())
+    p.then(
+      (value: any) => {
+        if (result.state === PromiseState.Pending) {
+          result.state = PromiseState.Resolved
+          result.value = value
+        }
+      },
+      (err: any) => {
+        if (result.state === PromiseState.Pending) {
+          result.state = PromiseState.Rejected
+          result.value = err
+        }
+      },
+    )
+    return p
+  }
+
+  return {
+    read() {
+      switch (result.state) {
+        case PromiseState.Initial:
+          // ⚛️初始状态
+          // 抛出promise，并中断渲染
+          throw initial()
+        case PromiseState.Pending:
+          // ⚛️ 还处于请求状态，一个任务可能有多个组件触发，后面的渲染的组件可能会拿到Pending状态
+          throw result.value
+        case PromiseState.Resolved:
+          // ⚛️ 已正常结束
+          return result.value
+        case PromiseState.Rejected:
+          // ⚛️ 异常结束，抛出错误
+          throw result.value
+      }
+    },
+    preload: initial,
+  }
+}
+```
+
+createResource的用法也很简单, 在父组件创建resource，接着通过 Resource 传递给子组件。
+
+下面展示一个Tabs组件，展示三个子Tab，因为同时只能显示一个Tab，我们可以选择预加载那些未显示的Tab, 来提升它们的打开速度:
+
+```ts
+const App = () => {
+  const [active, setActive] = useState('tab1')
+  const [resources] = useState(() => ({
+    tab1: createResource(() => fetchPosts()),
+    tab2: createResource(() => fetchOrders()),
+    tab3: createResource(() => fetchUsers()),
+  }))
+
+  useEffect(() => {
+    // 预加载未展示的Tab数据
+    Object.keys(resources).forEach(name => {
+      if (name !== active) {
+        resources[name].preload()
+      }
+    })
+  }, [])
+
+  return (<div className="app">
+    <Suspense fallback="loading...">
+      <Tabs active={active} onChange={setActive}>
+        <Tab key="tab1"><Posts resource={resources.tab1}></Posts></Tab>
+        <Tab key="tab2"><Orders resource={resources.tab2}></Orders></Tab>
+        <Tab key="tab3"><Users resource={resources.tab3}></Users></Tab>
+      </Tabs>
+    </Suspense>
+  </div>)
+}
+```
+
+我们随便挑一个子组件, 看一下它的实现：
+
+```ts
+const Posts: FC<{resource: Resource<Post[]>}> = ({resource}) => {
+  const posts = resource.read()
+
+  return (<div className="posts">
+    {posts.map(i => <PostSummary key={i.id} value={i} />)}
+  </div>)
+}
+```
+
+<br>
+
+Ok, 这种方式相比Context API好很多了，我个人也偏向这种形式。不过两种各有应用场景:
+
+- Context API 模式比较适合第三方数据请求库，比如Apollo、Relay。这种模式下，API会更加简洁、优雅。参考 [Relay 的 API](https://relay.dev/docs/en/experimental/api-reference#uselazyloadquery)
+- createResource 模式则更适合普通开发者封装自己的异步操作。
 
 <br>
 
