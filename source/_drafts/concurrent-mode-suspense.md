@@ -591,6 +591,167 @@ Ok, 这种方式相比Context API好很多了，我个人也偏向这种形式�
 
 ## 并发发起请求
 
+![](/images/concurrent-mode/twitter.png)
+
+<br>
+
+如上图，现实项目中经常会有这种场景，一个复杂的界面数据可能来源于多个接口，例如:
+
+```ts
+function ProfilePage() {
+  const [user, setUser] = useState(null);
+
+  // 先拿到用户信息
+  useEffect(() => {
+    fetchUser().then(u => setUser(u));
+  }, []);
+
+  if (user === null) {
+    return <p>Loading profile...</p>;
+  }
+
+  return (
+    <>
+      <h1>{user.name}</h1>
+      <ProfileTimeline />
+    </>
+  );
+}
+
+function ProfileTimeline() {
+  const [posts, setPosts] = useState(null);
+
+  useEffect(() => {
+    fetchPosts().then(p => setPosts(p));
+  }, []);
+
+  if (posts === null) {
+    return <h2>Loading posts...</h2>;
+  }
+
+  return (
+    <ul>
+      {posts.map(post => (
+        <li key={post.id}>{post.text}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+上面的代码示例来源于官方文档。上面代码 `fetchUser` 和 `fetchPosts` 目前是串行加载的，我们想让页面尽快的加载出来, 解决这个问题有两个方法：
+
+- 1️⃣ 将 fetchPosts 提到上级, 使用 `Promise.all` 并发加载
+- 2️⃣ 将两者抽取成独立的组件，变成兄弟关系而不是父子关系
+
+<br>
+
+首先来看一下 1️⃣:
+
+```ts
+function fetchProfileData() {
+  // 使用 promise all 并发加载
+  return Promise.all([
+    fetchUser(),
+    fetchPosts()
+  ]).then(([user, posts]) => {
+    return {user, posts};
+  })
+}
+
+const promise = fetchProfileData();
+function ProfilePage() {
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState(null);
+
+  useEffect(() => {
+    promise.then(data => {
+      setUser(data.user);
+      setPosts(data.posts);
+    });
+  }, []);
+
+  if (user === null) {
+    return <p>Loading profile...</p>;
+  }
+  return (
+    <>
+      <h1>{user.name}</h1>
+      {/* ProfileTimeline 变成了纯组件，不包含业务请求 */}
+      <ProfileTimeline posts={posts} />
+    </>
+  );
+}
+```
+
+看起来不错，然后这个方式也存在硬伤:
+
+- ① 异步请求都要上提，并使用Promise.all 包裹，我觉得好麻烦。
+- ② 现在加载时间取决于 Promise.all 中执行最长的操作，说好的尽快渲染出来呢？fetchPosts可能会加载很长，而fetchUser应该很快完成了，至少应该让用户先看到用户信息。
+
+<br>
+
+1️⃣方案不是特别好，来看一下2️⃣方案:
+
+```tsx
+function ProfilePage() {
+  return (<div className="profile-page">
+    <ProfileDetails />
+    <ProfileTimeline />
+  </div>)
+}
+```
+
+2️⃣方案是没有 Suspense 之前最好的方式，ProfileDetails 负责加载用户信息，ProfileTimeline 负责加载时间线，两者并发执行，互不干扰。
+
+但是它也是有一点缺点的：页面加载是会有两个`加载指示符`, 能不能合并？有可能 ProfileTimeline 先完成了，这时候 ProfileDetails 还在转圈，页面会很怪...
+
+现在有请方案3️⃣: `Suspense` 🎉
+
+```tsx
+const resource = fetchProfileData();
+
+function ProfilePage() {
+  return (
+    <Suspense fallback={<h1>Loading profile...</h1>}>
+      <ProfileDetails />
+      <Suspense fallback={<h1>Loading posts...</h1>}>
+        <ProfileTimeline />
+      </Suspense>
+    </Suspense>
+  );
+}
+
+function ProfileDetails() {
+  const user = resource.user.read();
+  return <h1>{user.name}</h1>;
+}
+
+function ProfileTimeline() {
+  const posts = resource.posts.read();
+  return (
+    <ul>
+      {posts.map(post => (
+        <li key={post.id}>{post.text}</li>
+      ))}
+    </ul>
+  );
+
+```
+
+
+当 React 渲染 ProfilePage 时, 它会返回 ProfileDetails 和 ProfileTimeline。
+
+首先渲染 ProfileDetails 这时候资源未加载完毕，这里会抛出promise异常，中断 ProfileDetails 的渲染。
+
+接着 React 尝试渲染 ProfileTimeline, 同样抛出promise异常。
+
+最后 React 找到 ProfileDetails 最近的Suspense，显示 Loading Profile...
+
+和方案2️⃣一样，Suspense 支持并发发起请求，另外它解决了方案 2️⃣ 的一些缺陷: 加载指示符只有一个，而且如果 ProfileTimeline 率先完成，也不会显示出来。
+
+<br>
+
 ## 处理竞态
 
 ## 错误处理
