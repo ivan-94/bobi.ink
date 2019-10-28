@@ -18,7 +18,9 @@ categories: 前端
 
 **如果 React Hooks 目的是提高开发体验，那么 Concurrent 模式则专注于提升用户体验**，表面上它对我们的开发的可能影响不大，React 内部已经变了好几重天。
 
-这系列文章主要来源于官方的[预览文档](https://reactjs.org/docs/concurrent-mode-intro.html), 专门给 React 尝鲜者准备。这个月 Vue 3.0 源码发布，掘金相关文章像井喷一样，没理由 React 这么大新闻(尽管这个新闻3年前大家就知道了)... 我来带个头吧。
+这系列文章主要来源于官方的[预览文档](https://reactjs.org/docs/concurrent-mode-intro.html), 专门给 React 尝鲜者准备。
+
+这个月 Vue 3.0 源码发布，掘金相关文章像井喷一样，没理由 React 这么'大新闻'(尽管这个新闻3年前大家就知道了)... 我来带个头吧。
 
 <br>
 
@@ -91,7 +93,7 @@ yarn add react@experimental react-dom@experimental
 
 开始 Concurrent 模式:
 
-```tsx
+```js
 import ReactDOM from 'react-dom';
 
 ReactDOM.createRoot(
@@ -136,7 +138,7 @@ React.lazy 这是一次小小的尝试, Suspense 还有大用。
 
 现在, 我们可以更酷地使用 Suspense，相信我，马上它就会成为你手中的利剑。 有了它你可以这样请求远程数据:
 
-```ts
+```js
 function Posts() {
   const posts = useQuery(GET_MY_POSTS)
 
@@ -158,7 +160,7 @@ function App() {
 
 加载依赖脚本:
 
-```ts
+```js
 function MyMap() {
   useImportScripts('//api.map.baidu.com/api?v=2.0&ak=您的密钥')
 
@@ -208,7 +210,7 @@ function App() {
 
 其实，符合该场景的、现成的最好的'异常对象'是 Promise。 那就撸起袖子，实现一个:
 
-```ts
+```js
 export interface SuspenseProps {
   fallback: React.ReactNode
 }
@@ -432,7 +434,7 @@ export const SimplePromiseCache: FC = props => {
 
 后面是重头戏，我们创建一个 `usePromise` Hooks来封装异步操作, 简化繁琐的步骤:
 
-```ts
+```js
 /**
  * @params prom 接收一个Promise，进行异步操作
  * @params key 缓存键
@@ -501,7 +503,7 @@ export function usePromise<R>(prom: Promise<R>, key: string): { data: R; reset: 
 
 赶紧用起来, 首先用 `SimplePromiseCache` 包裹 `Suspense` 的上级组件，以便下级组件可以获取到缓存:
 
-```tsx
+```js
 function App() {
   return (<SimplePromiseCache>
     <Suspense fallback="loading...">
@@ -513,7 +515,7 @@ function App() {
 
 小试牛刀:
 
-```tsx
+```js
 function DelayShow({timeout}: {timeout: number}) {
   const { data } = usePromise(
     new Promise<number>(res => {
@@ -549,7 +551,7 @@ function DelayShow({timeout}: {timeout: number}) {
 
 So，怎么做？我们基于 `usePromise`, 再创建一个 `createResource` 函数, 它不再是一个Hooks，而是创建一个**资源对象**, 函数签名如下:
 
-```ts
+```js
 function createResource<R>(prom: () => Promise<R>): Resource<R>
 ```
 
@@ -557,7 +559,7 @@ function createResource<R>(prom: () => Promise<R>): Resource<R>
 
 `createResource` 返回一个 `Resource` 对象:
 
-```ts
+```js
 interface Resource<R> {
   // 读取'资源', 在Suspense包裹的下级组件中调用, 和上文的usePromise一样的效果
   read(): R
@@ -576,7 +578,7 @@ interface Resource<R> {
 
 `createResource` 实现：
 
-```ts
+```js
 export default function createResource<R>(prom: () => Promise<R>): Resource<R> {
   // 缓存
   const result: PromiseValue = {
@@ -635,7 +637,7 @@ export default function createResource<R>(prom: () => Promise<R>): Resource<R> {
 
 `createResource` 的用法也很简单, 在父组件创建 Resource，接着通过 Props 传递给子组件。 下面展示一个Tabs组件，渲染三个子Tab，因为同时只能显示一个Tab，我们可以选择预加载那些未显示的Tab, 来提升它们的打开速度:
 
-```ts
+```js
 const App = () => {
   const [active, setActive] = useState('tab1')
   // 创建 Resource
@@ -670,7 +672,7 @@ const App = () => {
 
 我们随便挑一个子组件, 看一下它的实现：
 
-```ts
+```js
 const Posts: FC<{resource: Resource<Post[]>}> = ({resource}) => {
   const posts = resource.read()
 
@@ -702,7 +704,7 @@ Ok, 这种方式相比 Context API 好很多了，我个人也偏向这种形式
 
 如上图，现实项目中经常会有这种场景，一个复杂的界面数据可能来源于多个接口，例如:
 
-```tsx
+```js
 /**
  * 用户信息页面
  */
@@ -761,7 +763,7 @@ function ProfileTimeline() {
 
 首先来看一下 1️⃣:
 
-```ts
+```js
 function fetchProfileData() {
   // 使用 promise all 并发加载
   return Promise.all([
@@ -808,7 +810,7 @@ function ProfilePage() {
 
 1️⃣方案不是特别好，来看一下2️⃣方案:
 
-```tsx
+```js
 function ProfilePage() {
   return (<div className="profile-page">
     <ProfileDetails />
@@ -827,7 +829,7 @@ function ProfilePage() {
 
 现在有请方案 3️⃣: `Suspense` 🎉
 
-```tsx
+```js
 const resource = fetchProfileData();
 
 function ProfilePage() {
@@ -881,7 +883,7 @@ function ProfileTimeline() {
 
 少卖关子，讲个实例。有这样一个组件，它依赖外部传递进来的 id 来异步获取数据:
 
-```tsx
+```js
 function UserInfo({id}: {id: string}) {
   const [user, setUser] = useState<User|undefined>()
 
@@ -904,7 +906,7 @@ function UserInfo({id}: {id: string}) {
 
 怎么解决？也比较好解决，利用类似**乐观锁**的机制。我们可以保存本次请求的id，如果请求结束时 id 不一致，就说明已经有新的请求发起了:
 
-```tsx
+```js
 function UserInfo({id}: {id: string}) {
   const [user, setUser] = setState<User|undefined>()
   const currentId = useRef<string>()
@@ -932,7 +934,7 @@ function UserInfo({id}: {id: string}) {
 
 Suspense 下面不存在竞态问题，上面的代码用 Suspense 实现如下:
 
-```tsx
+```js
 function UserInfo({resource}: {resource: Resource<User>}) {
   const user = resource.read()
   return renderUser(user)
@@ -945,7 +947,7 @@ function UserInfo({resource}: {resource: Resource<User>}) {
 
 那它的上级组件呢?
 
-```tsx
+```js
 
 function createUserResource(id: string) {
   return {
@@ -977,6 +979,10 @@ function UserPage({id}: {id: string}) {
 异步请求被转换成了'资源对象'，在这里只不过是一个普通的对象, 通过 Props 传递, 完美解决了异步请求的竞态问题...
 
 <br>
+
+> **另外 Suspense 还解决一个问题**：在执行完异步操作后，我们的页面可能已经切换了，这时候通过 setState 设置组件状态，React就会抛出异常: `Can't perform a React state update on an unmounted component.`, 现在这个问题自然也解决了
+
+<br>
 <br>
 
 ## 错误处理
@@ -985,7 +991,7 @@ function UserPage({id}: {id: string}) {
 
 我们写一个高阶组件来简化 Suspense 和 异常处理的过程:
 
-```tsx
+```js
 export default function sup<P>(
   fallback: NonNullable<React.ReactNode>,
   catcher: (err: any) => NonNullable<React.ReactNode>,
@@ -1021,8 +1027,8 @@ export default function sup<P>(
 
 用起来:
 
-```ts
-// UserInfo.tsx
+```js
+// UserInfo.js
 
 const UserInfo: FC<UserInfoProps> = (props) => {/* ... */}
 
@@ -1126,3 +1132,7 @@ Suspense 让人非常兴奋，它不仅解决了一些以往异步处理的问�
 - [Concurrent Rendering in React - Andrew Clark and Brian Vaughn - React Conf 2018](https://www.youtube.com/watch?v=ByBPyMBTzM0)
 - [React：Suspense的实现与探讨](https://zhuanlan.zhihu.com/p/34210780)
 - [react-cache](https://github.com/facebook/react/blob/master/packages/react-cache/src/ReactCache.js)
+
+<br>
+
+![](/images/sponsor.jpg)
