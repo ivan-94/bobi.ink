@@ -1,5 +1,5 @@
 ---
-title: '[技术地图] Preact'
+title: '从 Preact 中窥探 React 的节本原理'
 date: 2019/6/2
 categories: 前端
 ---

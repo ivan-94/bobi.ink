@@ -528,7 +528,7 @@ function DelayShow({timeout}: {timeout: number}) {
 
 上面代码的运行效果如下：
 
-![](/images/concurrent-mode/usepromise.gif)
+![](/images/concurrent-mode/usePromise.gif)
 
 <br>
 
@@ -566,9 +566,11 @@ interface Resource<R> {
 }
 ```
 
+<br>
+
 **⚛️Resource 对象在父级组件中创建, 然后通过Props传递给下级组件，下级组件调用 `read()` 方法来读取数据。`对于下级组件来说 Resource 和普通的对象没什么区别，它察觉不出来这是一个异步请求`**。这就是这种 Suspense 的精妙之处!
 
-另外由于 Resource 对象是在父级组件创建的，这有一个外加的好处: 我们可以在显示下级组件之前，执行 `preload()` 预先执行异步操作。
+另外由于 Resource 对象是在父级组件创建的，这有一个外加的好处: **我们可以在显示下级组件之前，执行 `preload()` 预先执行异步操作**。
 
 <br>
 
@@ -1039,11 +1041,11 @@ export default sup(
 
 ## Suspense 编排
 
-如果页面上有很多 Suspense, 那么多个圈在转，用户体验并不好，会给人一种加载慢的感觉。
+如果页面上有很多 Suspense, 那么多个圈在转，用户体验并不好。
 
-但是我们又不好直接将它们合并，因为每一块加载优先级、生命周期都不一样，强行绑在也不好。例如:
+但是我们又不好直接将它们合并，因为每一块加载优先级、生命周期都不一样，强行绑到一个 Suspense 也不好。例如:
 
-```tsx
+```jsx
 function UserPage() {
   return (<Suspense fallback="loading...">
     <UserInfo resource={infoResource} />
@@ -1052,13 +1054,13 @@ function UserPage() {
 }
 ```
 
-例如 UserPost 需要进行分页，每次点击下一页都会导致整个 `UserPage` loading... 这肯定无法接受...
+假设 UserPost 需要进行分页，每次点击下一页都会导致整个 `UserPage` loading... 这肯定无法接受...
 
 <br>
 
-**因此 Concurrent 模式引入了一个新的API `SuspenseList`, 用来对多个 Suspense 的加载状态进行编排。我们可以根据实际的场景选择加载状态的显示策略**。
+**因此 Concurrent 模式引入了一个新的API `SuspenseList`, 用来对多个 Suspense 的加载状态进行编排。我们可以根据实际的场景选择加载状态的显示策略**。例如
 
-```tsx
+```jsx
 function Page({ resource }) {
   return (
     <SuspenseList revealOrder="forwards">
@@ -1073,52 +1075,32 @@ function Page({ resource }) {
 }
 ```
 
+<br>
+
+假设 `Foo` 加载时间是 `5s`，而 `Bar` 加载完成时间是 `2s`。SuspenseList 的各种编排组合的效果如下:
+
+![](/images/concurrent-mode/suspense-list.gif)
+<i>可以通过这个 <a href="https://codesandbox.io/s/react-suspenselist-sk3rj?fontsize=14">CodeSandbox 示例</a> 体验 </i>
+
+<br>
+
 `revealOrder` 表示显示的顺序，它目前有三个可选值: `forwards`, `backwards`, `together`
 
 - `forwards` - 由前到后显示。也就说前面的没有加载完成，后面的也不会显示. 即使后面的 Suspense 提前完成异步操作，也需要等待前面的执行完成
-
-  假设Bar完成时间是100ms，Foo完成是1s。展示过程如下：
-  
-  ```txt
-  Loading Foo...
-  Loading Bar...
-  ```
-
-  尽管Bar提前完成了，但是前面的Foo没完成，所以还需继续等待, 1s 后一起显示出来
-
-  <br>
-
-- `barwards` - 和forwards相反, 由后到前依次显示.
-
-  这时候Bar先完成, 所以会先显示:
-
-  ```txt
-  Loading Foo...
-  Bar's Content
-  ```
-
-  接着 Foo 加载完成：
-
-  ```txt
-  Foo's Content
-  Bar's Content
-  ```
-
-  <br>
-
-- together，等所有Suspense 加载完成后一起显示
+- `backwards` - 和forwards相反, 由后到前依次显示.
+- `together` - 等所有Suspense 加载完成后一起显示
 
 <br>
 
 除此之外 `SuspenseList` 还有另外一个属性 `tail`, 用来控制是否要折叠这些 Suspense，它有三个值 `默认值`, `collapsed`, `hidden`
 
 - 默认值 - 全部显示
-- collapsed - 折叠，只显示第一个正在加载的Suspense
-- hidden - 不显示任何加载状态
+- `collapsed` - 折叠，只显示第一个正在加载的Suspense
+- `hidden` - 不显示任何加载状态
 
 <br>
 
-可以通过这个 [CodeSandbox 示例](https://codesandbox.io/s/black-wind-byilt) 体验体验. 另外 SuspenseList 是可组合的，SuspenseList 下级可以包含其他 SuspenseList.
+另外 SuspenseList 是可组合的，SuspenseList 下级可以包含其他 SuspenseList.
 
 <br>
 <br>

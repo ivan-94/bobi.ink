@@ -1,5 +1,5 @@
 ---
-title: "[技术地图] vue-cli"
+title: "浅谈 vue-cli 的插件设计"
 date: 2019/5/26
 categories: 前端
 ---

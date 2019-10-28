@@ -1,5 +1,5 @@
 ---
-title: Rx建模入门
+title: Rxjs 接近业务本质的流式思维与建模入门
 date: 2019/4/19
 categories: 前端
 ---
