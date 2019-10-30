@@ -1,5 +1,5 @@
 ---
-title: "React Concurrent 模式抢先预览: Suspense 篇"
+title: "React Concurrent 模式抢先预览上篇: Suspense the world"
 date: 2019/10/26
 categories: 前端
 ---

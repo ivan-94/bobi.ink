@@ -1184,6 +1184,14 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 回顾一下今年写的关于 React 的相关文章
 
+Concurrent模式预览（推荐）:
+
+- [React Concurrent 模式抢先预览: Suspense 篇](https://juejin.im/post/5db65d87518825648f2ef899#comment)
+
+<br>
+
+往期文章:
+
 - [React组件设计实践总结 系列 共5篇](https://juejin.im/post/5cd7f2c4e51d453a7d63b715)
 - [自己写个React渲染器: 以 Remax 为例(用React写小程序)](https://juejin.im/post/5d8395646fb9a06ad16faa57)
 - [谈谈React事件机制和未来(react-events)](https://juejin.im/post/5d44e3745188255d5861d654)
