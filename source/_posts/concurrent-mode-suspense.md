@@ -278,6 +278,8 @@ export default class Suspense extends React.Component<SuspenseProps, SuspenseSta
 }
 ```
 
+> 实际上，Suspense不会去捕获异步操作的异常，也就是then和catch只是将pending设置为false。由下级组件自己选择如何去处理异常。这不过这里为了方便让大家理解 Suspense 的外在行为，将异常处理提到了这里。
+
 <br>
 
 ⚠️ 注意，**以上代码只在`v16.6(不包括)`之前有效**. 16.6正式推出 Suspense 后，Suspense 就和普通的 ErrorBoundary 隔离开来了，所以无法在 `componentDidCatch` 中捕获到 Promise. **当组件中抛出 Promise 异常时，React 会向上查找最近的 Suspense 来处理它，如果找不到，React 会抛出错误**。

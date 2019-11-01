@@ -205,7 +205,7 @@ SPN、SRT、HRRN都需要对进程时间进行评估和统计，实现比较复�
 
 JavaScript 是[单线程运行](https://juejin.im/post/5a6547d0f265da3e283a1df7)的，而且在浏览器环境屁事非常多，它要负责页面的JS解析和执行、绘制、事件处理、静态资源加载和处理, 这些任务可以类比上面’进程‘。
 
-> 这里特指Javascript 引擎是单线程运行的。 严格来说，页面绘制由单独的`GUI渲染进程`负责，只不过`GUI渲染线程`和`Javascript线程`是互斥的. 另外底层的异步操作实际上也是多线程的。
+> 这里特指Javascript 引擎是单线程运行的。 严格来说，Javascript 引擎和页面渲染引擎在同一个渲染线程，GUI 渲染和 Javascript执行 两者是互斥的. 另外异步 I/O 操作底层实际上可能是多线程的在驱动。
 
 ![](/images/react-fiber/frame-full.jpg)
 <i>图片来源: <a href="https://developers.google.com/web/fundamentals/performance/rendering">Rendering Performance</a></i>
