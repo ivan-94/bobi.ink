@@ -6,6 +6,20 @@ categories: 前端
 
 接着上篇 Suspense(TODO:), 我们继续谈 React Concurrent模式。我们知道 React 内部做了翻天覆地的变化，外部也提供了许多新的API，来优化用户体验。React 官方用一篇很长的文档[《Concurrent UI Patterns 》](https://reactjs.org/docs/concurrent-mode-patterns.html) 来介绍这一方面的动机和创造。
 
+**文章大纲**
+
+<!-- TOC -->
+
+- [应用场景是什么？](#应用场景是什么)
+- [useTransition 登场](#usetransition-登场)
+- [useTransition 原理初探](#usetransition-原理初探)
+- [那 useDeferedValue 呢？](#那-usedeferedvalue-呢)
+- [最后一个问题: 如果状态通过Redux 或者 Mobx维护呢？](#最后一个问题-如果状态通过redux-或者-mobx维护呢)
+- [总结](#总结)
+- [参考资料](#参考资料)
+
+<!-- /TOC -->
+
 本文的主角是useTransition, React 官方用’**平行宇宙**‘来比喻这个 API 的作用。What？
 
 用 Git 分支来比喻会更好理解一点，React 可以从当前视图，即 `Master` 分支中 `Fork` 出来一个新的分支，在这个新分支上进行更新，同时 Master保持响应和更新，这两个分支就像两个平行宇宙，两者互不干扰。当新的分支准备妥当时，再合并到Master。
@@ -461,7 +475,7 @@ It's work!
 <br>
 <br>
 
-最后再总结一下， `useTransition` 要进入 `Pending` 状态要符合以下几个条件:
+最后再重申一下， `useTransition` 要进入 `Pending` 状态要符合以下几个条件:
 
 - 更新必须在`startTransition`中, 这些更新会关联 `suspenseConfig`
 - 这些更新触发的重新渲染中, 必须触发至少一个 `Suspense`
@@ -469,13 +483,52 @@ It's work!
 
 <br>
 
-## useDeferedValue
+## 那 useDeferedValue 呢？
 
-给state 变动设置一个比较低的优先级
-通过SuspenseConfig 影响State 的expiredTime
-Suspense Resolve后强制刷新页面
+如果你理解了上面的内容, 那么 `useDeferedValue` 就好办了，它不过是 useTransition 的封装：
 
-如果状态通过Redux 或者 Mobx维护呢？
+```js
+function useDeferredValue<T>(
+  value: T,
+  config: TimeoutConfig | void | null,
+): T {
+  const [prevValue, setValue] = useState(value);
+  const [startTransition] = useTransition(config)
+
+  // ⚛️ useDeferredValue 只不过是监听 value 的变化，
+  // 然后在 startTransition 中更新它。从而实现延迟更新的效果
+  useEffect(
+    () => {
+      startTransition(() => {
+        setValue(value);
+      })
+    },
+    [value, config],
+  );
+
+  return prevValue;
+}
+```
+
+`useDeferredValue` 只不过是使用 useEffect 监听 `value` 的变化， 然后在 startTransition 中更新它。从而实现延迟更新的效果。上文实验 1️⃣ 已经介绍过运行效果，React 会降低 startTransition 中更新的优先级， 这意味着在事务繁忙时它们会延后执行。
+
+<br>
+<br>
+
+## 最后一个问题: 如果状态通过Redux 或者 Mobx维护呢？
+
+context
+
+<br>
+
+## 总结
+
+我们介绍了useTransition的应用场景, 让页面实现 xx 的更新路径，我们发现React 会在内存树中保留 useTransition 触发的更新状态，等待 Suspense 就绪或者超时，再将这些更新提交到页面上来。
+
+useTransition 可以用于划分更新的优先级，我们可以将延迟或合并一个比较复杂的更新，让页面保持响应。
+
+<br>
+<br>
 
 ## 参考资料
 
