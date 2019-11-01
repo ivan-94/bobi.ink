@@ -44,35 +44,151 @@ TODO: github
 
 状态图: TODO: A -> B
 
-我们先按照React 官方文档的描述来定义, 各种状态。页面加载有以下三个阶段:
+<br>
+
+如上图，我们先按照React 官方文档的描述来定义, 各种状态。页面加载有以下三个阶段:
 
 - 过渡阶段(Transition)。指的是页面未就绪，等待加载关键数据的阶段。按照不同的展示策略，页面可以有以下两种状态：
-  - 回退(Receded)。指马上将页面切换过去，展示一个大大的加载指示器或者空白页面。'回退'是什么意思? 按照 React 的说法是，页面原本有内容，现在变为无内容状态，这是一种退化，或者说时间‘倒流’。
-  - 挂起(Pending)。这是useTransition要达到的状态，即停留在当前页面，让当前页面保持响应。在关键数据准备就绪时进入 Skeleton 状态， 亦或者等待超时进入 Receded 状态
+  - **回退(Receded)**。指马上将页面切换过去，展示一个大大的加载指示器或者空白页面。'回退'是什么意思? 按照 React 的说法是，页面原本有内容，现在变为无内容状态，这是一种退化，或者说时间‘倒流’。
+  - **待定(Pending)**。这是useTransition要达到的状态，即停留在当前页面，让当前页面保持响应。在关键数据准备就绪时进入 Skeleton 状态， 亦或者等待超时进入 Receded 状态
 - 加载阶段(Loading)。指的是关键数据已经准备就绪，可以开始展示页面的骨架或者框架部分。这个阶段有一个状态:
-  - 骨架(Skeleton)。关键数据已经加载完毕，页面展示了主体的框架。
+  - **骨架(Skeleton)**。关键数据已经加载完毕，页面展示了主体的框架。
 - 就绪阶段(Done)。指的是页面完全加载完毕。这个阶段有一个状态:
-  - 完成(Complete) 页面完全呈现
+  - **完成(Complete)** 页面完全呈现
 
+默认情况下，在 React 中，当我们更新状态进入一个新屏幕时，经历的是 **`Receded` -> `Skeleton` -> `Complete`** 路径。通过 `useTransition` 我们可以实现 **`Pending` -> `Skeleton` -> `Complete`**。
 
-什么是过渡? Suspense
-过渡触发, 记录触发记录的state
-过渡就绪
-过渡超时
-过渡的边界, 这么多Suspense，哪个Suspense，子Suspense需要处理吗？
+<br>
 
-还是关于Suspense, 本文讲述的API需要和Suspense配合使用才有效果
+接下来简单模拟一个页面切换， 先来看默认情况:
 
-参考浏览器的浏览体验, 页面未加载完成时，停留在当前页面，保持页面交互
+```js
+function A() {
+  return <div className="letter">A</div>;
+}
 
-可以取消吗，可以提前完成吗，过程如何？平行宇宙, 在另外一个树中预渲染，这不是简单的超时，当树切换时可以很快完成渲染
+function B() {
+  // ⚛️ 延迟加载2s，模拟异步数据请求
+  delay("B", 2000);
+  return <div className="letter">B</div>;
+}
 
-可以覆盖
+function C() {
+  // ⚛️ 延迟加载4s，模拟异步数据请求
+  delay("C", 4000);
+  return <div className="letter">C</div>;
+}
 
-好处是什么？如果数据加载很快的话，用户根本看不到加载状态，这样可以避免页面抖动和闪烁。
-延迟然用户看到加载状态
+// 页面1
+function Page1() {
+  return <A />;
+}
+
+// 页面2
+function Page2() {
+  return (
+    <>
+      <B />
+      <Suspense fallback={<div>Loading... C</div>}>
+        <C />
+      </Suspense>
+    </>
+  );
+}
+
+function App() {
+  const [showPage2, setShowPage2] = useState(false);
+
+  // 切换到页面2
+  const handleClick = () =>  setShowPage2(true)
+
+  return (
+    <div className="App">
+      <div>
+        <button onClick={handleClick}>切换</button>
+      </div>
+      <div className="page">
+        <Suspense fallback={<div>Loading ...</div>}>
+          {!showPage2 ? <Page1 /> : <Page2 />}
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+```
+
+看一下运行效果:
+
+![](demo1.gif)
+
+点击切换后，我们会马上看到一个大大的Loading，接着2s 后 B 加载完毕，最后 C 加载完毕。这个过程就是 **`Receded` -> `Skeleton` -> `Complete`**
+
+现在 useTransition 隆重等成 🎉，我们简单改造一下上面的代码：
+
+```js
+// ⚛️ 导入 useTransition
+import React, { Suspense, useState, useTransition } from "react";
+
+function App() {
+  const [showPage2, setShowPage2] = useState(false);
+  // ⚛️ useTransition 接收一个超时时间，返回一个startTransition 函数，以及一个 pending
+  const [startTransition, pending] = useTransition({ timeoutMs: 10000 });
+
+  const handleClick = () =>
+    // ⚛️ 将会触发 Suspense 挂起的状态更新包裹在 startTransition 中
+    startTransition(() => {
+      setShowPage2(true);
+    });
+
+  return (
+    <div className="App">
+      <div>
+        <button onClick={handleClick}>切换</button>
+        {/* ⚛️ pending 表示处于待定状态, 你可以进行一些轻微的提示 */}
+        {pending && <span>切换中...</span>}
+      </div>
+      <div className="page">
+        <Suspense fallback={<div>Loading ...</div>}>
+          {!showPage2 ? <Page1 /> : <Page2 />}
+        </Suspense>
+      </div>
+    </div>
+  );
+}
+```
+
+<br>
+
+useTransition Hook 有4个关键点:
+
+- `timeoutMs`, 表示切换的超时时间，useTransition 会让 React 保持在当前页面，直到被触发 Suspense 就绪或者超时。
+- `startTransition`, 将会触发页面切换(严格说是触发 Suspense 挂起)的状态更新，包裹在 `startTransition` 下，实际上 startTransition 提供了一个'更新的上下文', 下一节我们会深入探索里面的细节
+- `pending`, 表示正处于待定状态。我们可以通过这个状态值，适当地给用户一下提示。
+- `Suspense`, useTransition 实现过渡状态必须和 Suspense 配合，也就是 `startTransition` 中的更新必须触发任意一个 Suspense 挂起。
+
+<br>
+
+看一下实际的运行效果吧！
+
+![](/demo2.gif)
+
+这个效果完全跟本节的第一张图一样，React 会保留在当前页面，pending 状态变为true，接着 B 先就绪，界面马上切换过去。整个过程符合 **`Pending` -> `Skeleton` -> `Complete`**
+
+startTransition 中的变更一旦触发 Suspense，这些变更影响节点，React 会暂停’提交‘这些节点的变更。所以我们界面上看到的还是旧的，React 只是在内存中维持了这些状态。
+
+注意，React 只是暂时没有提交这些变更，不说明 React ’卡死了‘，处于Pending 状态的组件还会接收用户的响应，进行状态更新，新的状态更新也可以覆盖或终止 Pending 状态。
+
+总结一下进入和退出 Pending 状态的条件:
+
+- 进入Pending 状态需要将 状态更新包裹在 startTransition 下，且这些更新会触发 Suspense 挂起
+- 退出 Pending 状态有三种方式: ① Suspense 就绪；② 超时；③ 被新的状态更新覆盖或者终止
+
+<br>
+<br>
 
 ## useTransition 原理初探
+
+这一节，我们深入探索一下 useTransition，但是不会去折腾源码，而是把它当成一个黑盒，通过几个实验可以加深你对 useTransition 的理解。
 
 useTransition 的前身是 withSuspenseConfig, [sebmarkbage](TODO:) 在今年五月份提的一个[PR](https://github.com/facebook/react/pull/15593)。从顶层的函数看，useTransition 的工作看似比较简单:
 
