@@ -1,5 +1,5 @@
 ---
-title: "React Concurrent 模式抢先预览: Suspense 篇"
+title: "React Concurrent 模式抢先预览上篇: Suspense the world"
 date: 2019/10/26
 categories: 前端
 ---
@@ -277,6 +277,8 @@ export default class Suspense extends React.Component<SuspenseProps, SuspenseSta
   }
 }
 ```
+
+> 实际上，Suspense不会去捕获异步操作的异常，也就是then和catch只是将pending设置为false。由下级组件自己选择如何去处理异常。这不过这里为了方便让大家理解 Suspense 的外在行为，将异常处理提到了这里。
 
 <br>
 
@@ -977,6 +979,10 @@ function UserPage({id}: {id: string}) {
 <br>
 
 异步请求被转换成了'资源对象'，在这里只不过是一个普通的对象, 通过 Props 传递, 完美解决了异步请求的竞态问题...
+
+<br>
+
+> **另外 Suspense 还解决一个问题**：在执行完异步操作后，我们的页面可能已经切换了，这时候通过 setState 设置组件状态，React就会抛出异常: `Can't perform a React state update on an unmounted component.`, 现在这个问题自然也解决了
 
 <br>
 <br>

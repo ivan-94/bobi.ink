@@ -251,7 +251,7 @@ return (
 
 ```js
 const handleDelete = useCallback(event => {
-  const id = event.dataset.id;
+  const id = event.currentTarget.dataset.id;
   /*删除操作*/
 }, []);
 

@@ -4,38 +4,70 @@ date: 2019/10/28
 categories: 前端
 ---
 
-接着上篇 Suspense(TODO:), 我们继续谈 React Concurrent模式。我们知道 React 内部做了翻天覆地的变化，外部也提供了许多新的API，来优化用户体验。React 官方用一篇很长的文档[《Concurrent UI Patterns 》](https://reactjs.org/docs/concurrent-mode-patterns.html) 来介绍这一方面的动机和创造。
+上篇文章介绍了 [`Suspense`](https://juejin.im/post/5db65d87518825648f2ef899), 那么这篇文章就讲讲它的好搭档 [`useTransition`](https://reactjs.org/docs/concurrent-mode-reference.html#usetransition)。如果你是 React 的粉丝，这两篇文章一定不能错过。
 
-**文章大纲**
+我们知道 React 内部做了翻天覆地的优化，外部也提供了一些紧凑的新 API，**这些 API 主要用来优化用户体验**。React 官方用一篇很长的文档[《Concurrent UI Patterns 》](https://reactjs.org/docs/concurrent-mode-patterns.html) 专门来介绍这一方面的动机和创造，其中的主角就是 `useTransition`。
+
+<br>
+
+**相关文章**
+
+- [这可能是最通俗的 React Fiber(时间分片) 打开方式](https://juejin.im/post/5dadc6045188255a270a0f85) 🔥先入个门
+- [React Concurrent 模式抢先预览上篇: Suspense the world](https://juejin.im/post/5db65d87518825648f2ef899) 上篇
+
+<br>
+<br>
+
+**本文大纲**
 
 <!-- TOC -->
 
 - [应用场景是什么？](#应用场景是什么)
 - [useTransition 登场](#usetransition-登场)
 - [useTransition 原理初探](#usetransition-原理初探)
+  - [**1️⃣ 利用startTransition 来运行低优先级任务**](#1️⃣-利用starttransition-来运行低优先级任务)
+  - [**2️⃣ startTransition 更新触发 Suspense**](#2️⃣-starttransition-更新触发-suspense)
+  - [**3️⃣ 将 tick 更新提到 startTransition 之外**](#3️⃣-将-tick-更新提到-starttransition-之外)
+  - [**4️⃣ 嵌套Suspense**](#4️⃣-嵌套suspense)
+  - [**5️⃣ 可以和 Mobx 和 Redux 配合使用吗？**](#5️⃣-可以和-mobx-和-redux-配合使用吗)
 - [那 useDeferedValue 呢？](#那-usedeferedvalue-呢)
 - [总结](#总结)
 - [参考资料](#参考资料)
 
 <!-- /TOC -->
 
-本文的主角是useTransition, React 官方用’**平行宇宙**‘来比喻这个 API 的作用。What？
+<br>
 
-用 Git 分支来比喻会更好理解一点，React 可以从当前视图，即 `Master` 分支中 `Fork` 出来一个新的分支，在这个新分支上进行更新，同时 Master保持响应和更新，这两个分支就像两个平行宇宙，两者互不干扰。当新的分支准备妥当时，再合并到Master。
+React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What？
+
+用 Git 分支来比喻会更好理解一点, 如下图，React 可以从当前视图(可以视作 `Master`) 分支中 `Fork` 出来一个新的分支(尚且称为 `Pending`)，在这个新分支上进行更新，同时 `Master` 保持响应和更新，这两个分支就像'平行宇宙'，两者互不干扰。当 `Pending` 分支准备'妥当'，再合并(提交)到 `Master`分支。
 
 ![](/images/concurrent-mode/suspense-branch.png)
 
 <br>
 
-useTransition 就是一个时光隧道, 让 Suspense 进入一个平行宇宙，在这个平行宇宙中等待异步数据就绪，当然 Suspense 也不能无限期待在平行宇宙，useTranstion 可以配置超时时间，如果超时了，就算Suspense 未就绪也会被强制拉回现实世界。回到现实世界后，React 会将 Suspense 进行合并，将结果呈现在用户面前。
+`useTransition` 就像一个时光隧道, 让组件进入一个平行宇宙，在这个平行宇宙中等待`异步状态`(异步请求、延时、whatever)就绪。当然组件也不能无限期待在平行宇宙，`useTranstion` 可以配置超时时间，如果超时了，就算`异步状态`未就绪也会被强制拉回现实世界。回到现实世界后，React 会立即对组件 Pengding 的变更进行合并，呈现在用户面前。
 
+因此，你可以认为在Concurrent 模式下， React 组件有三种状态:
+
+![](/images/concurrent-mode/component-state.png)
+
+<br>
+
+- **Normal** - 正常状态下的组件
+- **Suspense** - 因异步状态而挂起的组件
+- **Pending** - 进入平行宇宙的组件。对应的也有 Pending 的'状态变更'，这些变更 React 不会立即提交到用户界面，而是缓存着，等待 Suspense 就绪或超时。
+
+你可能还不太能理解, 没关系，继续往下读。
+
+<br>
 <br>
 
 ## 应用场景是什么？
 
-平行宇宙有什么用？我们不讲这种内部实现结构，有什么好处，我在《Fiber》中稍微讲过。单从 UI 上讲：
+'平行宇宙'有什么用？ 我们不讲代码或者架构层次的东西。单从 `UI` 上看： **在某些 UI 交互场景，我们并不想马上将变更立即应用到页面上**。
 
-在某些 UI 交互场景，我们并不像马上将更新应用到页面上，尤其是数据未加载完成时。比如你从一个页面切换到另一个页面，新页面需要一些时间才能加载完成，我们更乐于稍微停留在上一个页面，保持一些操作响应，而不是一个什么都没有的空白页面，空转加载状态。感觉在做无谓的等待。
+比如你从一个页面切换到另一个页面，新页面可能需要一些时间才能加载完成，我们更乐于稍微停留在上一个页面，保持一些操作响应，而不是一个什么都没有的空白页面，空转加载状态。感觉在做无谓的等待。
 
 这种交互场景非常常见，眼前的例子就是浏览器：
 
@@ -247,7 +279,9 @@ function updateTransition(
 
 React 内部的实现太过复杂，我们可以做一些实验来验证这一点:
 
-**1️⃣ 利用startTransition 来运行低优先级任务**
+<br>
+
+### **1️⃣ 利用startTransition 来运行低优先级任务**
 
 这个实验主要用于验证 `unstable_next` 它会让降低更新的优先级。通过下面的实验我们会观察到startTransition包裹的更新在任务繁忙的情况会稍微延迟.
 
@@ -290,8 +324,9 @@ export default function App() {
 在连续点击的情况下，ComplexComponent 的更新会明显滞后，这说明count的优先级高于tick. 但是最后它们的结果会保持一致.
 
 <br>
+<br>
 
-**2️⃣ startTransition 更新触发 Suspense**
+### **2️⃣ startTransition 更新触发 Suspense**
 
 ```js
 export default function App() {
@@ -355,7 +390,7 @@ const Tick = ({ duration = 1000 }) => {
 
 <br>
 
-**3️⃣ 将 tick 更新提出去**
+### **3️⃣ 将 tick 更新提到 startTransition 之外**
 
 在 2️⃣ 的基础上，将 setTick 提到 setTransition 中外围:
 
@@ -374,6 +409,8 @@ export default function App() {
     });
   };
 
+  const handleAddTick = () => setTick(c => c + 1);
+
   useEffect(() => {
     console.log("App committed with", count, tick, pending);
   });
@@ -383,6 +420,7 @@ export default function App() {
       <h1>Hello useTransition {tick}</h1>
       <div>
         <button onClick={handleClick}>ADD + 1</button>
+        <button onClick={handleAddTick}>Tick + 1</button>
         {pending && <span className="pending">pending</span>}
       </div>
       <Tick />
@@ -445,7 +483,7 @@ App committed with 2 2 false
 
 <br>
 
-**4️⃣ 嵌套Suspense**
+### **4️⃣ 嵌套Suspense**
 
 在3️⃣的基础上，将SuspenseBoundary 改写为 DoubleSuspenseBoundary:
 
@@ -524,8 +562,9 @@ const DoubleSuspenseBoundary = ({ id }) => {
 It's work!
 
 <br>
+<br>
 
-**5️⃣ 可以和 Mobx 和 Redux 配合使用吗？**
+### **5️⃣ 可以和 Mobx 和 Redux 配合使用吗？**
 
 我也不知道，测试一下:
 
