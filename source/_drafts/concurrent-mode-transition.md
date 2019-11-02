@@ -14,7 +14,6 @@ categories: 前端
 - [useTransition 登场](#usetransition-登场)
 - [useTransition 原理初探](#usetransition-原理初探)
 - [那 useDeferedValue 呢？](#那-usedeferedvalue-呢)
-- [最后一个问题: 如果状态通过Redux 或者 Mobx维护呢？](#最后一个问题-如果状态通过redux-或者-mobx维护呢)
 - [总结](#总结)
 - [参考资料](#参考资料)
 
@@ -366,13 +365,18 @@ export default function App() {
   const [tick, setTick] = useState(0);
   const [startTransition, pending] = useTransition({ timeoutMs: 10000 });
 
+  console.log("App rendering with", count, tick, pending);
+
   const handleClick = () => {
     setTick(c => c + 1);
-
     startTransition(() => {
       setCount(c => c + 1);
     });
   };
+
+  useEffect(() => {
+    console.log("App committed with", count, tick, pending);
+  });
 
   return (
     <div className="App">
@@ -391,6 +395,53 @@ export default function App() {
 ![](test3) TODO:3
 
 现在tick会被立即更新，而 SuspenseBoundary 还会挂在 pending 状态。
+
+我们打开控制台看一下，输出情况:
+
+```shell
+App rendering with 1 2 true   # pending 被设置为true
+App rendering with 1 2 true
+read  1
+App committed with 1 2 true    # 进入Pending 状态之前的一次提交，我们在这里开始展示 pending 指示符
+
+# 下面 Tick 更新了三次(3s)
+# 我们注意到，每一次 React 都会重新渲染一下 App 组件，即 'ping' 一下处于 Pending 状态的组件, 检查一下是否‘就绪’(没有触发Suspense)
+# 如果还触发 Suspense, 说明还要继续等待，这些重新渲染的结果不会被提交
+
+App rendering with 2 2 false # ping, 这里count变成了2，且 pending 变成了 false
+App rendering with 2 2 false # 这说明 React 在内存中渲染它们
+read  2
+
+Tick rendering with 76
+Tick rendering with 76
+Tick committed with 76
+App rendering with 2 2 false # ping
+App rendering with 2 2 false
+read  2
+
+Tick rendering with 77
+Tick rendering with 77
+Tick committed with 77
+App rendering with 2 2 false # ping
+App rendering with 2 2 false
+read  2
+
+Tick rendering with 78
+Tick rendering with 78
+Tick committed with 78
+App rendering with 2 2 false # ping
+App rendering with 2 2 false
+read  2
+
+# Promise 已经就绪了，这时候再一次重新渲染 App
+# 这次没有触发 Suspense，React 会马上提交
+App rendering with 2 2 false
+App rendering with 2 2 false
+read  2
+App committed with 2 2 false
+```
+
+通过上面的日志，我们可以清晰地理解 Pending 组件的更新行为
 
 <br>
 
@@ -473,11 +524,136 @@ const DoubleSuspenseBoundary = ({ id }) => {
 It's work!
 
 <br>
+
+**5️⃣ 可以和 Mobx 和 Redux 配合使用吗？**
+
+我也不知道，测试一下:
+
+```js
+mport React, { useTransition, useEffect } from "react";
+import { createStore } from "redux";
+import { Provider, useSelector, useDispatch } from "react-redux";
+import SuspenseBoundary from "./SuspenseBoundary";
+import Tick from "./Tick";
+
+const initialState = { count: 0, tick: 0 };
+const ADD_TICK = "ADD_TICK";
+const ADD_COUNT = "ADD_COUNT";
+
+const store = createStore((state = initialState, action) => {
+  const copy = { ...state };
+  if (action.type === ADD_TICK) {
+    copy.tick++;
+  } else {
+    copy.count++;
+  }
+  return copy
+});
+
+export const Page = () => {
+  const { count, tick } = useSelector(({ tick, count }) => ({ tick, count }));
+  const dispatch = useDispatch();
+  const [startTransition, pending] = useTransition({ timeoutMs: 10000 });
+
+  const addTick = () => dispatch({ type: ADD_TICK });
+  const addCount = () => dispatch({ type: ADD_COUNT });
+
+  const handleClick = () => {
+    addTick();
+    startTransition(() => {
+      console.log("Start transition with count: ", count);
+      addCount();
+      console.log("End transition");
+    });
+  };
+
+  console.log(`App rendering with count(${count}) pendig(${pending})`);
+
+  return (
+    <div className="App">
+      <h1>Hello useTransition {tick}</h1>
+      <div>
+        <button onClick={handleClick}>ADD + 1</button>
+        {pending && <span className="pending">pending</span>}
+      </div>
+      <Tick />
+      <SuspenseBoundary id={count} />
+    </div>
+  );
+};
+
+export default () => {
+  return (
+    <Provider store={store}>
+      <Page />
+    </Provider>
+  );
+};
+
+```
+
+看一下运行效果:
+
+![](/test5.gif)
+
+<br>
+
+What’s the problem? 整个界面都 `Pending` 了, 整个界面不单单指 `App` 这颗子树，而且 Tick 也不走了。打开控制台看到了一个警告:
+
+```txt
+Warning: Page triggered a user-blocking update that suspended.
+
+The fix is to split the update into multiple parts: a user-blocking update to provide immediate feedback, and another update that triggers the bulk of the changes.
+```
+
+目前，Rudux 和 Mobx 的Hooks API 都采用订阅机制，如果事件触发则强制更新, 结构如下:
+
+```js
+function useSomeOutsideStore() {
+  // 获取外部 store
+  const store = getOutsideStore()
+  const [, forceUpdate] = useReducer(s => s + 1, 0)
+
+  // 订阅
+  useEffect(() => {
+    const disposer = store.subscribe(() => {
+      // ⚛️ 强制更新
+      forceUpdate()
+    ))
+    return disposer
+  }, [store])
+}
+```
+
+也就是说， 我们在 `startTransition` 中更新 Redux Store 时，会同步接收到订阅，然后调用 `forceUpdate`。`forceUpdate` 才是真正在 suspenseConfig 上下文中更新的状态。
+
+我们再看一下控制台日志:
+
+```shell
+Start transition with count 0
+End transition
+App rendering with count(1) pendig(true)  # 这里出问题了 🔴, 你可以和实验 3️⃣ 中的日志对比一下
+App rendering with count(1) pendig(true)  # 实验 3️⃣ 中这里的 count 是 0，而这里的count是1，说明没有 defer
+read  1
+
+Warning: App triggered a user-blocking update that suspended.
+The fix is to split the update into multiple parts: a user-blocking update to provide immediate feedback, and another update that triggers the bulk of the changes.
+Refer to the documentation for useTransition to learn how to implement this pattern.
+```
+
+通过日志可以基本上能够定位出问题，count 没有被延迟更新，所以导致同步触发了 Suspense，这也是 React 警告的原因。 由于 useTransition 目前还处于实验阶段，**如果不是 startTransition 上下文中的状态更新导致的Suspense，行为还是未确定的**。
+
+但是最终的行为有点玄学，它会导致整个应用被‘Pending’，所有状态更新都不会被提交。这块我也没有精力深究下去，只能等待后续官方的更新，读者也可以去琢磨琢磨。
+
+因此，暂时不推荐将会触发Suspense的状态放置在Redux或者Mobx中。
+
+<br>
 <br>
 
 最后再重申一下， `useTransition` 要进入 `Pending` 状态要符合以下几个条件:
 
-- 更新必须在`startTransition`中, 这些更新会关联 `suspenseConfig`
+- 最好使用 React 本身的状态机制进行更新,  如 Hooks 或 setState, 且这些更新会触发 Suspense。
+- 更新必须在`startTransition`作用域下, 这些更新会关联 `suspenseConfig`
 - 这些更新触发的重新渲染中, 必须触发至少一个 `Suspense`
 - 这个 `Suspense` 不是首次挂载
 
@@ -515,21 +691,28 @@ function useDeferredValue<T>(
 <br>
 <br>
 
-## 最后一个问题: 如果状态通过Redux 或者 Mobx维护呢？
+## 总结
 
-context
+我们一开始介绍了 useTransition 的应用场景, 让页面实现 **`Pending` -> `Skeleton` -> `Complete`** 的更新路径, 用户在切换页面时可以停留在当前页面，且当前页面保持响应。 相比展示一个无用的空白页面或者加载转改，这种用户体验更加友好。
+
+当然上述的假设条件时数据加载很慢，如果数据加载很快，利用 useTransition 机制，我们实现不让用户看到加载状态，这样能避免页面页面抖动和闪烁, 看起来像没有加载的过程。
+
+接着我们简单介绍了 useTransition 的运行原理和条件。 如果 startTransition 中的状态更新触发了 Suspense，那么对应的组件就会进入 Pending 状态。在 Pending 状态期间的所有更新都会被延迟提交。 Pending 状态会持续到 Suspense 就绪或者超时。
+
+useTransition 必须和 Suspense 配合使用才能施展魔法。还有一个用户场景是我们可以将低优先级的更新放置到 startTransition 中。比如某个更新的成本很高，就可以选择放到 startTransition 中, 这些更新会让位高优先级的任务，另外会 React 延迟或合并一个比较复杂的更新，让页面保持响应。
 
 <br>
 
-## 总结
-
-我们介绍了useTransition的应用场景, 让页面实现 xx 的更新路径，我们发现React 会在内存树中保留 useTransition 触发的更新状态，等待 Suspense 就绪或者超时，再将这些更新提交到页面上来。
-
-useTransition 可以用于划分更新的优先级，我们可以将延迟或合并一个比较复杂的更新，让页面保持响应。
+Ok，关于 Concurrent 模式的介绍就先告一段落了。写这些文章耗掉了我大部分的业余时间，如果你喜欢我的文章，请多给我点赞和反馈。
 
 <br>
 <br>
 
 ## 参考资料
 
+- [Concurrent UI Patterns](https://reactjs.org/docs/concurrent-mode-patterns.html)
 - [Add withSuspenseConfig API](https://github.com/facebook/react/pull/15593)
+
+<br>
+
+![](/images/sponsor.jpg)
