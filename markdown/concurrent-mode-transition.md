@@ -20,7 +20,7 @@ categories: 前端
 
 **本文大纲**
 
-<!-- TOC -->
+
 
 - [应用场景是什么？](#应用场景是什么)
 - [useTransition 登场](#usetransition-登场)
@@ -34,7 +34,7 @@ categories: 前端
 - [总结](#总结)
 - [参考资料](#参考资料)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -42,7 +42,7 @@ React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What�
 
 用 Git 分支来比喻会更好理解一点, 如下图，React 可以从当前视图(可以视作 `Master`) 分支中 `Fork` 出来一个新的分支(尚且称为 `Pending`)，在这个新分支上进行更新，同时 `Master` 保持响应和更新，这两个分支就像'平行宇宙'，两者互不干扰。当 `Pending` 分支准备'妥当'，再合并(提交)到 `Master`分支。
 
-![](/images/concurrent-mode/suspense-branch.png)
+![](https://bobi.ink/images/concurrent-mode/suspense-branch.png)
 
 <br>
 
@@ -50,7 +50,7 @@ React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What�
 
 因此，你可以认为在Concurrent 模式下， React 组件有三种状态:
 
-![](/images/concurrent-mode/component-state.png)
+![](https://bobi.ink/images/concurrent-mode/component-state.png)
 
 <br>
 
@@ -73,14 +73,14 @@ React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What�
 
 <br>
 
-![](/images/concurrent-mode/browser.gif)
+![](https://bobi.ink/images/concurrent-mode/browser.gif)
 <i>假装我要买个 AirPods</i>
 
 <br>
 
 还有我们常用的 Github:
 
-![](/images/concurrent-mode/github.gif)
+![](https://bobi.ink/images/concurrent-mode/github.gif)
 <i>国外某著名交友网站</i>
 
 <br>
@@ -98,7 +98,7 @@ React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What�
 
 ## useTransition 登场
 
-![](/images/concurrent-mode/page-state.png)
+![](https://bobi.ink/images/concurrent-mode/page-state.png)
 
 <br>
 
@@ -196,7 +196,7 @@ function App() {
 
 看一下运行效果:
 
-![](/images/concurrent-mode/demo1.gif)
+![](https://bobi.ink/images/concurrent-mode/demo1.gif)
 
 点击切换后，我们会马上看到一个大大的 `Loading...`，接着 2s 后 B 加载完毕，再等待 2s 后 C 加载完毕。这个过程就是 **`Receded` -> `Skeleton` -> `Complete`**
 
@@ -252,7 +252,7 @@ useTransition Hook 的API比较简洁，有4个需要关键的点:
 
 看一下实际的运行效果吧！
 
-![](/images/concurrent-mode/demo2.gif)
+![](https://bobi.ink/images/concurrent-mode/demo2.gif)
 
 <br>
 
@@ -373,7 +373,7 @@ export default function App() {
 
 实验结果如下：
 
-![](/images/concurrent-mode/test1.gif)
+![](https://bobi.ink/images/concurrent-mode/test1.gif)
 
 <br>
 
@@ -434,7 +434,7 @@ const Tick = ({ duration = 1000 }) => {
 };
 ```
 
-![](/images/concurrent-mode/test2.gif)
+![](https://bobi.ink/images/concurrent-mode/test2.gif)
 
 当我们点击按钮时会递增 count 和 tick, count 会传递给 SuspenseBoundary，从而触发 Suspense。
 
@@ -489,7 +489,7 @@ export default function App() {
 }
 ```
 
-![](/images/concurrent-mode/test3.gif)
+![](https://bobi.ink/images/concurrent-mode/test3.gif)
 
 <br>
 
@@ -566,7 +566,7 @@ const DoubleSuspenseBoundary = ({ id }) => {
 
 测试一下效果：
 
-![](/images/concurrent-mode/test4-1.gif)
+![](https://bobi.ink/images/concurrent-mode/test4-1.gif)
 
 <br>
 
@@ -604,7 +604,7 @@ export default function App() {
 
 试一下效果:
 
-![](/images/concurrent-mode/test4-2.gif)
+![](https://bobi.ink/images/concurrent-mode/test4-2.gif)
 
 <br>
 
@@ -630,7 +630,7 @@ const DoubleSuspenseBoundary = ({ id }) => {
 
 最后的效果
 
-![](/images/concurrent-mode/test4-3.gif)
+![](https://bobi.ink/images/concurrent-mode/test4-3.gif)
 
 It's work! 🍻
 
@@ -712,11 +712,11 @@ export default () => {
 
 先看一下运行效果:
 
-![](/images/concurrent-mode/test5.gif)
+![](https://bobi.ink/images/concurrent-mode/test5.gif)
 
 <br>
 
-![](/images/concurrent-mode/hyhs.png)
+![](https://bobi.ink/images/concurrent-mode/hyhs.png)
 
 <br>
 
@@ -850,4 +850,4 @@ useTransition 必须和 Suspense 配合使用才能施展魔法。还有一个�
 
 <br>
 
-![](/images/sponsor.jpg)
+![](https://bobi.ink/images/sponsor.jpg)
