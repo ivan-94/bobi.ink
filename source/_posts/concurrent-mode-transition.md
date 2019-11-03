@@ -67,45 +67,75 @@ React 用’**平行宇宙**‘来比喻这个 useTransition 这个 API。What�
 
 '平行宇宙'有什么用？ 我们不讲代码或者架构层次的东西。单从 `UI` 上看： **在某些 UI 交互场景，我们并不想马上将变更立即应用到页面上**。
 
-比如你从一个页面切换到另一个页面，新页面可能需要一些时间才能加载完成，我们更乐于稍微停留在上一个页面，保持一些操作响应，而不是一个什么都没有的空白页面，空转加载状态。感觉在做无谓的等待。
+**🔴比如你从一个页面切换到另一个页面，新页面可能需要一些时间才能加载完成，其实我们更乐于稍微停留在上一个页面，保持一些操作响应, 比如我们可以取消，或者进行其他操作，而给我看一个什么都没有的空白页面或者空转加载状态符, 感觉在做无谓的等待**。
 
-这种交互场景非常常见，眼前的例子就是浏览器：
+这种交互场景其实非常常见，眼前的例子就是浏览器：
+
+<br>
 
 ![](/images/concurrent-mode/browser.gif)
+<i>假装我要买个 AirPods</i>
 
-还有Github
+<br>
 
-TODO: github
+还有我们常用的 Github:
 
-比如我想点击买个AirPods，浏览器会停留在上一个页面，直到下一个页面获得请求响应或者超时。另外浏览器会通过地址栏的加载指示符轻量提示请求情况。这种交互设计，比直接切换过去，展示一个空白的页面要好得多，页面可以保持用户响应, 用户也可以取消请求保持原来的页面。
+![](/images/concurrent-mode/github.gif)
+<i>国外某著名交友网站</i>
 
-当然, Tab 切换时另外一种交互场景，我们希望它马上切换过去, 否则用户会觉得点击不起作用。
+<br>
 
-平行宇宙预渲染，还有一个好处，我们假设大部分情况下，数据请求都非常快，这时候我们没有必要展示加载状态，这会导致页面闪烁和抖动。我们可以通过短暂的延时，来减少加载状态的展示频率。
+比如我想点击买个 `AirPods`，浏览器会停留在上一个页面，直到下一个页面的请求获得响应或者超时。另外浏览器会通过地址栏的加载指示符提示请求情况。这种交互设计，比直接切换过去，展示一个空白的页面要好得多. 页面可以保持用户响应, 也可以随时取消请求，保留在原来的页面。
 
+> 当然, Tab 切换时另外一种交互场景，我们希望它马上切换过去, 否则用户会觉得点击不起作用。
+
+'平行宇宙'，还有一个好处: **🔴我们假设大部分情况下，数据请求都是非常快的，这时候其实没有必要展示加载状态，这会导致页面闪烁和抖动。其实通过短暂的延时，可以来减少加载状态的展示频率**。
+
+另外，**🔴useTransition 也可以用于包裹低优先级更新**。 从目前的情况看，React 并没有意愿暴露过多的 Concurrent 模式的底层细节。如果你要调度低优先级的更新，只能使用 useTransition。
+
+<br>
 <br>
 
 ## useTransition 登场
 
-状态图: TODO: A -> B
+![](/images/concurrent-mode/page-state.png)
 
 <br>
 
-如上图，我们先按照React 官方文档的描述来定义, 各种状态。页面加载有以下三个阶段:
+如上图，我们先按照 React 官方文档的描述来定义页面的各种状态。**它提到页面加载有以下三个阶段**:
 
-- 过渡阶段(Transition)。指的是页面未就绪，等待加载关键数据的阶段。按照不同的展示策略，页面可以有以下两种状态：
-  - **回退(Receded)**。指马上将页面切换过去，展示一个大大的加载指示器或者空白页面。'回退'是什么意思? 按照 React 的说法是，页面原本有内容，现在变为无内容状态，这是一种退化，或者说时间‘倒流’。
-  - **待定(Pending)**。这是useTransition要达到的状态，即停留在当前页面，让当前页面保持响应。在关键数据准备就绪时进入 Skeleton 状态， 亦或者等待超时进入 Receded 状态
-- 加载阶段(Loading)。指的是关键数据已经准备就绪，可以开始展示页面的骨架或者框架部分。这个阶段有一个状态:
-  - **骨架(Skeleton)**。关键数据已经加载完毕，页面展示了主体的框架。
-- 就绪阶段(Done)。指的是页面完全加载完毕。这个阶段有一个状态:
-  - **完成(Complete)** 页面完全呈现
+**① 过渡阶段(Transition)**
 
-默认情况下，在 React 中，当我们更新状态进入一个新屏幕时，经历的是 **`Receded` -> `Skeleton` -> `Complete`** 路径。通过 `useTransition` 我们可以实现 **`Pending` -> `Skeleton` -> `Complete`**。
+指的是页面未就绪，等待加载关键数据的阶段。按照不同的展示策略，页面可以有以下两种状态：
+
+- **⚛️退化(Receded)**。马上将页面切换过去，展示一个大大的加载指示器或者空白页面。'退化'是什么意思? 按照 React 的说法是，页面原本有内容，现在变为无内容状态，这是一种退化，或者说历史的'退步'。
+
+- **⚛️待定(Pending)**。这是 `useTransition` 要达到的状态，即停留在当前页面，让当前页面保持响应。在**关键数据准备就绪**时进入 `Skeleton`(骨架屏) 状态， 亦或者等待超时回退到 `Receded` 状态。
 
 <br>
 
-接下来简单模拟一个页面切换， 先来看默认情况:
+**② 加载阶段(Loading)**
+
+指的是`关键数据`已经准备就绪，可以开始展示页面的骨架或者框架部分。这个阶段有一个状态:
+
+- **⚛️骨架(Skeleton)**。关键数据已经加载完毕，页面展示了主体的框架。
+
+<br>
+
+**③就绪阶段(Done)**。
+
+指的是页面完全加载完毕。这个阶段有一个状态:
+
+- **⚛️完成(Complete)** 页面完全呈现
+
+<br>
+<br>
+
+传统的 React 中，当我们变更状态进入一个新屏幕时，经历的是 **🔴`Receded` -> `Skeleton` -> `Complete`** 路径。在此之前要实现 **🔴`Pending` -> `Skeleton` -> `Complete`** 这种加载路径比较困难。 `useTransition` 可以改变这个局面。
+
+<br>
+
+接下来简单模拟一个页面切换，先来看默认情况下是如何加载的:
 
 ```js
 function A() {
@@ -144,7 +174,7 @@ function Page2() {
 function App() {
   const [showPage2, setShowPage2] = useState(false);
 
-  // 切换到页面2
+  // 点击切换到页面2
   const handleClick = () =>  setShowPage2(true)
 
   return (
@@ -162,13 +192,17 @@ function App() {
 }
 ```
 
+<br>
+
 看一下运行效果:
 
-![](demo1.gif)
+![](/images/concurrent-mode/demo1.gif)
 
-点击切换后，我们会马上看到一个大大的Loading，接着2s 后 B 加载完毕，最后 C 加载完毕。这个过程就是 **`Receded` -> `Skeleton` -> `Complete`**
+点击切换后，我们会马上看到一个大大的 `Loading...`，接着 2s 后 B 加载完毕，再等待 2s 后 C 加载完毕。这个过程就是 **`Receded` -> `Skeleton` -> `Complete`**
 
-现在 useTransition 隆重等成 🎉，我们简单改造一下上面的代码：
+<br>
+
+现在有请 useTransition 隆重登场 🎉，只需对上面的代码进行的简单改造：
 
 ```js
 // ⚛️ 导入 useTransition
@@ -180,7 +214,7 @@ function App() {
   const [startTransition, pending] = useTransition({ timeoutMs: 10000 });
 
   const handleClick = () =>
-    // ⚛️ 将会触发 Suspense 挂起的状态更新包裹在 startTransition 中
+    // ⚛️ 将可能触发 Suspense 挂起的状态变更包裹在 startTransition 中
     startTransition(() => {
       setShowPage2(true);
     });
@@ -204,38 +238,47 @@ function App() {
 
 <br>
 
-useTransition Hook 有4个关键点:
+useTransition Hook 的API比较简洁，有4个需要关键的点:
 
-- `timeoutMs`, 表示切换的超时时间，useTransition 会让 React 保持在当前页面，直到被触发 Suspense 就绪或者超时。
-- `startTransition`, 将会触发页面切换(严格说是触发 Suspense 挂起)的状态更新，包裹在 `startTransition` 下，实际上 startTransition 提供了一个'更新的上下文', 下一节我们会深入探索里面的细节
+- `timeoutMs`, 表示切换的超时时间(最长在平行宇宙存在的时间)，useTransition 会让 React 保持在当前页面，直到被触发 Suspense 就绪或者超时。
+
+- `startTransition`, 将可能触发页面切换(严格说是触发 Suspense 挂起)的状态变更包裹在 `startTransition` 下，实际上 startTransition 提供了一个'更新的上下文'。 下一节我们会深入探索这里面的细节
+
 - `pending`, 表示正处于待定状态。我们可以通过这个状态值，适当地给用户一下提示。
+
 - `Suspense`, useTransition 实现过渡状态必须和 Suspense 配合，也就是 `startTransition` 中的更新必须触发任意一个 Suspense 挂起。
 
 <br>
 
 看一下实际的运行效果吧！
 
-![](/demo2.gif)
+![](/images/concurrent-mode/demo2.gif)
 
-这个效果完全跟本节的第一张图一样，React 会保留在当前页面，pending 状态变为true，接着 B 先就绪，界面马上切换过去。整个过程符合 **`Pending` -> `Skeleton` -> `Complete`**
+<br>
 
-startTransition 中的变更一旦触发 Suspense，这些变更影响节点，React 会暂停’提交‘这些节点的变更。所以我们界面上看到的还是旧的，React 只是在内存中维持了这些状态。
+这个效果完全跟本节开始的'第一张图'一样: React 会保留在当前页面，`pending` 变为了true，接着 B 先就绪，界面马上切换过去。整个过程符合 **`Pending` -> `Skeleton` -> `Complete`** 的路径。
 
-注意，React 只是暂时没有提交这些变更，不说明 React ’卡死了‘，处于Pending 状态的组件还会接收用户的响应，进行状态更新，新的状态更新也可以覆盖或终止 Pending 状态。
+`startTransition` 中的`变更`一旦触发 `Suspense`，React 就会将`变更`标记的 Pending 状态, React会延后 ’提交‘ 这些变更。所以**实际上并没有开头说的平行宇宙, 那么高大上和神奇，React 只不过是延后了这些变更的提交。我们界面上看到的只不过是旧的或者未被 Pending 的状态，React 在后台进行了预渲染**。
+
+注意，React 只是暂时没有提交这些变更，不说明 React ’卡死了‘，处于Pending 状态的组件还会接收用户的响应，进行新的状态变更，新的状态更新也可以覆盖或终止 Pending 状态。
+
+<br>
 
 总结一下进入和退出 Pending 状态的条件:
 
-- 进入Pending 状态需要将 状态更新包裹在 startTransition 下，且这些更新会触发 Suspense 挂起
-- 退出 Pending 状态有三种方式: ① Suspense 就绪；② 超时；③ 被新的状态更新覆盖或者终止
+- **进入Pending** 状态首先需要将 `状态变更` 包裹在 `startTransition` 下，且这些更新会触发 Suspense 挂起
+- **退出 Pending** 状态有三种方式: ① Suspense 就绪；② 超时；③ 被新的状态更新覆盖或者终止
 
 <br>
 <br>
 
 ## useTransition 原理初探
 
-这一节，我们深入探索一下 useTransition，但是不会去折腾源码，而是把它当成一个黑盒，通过几个实验可以加深你对 useTransition 的理解。
+这一节，我们深入探索一下 useTransition，但是方式不是去折腾源码，而是把它当成一个黑盒，通过几个实验来加深你对 useTransition 的理解。
 
-useTransition 的前身是 withSuspenseConfig, [sebmarkbage](TODO:) 在今年五月份提的一个[PR](https://github.com/facebook/react/pull/15593)。从顶层的函数看，useTransition 的工作看似比较简单:
+useTransition 的前身是 `withSuspenseConfig`, [Sebmarkbage](https://github.com/sebmarkbage) 在今年五月份提的一个[PR](https://github.com/facebook/react/pull/15593) 中引进了它。
+
+从命名上看，它不过是想配置一下 Suspense。 我们也可以通过最新的源码验证这一点。 useTransition 的工作'看似'非常简单:
 
 ```js
 function updateTransition(
@@ -269,15 +312,21 @@ function updateTransition(
 }
 ```
 
-看似很普通，要点在哪？
+<br>
 
-- startTransition 一开始执行就将 pending 设置为true。接着使用 unstable_next 执行回调, 降低更新的优先级，换句话说 unstable_next 里面触发的’更新‘优先级会比较低，它会让位为高优先级的更新，或者当前事务繁忙时，调度到下一空闲期再应用，也可能马上被应用。
-- 要点是 `ReactCurrentBatchConfig.suspense` 的配置, 这里面会配置Suspense的超时时间。它表明这个区间触发的更新都被关联该suspenseConfig, 这些更新会根据Suspense的超时时间来计算自己的 `expiredTime`(可以视作‘优先级’)。这些更新触发的渲染(render)也会关联该 `suspenseConfig`
-- 如果在渲染期间触发了 Suspense，且渲染关联了 suspenseConfig。 那么这些渲染不会被被立即提交(commit)，而是存储在内存中, 等到Suspense 超时或者Suspense就绪, 或者被其他更新覆盖时才提交到用户界面。
+看似很普通，要点在哪？Sebmarkbage 在上述的 PR 中也提及了一些信息。
+
+- startTransition 一开始执行就将 pending 设置为true。接着使用 `unstable_next` 执行回调, **unstable_next 可以降低更新的优先级**。也就是说 unstable_next 回调中触发的’变更‘优先级会比较低，它会让位为高优先级的更新，或者当前事务繁忙时，调度到下一空闲期再应用，但也可能马上就被应用。
+
+- 要点是 `ReactCurrentBatchConfig.suspense` 的配置, 这里面会配置 Suspense 的超时时间。**它表明这个区间触发的变更都被关联该 `suspenseConfig`**, 这些变更会根据 suspenseConfig 来计算自己的 `expiredTime`(可以视作‘优先级’)。我们暂且将这些关联了 suspenseConfig 的变更称为 `Pending 变更`.
+
+- `Pending 变更` 触发的重新渲染(Render)也会关联该 `suspenseConfig`。如果在渲染期间触发了 Suspense，那么`Pending 变更` 就会被延迟提交(commit)，它们会缓存在内存中, 等到 Suspense 超时或者就绪, 抑或被其他更新覆盖, 才强制提交到用户界面。
+
+- `Pending 变更` 只是被延迟提交了，但是不会影响最终数据和视图的一致性。React 会在内存中重新渲染，只是不提交到用户界面而已。
 
 <br>
 
-React 内部的实现太过复杂，我们可以做一些实验来验证这一点:
+React 内部的实现太过复杂，我发现去挖它或者用文字表达出来成本都很高。因此换一种方式，通过实验(黑盒)方式来了解它的行为：
 
 <br>
 
