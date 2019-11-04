@@ -42,7 +42,7 @@
 - react performance user timing
 - 大企业是怎么管理前端静态资源的?
 - angular 先进在哪里
-- mobx异步更新
+- mobx 异步更新
 - DOM 树查询算法
 - react 服务端流
 - Apollo 与 状态管理
@@ -52,6 +52,7 @@
   - 类型合并
   - 断言
   - Typescript + webpack的N种方式
-- Concurrent 快速预览
+  - 国外已经有一本书
 - setImmediate, setTimeout(0), nextTick, queueMicrotask(), requestAnimationFrame, requestIdleCallback,messageChannel
 - node + webassembly + go
+- react vue composite api

@@ -24,6 +24,10 @@ categories: 前端
 
 <br>
 
+**🎉下篇：[React Concurrent 模式抢先预览下篇: useTransition 的平行世界](https://juejin.im/post/5dbee8e7e51d4558040f0830)**
+
+<br>
+
 **文章内容框架**
 
 <!-- TOC -->

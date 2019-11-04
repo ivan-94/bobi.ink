@@ -256,6 +256,8 @@ useTransition Hook 的API比较简洁，有4个需要关键的点:
 
 <br>
 
+> 可以在这个 [CodeSandbox](https://codesandbox.io/s/usetransition-y74ry?fontsize=14) 查看运行效果
+
 这个效果完全跟本节开始的'第一张图'一样: React 会保留在当前页面，`pending` 变为了true，接着 B 先就绪，界面马上切换过去。整个过程符合 **`Pending` -> `Skeleton` -> `Complete`** 的路径。
 
 `startTransition` 中的`变更`一旦触发 `Suspense`，React 就会将`变更`标记的 Pending 状态, React会延后 ’提交‘ 这些变更。所以**实际上并没有开头说的平行宇宙, 那么高大上和神奇，React 只不过是延后了这些变更的提交。我们界面上看到的只不过是旧的或者未被 Pending 的状态，React 在后台进行了预渲染**。
