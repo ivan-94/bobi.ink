@@ -31,27 +31,133 @@ Vue Composition API 官方文档列举和它和 React Hooks 的差异:
 
 首先，你得了解 React Hooks 和 Vue Composition API。最好的学习资料是它们的官方文档。下面简单类比一下两者的 API:
 
-         | React Hooks                                  |  Vue Composition API
----------|----------------------------------------------|---------------------------------------
-状态      | `const [value, setValue] = useState(0)`     | `const state = reactive({value: 0})`
-状态变更   | `setValue(1)` 或 `setValue(n => n + 1)`     | `state.value = 1` 或 `state.value++`
-对象引用   | `const foo = useRef(0)` + `foo.current = 1` | `const foo = ref(0)` + `foo.value = 1`
-挂载      | `useEffect(() => {/*挂载*/}, [])`                          | `onBeforeMount(() => {/*挂载前*/})` + `onMounted(() => {/*挂载后*/})`
-卸载      | `useEffect(() => {/*挂载*/; return () => {/*卸载*/}}, [])`  | `onBeforeUnmount(() => {/*卸载前*/})` + `onUnmounted(() => {/*挂载后*/})`
-更新      | `useEffect(() => {/*更新*/})`                | `onBeforeUpdate(() => {/*更新前*/})` + `onUpdated(() => {/*更新后*/})`
-异常处理   | 目前只有类组件支持(componentDidCatch 或 static getDerivedStateFromError) | onErrorCaptured 
-响应更新  | | 
-Context 注入 | |
+|         | React Hooks                                  |  Vue Composition API                   |
+|---------|----------------------------------------------|-----------------------------------------|
+|状态      | `const [value, setValue] = useState(0)` or `useReducer`     | `const state = reactive({value: 0})` |
+|状态变更   | `setValue(1)` 或 `setValue(n => n + 1)`     | `state.value = 1` or `state.value++` |
+|状态衍生   | `useMemo(() => derived, [/*数据依赖*/])`     | `const derived = computed(() => {/*衍生数据*/})` |
+|对象引用   | `const foo = useRef(0)` + `foo.current = 1` | `const foo = ref(0)` + `foo.value = 1`|
+|挂载      | `useEffect(() => {/*挂载*/}, [])`                          | `onBeforeMount(() => {/*挂载前*/})` + `onMounted(() => {/*挂载后*/})`|
+|卸载      | `useEffect(() => {/*挂载*/; return () => {/*卸载*/}}, [])`  | `onBeforeUnmount(() => {/*卸载前*/})` + `onUnmounted(() => {/*挂载后*/})`|
+|重新渲染      | `useEffect(() => {/*更新*/})`                | `onBeforeUpdate(() => {/*更新前*/})` + `onUpdated(() => {/*更新后*/})`|
+|异常处理   | 目前只有类组件支持(`componentDidCatch` 或 `static getDerivedStateFromError` | `onErrorCaptured((err) => {/*异常处理*/})`|
+|依赖监听  | `useEffect(() => {/*依赖更新*/}, [/*数据依赖*/])` | `const stop = watch(() => {/*自动检测数据依赖, 更新...*/})`|
+|依赖监听 + 清理  | `useEffect(() => {/*...*/; return () => {/*清理*/}}, [/*依赖*/])` | `watch(() => [/*依赖*/], (newVal, oldVal, clean) => {/*更新*/; clean(() => {/* 清理*/})})`|
+|Context 注入 | `useContext(YouContext)` | `inject(key)` + `provider(key, value)`|
 
-React Hooks 弱化生命周期方法，副作用
+<br>
+
+对比上表，我们发现两者非常相似，每个功能都可以在对方身上找到等价物。 React Hooks 和 Vue Composition 的差别如下:
+
+- **数据方面**。Vue 采用的是透明的响应式数据，它可以自动监听数据依赖和响应式更新。相比 React Hooks 的 `set{State}`, Vue 直接操作数据更'符合Javascript 的代码直觉'。另外用 React , 你不能绕过不可变数据。
+- **更新响应方面**。React Hooks 和其组件思维一脉相承，它依赖数据的比对来确定依赖的更新。而Vue 则基于自动的依赖订阅。这点可以通过对比 useEffect 和 watch 体会。反之 React 需要手动维护数据依赖，有时候会觉得很啰嗦，人工维护也比较容易出错(可以借助eslint)，特别是状态依赖比较复杂的情况下
+- **生命周期钩子**。React Hooks 已经弱化了组件生命周期的概念，包括类组件也废弃了`componentWillMount`、`componentWillUpdate`、`componentWillReceiveProps` 这些生命周期方法。一则我们确实不需要这么多生命周期方法，React 做了减法；二则，Concurrent 模式下，Reconciliation 阶段组件可能会被重复渲染，这些生命周期方法不能保证只被调用一次，如果在这些生命周期方法中包含副作用，会导致应用异常。Vue Composition API 继续沿用 Vue 2.x 的生命周期方法.
+
+<br>
+
+其中第一点是最重要的，也是最大的区别。这也是为什么 Vue Composition API 的 'Hooks' 只需要初始化一次，不需要在每次渲染时都去调用的主要原因。
 
 ## API 设计
 
-实例
+先来看一下，我们的玩具的大体设计:
 
 ```js
+// 就随便取名叫 mpos 吧
+import { reactive, ref, computed, inject, watch, onMounted, onUpdated, onUnmount, createComponent} from 'mpos'
+import React from 'react'
+
+export interface CounterProps {
+  initial: number;
+}
+
+export const MultiplyContext = React.createContext({ value: 0 });
+
 export default createComponent({
+  // 组件名
   name: 'Counter',
+  // 和 Vue Composition 一样的setup， 只会被调用一次
+  // 接受组件的 props 对象, 这也是一个引用不变的响应式数据, 可以被watch，可以获取最新值
+  setup: (props: CounterProps) => {
+    // 创建一个响应式数据
+    const data = reactive({ count: props.initial, tick: 0 });
+
+    // 等价于 useRef，通过 container.current 获取值。可以传递给组件的ref props
+    // 相比 Vue Composition 的ref 简化，只是返回一个简单的对象
+    const container = ref(null);
+
+    // 衍生数据计算, 可以通过 derivedCount.get() 获取值
+    const derivedCount = computed(() => data.count * 2);
+
+    // 获取Context 值, 类似于 useContext，只不过返回一个响应式数据
+    const ctx = inject(MultiplyContext);
+
+    /**
+     * 生命周期方法
+     */
+    onMounted(() => {
+      console.log("mounted", container.current);
+    });
+
+    onUpdated(() => {
+      console.log("update", data.count, props);
+    });
+
+    onUnmount(() => {
+      console.log("unmount");
+    });
+
+    /**
+     * 监听数据变动, 类似于 useEffect
+     * 返回一个disposer，可以用于显式取消监听，默认会在组件卸载时调用
+     */
+    const stop = watch(
+      () => [data.count], // 可选
+      ([count]) => {
+        console.log("count change", count);
+
+        // 副作用
+        const timer = setInterval(() => data.tick++, count)
+        // 副作用清理, 和useEffect 保持一致，在组件卸载或者当前函数被重新调用时，调用
+        return () => {
+          clearInterval(timer)
+        }
+      }
+    );
+
+    // props 是一个响应式数据
+    watch(() => {
+      console.log("initial change", props.initial);
+    });
+
+    // context 是一个响应式数据
+    watch(
+      () => [ctx.value],
+      ([ctxValue], [oldCtxValue]) => {
+        console.log("context change", ctxValue);
+      }
+    );
+
+    // 方法，不需要 useCallback，永久不变
+    const add = () => {
+      data.count++;
+    };
+
+    return {
+      data,
+      container,
+      derivedCount,
+      add
+    };
+  },
+  render: (props, state) => {
+    // 组件渲染
+    const {data, derivedCount, add, container } = state
+    return (
+      <div className="counter" onClick={add} ref={container}>
+        {data.count} : {derivedCount.get()} : {data.tick}
+      </div>
+    );
+  }
 })
 ```
 
