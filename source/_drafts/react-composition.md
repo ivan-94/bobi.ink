@@ -91,11 +91,20 @@ export default createComponent({
     // 获取Context 值, 类似于 useContext，只不过返回一个响应式数据
     const ctx = inject(MultiplyContext);
 
+    // 可以包含其他 Composition Hook，实现逻辑复用
+    const awesome = useYourImagination()
+
     /**
      * 生命周期方法
      */
     onMounted(() => {
       console.log("mounted", container.current);
+
+      // 支持类似 useEffect 的方式，返回一个函数，这个函数会在卸载前被调用
+      // 因为一般资源获取和资源释放逻辑放在一起，代码会更清晰
+      return () => {
+        console.log("unmount");
+      }
     });
 
     onUpdated(() => {
@@ -161,18 +170,242 @@ export default createComponent({
 })
 ```
 
-要点:
+我不打算照搬 Vue Composition API，因此略有简化。以下是实现的要点:
 
-- ① 只初始化一次
-- ② 因为 ①，所以要确保引用的不变性、我们需要对Context、Props 这些对象进行封装
-- ③ 生命周期钩子，调用上下文
-- ④ 数据监听和释放
-- ④ Context 支持
-- ⑤ 组件如何响应数据更新
+- ① 如何确保 setup 只初始化一次?
+- ② 因为 ①，所以要确保引用的不变性、我们需要对Context、Props 这些对象进行封装, 我们总是可以拿到最新的值，避免类似 React Hook 的闭包问题.
+- ③ 生命周期钩子, watch 如何绑定到组件上？我们要实现一个调用上下文
+- ④ watch 数据监听和释放
+- ④ Context 支持, inject 怎么实现？
+- ⑤ 组件如何响应数据更新?
 
-## 响应式 API
+我们带着这些问题，一步一步来实现这个 'React Composition API'
 
-## 生命周期函数
+<br>
+<br>
+
+## 响应式数据
+
+如何实现数据的响应式？不需要我们自己去造轮子，现成最好库的是 [`MobX`](https://mobx.js.org/refguide/observable.html), `reactive` 和 `computed` 以及 `watch` 都可以在 mobx中找到等价的API:
+
+```js
+// mpos.ts
+
+import { observable, computed } from 'mobx'
+
+export const reactive = observable
+export const box = reactive.box
+export { computed }
+```
+
+关于它们的详细用法见[官方文档](https://mobx.js.org/refguide/observable.html)。下面是它们的简单用法介绍:
+
+```js
+import { reactive, box, computed } from 'mpos'
+
+/**
+ * reactive 可以用于转换 Map、Set、数组、对象，为响应式数据
+ */
+const data = reactive({foo: 'bar'})
+data.foo = 'baz'
+
+// reactive 内部使用Proxy 实现数据响应，他会返回一个新的对象，不会影响原始对象
+const initialState = { firstName: "Clive Staples", lastName: "Lewis" }
+const person = reactive(initialState)
+person.firstName = 'Kobe'
+person.firstName // "Kobe"
+initialState.firstName // "Clive Staples"
+
+// 转换数组
+const arr = reactive([])
+arr.push(1)
+arr[0]
+
+/**
+ * 一般情况下都推荐使用reactive，如果你要转换原始类型为响应式数据，可以用 box
+ */
+const temperature = box(20)
+temperature.set(37)
+temperature.get() // 37
+
+
+/**
+ * 衍生数据计算, 它们也具有响应特性。
+ */
+const fullName = computed(() => `${person.firstName} ${person.lastName}`)
+fullName.get() // "Kobe Lewis"
+```
+
+<br>
+<br>
+
+## 生命周期方法
+
+接下来看看怎么实现 useMounted 这些生命方法。这些方法是全局、通用的，怎么关联到具体的组件上呢？
+
+这个可以借鉴 React Hooks 的实现，当 setup 被调用时，在一个全局变量中保存当前组件的上下文，生命周期方法再从这个上下文中存取信息。来看一下 setup 的大概实现:
+
+```js
+// ⚛️ 全局变量, 表示当前正在执行的 setup 的上下文
+let compositionContext: CompositionContext | undefined;
+
+/**
+ * initial 方法接受一个 setup 方法， 返回一个 useComposition Hooks
+ */
+export function initial<P extends object, R>(setup: (props: P) => R) {
+  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+    // ⚛️ 使用 useRef 用来保存当前的上下文信息。 useRef，可以保证引用不变
+    const context = useRef<CompositionContext | undefined>();
+
+    // 如果当前上下文为空，则开始初始化
+    // ⚛️ 我们这样实现了 setup 只被调用一次!
+    if (context.current == null) {
+      // 创建 Composition 上下文
+      const ctx = (context.current = createCompositionContext(props));
+
+      // ⚛️ 进入当前组件的上下文作用域
+      const prevCtx = compositionContext;
+      compositionContext = ctx;
+
+      // ⚛️ 调用 setup
+      ctx._instance = setup(ctx._props);
+
+      // ⚛️ 离开当前组件的上下文作用域
+      compositionContext = prevCtx;
+    }
+
+    // ... 其他，下文展开
+
+    // 返回 setup 的返回值
+    return context.current._instance!;
+  };
+}
+```
+
+Ok，现在生命周期方法实现原理已经浮出水面, 当这些方法被调用时，只是简单地在 compositionContext 中注册回调, 例如:
+
+```js
+export function onMounted(cb: () => any) {
+  // ⚛️ 获取当前上下文
+  const ctx = getCompositionContext();
+  // 注册回调
+  ctx.addMounted(cb);
+}
+
+export function onUnmount(cb: () => void) {
+  const ctx = getCompositionContext();
+  ctx.addDisposer(cb);
+}
+
+export function onUpdated(cb: () => void) {
+  const ctx = getCompositionContext();
+  ctx.addUpdater(cb);
+}
+
+```
+
+getCompositionContext 获取 compositionContext，如果不在 `setup` 作用域下调用则抛出异常.
+
+```js
+function getCompositionContext(): CompositionContext {
+  if (compositionContext == null) {
+    throw new Error(`请在 setup 作用域使用`);
+  }
+
+  return compositionContext;
+}
+```
+
+看一下 CompositionContext 接口的结构:
+
+```js
+interface CompositionContext<P = any, R = any> {
+  // 添加挂载回调
+  addMounted: (cb: () => any) => void;
+  // 添加重新渲染回调
+  addUpdater: (cb: () => void) => void;
+  // 添加卸载回调
+  addDisposer: (cb: () => void) => void;
+  // 注册 React.Context 下文会介绍
+  addContext: <T>(ctx: React.Context<T>) => T;
+
+  /** 私有属性 **/
+  // props 引用
+  _props: P;
+  // 表示是否已挂载
+  _isMounted: boolean;
+  // setup() 的返回值
+  _instance?: R;
+  _disposers: Array<() => void>;
+  _mounted: Array<() => any>;
+  _updater: Array<() => void>;
+  _contexts: Array<() => void>;
+}
+```
+
+addMounted 这些方法实现都很简单, 只是简单添加到队列中:
+
+```js
+function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
+  const ctx = {
+    addMounted: cb => ctx._mounted.push(cb),
+    addUpdater: cb => ctx._updater.push(cb),
+    addDisposer: cb => ctx._disposers.push(cb),
+    addContext: c => {/* ...  */} ,
+    _isMounted: false,
+    _instance: undefined,
+    _mounted: [],
+    _updater: [],
+    _disposers: [],
+    _contexts: [],
+    _props: observable(props, {}, { deep: false, name: "props" })
+  };
+
+  return ctx;
+}
+```
+
+关键实现还是得回到 initial 方法中:
+
+```js
+export function initial<P extends object, R>(setup: (props: P) => R) {
+  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+    const context = useRef<CompositionContext | undefined>();
+
+    if (context.current == null) {
+      // 初始化....
+    }
+
+    // ⚛️ 每次重新渲染, 调用 onUpdated 生命周期钩子
+    useEffect(() => {
+      const ctx = context.current;
+      if (ctx._isMounted) executeCallbacks(ctx._updater); // 必须在挂载后调用
+    });
+
+    useEffect(() => {
+      const ctx = context.current;
+      ctx._isMounted = true;
+      // ⚛️ 调用 useMounted 生命周期钩子
+      if (ctx._mounted.length) {
+        ctx._mounted.forEach(cb => {
+          // ⚛️useMounted 如果返回一个函数，则添加到disposer中，卸载前调用
+          const rt = cb();
+          if (typeof rt === "function") {
+            ctx.addDisposer(rt);
+          }
+        });
+        // 释放掉
+        ctx._mounted = EMPTY_ARRAY;
+      }
+
+      // ⚛️ 调用 onUnmount 生命周期钩子
+      return () => executeCallbacks(ctx._disposers);
+    }, []);
+
+    // ...
+  };
+}
+```
 
 副作用
 
