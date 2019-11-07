@@ -411,9 +411,161 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 
 ## watch
 
-接下来看看 watch 方法的实现。 watch 方法可以通过 Mobx 的 `authrun` 和 `reaction` 方法来实现。
+接下来看看 watch 方法的实现。watch 估计是除了 reactive 之外调用的最频繁的函数了。
 
-它可以在非 setup 上下文中调用，这时候需要开发者自己来释放监听，避免内存泄漏。
+watch 方法可以通过 Mobx 的 `authrun` 和 `reaction` 方法来实现。我们进行简单的封装，让它更接近 Vue 的watch 函数的行为。这里有一个要点是: watch 即可以在setup 上下文中调用，也可以裸露调用。在setup 上下文调用时，支持组件卸载前自动释放监听。 如果裸露调用，则需要开发者自己来释放监听，避免内存泄漏:
+
+```js
+/**
+ * 在 setup 上下文中调用，watch 会在组件卸载后自动解除监听
+ */ 
+function useMyHook() {
+  const data = reactive({count: 0})
+  watch(() => console.log('count change', data.count))
+
+  return data
+}
+
+/**
+ * 裸露调用，需要手动管理资源释放
+ */ 
+const stop = watch(() => someReactiveData, (data) => {/* reactiveData change */})
+dosomething(() => {
+  // 手动释放
+  stop()
+})
+
+/**
+ * 另外watch 回调内部也可以获取到 stop 方法
+ */ 
+wacth((stop) => {
+  if (someReactiveData === 0) {
+    stop()
+  }
+})
+watch(() => someReactiveData, (data, stop) => {/* reactiveData change */})
+```
+
+另外 watch 的回调支持返回一个函数，用来释放副作用资源。这个行为和 useEffect 保持一致:
+
+```js
+useEffect(() => {
+  const timer = setInterval(() => {/* do something*/}, time)
+  return () => {
+    clearInterval(timer)
+  }
+}, [time])
+
+// watch
+watch(() => {
+  const timer = setInterval(() => {/* do something*/}, time)
+  return () => {
+    clearInterval(timer)
+  }
+})
+```
+
+<br>
+
+看看实现代码:
+
+```js
+export type WatchDisposer = () => void;
+
+export function watch(
+  view: (stop: WatchDisposer) => any,
+  options?: IAutorunOptions
+): WatchDisposer;
+export function watch<T>(
+  expression: () => T,
+  effect: (arg: T, stop: WatchDisposer) => any,
+  options?: IReactionOptions
+): WatchDisposer;
+export function watch(
+  expression: any,
+  effect: any,
+  options?: any
+): WatchDisposer {
+  // 放置 autorun 或者 reactive 返回的释放函数
+  let nativeDisposer: WatchDisposer;
+  // 放置上一次 watch 回调返回的释放函数
+  let effectDisposer: WatchDisposer | undefined;
+  // 是否已经释放
+  let disposed = false;
+
+  // 封装资源释放函数，便面被重复调用
+  const stop = () => {
+    if (disposed) return;
+    disposed = true;
+    if (effectDisposer) effectDisposer();
+    nativeDisposer();
+  };
+
+  // 封装回调方法
+  const effectWrapper = (effect: (...args: any[]) => any, argnum: number) => (
+    ...args: any[]
+  ) => {
+    // 重新执行了回调，释放上一个回调返回的释放方法
+    if (effectDisposer != null) effectDisposer();
+    const rtn = effect.apply(null, args.slice(0, argnum).concat(stop));
+    effectDisposer = typeof rtn === "function" ? rtn : undefined;
+  };
+
+  if (typeof expression === "function" && typeof effect === "function") {
+    // reaction
+    nativeDisposer = reaction(expression, effectWrapper(effect, 1), options);
+  } else {
+    // auto run
+    nativeDisposer = autorun(effectWrapper(expression, 0));
+  }
+
+  // 如果在 setup 上下文则添加到disposer 队列，在组件卸载时自动释放
+  if (compositionContext) {
+    compositionContext.addDisposer(stop);
+  }
+
+  return stop;
+}
+```
+
+DONE!
+
+<br>
+<br>
+
+## 封装 Props 
+
+React 组件每次重新渲染都会生成一个新的 Props 对象，所以无法直接在 setup 中使用，我们需要将其转换为一个引用不变的对象，然后在每次重新渲染时更新这个对象。
+
+```js
+import { set } from 'mobx'
+export function initial<P extends object, R>(setup: (props: P) => R) {
+  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+    const context = useRef<CompositionContext | undefined>();
+
+    // 初始化
+    if (context.current == null) {
+      // ⚛️ createCompositoonContext 会将props 转换为一个响应式数据, 而且这里是浅层转换
+      // _props: observable(props, {}, { deep: false, name: "props" })
+      const ctx = (context.current = createCompositionContext(props));
+      const prevCtx = compositionContext;
+      compositionContext = ctx;
+      ctx._instance = setup(ctx._props);
+      compositionContext = prevCtx;
+    }
+
+    // ...
+
+    // ⚛️ 每次重新渲染时更新, props 属性
+    set(context.current._props, props);
+
+    return context.current._instance!;
+  };
+}
+```
+
+<br>
+<br>
 
 ## 支持 Context 注入
 
