@@ -184,7 +184,7 @@ export default createComponent({
 <br>
 <br>
 
-## 响应式数据
+## 响应式数据和 ref
 
 如何实现数据的响应式？不需要我们自己去造轮子，现成最好库的是 [`MobX`](https://mobx.js.org/refguide/observable.html), `reactive` 和 `computed` 以及 `watch` 都可以在 mobx中找到等价的API:
 
@@ -235,6 +235,41 @@ temperature.get() // 37
 const fullName = computed(() => `${person.firstName} ${person.lastName}`)
 fullName.get() // "Kobe Lewis"
 ```
+
+<br>
+
+Vue Composition API 的 reactive 和 watch 等函数都可以和 ref 打一些配合:
+
+```js
+// Vue Composition API
+
+// 和 reactive 配合
+const count = ref(0)
+const state = reactive({
+  count
+})
+
+console.log(state.count) // 0
+
+state.count = 1
+console.log(count.value) // 1
+
+// 和 watch 配合
+const count = ref(0)
+watch(count, (count, prevCount) => { /* ... */ })
+```
+
+这些功能全部不支持，个人觉得没多大必要。所以我们的 ref 和 React 的 useRef Hook 看起，他只是简单的返回一个对象:
+
+```js
+export function ref<T>(initial: T): { current: T } {
+  return {
+    current: initial,
+  }
+}
+```
+
+对于我们来说 ref 只是一个数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些数据，例如引用DOM组件实例。
 
 <br>
 <br>
@@ -671,7 +706,98 @@ const YouComponent = observer(props => {
 })
 ```
 
-How it work?
+How it work? 如果这样一笔带过，估计很多读者会很扫兴，自己写一个 observer 也不难。我们可以参考 mobx-react 或者 mobx-react-lite 的实现。
+
+它们都将渲染函数放在一个track 函数的作用域下，track函数可以跟踪渲染函数依赖了哪些数据，当这些数据变动时，强制进行组件更新:
+
+```js
+import { Reaction } from 'mobx'
+
+export function createComponent<P extends object, R>(options: {
+  setup: (props: P) => R
+  render: (props: P, state: R) => React.ReactElement
+  name?: string
+  forwardRef?: boolean
+}): FC<P> {
+  const { setup: init, render, name, forwardRef } = options
+  // 创建 useComposition Hook
+  const useComposition = initial(init)
+
+  const Comp = (props: P, ref: React.RefObject<R>) => {
+    // 用于强制更新组件, 实现很简单，就是递增 useState 的值
+    const forceUpdate = useForceUpdate()
+    const reactionRef = useRef<{ reaction: Reaction, disposer: () => void } | null>(null)
+
+    const inst = useComposition(props, forwardRef ? ref : null)
+
+    // 创建跟踪器
+    if (reactionRef.current == null) {
+      reactionRef.current = {
+        // 等依赖更新时，调用 forceUpdate 强制更新
+        reaction: new Reaction(`observer(${name || "Unknown"})`, () =>  forceUpdate()),
+        // 释放跟踪器
+        disposer: () => {
+          if (reactionRef.current && !reactionRef.current.reaction.isDisposed) {
+            reactionRef.current.reaction.dispose()
+            reactionRef.current = null
+          }
+        },
+      }
+    }
+
+    useEffect(() => () => reactionRef.current && reactionRef.current.disposer(), [])
+
+    let rendering
+    let error
+
+    // 将 render 函数放在track 作用域下，收集 render 函数的数据依赖
+    reactionRef.current.reaction.track(() => {
+      try {
+        rendering = render(props, inst)
+      } catch (err) {
+        error = err
+      }
+    })
+
+    if (error) {
+      reactionRef.current.disposer()
+      throw error
+    }
+
+    return rendering
+  }
+  // ...
+}
+```
+
+接着，我们将 Comp 组件包裹在 React.memo 下，避免不必要重新渲染:
+
+```js
+export function createComponent<P extends object, R>(options: {
+  setup: (props: P) => R
+  render: (props: P, state: R) => React.ReactElement
+  name?: string
+  forwardRef?: boolean
+}): FC<P> {
+  const { setup: init, render, name, forwardRef } = options
+  const useComposition = initial(init)
+
+  const Comp = (props: P, ref: React.RefObject<R>) => {/*...*/}
+  Comp.displayName = `Composition(${name || "Unknown"})`
+
+  let finalComp
+  if (forwardRef) {
+    // 支持转发 ref
+    finalComp = React.memo(React.forwardRef(Comp))
+  } else {
+    finalComp = React.memo(Comp)
+  }
+
+  finalComp.displayName = name
+
+  return finalComp
+}
+```
 
 ## 整合起来
 
