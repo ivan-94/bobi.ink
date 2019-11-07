@@ -56,3 +56,4 @@
 - setImmediate, setTimeout(0), nextTick, queueMicrotask(), requestAnimationFrame, requestIdleCallback,messageChannel
 - node + webassembly + go
 - react vue composite api
+- react batch

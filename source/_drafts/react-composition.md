@@ -4,7 +4,11 @@ date: 2019/11/04
 categories: 前端
 ---
 
-前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲 [`Vue Composition API`](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks。我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以学到三样东西：React Hooks、Vue Composition API、Mobx。
+前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲在 React 下实现 [`Vue Composition API`](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks, 我只不过蹭了一下 Vue 3.0 的热度。
+
+我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以学到三样东西：React Hooks、Vue Composition API、Mobx，还是挺多干货的。
+
+<br>
 
 Vue Composition API 是 Vue 3.0 的一个重要特性， 和 React Hooks 一样，是一种非常棒的逻辑复用机制。尽管初期受到不少争议，我个人还是比较看好这个 API，因为确实解决了 Vue 以往的很多[痛点](TODO:)。
 
@@ -245,21 +249,32 @@ Vue Composition API 的 reactive 和 watch 等函数都可以和 ref 打一些�
 
 // 和 reactive 配合
 const count = ref(0)
+console.log(count.value) // 0
+
 const state = reactive({
-  count
+  count                  // 可以赋值给 reactive 属性
 })
 
-console.log(state.count) // 0
+console.log(state.count) // 0 Vue 的 reactive 支持自动解包(unwrap) ref, 相当于 state.count.value
 
-state.count = 1
+//
+// 在模板上下文中也支持自动解包
+// <button @click="increment">{{ count }}</button>
+// 
+
+state.count = 1          // 被覆盖掉了 
 console.log(count.value) // 1
+
+// Vue 的 computed 也返回一个 ref
+const double = computed(() => state.count * 2)
+console.log(double.value) // 2
 
 // 和 watch 配合
 const count = ref(0)
 watch(count, (count, prevCount) => { /* ... */ })
 ```
 
-这些功能全部不支持，个人觉得没多大必要。所以我们的 ref 和 React 的 useRef Hook 看起，他只是简单的返回一个对象:
+这些功能(自动解包和watch)全部不支持，个人觉得没多大必要。所以我们的 ref 和 React 的 useRef Hook 看齐，他只是简单的返回一个对象:
 
 ```js
 export function ref<T>(initial: T): { current: T } {
@@ -269,7 +284,34 @@ export function ref<T>(initial: T): { current: T } {
 }
 ```
 
-对于我们来说 ref 只是一个数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些数据，例如引用DOM组件实例。
+![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
+
+因为 Javascript 原始值时按值传递的，这时候传递给变量或者函数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用对象来包裹这些值，我们总是可以通过这个对象获取到最新的值**。
+
+ref 没有什么魔法， **对于我们来说 ref 只是一个数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。ref 只是一个规范用法，它返回的对象没什么特别的。
+
+<br>
+
+关于Vue Composition API 的 ref，还有 toRefs 值得提一下。toRefs 可以将reactive 对象的每个属性都转换为 ref，这样可以实现对象被解构或者展开的情况下，属性不丢失响应:
+
+```js
+// 解构，count === 1， 响应丢失了
+const { count } = reactive({count: 1})
+
+// 使用toRefs 转换
+const state = reactive({count: 1})
+const stateRef = toRefs(state) // 转换成了 {count: Ref<state.count>}
+
+// 这时候可以安全地进行解构和传递属性
+const { count } = stateRef
+count.value // 1
+state.count++ 
+count.value // 2
+count.value++
+state.count // 3
+```
+
+toRef 解决 reactive 数据解构和展开问题, 由于我们没有实现 ref 对象的自动解包，因此 toRefs 对我们没什么实际好处，代码会更啰嗦一点, 不如直接引用 reactive 对象。
 
 <br>
 <br>
@@ -799,19 +841,60 @@ export function createComponent<P extends object, R>(options: {
 }
 ```
 
+搞定，所有代码都在这个 [CodeSandbox](TODO:) 中，大家可以自行体验.
+
 ## 整合起来
 
 ## Mobx 的更新的调度
 
-## Benchmark
-
 ## 缺陷
 
-最后，这只是一个玩具！
+最后，这只是一个玩具！整个过程也不过百来行代码。
 
-就如标题所说的，通过这个玩具，学到这些奇淫巧技，你对 React Hooks 的了解应该更深了吧？
+就如标题所说的，通过这个玩具，学到很多奇淫巧技，你对 React Hooks 的了解应该更深了吧？
 
-React 自身的状态更新机制, 队列, 优先级调度, 开发者工具集成, concurrent Mode, 生态圈
-useTransition
+之所以是个玩具，是因为它还有一些缺陷，而且不够 ’React‘！只能自个玩玩 
 
-搞这一套还不如直接上 Vue 是吧？毕竟Vue 天生集成响应式数据，整个工作链路自顶向下, 从数据到模板、再到底层渲染, 对响应式数据有更好的融合，更加高效。尽管如此，React 的灵活性还是让人赞叹, 多范式
+如果你了解过 React Concurrent 模式，你会发现它和 React 自身的状态更新机制是深入绑定的。React 自身的setState 状态更新粒度更小、可以进行优先级调度、可以通过 useTransition + Suspense 配合进入 Pending 状态, 在'平行宇宙'中进行渲染。
+也就是说 React 自身的状态更新机制和组件的渲染体系是深度集成。
+
+因此监听响应式数据，然后粗暴地forceUpdate，会让我们丢失部分 React Concurrent 模式带来的红利。除此之外、开发者工具的集成、生态圈、Benchmark 数据...
+
+<br>
+
+搞这一套还不如直接上 Vue 是吧？毕竟Vue 天生集成响应式数据，整个工作链路自顶向下, 从数据到模板、再到底层组件渲染, 对响应式数据有更好的融合、更加高效。
+
+尽管如此，React 的灵活性、开放、多范式编程方式、创造力还是让人赞叹。
+
+<br>
+<br>
+
+另外响应式机制也不是完全没有心智负担，最起码你要了解响应式数据的原理，知道什么可以被响应，什么不可以：
+
+```js
+// 比如不能使用解构和展开表达式
+function useMyHook() {
+  // 将count 拷贝给(按值传递) count变量，这会导致响应丢失，下游无法响应count 的变化
+  const { count } = reactive({count: 0})
+
+  return { count }
+}
+```
+
+还有响应式数据转换成本，诸如此类的，网上也有大量的资料。 关于 Vue Composition API 需要注意这些东西:
+
+- [What does MobX react to?](https://mobx.js.org/best/react.html)
+- [Vue Composition API Drawbacks](https://vue-composition-api-rfc.netlify.com/#plugin-development)
+
+除此之外，你有时候会纠结什么时候应该使用 reactive，什么时候应该使用 ref, 什么时候应该使用 toRefs 转换 reactive 数据？
+
+没有银弹，没有银弹。
+
+<br>
+<br>
+
+## 参考
+
+- [@vue/composition-api](https://github.com/vuejs/composition-api)
+- [Vue Composition API RFC](https://vue-composition-api-rfc.netlify.com/)
+- [Mobx](https://mobx.js.org/)
