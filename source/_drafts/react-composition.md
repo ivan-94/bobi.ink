@@ -411,11 +411,17 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 
 ## watch
 
-## Context
+接下来看看 watch 方法的实现。 watch 方法可以通过 Mobx 的 `authrun` 和 `reaction` 方法来实现。
 
-## 监听重新渲染
+它可以在非 setup 上下文中调用，这时候需要开发者自己来释放监听，避免内存泄漏。
+
+## 支持 Context 注入
+
+## 监听触发组件重新渲染
 
 ## 整合起来
+
+## Mobx 的更新的调度
 
 ## Benchmark
 
