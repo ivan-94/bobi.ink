@@ -339,7 +339,7 @@ interface CompositionContext<P = any, R = any> {
   _disposers: Array<() => void>;
   _mounted: Array<() => any>;
   _updater: Array<() => void>;
-  _contexts: Array<() => void>;
+  _contexts: Map<React.Context<any>, { value: any; updater: () => void }>
 }
 ```
 
@@ -357,7 +357,7 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
     _mounted: [],
     _updater: [],
     _disposers: [],
-    _contexts: [],
+    _contexts: new Map(),
     _props: observable(props, {}, { deep: false, name: "props" })
   };
 
@@ -569,7 +569,109 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 
 ## 支持 Context 注入
 
+实现 Context 的注入还是得费点事，我们会利用 React 的 useContext 来实现， 我们需要保证 useContext 的调用顺序.
+
+和生命周期方法一样，调用 inject 时，推入队列中:
+
+```js
+export function inject<T>(Context: React.Context<T>): T {
+  const ctx = getCompositionContext();
+  return ctx.addContext(Context);
+}
+```
+
+为了保证插入的顺序，以及避免重复的 useContext 调用，我们使用 Map 来保存 Context 引用:
+
+```js
+function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
+  const ctx = {
+    // ...
+    addContext: c => {
+      // 已添加
+      if (ctx._contexts.has(c)) {
+        return ctx._contexts.get(c)!.value
+      }
+
+      // 使用 useContext 获取 Context 值
+      let value = useContext(c)
+      // 转换为 响应式数据
+      const wrapped = observable(value, {}, { deep: false, name: "context" })
+
+      // 插入到队列
+      ctx._contexts.set(c, {
+        value: wrapped,
+        // 更新器，这个会在 React 组件每次重新渲染时被调用
+        // 保证React Hooks 的调用顺序 以及 数据更新
+        updater: () => {
+          const newValue = useContext(c)
+          if (newValue !== value) {
+            set(wrapped, newValue)
+            value = newValue
+          }
+        },
+      })
+
+      return wrapped as any
+    },
+    _isMounted: false,
+    _contexts: new Map(),
+    // ....
+  };
+
+  return ctx;
+}
+```
+
+回到setup 函数，因为我们使用了 useContext，必须在每一次渲染时都保证一样的次序调用 React Hooks:
+
+```js
+export function initial<P extends object, R>(setup: (props: P) => R) {
+  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+    const context = useRef<CompositionContext | undefined>()
+
+    // 初始化
+    if (context.current == null) {
+      const ctx = (context.current = createCompositionContext(props))
+      const prevCtx = compositionContext
+      compositionContext = ctx
+      ctx._instance = setup(ctx._props)
+      compositionContext = prevCtx
+    }
+
+    // 一定要在其他 React Hooks 之前调用
+    // 因为在 setup 调用的过程中已经调用了 useContext，所以只在挂载之后的重新渲染中才调用更新
+    if (context.current._contexts.size && context.current._isMounted) {
+      for (const { updater } of context.current._contexts.values()) {
+        updater()
+      }
+    }
+
+    // ...
+  }
+}
+```
+
+DONE!
+
 ## 监听触发组件重新渲染
+
+基本接口已经准备就绪了，现在如何和 React 组件建立关联，在响应式数据更新后触发组件重新渲染?
+
+Mobx 有一个库可以用来绑定 React 组件, 它就是 mobx-react-lite, 有了它我们可以这样使用：
+
+```js
+import {observer} from 'mobx-react-lite'
+import { initial } from 'mpos'
+
+const useComposition = initial((props) => {/* setup */})
+
+const YouComponent = observer(props => {
+  const state = useComposition(props)
+  return <div>{state.data.count}</div>
+})
+```
+
+How it work?
 
 ## 整合起来
 
