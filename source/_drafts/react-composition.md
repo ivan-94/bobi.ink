@@ -4,9 +4,31 @@ date: 2019/11/04
 categories: 前端
 ---
 
-前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲在 React 下实现 [`Vue Composition API`](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks, 我只不过蹭了一下 Vue 3.0 的热度。
+前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲在 React 下实现 [`Vue Composition API`, 下面简称**VCA**](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks, 我只不过蹭了一下 Vue 3.0 的热度。
 
 我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以学到三样东西：React Hooks、Vue Composition API、Mobx，还是挺多干货的。
+
+<br>
+
+<!-- TOC -->
+
+- [对比 React Hooks 和 Vue Composition API](#对比-react-hooks-和-vue-composition-api)
+- [API 设计](#api-设计)
+- [响应式数据和 ref](#响应式数据和-ref)
+  - [关于 Vue Composition API ref](#关于-vue-composition-api-ref)
+  - [toRefs 与按值传递](#torefs-与按值传递)
+  - [box 和 ref](#box-和-ref)
+- [生命周期方法](#生命周期方法)
+- [watch](#watch)
+- [封装 Props](#封装-props)
+- [支持 Context 注入](#支持-context-注入)
+- [监听触发组件重新渲染](#监听触发组件重新渲染)
+- [整合起来](#整合起来)
+- [Mobx 的更新的调度](#mobx-的更新的调度)
+- [缺陷](#缺陷)
+- [参考](#参考)
+
+<!-- /TOC -->
 
 <br>
 
@@ -63,11 +85,11 @@ Vue Composition API 官方文档列举和它和 React Hooks 的差异:
 
 ## API 设计
 
-先来看一下，我们的玩具的大体设计:
+先来看一下，我们的玩具(随便取名叫mpos吧)的大体设计:
 
 ```js
 // 就随便取名叫 mpos 吧
-import { reactive, ref, computed, inject, watch, onMounted, onUpdated, onUnmount, createComponent} from 'mpos'
+import { reactive, box, ref, computed, inject, watch, onMounted, onUpdated, onUnmount, createComponent} from 'mpos'
 import React from 'react'
 
 export interface CounterProps {
@@ -85,12 +107,19 @@ export default createComponent({
     // 创建一个响应式数据
     const data = reactive({ count: props.initial, tick: 0 });
 
-    // 等价于 useRef，通过 container.current 获取值。可以传递给组件的ref props
-    // 相比 Vue Composition 的ref 简化，只是返回一个简单的对象
-    const container = ref(null);
+    // 由于reactive 不能包装原始类型，box 可以帮到我们
+    const name = box('kobe')
+    name.set('curry')
+    console.log(name.get()) // curry
 
     // 衍生数据计算, 可以通过 derivedCount.get() 获取值
     const derivedCount = computed(() => data.count * 2);
+    console.log(derivedCount.get()) // 0
+
+    // 等价于 useRef，通过 container.current 获取值。可以传递给组件的ref props
+    // 注意和 Vue Composition API 的 ref 完全不一样。我们的 ref()只是简单返回一个普通对象，
+    // 和 useRef 的用法以及语义保持一致
+    const container = ref(null);
 
     // 获取Context 值, 类似于 useContext，只不过返回一个响应式数据
     const ctx = inject(MultiplyContext);
@@ -130,7 +159,8 @@ export default createComponent({
 
         // 副作用
         const timer = setInterval(() => data.tick++, count)
-        // 副作用清理, 和useEffect 保持一致，在组件卸载或者当前函数被重新调用时，调用
+
+        // 副作用清理（可选）, 和useEffect 保持一致，在组件卸载或者当前函数被重新调用时，调用
         return () => {
           clearInterval(timer)
         }
@@ -190,7 +220,16 @@ export default createComponent({
 
 ## 响应式数据和 ref
 
-如何实现数据的响应式？不需要我们自己去造轮子，现成最好库的是 [`MobX`](https://mobx.js.org/refguide/observable.html), `reactive` 和 `computed` 以及 `watch` 都可以在 mobx中找到等价的API:
+如何实现数据的响应式？不需要我们自己去造轮子，现成最好库的是 [`MobX`](https://mobx.js.org/refguide/observable.html), `reactive` 和 `computed` 以及 `watch` 都可以在 mobx中找到等价的API。以下是 Mobx API 和 Vue Composition API 的对照表:
+
+|  Mobx                            | Vue Composition API | 描述 |
+|-----------------------------------|---------------------|------|
+|  observable(object|map|array|set) | reactive()          | 转换响应式对象 |
+|  box(原始类型)                      | ref()               | 转换原始类型为响应式对象 |
+|  computed(() => {}) + 返回 box 类型 | computed() + 返回ref类型 | 响应式衍生状态计算 |
+|  autorun(), reaction()            | watch()             | 监听响应式对象变动 |
+
+<br>
 
 ```js
 // mpos.ts
@@ -242,39 +281,98 @@ fullName.get() // "Kobe Lewis"
 
 <br>
 
-Vue Composition API 的 reactive 和 watch 等函数都可以和 ref 打一些配合:
+### 关于 Vue Composition API ref
+
+上面说了，VCA 的 ref 函数等价于 Mobx 的 box。可以让原始类型封装'响应式数据'(本质上就是创建一个对象，监听getter/setter方法):
 
 ```js
-// Vue Composition API
-
-// 和 reactive 配合
 const count = ref(0)
 console.log(count.value) // 0
+```
 
+只不过，每次需要通过 value 属性来存取值，代码显得有点啰嗦。因此 VCA 在某些地方支持对 ref 对象进行自动解包(unwrap):
+
+```jsx
+// 1️⃣ 作为reactive 值时
 const state = reactive({
   count                  // 可以赋值给 reactive 属性
 })
 
-console.log(state.count) // 0 Vue 的 reactive 支持自动解包(unwrap) ref, 相当于 state.count.value
+console.log(state.count) // 0 等价于 state.count.value
 
-//
-// 在模板上下文中也支持自动解包
+// 只不过这里有个陷阱，会导致原有的 ref 对象被覆盖
+state.count = 1          // 被覆盖掉了, count 属性现在是 1, 而不是 Ref<count>
+console.log(count.value) // 0
+
+// 2️⃣ 传递给模板时，模板可以自动解包
+//  
 // <button @click="increment">{{ count }}</button>
-// 
+// 等价于
+// <button @click="increment">{{ count.value }}</button>
+//
 
-state.count = 1          // 被覆盖掉了 
-console.log(count.value) // 1
-
-// Vue 的 computed 也返回一个 ref
-const double = computed(() => state.count * 2)
-console.log(double.value) // 2
-
-// 和 watch 配合
-const count = ref(0)
-watch(count, (count, prevCount) => { /* ... */ })
+// 3️⃣ 支持直接 watch
+watch(count, (cur, prev) => { /* ... */ }) // 等价于 watch(() => count.value, (cur, prev) => {})
 ```
 
-这些功能(自动解包和watch)全部不支持，个人觉得没多大必要。所以我们的 ref 和 React 的 useRef Hook 看齐，他只是简单的返回一个对象:
+另外 VCA 的 computed 实际上也返回 ref 对象:
+
+```js
+const double = computed(() => state.count * 2)
+console.log(double.value) // 2
+```
+
+<br>
+
+VSA 和 Mobx 的 API 惊人的相似。想必 Vue 不少借鉴了 Mobx.
+
+<br>
+
+### toRefs 与按值传递
+
+关于 VCA 的 ref，还有 toRefs 值得提一下。toRefs 可以将 reactive 对象的每个属性都转换为 ref 对象，这样可以实现对象被解构或者展开的情况下，仍然保持响应:
+
+```js
+// 解构，count === 1， 响应丢失了. 
+// 这时候 count 只是一个普通的值为1的变量. 修改它不会影响到原有的 reactive 对象
+const { count } = reactive({count: 1})
+```
+
+![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
+
+因为 Javascript 原始值时按值传递的，这时候传递给变量或者函数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用对象来包裹这些值，我们总是可以通过这个对象获取到最新的值**。
+
+<br>
+
+toRefs 登场:
+
+```js
+// 使用toRefs 转换
+const state = reactive({count: 1})
+const stateRef = toRefs(state) // 转换成了 Reactive<{count: Ref<state.count>}>
+
+// 这时候可以安全地进行解构和传递属性
+const { count } = stateRef
+
+count.value    // 1
+state.count    // 1 三者指向同一个值
+stateRef.count // 1, 支持解包
+
+state.count++ // 更新源 state
+count.value   // 2 响应到 ref
+
+count.value++ // 更新 ref 本身
+state.count   // 3 响应到源state
+```
+
+toRef 解决 reactive 属性值解构和展开导致响应丢失问题。 由于我们的玩具, 不打算实现类似于 ref 对象的自动解包机制，因此 toRefs 对我们没什么实际好处，代码还是会啰嗦一点(每个属性值都需要.value获取), 不如直接传递/引用 reactive 对象。
+
+<br>
+<br>
+
+### box 和 ref
+
+避免和现有的 useRef 冲突，这些功能(自动解包和watch)全部不支持，个人觉得没多大必要。所以我们的 ref 和 React 的 useRef Hook 看齐，他只是简单的返回一个对象:
 
 ```js
 export function ref<T>(initial: T): { current: T } {
@@ -284,34 +382,12 @@ export function ref<T>(initial: T): { current: T } {
 }
 ```
 
-![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
-
-因为 Javascript 原始值时按值传递的，这时候传递给变量或者函数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用对象来包裹这些值，我们总是可以通过这个对象获取到最新的值**。
-
 ref 没有什么魔法， **对于我们来说 ref 只是一个数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。ref 只是一个规范用法，它返回的对象没什么特别的。
 
 <br>
 
-关于Vue Composition API 的 ref，还有 toRefs 值得提一下。toRefs 可以将reactive 对象的每个属性都转换为 ref，这样可以实现对象被解构或者展开的情况下，属性不丢失响应:
 
-```js
-// 解构，count === 1， 响应丢失了
-const { count } = reactive({count: 1})
 
-// 使用toRefs 转换
-const state = reactive({count: 1})
-const stateRef = toRefs(state) // 转换成了 {count: Ref<state.count>}
-
-// 这时候可以安全地进行解构和传递属性
-const { count } = stateRef
-count.value // 1
-state.count++ 
-count.value // 2
-count.value++
-state.count // 3
-```
-
-toRef 解决 reactive 数据解构和展开问题, 由于我们没有实现 ref 对象的自动解包，因此 toRefs 对我们没什么实际好处，代码会更啰嗦一点, 不如直接引用 reactive 对象。
 
 <br>
 <br>
