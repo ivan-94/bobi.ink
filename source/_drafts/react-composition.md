@@ -10,11 +10,34 @@ categories: 前端
 
 <br>
 
-TODO: 目录
+<!-- TOC -->
+
+- [对比 React Hooks 和 Vue Composition API](#对比-react-hooks-和-vue-composition-api)
+- [API 设计概览](#api-设计概览)
+- [响应式数据和 ref](#响应式数据和-ref)
+  - [关于 Vue Composition API ref](#关于-vue-composition-api-ref)
+  - [toRefs 与按值传递](#torefs-与按值传递)
+  - [ref 和 box](#ref-和-box)
+- [生命周期方法](#生命周期方法)
+- [watch](#watch)
+- [包装 Props 为响应式数据](#包装-props-为响应式数据)
+- [支持 Context 注入](#支持-context-注入)
+- [监听触发组件重新渲染](#监听触发组件重新渲染)
+- [forwardRef 处理](#forwardref-处理)
+- [总结](#总结)
+- [参考/扩展](#参考扩展)
+
+<!-- /TOC -->
 
 <br>
 
-Vue Composition API 是 Vue 3.0 的一个重要特性， 和 React Hooks 一样，是一种非常棒的逻辑复用机制。尽管初期受到不少争议，我个人还是比较看好这个 API，因为确实解决了 Vue 以往的很多[痛点](TODO:)。
+Vue Composition API 是 Vue 3.0 的一个重要特性，和 React Hooks 一样，这是一种非常棒的逻辑组合复用机制。尽管初期受到不少[争议](https://juejin.im/post/5d0f64d4f265da1b67211893)，我个人还是比较看好这个 API 提案，因为确实解决了 Vue 以往的很多痛点, 这些痛点在它的[ RFC 文档](https://vue-composition-api-rfc.netlify.com/#motivation)中说得很清楚。动机和 React Hooks 差不多，无非就是三点:
+
+- ① 逻辑组合和复用
+- ② 更好的类型推断。完美支持 Typescript
+- ③ Tree-shakable 和 代码压缩友好
+
+<br>
 
 如果你了解 React Hooks 你会觉得 Composition API 身上有很多 Hooks 的影子。毕竟 React Hooks 是 Composition API 的主要灵感来源，但是 Vue 没有完全照搬 Hooks，而是基于自己的响应式机制，创建出了自己的逻辑复用原语, 非常有特色, 这使得它辨识度还是非常高的。
 
@@ -644,6 +667,8 @@ interface CompositionContext<P = any, R = any> {
   addDisposer: (cb: () => void) => void;
   // 注册 React.Context 下文会介绍
   addContext: <T>(ctx: React.Context<T>) => T;
+  // 添加通过ref暴露给外部的对象
+  addExpose: (value: any) => void
 
   /** 私有属性 **/
   // props 引用
@@ -656,6 +681,7 @@ interface CompositionContext<P = any, R = any> {
   _mounted: Array<() => any>;
   _updater: Array<() => void>;
   _contexts: Map<React.Context<any>, { value: any; updater: () => void }>
+  _exposer?: () => any
 }
 ```
 
@@ -675,6 +701,7 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
     _disposers: [],
     _contexts: new Map(),
     _props: observable(props, {}, { deep: false, name: "props" })
+    _exposer: undefined,
   };
 
   return ctx;
@@ -854,7 +881,7 @@ DONE!
 <br>
 <br>
 
-## 封装 Props 
+## 包装 Props 为响应式数据
 
 React 组件每次重新渲染都会生成一个新的 Props 对象，所以无法直接在 setup 中使用，我们需要将其转换为一个引用不变的对象，然后在每次重新渲染时更新这个对象。
 
@@ -1005,6 +1032,7 @@ How it work? 如果这样一笔带过，估计很多读者会很扫兴，自己�
 它们都将渲染函数放在一个track 函数的作用域下，track函数可以跟踪渲染函数依赖了哪些数据，当这些数据变动时，强制进行组件更新:
 
 ```js
+import React, { FC , useRef, useEffect } from 'react'
 import { Reaction } from 'mobx'
 
 export function createComponent<Props extends {}, Ref>(options: {
@@ -1093,21 +1121,81 @@ export function createComponent<Props extends {}, Ref>(options: {
 }
 ```
 
+<br>
+<br>
+
 ## forwardRef 处理
 
-TODO:
+最后一步，有些时候我们的组件需要通过 ref 向外部暴露一些状态和方法。在Hooks 中我们使用 `useImperativeHandle` 来实现:
 
-搞定，所有代码都在这个 [CodeSandbox](TODO:) 中，大家可以自行体验.
+```js
+function FancyInput(props, ref) {
+  const inputRef = useRef();
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current.focus();
+    }
+  }));
+  return <input ref={inputRef} ... />;
+}
+FancyInput = forwardRef(FancyInput);
+```
 
-## 整合起来
+<br>
 
-## Mobx 的更新的调度
+在我们的玩具中，我们自定义一个新的函数expose, 来暴露我们的公开：
 
-## 缺陷
+```js
+function setup(props) {
+  expose({
+    somePublicAPI: () => {}
+  })
 
-最后，这只是一个玩具！整个过程也不过百来行代码。
+  // ...
+}
+```
 
-就如标题所说的，通过这个玩具，学到很多奇淫巧技，你对 React Hooks 的了解应该更深了吧？
+实现如下：
+
+```js
+export function expose(value: any) {
+  const ctx = assertCompositionContext();
+  ctx.addExpose(value);
+}
+```
+
+关键是 useComposition 的处理:
+
+```js
+export function initial<Props extends object, Rtn, Ref>(
+  setup: (props: Props) => Rtn,
+) {
+  return function useComposition(props: Props, ref?: React.RefObject<Ref>): Rtn {
+    const context = useRef<CompositionContext | undefined>()
+    if (context.current == null) {
+      // 初始化...
+    }
+
+    // ... useContext
+
+    // 如果传递了ref 且 调用了 expose 函数
+    // 使用useImperativeHandle 暴露给 ref
+    if (ref && context.current._exposer != null) {
+      // 只在 _exposer 变动后更新
+      useImperativeHandle(ref, context.current._exposer, [context.current._exposer]);
+    }
+```
+
+<br>
+<br>
+
+🎉🎉 搞定，**所有代码都在这个 [CodeSandbox](https://codesandbox.io/s/mobx-vue-composition-api-ft9mv?fontsize=14) 中，大家可以自行体验**.
+
+## 总结
+
+最后，这只是一个玩具🎃！整个过程也不过百来行代码。
+
+就如标题所说的，通过这个玩具，学到很多奇淫巧技，你对 React Hooks 以及 Vue Composition API 的了解应该更深了吧？
 
 之所以是个玩具，是因为它还有一些缺陷，而且不够 ’React‘！只能自个玩玩 
 
@@ -1152,6 +1240,7 @@ function useMyHook() {
 
 - [@vue/composition-api](https://github.com/vuejs/composition-api)
 - [Vue Composition API RFC](https://vue-composition-api-rfc.netlify.com/)
+- [Vue Function-based API RFC 中文](https://zhuanlan.zhihu.com/p/68477600) 有点过时，不影响理解
 - [Mobx](https://mobx.js.org/)
 - [awesome-vue-composition-api](https://github.com/kefranabg/awesome-vue-composition-api)
 - [Vue Composition API CodeSandbox Playground](https://codesandbox.io/s/github/nuxt/typescript/tree/master/examples/composition-api/minimal)
