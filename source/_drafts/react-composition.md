@@ -16,8 +16,8 @@ categories: 前端
 - [API 设计概览](#api-设计概览)
 - [响应式数据和 ref](#响应式数据和-ref)
   - [关于 Vue Composition API ref](#关于-vue-composition-api-ref)
-  - [toRefs 与按值传递](#torefs-与按值传递)
-  - [ref 和 box](#ref-和-box)
+  - [为什么需要 ref](#为什么需要-ref)
+  - [ref 和 useRef](#ref-和-useref)
 - [生命周期方法](#生命周期方法)
 - [watch](#watch)
 - [包装 Props 为响应式数据](#包装-props-为响应式数据)
@@ -350,7 +350,7 @@ fullName.get() // "Kobe Lewis"
 
 ### 关于 Vue Composition API ref
 
-上面说了，**VCA 的 ref 函数等价于 Mobx 的 box 函数**。可以将原始类型封装为'响应式数据'(本质上就是创建一个reactive对象，监听getter/setter方法):
+上面说了，**VCA 的 ref 函数等价于 Mobx 的 box 函数**。可以将原始类型包装为'响应式数据'(本质上就是创建一个reactive对象，监听getter/setter方法), 所以 ref 也被 称为包装对象(Mobx 的 box 命名更贴切):
 
 ```js
 const count = ref(0)
@@ -359,7 +359,7 @@ console.log(count.value) // 0
 
 <br>
 
-你可以这样理解, ref 内部就是一个 computed 封装(当然是假的):
+你可以这样理解, ref 内部就是一个 `computed` 封装(当然是假的):
 
 ```js
 function ref(value) {
@@ -367,13 +367,22 @@ function ref(value) {
   return computed({
     get: () => data.value,
     set: val => data.value = val
-  }) 
+  })
+}
+
+// 或者这样理解也可以
+function ref(value) {
+  const data = reactive({value})
+  return {
+    get value() { return data.value },
+    set value(val) { data.value = val }
+  }
 }
 ```
 
 <br>
 
-只不过需要通过 value 属性来存取值，代码显得有点啰嗦。因此 VCA 在某些地方支持对 ref 对象进行**自动解包(Unwrap)**:
+只不过需要通过 value 属性来存取值，有时候代码显得有点啰嗦。**因此 VCA 在某些地方支持对 ref 对象进行`自动解包(Unwrap)`， 或者说`自动展开`**, 不过目前自动解包，仅限于读取。 例如:
 
 ```jsx
 // 1️⃣ 作为reactive 值时
@@ -416,28 +425,28 @@ VSA 和 Mobx 的 API 惊人的相似。想必 Vue 不少借鉴了 Mobx.
 <br>
 <br>
 
-### toRefs 与按值传递
+### 为什么需要 ref
 
-关于 VCA 的 ref，还有 [`toRefs`](https://vue-composition-api-rfc.netlify.com/api.html#torefs) 值得提一下。**toRefs 可以将 reactive 对象的每个属性都转换为 ref 对象，这样可以实现对象被解构或者展开的情况下，不丢失响应**:
-
-看一下响应是怎么丢失的:
+响应式对象有一个广为人知的陷阱，如果你对响应式对象进行解构、展开，或者将具体的属性传递给变量或参数，那么可能会导致响应丢失。 看下例, 思考一下响应是怎么丢失的:
 
 ```js
-// 解构，count === 1， 响应丢失了. 
-// 这时候 count 只是一个普通的值为1的变量. 修改它不会影响到原有的 reactive 对象
-const { count } = reactive({count: 1})
+// 解构, 响应丢失了.
+// 这时候 count 只是一个普通的、值为1的变量.
+// reactive 对象变动不会传导到 count
+// 修改变量本身，更不会影响到原本的reactive 对象
+const data = reactive({count: 1})
+let { count } = data
 ```
 
 <br>
 
-因为 Javascript 原始值时按值传递的，这时候传递给变量/对象属性或者函数参数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用'对象'来包裹这些值，我们总是可以通过这个对象获取到最新的值**:
+因为 Javascript **原始值**是**按值传递**的，这时候传递给变量、对象属性或者函数参数，引用就会丢失。**为了保证 ‘安全引用’, 我们才需要用'对象'来包裹这些值，我们总是可以通过这个对象获取到最新的值**:
 
 ![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
 
 <br>
-<br>
 
-**toRefs** 登场:
+关于 VCA 的 ref，还有 [`toRefs`](https://vue-composition-api-rfc.netlify.com/api.html#torefs) 值得提一下。 **toRefs 可以将 reactive 对象的每个属性都转换为 ref 对象，这样可以实现对象被解构或者展开的情况下，不丢失响应**:
 
 ```js
 // Vue 代码
@@ -476,7 +485,7 @@ function toRefs(obj) {
         },
         set value(val) {
           obj[key] = val
-        } 
+        }
       }
     }
   })
@@ -487,10 +496,13 @@ function toRefs(obj) {
 
 <br>
 
+toRefs 解决 reactive 对象属性值解构和展开导致响应丢失问题。配合**自动解包**，不至于让代码变得啰嗦(还是有挺多限制).
 
-toRefs 解决 reactive 属性值解构和展开导致响应丢失问题。 **对于 VCA 来说，ref 除了可以用于封装原始类型，更重要的一点是：它是一个'规范'的数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。
+<br>
 
-举个例子, 下面的 `useOnline` VCA Hook:
+ **对于 VCA 来说，① ref 除了可以用于封装原始类型，更重要的一点是：② 它是一个'规范'的数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。
+
+举个例子, 下面的 `useOnline` Hook, 这个 Hooks 只返回一个状态:
 
 ```js
 // Vue 代码
@@ -516,31 +528,37 @@ function useOnline() {
 }
 ```
 
+<br>
+
 如果 useOnline 返回一个 reactive 对象, 会显得有点怪:
 
 ```js
 // Vue 代码
+
 // 这样子？ online 可能会丢失响应
-const { online } = useOnline()
+const { online } = useOnline() // 返回 Reactive<{online: boolean}>
 
 // 怎么确定属性命名？
 const online = useOnline()
-watch(() => online.online) 
+watch(() => online.online)
 
+// 所以我们需要规范，这个规范可以帮我们规避陷阱，也统一了使用方式
 // 更规范的返回一个 ref，使用 value 来获取值
 watch(() => online.value)
-// 更方便的监听
+// 可以更方便地进行监听
 wacth(online, (ol) => {
   // 直接拿到 online.value
 })
 ```
 
+所以官方也推荐使用 ref 对象来进行数据传递，同时保持响应的传导。就到这吧，不让写着写着就变成 VCA 的文档了。
+
 <br>
 <br>
 
-### ref 和 box
+### ref 和 useRef
 
-VCA ref 这个命名会让 React 开发者将其和 `useRef` 联想在一起。的确，VCA 的 ref 跟 React 的 useRef 一样，[ref 可以用于引用 Virtual DOM的节点实例](https://vue-composition-api-rfc.netlify.com/api.html#template-refs):
+VCA ref 这个命名会让 React 开发者将其和 `useRef` 联想在一起。的确，VCA 的 ref 在结构、功能和职责上跟 React 的 useRef 很像。例如 [ref 也可以用于引用 Virtual DOM的节点实例](https://vue-composition-api-rfc.netlify.com/api.html#template-refs):
 
 ```js
 // Vue 代码
@@ -554,9 +572,11 @@ export default {
 }
 ```
 
-为了避免和现有的 useRef 冲突，而且在我们的玩具中，也不打算实现 ref 自动解包功能。因此为了和 VCA ref 区分开来(尽管两者是指同一个东西)，在我们玩具中会沿用 Mobx 的 box 命名，对应的还有isBox, toBoxes 函数。
+为了避免和现有的 useRef 冲突，而且在我们也不打算实现 ref 自动解包诸如此类的功能。因此为了和 VCA ref 区分开来(尽管两者是指同一个东西)，在我们会沿用 Mobx 的 box 命名，对应的还有isBox, toBoxes 函数。
 
-那怎么引用 Virtual DOM 节点呢？ 我们可以使用 React 的 createRef() 函数：
+<br>
+
+那怎么引用 Virtual DOM 节点呢？ 我们可以使用 React 的 [`createRef()`](https://reactjs.org/docs/react-api.html#reactcreateref) 函数：
 
 ```js
 // React 代码
@@ -578,9 +598,9 @@ createComponent({
 
 ## 生命周期方法
 
-接下来看看怎么实现 useMounted 这些生命方法。这些方法是全局、通用的，怎么关联到具体的组件上呢？
+接下来看看怎么实现 useMounted 这些生命周期方法。这些方法是全局、通用的，怎么关联到具体的组件上呢？
 
-这个可以借鉴 React Hooks 的实现，当 setup 被调用时，在一个全局变量中保存当前组件的上下文，生命周期方法再从这个上下文中存取信息。来看一下 setup 的大概实现:
+这个可以借鉴 React Hooks 的实现，当 setup() 被调用时，在一个全局变量中保存当前组件的上下文，生命周期方法再从这个上下文中存取信息。来看一下 initial 的大概实现:
 
 ```js
 // ⚛️ 全局变量, 表示当前正在执行的 setup 的上下文
@@ -606,10 +626,10 @@ export function initial<Props extends object, Rtn, Ref>(
       const prevCtx = compositionContext;
       compositionContext = ctx;
 
-      // ⚛️ 调用 setup
+      // ⚛️ 调用 setup, 并缓存返回值
       ctx._instance = setup(ctx._props);
 
-      // ⚛️ 离开当前组件的上下文作用域
+      // ⚛️ 离开当前组件的上下文作用域, 恢复
       compositionContext = prevCtx;
     }
 
@@ -640,8 +660,9 @@ export function onUpdated(cb: () => void) {
   const ctx = assertCompositionContext();
   ctx.addUpdater(cb);
 }
-
 ```
+
+<br>
 
 assertCompositionContext 获取 compositionContext，如果不在 `setup` 作用域下调用则抛出异常.
 
@@ -655,7 +676,9 @@ function assertCompositionContext(): CompositionContext {
 }
 ```
 
-看一下 CompositionContext 接口的结构:
+<br>
+
+看一下 CompositionContext 接口的外形:
 
 ```js
 interface CompositionContext<P = any, R = any> {
@@ -667,7 +690,7 @@ interface CompositionContext<P = any, R = any> {
   addDisposer: (cb: () => void) => void;
   // 注册 React.Context 下文会介绍
   addContext: <T>(ctx: React.Context<T>) => T;
-  // 添加通过ref暴露给外部的对象
+  // 添加通过ref暴露给外部的对象, 下文会介绍
   addExpose: (value: any) => void
 
   /** 私有属性 **/
@@ -685,7 +708,9 @@ interface CompositionContext<P = any, R = any> {
 }
 ```
 
-addMounted 这些方法实现都很简单, 只是简单添加到队列中:
+<br>
+
+`addMounted`、`addUpdater` 这些方法实现都很简单, 只是简单添加到队列中:
 
 ```js
 function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
@@ -708,6 +733,8 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
 }
 ```
 
+<br>
+
 关键实现还是得回到 initial 方法中:
 
 ```js
@@ -724,23 +751,24 @@ export function initial<Props extends object, Rtn, Ref>(
     // ⚛️ 每次重新渲染, 调用 onUpdated 生命周期钩子
     useEffect(() => {
       const ctx = context.current;
-      if (ctx._isMounted) executeCallbacks(ctx._updater); // 必须在挂载后调用
+      // 首次挂载时不调用
+      if (ctx._isMounted) executeCallbacks(ctx._updater);
     });
 
     useEffect(() => {
       const ctx = context.current;
       ctx._isMounted = true;
+
       // ⚛️ 调用 useMounted 生命周期钩子
       if (ctx._mounted.length) {
         ctx._mounted.forEach(cb => {
-          // ⚛️useMounted 如果返回一个函数，则添加到disposer中，卸载前调用
+          // ⚛️ useMounted 如果返回一个函数，则添加到disposer中，卸载前调用
           const rt = cb();
           if (typeof rt === "function") {
             ctx.addDisposer(rt);
           }
         });
-        // 释放掉
-        ctx._mounted = EMPTY_ARRAY;
+        ctx._mounted = EMPTY_ARRAY; // 释放掉
       }
 
       // ⚛️ 调用 onUnmount 生命周期钩子
@@ -753,9 +781,11 @@ export function initial<Props extends object, Rtn, Ref>(
 ```
 
 <br>
-<br>
 
-副作用: TODO:
+没错，这些生命周期方法，最终还是用 useEffect 来实现。
+
+<br>
+<br>
 
 ## watch
 
@@ -766,7 +796,7 @@ watch 方法可以通过 Mobx 的 `authrun` 和 `reaction` 方法来实现。我
 ```js
 /**
  * 在 setup 上下文中调用，watch 会在组件卸载后自动解除监听
- */ 
+ */
 function useMyHook() {
   const data = reactive({count: 0})
   watch(() => console.log('count change', data.count))
@@ -776,7 +806,7 @@ function useMyHook() {
 
 /**
  * 裸露调用，需要手动管理资源释放
- */ 
+ */
 const stop = watch(() => someReactiveData, (data) => {/* reactiveData change */})
 dosomething(() => {
   // 手动释放
@@ -1236,6 +1266,10 @@ function useMyHook() {
 <br>
 <br>
 
+最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，只不过换一下数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
+
+<br>
+
 ## 参考/扩展
 
 - [@vue/composition-api](https://github.com/vuejs/composition-api)
@@ -1244,3 +1278,7 @@ function useMyHook() {
 - [Mobx](https://mobx.js.org/)
 - [awesome-vue-composition-api](https://github.com/kefranabg/awesome-vue-composition-api)
 - [Vue Composition API CodeSandbox Playground](https://codesandbox.io/s/github/nuxt/typescript/tree/master/examples/composition-api/minimal)
+
+<br>
+
+![](/images/sponsor.jpg)
