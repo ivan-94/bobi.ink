@@ -6,12 +6,11 @@ categories: 前端
 
 前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲在 React 下实现 [`Vue Composition API`, 下面简称**VCA**](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks, 我只不过蹭了一下 Vue 3.0 的热度。
 
-我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以学到三样东西：React Hooks、Vue Composition API、Mobx，还是挺多干货的。
-
-了解两种思想的碰撞
+我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以体会到两种思想的碰撞, 你可以深入学习三样东西：React Hooks、Vue Composition API、Mobx，还是挺多干货的。
 
 <br>
 
+TODO: 目录
 
 <br>
 
@@ -64,15 +63,30 @@ Vue Composition API 官方文档列举和它和 React Hooks 的差异:
 
 <br>
 
-其中第一点是最重要的，也是最大的区别。这也是为什么 Vue Composition API 的 'Hooks' 只需要初始化一次，不需要在每次渲染时都去调用的主要原因。
+其中第一点是最重要的，也是最大的区别(思想)。这也是为什么 Vue Composition API 的 'Hooks' 只需要初始化一次，不需要在每次渲染时都去调用的主要原因。
 
-## API 设计
+<br>
+<br>
 
-先来看一下，我们的玩具(随便取名叫mpos吧)的大体设计:
+## API 设计概览
+
+先来看一下，我们的玩具(随便取名叫**mpos**吧)的大体设计:
 
 ```js
 // 就随便取名叫 mpos 吧
-import { reactive, box, createRef, computed, inject, watch, onMounted, onUpdated, onUnmount, createComponent} from 'mpos'
+import {
+  reactive,
+  box,
+  createRef,
+  computed,
+  inject,
+  watch,
+  onMounted,
+  onUpdated,
+  onUnmount,
+  createComponent,
+  Box
+} from 'mpos'
 import React from 'react'
 
 export interface CounterProps {
@@ -81,31 +95,50 @@ export interface CounterProps {
 
 export const MultiplyContext = React.createContext({ value: 0 });
 
-export default createComponent({
+// 自定义 Hooks
+function useTitle(title: Box<string>) {
+  watch(() => document.title = title.value)
+}
+
+export default createComponent<CounterProps>({
   // 组件名
   name: 'Counter',
-  // 和 Vue Composition 一样的setup， 只会被调用一次
+  // 和 Vue Composition 一样的setup，只会被调用一次
   // 接受组件的 props 对象, 这也是一个引用不变的响应式数据, 可以被watch，可以获取最新值
-  setup: (props: CounterProps) => {
-    // 创建一个响应式数据
+  setup(props) {
+    /**
+     * 创建一个响应式数据
+     */
     const data = reactive({ count: props.initial, tick: 0 });
 
-    // 由于reactive 不能包装原始类型，box 可以帮到我们, 等价与 Vue Composition API 的 ref
+    /**
+     * box 类似
+     * 由于reactive 不能包装原始类型，box 可以帮到我们, 等价与 Vue Composition API 的 ref
+     */
     const name = box('kobe')
     name.set('curry')
     console.log(name.get()) // curry
 
-    // 衍生数据计算, 可以通过 derivedCount.get() 获取值
+    /**
+     * 衍生数据计算, 可以通过 derivedCount.get() 获取值
+     */
     const derivedCount = computed(() => data.count * 2);
     console.log(derivedCount.get()) // 0
 
-    // 等价于 React.createRef()，通过 containerRef.current 获取值。可以传递给组件的ref props
-    const containerRef = createRef(null);
+    /**
+     * 等价于 React.createRef()，通过 containerRef.current 获取值。可以传递给组件的ref props
+     */
+    const containerRef = createRef<HTMLDivElement>();
 
-    // 获取Context 值, 类似于 useContext，只不过返回一个响应式数据
+    /**
+     * 获取Context 值, 类似于 useContext，只不过返回一个响应式数据
+     */
     const ctx = inject(MultiplyContext);
 
-    // 可以包含其他 Composition Hook，实现逻辑复用
+    /**
+     * 可以复合其他 Composition Hook，实现逻辑复用
+     */
+    useTitle(computed(() => `title: ${data.count}`))
     const awesome = useYourImagination()
 
     /**
@@ -161,51 +194,35 @@ export default createComponent({
       }
     );
 
-    // 方法，不需要 useCallback，永久不变
+    /**
+     * 方法，不需要 useCallback，永久不变
+     */
     const add = () => {
       data.count++;
     };
 
-    return {
-      data,
-      containerRef,
-      derivedCount,
-      add
-    };
+    /**
+     * 返回一个渲染函数
+     */ 
+    return () => {
+      // 在这里你也可以调用，React Hooks, 就跟普通函数组件一样
+      useEffect(() => {
+        console.log('hello world')
+      }, [])
+
+      return (
+        <div className="counter" onClick={add} ref={containerRef}>
+          {data.count} : {derivedCount.get()} : {data.tick}
+        </div>
+      );
+    }
   },
-  render: (props, state) => {
-    // 组件渲染
-    const {data, derivedCount, add, container } = state
-    // 在这里你也可以调用，React Hooks
-    useEffect(() => {
-      console.log('hello world')
-    }, [])
-
-    return (
-      <div className="counter" onClick={add} ref={containerRef}>
-        {data.count} : {derivedCount.get()} : {data.tick}
-      </div>
-    );
-  }
 })
 ```
 
-`createComponent` 还支持另外一种更简洁的方式:
+<br>
 
-```js
-export default createComponent<Props>({
-  name: 'MyComp',
-  setup(props) {
-    const count = box(0)
-    const add = () => count.value++
-
-    return () => <div onClick={add}>{count.value}</div>
-  }
-})
-```
-
-
-我不打算照搬 Vue Composition API，因此略有简化。以下是实现的要点:
+我不打算完全照搬 Vue Composition API，因此略有简化和差异。以下是实现的要点:
 
 - ① 如何确保 setup 只初始化一次?
 - ② 因为 ①，所以要确保引用的不变性、我们需要对Context、Props 这些对象进行封装, 我们总是可以拿到最新的值，避免类似 React Hook 的闭包问题.
@@ -213,6 +230,8 @@ export default createComponent<Props>({
 - ④ watch 数据监听和释放
 - ④ Context 支持, inject 怎么实现？
 - ⑤ 组件如何响应数据更新?
+
+<br>
 
 我们带着这些问题，一步一步来实现这个 'React Composition API'
 
@@ -227,7 +246,7 @@ export default createComponent<Props>({
 |-----------------------------------|---------------------|------|
 |  observable(object|map|array|set) | reactive()          | 转换响应式对象 |
 |  box(原始类型)                      | ref()               | 转换原始类型为响应式对象 |
-|  computed(() => {}) + 返回 box 类型 | computed() + 返回ref类型 | 响应式衍生状态计算 |
+|  computed(() => {}) + 返回 box 类型 | computed() + 返回 ref 类型 | 响应式衍生状态计算 |
 |  autorun(), reaction()            | watch()             | 监听响应式对象变动 |
 
 <br>
@@ -235,11 +254,34 @@ export default createComponent<Props>({
 ```js
 // mpos.ts
 
-import { observable, computed } from 'mobx'
+import { observable, computed, isBoxedObservable } from 'mobx'
+
+export type Box<T> = IObservableValue<T>
+export type Boxes<T> = {
+  [K in keyof T]: T[K] extends Box<infer V> ? Box<V> : Box<T[K]>
+}
 
 export const reactive = observable
-export const box = reactive.box
+export const box = reactive.box        // 等价于 VCA 的 ref
+export const isBox = isBoxedObservabl
 export { computed }
+
+// 等价于 VCA 的 toRefs, 见下文
+export function toBoxes<T extends object>(obj: T): Boxes<T> {
+  const res: Boxes<T> = {} as any
+  Object.keys(obj).forEach(k => {
+    if (isBox(obj[k])) {
+      res[k] = obj[k]
+    } else {
+      res[k] = {
+        get: () => obj[k],
+        set: (v: any) => (obj[k] = v),
+      }
+    }
+  })
+
+  return res
+} 
 ```
 
 关于它们的详细用法见[官方文档](https://mobx.js.org/refguide/observable.html)。下面是它们的简单用法介绍:
@@ -285,7 +327,7 @@ fullName.get() // "Kobe Lewis"
 
 ### 关于 Vue Composition API ref
 
-上面说了，**VCA 的 ref 函数等价于 Mobx 的 box 函**数。可以将原始类型封装为'响应式数据'(本质上就是创建一个对象，监听getter/setter方法):
+上面说了，**VCA 的 ref 函数等价于 Mobx 的 box 函数**。可以将原始类型封装为'响应式数据'(本质上就是创建一个reactive对象，监听getter/setter方法):
 
 ```js
 const count = ref(0)
@@ -308,7 +350,7 @@ function ref(value) {
 
 <br>
 
-只不过需要通过 value 属性来存取值，代码显得有点啰嗦。因此 VCA 在某些地方支持对 ref 对象进行自动解包(unwrap):
+只不过需要通过 value 属性来存取值，代码显得有点啰嗦。因此 VCA 在某些地方支持对 ref 对象进行**自动解包(Unwrap)**:
 
 ```jsx
 // 1️⃣ 作为reactive 值时
@@ -330,7 +372,9 @@ console.log(count.value) // 0
 //
 
 // 3️⃣ 支持直接 watch
-watch(count, (cur, prev) => { /* ... */ }) // 等价于 watch(() => count.value, (cur, prev) => {})
+watch(count, (cur, prev) => { // 等价于 watch(() => count.value, (cur, prev) => {})
+  console.log(cur) // 直接拿到的是 ref 的值，所以不需要 cur.value 这样获取
+})
 ```
 
 <br>
@@ -347,10 +391,13 @@ console.log(double.value) // 2
 VSA 和 Mobx 的 API 惊人的相似。想必 Vue 不少借鉴了 Mobx.
 
 <br>
+<br>
 
 ### toRefs 与按值传递
 
-关于 VCA 的 ref，还有 toRefs 值得提一下。**toRefs 可以将 reactive 对象的每个属性都转换为 ref 对象，这样可以实现对象被解构或者展开的情况下，不丢失响应**:
+关于 VCA 的 ref，还有 [`toRefs`](https://vue-composition-api-rfc.netlify.com/api.html#torefs) 值得提一下。**toRefs 可以将 reactive 对象的每个属性都转换为 ref 对象，这样可以实现对象被解构或者展开的情况下，不丢失响应**:
+
+看一下响应是怎么丢失的:
 
 ```js
 // 解构，count === 1， 响应丢失了. 
@@ -358,16 +405,20 @@ VSA 和 Mobx 的 API 惊人的相似。想必 Vue 不少借鉴了 Mobx.
 const { count } = reactive({count: 1})
 ```
 
-因为 Javascript 原始值时按值传递的，这时候传递给变量或者函数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用对象来包裹这些值，我们总是可以通过这个对象获取到最新的值**:
+<br>
+
+因为 Javascript 原始值时按值传递的，这时候传递给变量/对象属性或者函数参数，引用就会丢失。**为了保证 ‘引用的不变性’, 我们才需要用'对象'来包裹这些值，我们总是可以通过这个对象获取到最新的值**:
 
 ![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
 
 <br>
 <br>
 
-toRefs 登场:
+**toRefs** 登场:
 
 ```js
+// Vue 代码
+
 // 使用toRefs 转换
 const state = reactive({count: 1})
 const stateRef = toRefs(state) // 转换成了 Reactive<{count: Ref<state.count>}>
@@ -377,22 +428,50 @@ const { count } = stateRef
 
 count.value    // 1
 state.count    // 1 三者指向同一个值
-stateRef.count // 1, 支持解包
+stateRef.count.value // 1
 
 state.count++ // 更新源 state
 count.value   // 2 响应到 ref
-
-count.value++ // 更新 ref 本身
-state.count   // 3 响应到源state
 ```
 
-TODO: 简单实现一下 toRefs
+<br>
 
-toRefs 解决 reactive 属性值解构和展开导致响应丢失问题。 **对于 VCA 来说，ref 除了可以用于封装原始类型，更重要的是：它是一个数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。
-
-例如下面的 `useOnline` VCA Hook:
+简单实现一下 toRefs, 没什么黑魔法:
 
 ```js
+// Vue 代码
+
+function toRefs(obj) {
+  const res = {}
+  Object.keys(obj).forEach(key => {
+    if (isRef(obj[key])) {
+      res[key] = obj[key]
+    } else {
+      res[key] = {
+        get value() {
+          return obj[key]
+        },
+        set value(val) {
+          obj[key] = val
+        } 
+      }
+    }
+  })
+
+  return res
+}
+```
+
+<br>
+
+
+toRefs 解决 reactive 属性值解构和展开导致响应丢失问题。 **对于 VCA 来说，ref 除了可以用于封装原始类型，更重要的一点是：它是一个'规范'的数据载体，它可以在 Hooks 之间进行数据传递；也可以暴露给组件层，用于引用一些对象，例如引用DOM组件实例**。
+
+举个例子, 下面的 `useOnline` VCA Hook:
+
+```js
+// Vue 代码
+
 function useOnline() {
   const online = ref(true)
 
@@ -409,8 +488,28 @@ function useOnline() {
   })
 
   // 返回一个 ref
+  // 如果这时候返回一个 reactive 对象，会显得有点奇怪
   return online
 }
+```
+
+如果 useOnline 返回一个 reactive 对象, 会显得有点怪:
+
+```js
+// Vue 代码
+// 这样子？ online 可能会丢失响应
+const { online } = useOnline()
+
+// 怎么确定属性命名？
+const online = useOnline()
+watch(() => online.online) 
+
+// 更规范的返回一个 ref，使用 value 来获取值
+watch(() => online.value)
+// 更方便的监听
+wacth(online, (ol) => {
+  // 直接拿到 online.value
+})
 ```
 
 <br>
@@ -418,7 +517,7 @@ function useOnline() {
 
 ### ref 和 box
 
-VCA ref 这个命名会让 React 开发者将其和 `useRef` 联想在一起。的确，跟 React 的 useRef 一样，[ref 可以用于引用 Virtual DOM的节点实例](https://vue-composition-api-rfc.netlify.com/api.html#template-refs):
+VCA ref 这个命名会让 React 开发者将其和 `useRef` 联想在一起。的确，VCA 的 ref 跟 React 的 useRef 一样，[ref 可以用于引用 Virtual DOM的节点实例](https://vue-composition-api-rfc.netlify.com/api.html#template-refs):
 
 ```js
 // Vue 代码
@@ -432,11 +531,12 @@ export default {
 }
 ```
 
-为了避免和现有的 useRef 冲突，而且在我们的玩具中，也不打算实现 ref 自动解包功能。因此为了和 VCA ref 区分开来(尽管两者是指同一个东西)，在我们玩具中会沿用 Mobx 的 box 命名。
+为了避免和现有的 useRef 冲突，而且在我们的玩具中，也不打算实现 ref 自动解包功能。因此为了和 VCA ref 区分开来(尽管两者是指同一个东西)，在我们玩具中会沿用 Mobx 的 box 命名，对应的还有isBox, toBoxes 函数。
 
 那怎么引用 Virtual DOM 节点呢？ 我们可以使用 React 的 createRef() 函数：
 
 ```js
+// React 代码
 import { createRef } from 'react'
 
 createComponent({
@@ -466,8 +566,10 @@ let compositionContext: CompositionContext | undefined;
 /**
  * initial 方法接受一个 setup 方法， 返回一个 useComposition Hooks
  */
-export function initial<P extends object, R>(setup: (props: P) => R) {
-  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+export function initial<Props extends object, Rtn, Ref>(
+  setup: (props: Props) => Rtn,
+) {
+  return function useComposition(props: Props, ref?: React.RefObject<Ref>): Rtn {
     // ⚛️ 使用 useRef 用来保存当前的上下文信息。 useRef，可以保证引用不变
     const context = useRef<CompositionContext | undefined>();
 
@@ -501,27 +603,27 @@ Ok，现在生命周期方法实现原理已经浮出水面, 当这些方法被�
 ```js
 export function onMounted(cb: () => any) {
   // ⚛️ 获取当前上下文
-  const ctx = getCompositionContext();
+  const ctx = assertCompositionContext();
   // 注册回调
   ctx.addMounted(cb);
 }
 
 export function onUnmount(cb: () => void) {
-  const ctx = getCompositionContext();
+  const ctx = assertCompositionContext();
   ctx.addDisposer(cb);
 }
 
 export function onUpdated(cb: () => void) {
-  const ctx = getCompositionContext();
+  const ctx = assertCompositionContext();
   ctx.addUpdater(cb);
 }
 
 ```
 
-getCompositionContext 获取 compositionContext，如果不在 `setup` 作用域下调用则抛出异常.
+assertCompositionContext 获取 compositionContext，如果不在 `setup` 作用域下调用则抛出异常.
 
 ```js
-function getCompositionContext(): CompositionContext {
+function assertCompositionContext(): CompositionContext {
   if (compositionContext == null) {
     throw new Error(`请在 setup 作用域使用`);
   }
@@ -582,8 +684,10 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
 关键实现还是得回到 initial 方法中:
 
 ```js
-export function initial<P extends object, R>(setup: (props: P) => R) {
-  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+export function initial<Props extends object, Rtn, Ref>(
+  setup: (props: Props) => Rtn,
+) {
+  return function useComposition(props: Props, ref?: React.RefObject<Ref>): Rtn {
     const context = useRef<CompositionContext | undefined>();
 
     if (context.current == null) {
@@ -621,11 +725,14 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 }
 ```
 
-副作用
+<br>
+<br>
+
+副作用: TODO:
 
 ## watch
 
-接下来看看 watch 方法的实现。watch 估计是除了 reactive 之外调用的最频繁的函数了。
+接下来看看 watch 方法的实现。watch 估计是除了 reactive 和 ref 之外调用的最频繁的函数了。
 
 watch 方法可以通过 Mobx 的 `authrun` 和 `reaction` 方法来实现。我们进行简单的封装，让它更接近 Vue 的watch 函数的行为。这里有一个要点是: watch 即可以在setup 上下文中调用，也可以裸露调用。在setup 上下文调用时，支持组件卸载前自动释放监听。 如果裸露调用，则需要开发者自己来释放监听，避免内存泄漏:
 
@@ -753,8 +860,11 @@ React 组件每次重新渲染都会生成一个新的 Props 对象，所以无�
 
 ```js
 import { set } from 'mobx'
-export function initial<P extends object, R>(setup: (props: P) => R) {
-  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+
+export function initial<Props extends object, Rtn, Ref>(
+  setup: (props: Props) => Rtn,
+) {
+  return function useComposition(props: Props, ref?: React.RefObject<Ref>): Rtn {
     const context = useRef<CompositionContext | undefined>();
 
     // 初始化
@@ -789,7 +899,7 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 
 ```js
 export function inject<T>(Context: React.Context<T>): T {
-  const ctx = getCompositionContext();
+  const ctx = assertCompositionContext();
   return ctx.addContext(Context);
 }
 ```
@@ -839,8 +949,10 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
 回到setup 函数，因为我们使用了 useContext，必须在每一次渲染时都保证一样的次序调用 React Hooks:
 
 ```js
-export function initial<P extends object, R>(setup: (props: P) => R) {
-  return function useComposition(props: P, ref?: React.RefObject<R>): R {
+export function initial<Props extends object, Rtn, Ref>(
+  setup: (props: Props) => Rtn,
+) {
+  return function useComposition(props: Props, ref?: React.RefObject<Ref>): Rtn {
     const context = useRef<CompositionContext | undefined>()
 
     // 初始化
@@ -867,6 +979,9 @@ export function initial<P extends object, R>(setup: (props: P) => R) {
 
 DONE!
 
+<br>
+<br>
+
 ## 监听触发组件重新渲染
 
 基本接口已经准备就绪了，现在如何和 React 组件建立关联，在响应式数据更新后触发组件重新渲染?
@@ -874,7 +989,7 @@ DONE!
 Mobx 有一个库可以用来绑定 React 组件, 它就是 mobx-react-lite, 有了它我们可以这样使用：
 
 ```js
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import { initial } from 'mpos'
 
 const useComposition = initial((props) => {/* setup */})
@@ -892,22 +1007,21 @@ How it work? 如果这样一笔带过，估计很多读者会很扫兴，自己�
 ```js
 import { Reaction } from 'mobx'
 
-export function createComponent<P extends object, R>(options: {
-  setup: (props: P) => R
-  render: (props: P, state: R) => React.ReactElement
+export function createComponent<Props extends {}, Ref>(options: {
   name?: string
+  setup: (props: Props) => () => React.ReactElement
   forwardRef?: boolean
-}): FC<P> {
-  const { setup: init, render, name, forwardRef } = options
+}): FC<Props> {
+  const { setup, name, forwardRef } = options
   // 创建 useComposition Hook
-  const useComposition = initial(init)
+  const useComposition = initial(setup)
 
-  const Comp = (props: P, ref: React.RefObject<R>) => {
+  const Comp = (props: Props, ref: React.RefObject<Ref>) => {
     // 用于强制更新组件, 实现很简单，就是递增 useState 的值
     const forceUpdate = useForceUpdate()
     const reactionRef = useRef<{ reaction: Reaction, disposer: () => void } | null>(null)
 
-    const inst = useComposition(props, forwardRef ? ref : null)
+    const render = useComposition(props, forwardRef ? ref : null)
 
     // 创建跟踪器
     if (reactionRef.current == null) {
@@ -952,16 +1066,17 @@ export function createComponent<P extends object, R>(options: {
 接着，我们将 Comp 组件包裹在 React.memo 下，避免不必要重新渲染:
 
 ```js
-export function createComponent<P extends object, R>(options: {
-  setup: (props: P) => R
-  render: (props: P, state: R) => React.ReactElement
+export function createComponent<Props extends {}, Ref>(options: {
   name?: string
+  setup: (props: Props) => () => React.ReactElement
   forwardRef?: boolean
-}): FC<P> {
-  const { setup: init, render, name, forwardRef } = options
-  const useComposition = initial(init)
+}): FC<Props> {
+  const { setup, name, forwardRef } = options
+  // 创建 useComposition Hook
+  const useComposition = initial(setup)
 
-  const Comp = (props: P, ref: React.RefObject<R>) => {/*...*/}
+  const Comp = (props: Props, ref: React.RefObject<Ref>) => {/**/}
+
   Comp.displayName = `Composition(${name || "Unknown"})`
 
   let finalComp
@@ -978,6 +1093,10 @@ export function createComponent<P extends object, R>(options: {
 }
 ```
 
+## forwardRef 处理
+
+TODO:
+
 搞定，所有代码都在这个 [CodeSandbox](TODO:) 中，大家可以自行体验.
 
 ## 整合起来
@@ -992,10 +1111,9 @@ export function createComponent<P extends object, R>(options: {
 
 之所以是个玩具，是因为它还有一些缺陷，而且不够 ’React‘！只能自个玩玩 
 
-如果你了解过 React Concurrent 模式，你会发现它和 React 自身的状态更新机制是深入绑定的。React 自身的setState 状态更新粒度更小、可以进行优先级调度、可以通过 useTransition + Suspense 配合进入 Pending 状态, 在'平行宇宙'中进行渲染。
-也就是说 React 自身的状态更新机制和组件的渲染体系是深度集成。
+如果你了解过 React Concurrent 模式，你会发现它和 React 自身的状态更新机制是深入绑定的。React 自身的setState 状态更新粒度更小、可以进行优先级调度、可以通过 useTransition + Suspense 配合进入 Pending 状态, 在'平行宇宙'中进行渲染。 也就是说 **React 自身的状态更新机制和组件的渲染体系是深度集成**。
 
-因此监听响应式数据，然后粗暴地forceUpdate，会让我们丢失部分 React Concurrent 模式带来的红利。除此之外、开发者工具的集成、生态圈、Benchmark 数据...
+因此监听响应式数据，然后粗暴地 forceUpdate，会让我们丢失部分 React Concurrent 模式带来的红利。除此之外、开发者工具的集成、生态圈、Benchmark... 说到生态圈，如果你将这个玩具的 API, 保持和 VCA 完全兼容，那么以后 Vue 社区的 Hooks 库也可以为你所用，想想脑洞挺大。
 
 <br>
 
@@ -1030,9 +1148,10 @@ function useMyHook() {
 <br>
 <br>
 
-## 参考
+## 参考/扩展
 
 - [@vue/composition-api](https://github.com/vuejs/composition-api)
 - [Vue Composition API RFC](https://vue-composition-api-rfc.netlify.com/)
 - [Mobx](https://mobx.js.org/)
 - [awesome-vue-composition-api](https://github.com/kefranabg/awesome-vue-composition-api)
+- [Vue Composition API CodeSandbox Playground](https://codesandbox.io/s/github/nuxt/typescript/tree/master/examples/composition-api/minimal)
