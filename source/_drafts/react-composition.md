@@ -22,7 +22,7 @@ categories: 前端
 - [watch](#watch)
 - [包装 Props 为响应式数据](#包装-props-为响应式数据)
 - [支持 Context 注入](#支持-context-注入)
-- [监听触发组件重新渲染](#监听触发组件重新渲染)
+- [跟踪组件依赖并触发重新渲染](#跟踪组件依赖并触发重新渲染)
 - [forwardRef 处理](#forwardref-处理)
 - [总结](#总结)
 - [参考/扩展](#参考扩展)
@@ -47,7 +47,7 @@ Vue Composition API 是 Vue 3.0 的一个重要特性，和 React Hooks 一样�
 
 Vue Composition API 官方文档列举和它和 React Hooks 的差异:
 
-- ① 总的来说，更符合惯用的 JavaScript 代码直觉
+- ① 总的来说，更符合惯用的 JavaScript 代码直觉。这主要是 Immutable 和 Mutable 的操作习惯的不同。
 - ② 不关心调用顺序和条件化。React Hooks 基于数组实现，每次重新渲染必须保证调用的顺序，否则会出现数据错乱。
 - ③ 不用每次渲染时，重复调用，减低 GC 的压力。每次渲染所有 Hooks 都会重新执行一遍，这中间会重复创建一些临时的变量、对象以及函数。
 - ④ 不用考虑 useCallback 问题。 因为问题 ③ , 在 React 中，为了避免子组件 diff 失效，导致无意义的重新渲染，我们几乎总会使用 useCallback 来缓存传递给下级的事件处理器。
@@ -950,40 +950,53 @@ export function initial<Props extends object, Rtn, Ref>(
 
 ## 支持 Context 注入
 
-实现 Context 的注入还是得费点事，我们会利用 React 的 useContext 来实现， 我们需要保证 useContext 的调用顺序.
+和 VCA 一样，我们通过 `inject` 支持依赖注入，不同的是我们的 `inject` 方法接收一个 [`React.Context`](https://reactjs.org/docs/context.html#contextprovider) 对象。`inject` 可以从 Context 对象中推断出注入的类型。
 
-和生命周期方法一样，调用 inject 时，推入队列中:
+另外受限于 React 的 Context 机制，我们没有实现 provider 函数，直接使用 Context.Provider 组件即可。
+
+实现 Context 的注入还是得费点事，我们会利用 React 的 [`useContext`](https://reactjs.org/docs/hooks-reference.html#usecontext) Hook 来实现，因此必须保证 `useContext` 的调用顺序。
+
+和生命周期方法一样，调用 inject 时，将 Context 推入队列中, 只不过我们会立即调用一次 useContext 获取到值:
 
 ```js
 export function inject<T>(Context: React.Context<T>): T {
   const ctx = assertCompositionContext();
+  // ⚛️ 马上获取值
   return ctx.addContext(Context);
 }
 ```
 
-为了保证插入的顺序，以及避免重复的 useContext 调用，我们使用 Map 来保存 Context 引用:
+<br>
+
+为了避免重复的 useContext 调用, 同时保证插入的顺序，我们使用 [`Map`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map) 来保存 Context 引用:
 
 ```js
 function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
   const ctx = {
+    _isMounted: false,
+    // ⚛️ 使用 Map 保存
+    _contexts: new Map(),
     // ...
+
+    // ⚛️ 注册Context
     addContext: c => {
-      // 已添加
+      // ⚛️ 已添加
       if (ctx._contexts.has(c)) {
         return ctx._contexts.get(c)!.value
       }
 
-      // 使用 useContext 获取 Context 值
+      // ⚛️ 首次使用立即调用 useContext 获取 Context 的值
       let value = useContext(c)
-      // 转换为 响应式数据
+      // ⚛️ 和 Props 一样转换为 响应式数据, 让 setup 可以安全地引用
       const wrapped = observable(value, {}, { deep: false, name: "context" })
 
-      // 插入到队列
+      // ⚛️ 插入到队列
       ctx._contexts.set(c, {
         value: wrapped,
-        // 更新器，这个会在 React 组件每次重新渲染时被调用
-        // 保证React Hooks 的调用顺序 以及 数据更新
+        // ⚛️ 更新器，这个会在组件挂载之后的每次重新渲染时调用
+        // 我们需要保证 useContext 的调用顺序
         updater: () => {
+          // ⚛️ 依旧是调用 useContetxt 重新获取 Context 值
           const newValue = useContext(c)
           if (newValue !== value) {
             set(wrapped, newValue)
@@ -994,8 +1007,6 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
 
       return wrapped as any
     },
-    _isMounted: false,
-    _contexts: new Map(),
     // ....
   };
 
@@ -1003,7 +1014,9 @@ function createCompositionContext<P, R>(props: P): CompositionContext<P, R> {
 }
 ```
 
-回到setup 函数，因为我们使用了 useContext，必须在每一次渲染时都保证一样的次序调用 React Hooks:
+<br>
+
+回到 setup 函数，我们必须保证每一次渲染时都按照一样的次序调用 useContext：
 
 ```js
 export function initial<Props extends object, Rtn, Ref>(
@@ -1021,7 +1034,7 @@ export function initial<Props extends object, Rtn, Ref>(
       compositionContext = prevCtx
     }
 
-    // 一定要在其他 React Hooks 之前调用
+    // ⚛️ 一定要在其他 React Hooks 之前调用
     // 因为在 setup 调用的过程中已经调用了 useContext，所以只在挂载之后的重新渲染中才调用更新
     if (context.current._contexts.size && context.current._isMounted) {
       for (const { updater } of context.current._contexts.values()) {
@@ -1034,12 +1047,14 @@ export function initial<Props extends object, Rtn, Ref>(
 }
 ```
 
+<br>
+
 DONE!
 
 <br>
 <br>
 
-## 监听触发组件重新渲染
+## 跟踪组件依赖并触发重新渲染
 
 基本接口已经准备就绪了，现在如何和 React 组件建立关联，在响应式数据更新后触发组件重新渲染?
 
@@ -1266,7 +1281,7 @@ function useMyHook() {
 <br>
 <br>
 
-最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，只不过换一下数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
+最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，只不过换一下 'Mutable' 的数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
 
 <br>
 
