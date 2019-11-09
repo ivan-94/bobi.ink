@@ -6,13 +6,14 @@ categories: 前端
 
 前几篇文章都讲了React 的 Concurrent 模式, 很多读者都看懵了，这一篇来点轻松的，讲讲在 React 下实现 [`Vue Composition API`, 下面简称**VCA**](https://vue-composition-api-rfc.netlify.com/#type-issues-with-class-api), 不，这期的主角还是 React Hooks, 我只不过蹭了一下 Vue 3.0 的热度。
 
-我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以体会到两种思想的碰撞, 你可以深入学习三样东西：React Hooks、Vue Composition API、Mobx，还是挺多干货的。
+我们会写一个玩具，实现 'React Composition API'，看起来很吊，确实也是，通过本文你可以体会到两种思想的碰撞, 你可以深入学习三样东西：React Hooks、Vue Composition API、Mobx，篇幅很长(主要是代码)，当然干货也很多。
 
 <br>
 
 <!-- TOC -->
 
 - [对比 React Hooks 和 Vue Composition API](#对比-react-hooks-和-vue-composition-api)
+  - [**基本 API 类比**](#基本-api-类比)
 - [API 设计概览](#api-设计概览)
 - [响应式数据和 ref](#响应式数据和-ref)
   - [关于 Vue Composition API ref](#关于-vue-composition-api-ref)
@@ -43,22 +44,159 @@ Vue Composition API 是 Vue 3.0 的一个重要特性，和 React Hooks 一样�
 
 对于 React 开发者来说, Vue Composition API 还解决了 React Hooks 的一些有点稍微让人难受、或者对新手不友好的问题。这驱动我写这篇文章，来尝试把 Vue Composition API 抄过来。
 
+<br>
+
 ## 对比 React Hooks 和 Vue Composition API
 
 Vue Composition API 官方文档列举和它和 React Hooks 的差异:
 
-- ① 总的来说，更符合惯用的 JavaScript 代码直觉。这主要是 Immutable 和 Mutable 的操作习惯的不同。
-- ② 不关心调用顺序和条件化。React Hooks 基于数组实现，每次重新渲染必须保证调用的顺序，否则会出现数据错乱。
-- ③ 不用每次渲染时，重复调用，减低 GC 的压力。每次渲染所有 Hooks 都会重新执行一遍，这中间会重复创建一些临时的变量、对象以及函数。
-- ④ 不用考虑 useCallback 问题。 因为问题 ③ , 在 React 中，为了避免子组件 diff 失效，导致无意义的重新渲染，我们几乎总会使用 useCallback 来缓存传递给下级的事件处理器。
-- ⑤ 不必手动管理数据依赖。在 React Hooks 中，使用 useCallback、useMemo、useEffect 等这些 Hooks 时，都需要手动维护一个数据依赖数组。当这些依赖项变动时，让缓存失效或者重新注册副作用。对于新手来说第一关就是你要很好地理解闭包，然后你要装个 eslint 插件，避免漏掉某些依赖。
-  Vue 的响应式机制可以自动、精确地跟踪数据依赖，而且基于对象引用的不变性，我们不需要关心闭包问题。
+**① 总的来说，更符合惯用的 JavaScript 代码直觉**。这主要是 Immutable 和 Mutable 的操作习惯的不同。
 
-如果你长期被这些问题困扰，你会觉得 Composition API 很有吸引力。是不是也想自己动手写一个？把 Vue Composition API 搬过来，解决这些问题？
+```js
+// Vue: 响应式数据, 更符合 JavaScript 代码的直觉, 就是普通的对象操作
+const data = reactive({count: 1})
+data.count++
+
+// React: 不可变数据, JavaScript 原生不支持不可变数据，因此数据操作会 verbose 一点
+const [count, setCount] = useState(1)
+setCount(count + 1)
+setCoung(c => c + 1)
+
+// React: 或者使用 Reducer, 适合进行一些复杂的数据操作
+const initialState = {count: 0, /* 假设还有其他状态 */};
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increment':
+      return {...state, count: state.count + 1};
+    case 'decrement':
+      return {...state, count: state.count - 1};
+    default:
+      return state
+  }
+}
+const [state, dispatch] = useReducer(reducer, initialState)
+dispatch({type: 'increment'})
+```
 
 <br>
 
-**基本 API 类比**
+不过, 不能说可变数据就一定好于不可变数据, 反之亦然。 **不可变数据也给 React 发挥和优化的空间, 尤其在 Concurrent 模式下, 不可变数据可以更好地被跟踪和 reduce。**
+
+---
+
+<br>
+
+**② 不关心调用顺序和条件化**。React Hooks 基于数组实现，每次重新渲染必须保证调用的顺序，否则会出现数据错乱。VCA 不依赖数组，不存在这些限制。
+
+```js
+// React
+function useMyHooks(someCondition, antherCondition) {
+  if (someCondition) {
+    useEffect(() => {/* ... */}, []) // 💥
+  }
+
+  if (anotherCondition) {
+    return something      // 提前返回 💥
+  }
+
+  const [someState] = useState(0)
+}
+```
+
+---
+
+<br>
+
+**③ 不用每次渲染重复调用，减低 GC 的压力**。 每次渲染所有 Hooks 都会重新执行一遍，这中间可能会重复创建一些临时的变量、对象以及闭包。而 VCA 的setup 只调用一次。
+
+```js
+// React
+function MyComp(props) {
+  const [count, setCount] = useState(0)
+  const add = () => setCount(c => c+1)  // 这些内联函数每次渲染都会创建
+  const decr = () => setCount(c => c-1)
+
+  useEffect(() => {
+    console.log(count)
+  }, [count])
+
+  return (<div>
+    count: {count}
+    <span onClick={add}>add</span>
+    <span onClick={decr}>decr</span>
+  </div>)
+}
+```
+
+----
+
+<br>
+
+**④ 不用考虑 useCallback 问题**。 因为问题 ③ , 在 React 中，为了避免子组件 diff 失效导致无意义的重新渲染，我们几乎总会使用 useCallback 或者 useMemo 来缓存传递给下级的事件处理器或对象。VCA 中我们可以安全地引用对象，随时可以存取最新的值。
+
+```js
+// React
+function MyComp(props) {
+  const [count, setCount] = useState(0)
+  const add = useCallback(() => setCount(c => c+1), [])
+  const decr = useCallback(() => setCount(c => c-1), [])
+
+  useEffect(() => {
+    console.log(count)
+  }, [count])
+
+  return (<SomeComplexComponent count={count} onAdd={add} onDecr={decr}/>)
+}
+
+// Vue: 没有此问题, 通过对象引用存取最新值
+createComponent({
+  setup((props) => {
+    const count = ref(0)
+    const add = () => count.value++
+    const decr = () => count.value--
+    watch(count, c => console.log(c))
+
+    return () => <SomeComplexComponent count={count} onAdd={add} onDecr={decr}/>
+  })
+})
+```
+
+----
+
+<br>
+
+**⑤ 不必手动管理数据依赖**。在 React Hooks 中，使用 useCallback、useMemo、useEffect 这些 Hooks，都需要手动维护一个数据依赖数组。当这些依赖项变动时，才让缓存失效。
+
+这往往是新手接触 React Hooks 的第一道坎。你要理解好闭包，理解好函数 Memoize，才能理解React Hooks 的行为。然而 React Hooks 这些数据依赖需要手动去维护，很容易漏掉什么，导致bug。
+
+```js
+// React
+function MyComp({anotherCount, onClick}) {
+  const [count, setState] = useState(0)
+
+  const handleClick = useCallback(() => {
+    onClick(anotherCount + count)
+  }, [count]) // 🐞漏掉了 antherCount 和 onClick
+}
+```
+
+因此 React 团队开发了 [eslint-plugin-react-hooks](https://www.npmjs.com/package/eslint-plugin-react-hooks)插件，辅助检查 React Hooks 的用法, 避免漏掉某些依赖。不过这个插件太死了，搞不好要写很多 `//eslint-disable-next-line` 😂
+
+VCA 由于不存在 ④ 问题，当然也不存在 ⑤问题。 Vue 的响应式机制可以自动、精确地跟踪数据依赖，而且基于对象引用的不变性，我们不需要关心闭包问题。
+
+---
+
+<br>
+
+如果你长期被这些问题困扰，你会觉得 Vue Composition API 很有吸引力。而且它简单易学, 这简直是 Vue 开发者的‘福报‘啊！
+
+是不是也想自己动手写一个？把 Vue Composition API 搬到 React 这边来，解决这些问题？
+
+<br>
+<br>
+
+### **基本 API 类比**
 
 首先，你得了解 React Hooks 和 Vue Composition API。最好的学习资料是它们的官方文档。下面简单类比一下两者的 API:
 
@@ -181,6 +319,7 @@ export default createComponent<CounterProps>({
       console.log("update", data.count, props);
     });
 
+    // 注意这里是 onUnmount，而 VCA 是 onUnmounted
     onUnmount(() => {
       console.log("unmount");
     });
@@ -226,9 +365,9 @@ export default createComponent<CounterProps>({
 
     /**
      * 返回一个渲染函数
-     */ 
+     */
     return () => {
-      // 在这里你也可以调用，React Hooks, 就跟普通函数组件一样
+      // 在这里你也可以调用 React Hooks, 就跟普通函数组件一样
       useEffect(() => {
         console.log('hello world')
       }, [])
@@ -551,7 +690,40 @@ wacth(online, (ol) => {
 })
 ```
 
-所以官方也推荐使用 ref 对象来进行数据传递，同时保持响应的传导。就到这吧，不让写着写着就变成 VCA 的文档了。
+<br>
+
+再看另一个返回多个值的例子:
+
+```js
+// Vue 代码
+
+function useMousePosition() {
+  const pos = reactive({x: 0, y: 0})
+  const update = e => {
+    pos.x = e.pageX
+    pos.y = e.pageY
+  }
+  onMounted(() => window.addEventListener('mousemove', update))
+  onUnmounted(() => window.removeEventListener('mousemove', update))
+  // 返回多个值，可以使用 toRefs 批量转换
+  return toRefs(pos)
+}
+
+// 使用
+function useMyHook() {
+  // 安全地使用解构表达式
+  const { x, y } = useMousePosition()
+
+  // ... do something
+
+  // 安全地输出
+  return { x, y }
+}
+```
+
+<br>
+
+**因此官方也推荐使用 ref 对象来进行数据传递，同时保持响应的传导**。就到这吧，不然写着写着就变成 VCA 的文档了🌚。
 
 <br>
 <br>
@@ -850,20 +1022,9 @@ watch(() => {
 ```js
 export type WatchDisposer = () => void;
 
-export function watch(
-  view: (stop: WatchDisposer) => any,
-  options?: IAutorunOptions
-): WatchDisposer;
-export function watch<T>(
-  expression: () => T,
-  effect: (arg: T, stop: WatchDisposer) => any,
-  options?: IReactionOptions
-): WatchDisposer;
-export function watch(
-  expression: any,
-  effect: any,
-  options?: any
-): WatchDisposer {
+export function watch(view: (stop: WatchDisposer) => any, options?: IAutorunOptions): WatchDisposer;
+export function watch<T>(expression: () => T, effect: (arg: T, stop: WatchDisposer) => any, options?: IReactionOptions): WatchDisposer;
+export function watch(expression: any, effect: any, options?: any): WatchDisposer {
   // 放置 autorun 或者 reactive 返回的释放函数
   let nativeDisposer: WatchDisposer;
   // 放置上一次 watch 回调返回的释放函数
@@ -1242,15 +1403,15 @@ export function initial<Props extends object, Rtn, Ref>(
 
 就如标题所说的，通过这个玩具，学到很多奇淫巧技，你对 React Hooks 以及 Vue Composition API 的了解应该更深了吧？
 
-之所以是个玩具，是因为它还有一些缺陷，而且不够 ’React‘！只能自个玩玩 
+**之所以是个玩具，是因为它还有一些缺陷，不够 ’React‘, 又不够 'Vue'！只能以学习的目的自个玩玩! 而且搞着玩意搞不好在两个社区都会被喷**。
 
-如果你了解过 React Concurrent 模式，你会发现它和 React 自身的状态更新机制是深入绑定的。React 自身的setState 状态更新粒度更小、可以进行优先级调度、可以通过 useTransition + Suspense 配合进入 Pending 状态, 在'平行宇宙'中进行渲染。 也就是说 **React 自身的状态更新机制和组件的渲染体系是深度集成**。
+如果你了解过 React Concurrent 模式，你会发现它和 React 自身的状态更新机制是深入绑定的。React 自身的setState 状态更新粒度更小、可以进行优先级调度、Suspense、可以通过 useTransition + Suspense 配合进入 Pending 状态, 在'平行宇宙'中进行渲染。 也就是说 **React 自身的状态更新机制和组件的渲染体系是深度集成**。
 
 因此监听响应式数据，然后粗暴地 forceUpdate，会让我们丢失部分 React Concurrent 模式带来的红利。除此之外、开发者工具的集成、生态圈、Benchmark... 说到生态圈，如果你将这个玩具的 API, 保持和 VCA 完全兼容，那么以后 Vue 社区的 Hooks 库也可以为你所用，想想脑洞挺大。
 
 <br>
 
-搞这一套还不如直接上 Vue 是吧？毕竟Vue 天生集成响应式数据，整个工作链路自顶向下, 从数据到模板、再到底层组件渲染, 对响应式数据有更好的融合、更加高效。
+搞这一套还不如直接上 Vue 是吧？毕竟 Vue 天生集成响应式数据，换句话说, **Vue 的响应式更新机制和其组件渲染体系是深度集成的**。 整个工作链路自顶向下, 从数据到模板、再到底层组件渲染, 对响应式数据有更好的融合、更加高效。
 
 尽管如此，React 的灵活性、开放、多范式编程方式、创造力还是让人赞叹。
 
@@ -1269,7 +1430,7 @@ function useMyHook() {
 }
 ```
 
-还有响应式数据转换成本，诸如此类的，网上也有大量的资料。 关于 Vue Composition API 需要注意这些东西:
+还有响应式数据转换成本，诸如此类的，网上也有大量的资料, 这里就赘述。 关于 Vue Composition API 需要注意这些东西:
 
 - [What does MobX react to?](https://mobx.js.org/best/react.html)
 - [Vue Composition API Drawbacks](https://vue-composition-api-rfc.netlify.com/#plugin-development)
@@ -1279,20 +1440,21 @@ function useMyHook() {
 没有银弹，没有银弹。
 
 <br>
+
+最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，两个从结构和逻辑上都是差不多的，只不过换一下 'Mutable' 的数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
+
 <br>
-
-最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，只不过换一下 'Mutable' 的数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
-
 <br>
 
 ## 参考/扩展
 
-- [@vue/composition-api](https://github.com/vuejs/composition-api)
-- [Vue Composition API RFC](https://vue-composition-api-rfc.netlify.com/)
+- [**Vue Composition API RFC**](https://vue-composition-api-rfc.netlify.com/)
 - [Vue Function-based API RFC 中文](https://zhuanlan.zhihu.com/p/68477600) 有点过时，不影响理解
+- [@vue/composition-api](https://github.com/vuejs/composition-api)
 - [Mobx](https://mobx.js.org/)
 - [awesome-vue-composition-api](https://github.com/kefranabg/awesome-vue-composition-api)
 - [Vue Composition API CodeSandbox Playground](https://codesandbox.io/s/github/nuxt/typescript/tree/master/examples/composition-api/minimal)
+- [精读《Vue3.0 Function API》](https://zhuanlan.zhihu.com/p/71667382)
 
 <br>
 
