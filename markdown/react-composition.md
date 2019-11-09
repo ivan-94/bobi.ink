@@ -10,7 +10,7 @@ categories: 前端
 
 <br>
 
-<!-- TOC -->
+
 
 - [对比 React Hooks 和 Vue Composition API](#对比-react-hooks-和-vue-composition-api)
   - [**基本 API 类比**](#基本-api-类比)
@@ -28,7 +28,7 @@ categories: 前端
 - [总结](#总结)
 - [参考/扩展](#参考扩展)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -581,7 +581,7 @@ let { count } = data
 
 因为 Javascript **原始值**是**按值传递**的，这时候传递给变量、对象属性或者函数参数，引用就会丢失。**为了保证 ‘安全引用’, 我们才需要用'对象'来包裹这些值，我们总是可以通过这个对象获取到最新的值**:
 
-![](/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
+![](https://bobi.ink/images/react-composition/pass-by-reference-vs-pass-by-value-animation.gif)
 
 <br>
 
@@ -1458,4 +1458,4 @@ function useMyHook() {
 
 <br>
 
-![](/images/sponsor.jpg)
+![](https://bobi.ink/images/sponsor.jpg)

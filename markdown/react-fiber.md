@@ -1186,7 +1186,8 @@ React 现在的代码库太复杂了! 而且一直在变动和推翻自己，[Ha
 
 Concurrent模式预览（推荐）:
 
-- [React Concurrent 模式抢先预览: Suspense 篇](https://juejin.im/post/5db65d87518825648f2ef899#comment)
+- [React Concurrent 模式抢先预览上篇: Suspense the world](https://juejin.im/post/5db65d87518825648f2ef899#comment)
+- [React Concurrent 模式抢先预览下篇: useTransition 的平行世界](https://juejin.im/post/5dbee8e7e51d4558040f0830)
 
 <br>
 
