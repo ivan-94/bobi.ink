@@ -90,7 +90,22 @@ dispatch({type: 'increment'})
 
 <br>
 
-不过, 不能说可变数据就一定好于不可变数据, 反之亦然。 **不可变数据也给 React 发挥和优化的空间, 尤其在 Concurrent 模式下, 不可变数据可以更好地被跟踪和 reduce。**
+不过, 不能说可变数据就一定好于不可变数据, 反之亦然。 **不可变数据也给 React 发挥和优化的空间, 尤其在 Concurrent 模式下, 不可变数据可以更好地被跟踪和 reduce**。 例如:
+
+```js
+// React
+const [state, setState] = useState(0)
+const [startTransition] = useTransition()
+
+setState(1)              // 高优先级变更
+startTransition(() => {  // 低优先级状态变更
+  setState(2)
+})
+```
+
+<br>
+
+React 中状态变更可以有不同的优先级，实际上这些变更会放入一个队列中，界面可能先显示 `1`, 然后才是 `2`。**你可以认为这个队列就是这个状态的历史快照，由 React 来调度进行状态的前进，有点类似于 Redux 的'时间旅行'**。如果是可变数据，实现这种‘时间旅行’会相对比较麻烦。
 
 <br>
 
