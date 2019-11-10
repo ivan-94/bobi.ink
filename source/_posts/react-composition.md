@@ -1307,7 +1307,7 @@ How it work? 如果这样一笔带过，估计很多读者会很扫兴，自己�
 import React, { FC , useRef, useEffect } from 'react'
 import { Reaction } from 'mobx'
 
-export function createComponent<Props extends {}, Ref>(options: {
+export function createComponent<Props extends {}, Ref = void>(options: {
   name?: string
   setup: (props: Props) => () => React.ReactElement
   forwardRef?: boolean
@@ -1368,7 +1368,7 @@ export function createComponent<Props extends {}, Ref>(options: {
 接着，我们将 Comp 组件包裹在 React.memo 下，避免不必要重新渲染:
 
 ```js
-export function createComponent<Props extends {}, Ref>(options: {
+export function createComponent<Props extends {}, Ref = void>(options: {
   name?: string
   setup: (props: Props) => () => React.ReactElement
   forwardRef?: boolean
@@ -1465,9 +1465,11 @@ export function initial<Props extends object, Rtn, Ref>(
 ```
 
 <br>
-<br>
 
-🎉🎉 搞定，**所有代码都在这个 [CodeSandbox](https://codesandbox.io/s/mobx-vue-composition-api-ft9mv?fontsize=14) 中，大家可以自行体验**.
+🎉🎉 搞定，**所有代码都在这个 [CodeSandbox](https://codesandbox.io/s/mobx-vue-composition-api-ft9mv?fontsize=14) 中，大家可以自行体验**. 🎉🎉 
+
+<br>
+<br>
 
 ## 总结
 
@@ -1517,15 +1519,17 @@ function useMyHook() {
 
 最后的最后， **useYourImagination**, React Hooks 早已在 React 社区玩出了花🌸，Vue Composition API 完全可以将这些模式拿过来用，两个从结构和逻辑上都是差不多的，只不过换一下 'Mutable' 的数据操作方式。安利 [2019年了，整理了N个实用案例帮你快速迁移到React Hooks](https://juejin.im/post/5d594ea5518825041301bbcb)
 
+
 <br>
 
 我是荒山，觉得文章可以，请点个赞，下篇文章见！
 
 <br>
+<br>
 
 ## 参考/扩展
 
-- [本文源码：CodeSandbox](https://codesandbox.io/s/mobx-vue-composition-api-ft9mv?fontsize=14)
+- [**🎉本文源码：CodeSandbox**](https://codesandbox.io/s/mobx-vue-composition-api-ft9mv?fontsize=14)
 - [**Vue Composition API RFC**](https://vue-composition-api-rfc.netlify.com/)
 - [Vue Function-based API RFC 中文](https://zhuanlan.zhihu.com/p/68477600) 有点过时，不影响理解
 - [@vue/composition-api](https://github.com/vuejs/composition-api)
