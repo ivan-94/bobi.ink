@@ -1,5 +1,5 @@
 ---
-title: "[实战] 为了精通 React Hooks, 我抄了 Vue Composition API"
+title: "[实战] 为了学好 React Hooks, 我抄了 Vue Composition API, 真香"
 date: 2019/11/04
 categories: 前端
 ---
@@ -238,17 +238,17 @@ VCA 由于不存在 ④ 问题，当然也不存在 ⑤问题。 Vue 的响应�
 
 |         | React Hooks                                  |  Vue Composition API                   |
 |---------|----------------------------------------------|-----------------------------------------|
-|状态      | `const [value, setValue] = useState(0)` or `useReducer`     | `const state = reactive({value: 0})` or `ref(0)` |
-|状态变更   | `setValue(1)` or`setValue(n => n + 1)` or `dispatch`     | `state.value = 1` or `state.value++` |
+|状态      | `const [value, setValue] = useState(0)` <br> `useReducer`     | `const state = reactive({value: 0})` <br> `ref(0)` |
+|状态变更   | `setValue(1)` <br> `setValue(n => n + 1)` <br> `dispatch`     | `state.value = 1` <br> `state.value++` |
 |状态衍生   | `useMemo(() => derived, [deps])`     | `computed(() => derived)` |
-|对象引用   | `const foo = useRef(0);` + `foo.current = 1` | `const foo = ref(0)` + `foo.value = 1`|
-|挂载      | `useEffect(() => {/*挂载*/}, [])`                          | `onBeforeMount(() => {/*挂载前*/})` + `onMounted(() => {/*挂载后*/})`|
-|卸载      | `useEffect(() => {/*挂载*/; return () => {/*卸载*/}}, [])`  | `onBeforeUnmount(() => {/*卸载前*/})` + `onUnmounted(() => {/*挂载后*/})`|
-|重新渲染      | `useEffect(() => {/*更新*/})`                | `onBeforeUpdate(() => {/*更新前*/})` + `onUpdated(() => {/*更新后*/})`|
-|异常处理   | 目前只有类组件支持(`componentDidCatch` 或 `static getDerivedStateFromError` | `onErrorCaptured((err) => {/*异常处理*/})`|
+|对象引用   | `const foo = useRef(0);` <br> `foo.current = 1` | `const foo = ref(0)` <br> `foo.value = 1`|
+|挂载      | `useEffect(() => {/*挂载*/}, [])`                          | `onBeforeMount(() => {/*挂载前*/})` <br> `onMounted(() => {/*挂载后*/})`|
+|卸载      | `useEffect(() => () => {/*卸载*/}}, [])`  | `onBeforeUnmount(() => {/*卸载前*/})` <br> `onUnmounted(() => {/*卸载后*/})`|
+|重新渲染      | `useEffect(() => {/*更新*/})`                | `onBeforeUpdate(() => {/*更新前*/})` <br> `onUpdated(() => {/*更新后*/})`|
+|异常处理   | 目前只有类组件支持(`componentDidCatch`, <br> `static getDerivedStateFromError`) | `onErrorCaptured((err) => {/*异常处理*/})`|
 |依赖监听  | `useEffect(() => {/*依赖更新*/}, [deps])` | `const stop = watch(() => {/*自动检测数据依赖, 更新...*/})`|
 |依赖监听 + 清理  | `useEffect(() => {/*...*/; return () => {/*清理*/}}, [deps])` | `watch(() => [deps], (newVal, oldVal, clean) => {/*更新*/; clean(() => {/* 清理*/})})`|
-|Context 注入 | `useContext(YouContext)` | `inject(key)` + `provider(key, value)`|
+|Context 注入 | `useContext(YouContext)` | `inject(key)` <br> `provider(key, value)`|
 
 <br>
 
