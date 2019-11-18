@@ -6,7 +6,6 @@ categories: 前端
 
 > 基于Dart 2.4 + Typescript 3.5
 
-<!-- TOC -->autoauto- [基本类型](#基本类型)auto- [操作符与表达式](#操作符与表达式)auto  - [操作符](#操作符)auto- [控制流](#控制流)auto- [函数](#函数)auto  - [**函数参数**](#函数参数)auto  - [函数返回值](#函数返回值)auto  - [函数是第一公民](#函数是第一公民)autoauto<!-- /TOC -->
 
 不同语言的定位
 
