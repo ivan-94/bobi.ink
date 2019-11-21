@@ -4,7 +4,7 @@ date: 2019/7/15
 categories: 前端
 ---
 
-> 基于Dart 2.4 + Typescript 3.5
+> 基于Dart 2.6 + Typescript 3.7
 
 
 不同语言的定位
@@ -196,13 +196,18 @@ var compare = (int a, int b) => a > b; // let compare = (a: number, b: number) =
 
 // 注意, '=>' 的语法主要用于简化返回语句，它不能像Javascript一样携带函数体，只能携带表达式
 var compare = (int a, int b) => {return a > b}; // ❌，箭头函数箭头后面只能跟表达式
-// TODO: 返回值怎么声明
+// TODO: 返回值怎么声明, 自动推断？
+// 匿名函数
 var compare = (int a, int b) {return a > b};    // ✅ 去掉箭头后可以携带函数体
+list.forEach((item) {                           // 匿名函数的常见用法
+  print('${list.indexOf(item)}: $item');
+});
 ```
+
 
 ### **函数参数**
 
-***🆕命名参数**
+**🆕命名参数**
 
 dart支持命名参数, 对Typescript来说只是对象+展开操作符的语法糖:
 
@@ -237,7 +242,7 @@ String foo(String bar, [String baz, int bazz]) // foo(bar: string, baz?: string)
 
 - 可选参数只能在最后，且在命名参数之前
 
-***默认值**
+**默认值**
 
 ```dart
 // 命名参数
@@ -277,14 +282,108 @@ list.forEach(printElement);
 var loudify = (msg) => '!!! ${msg.toUpperCase()} !!!'; // const loudify = msg => `!!! ${msg.toUpperCase()} !!!`
 ```
 
-一样支持闭包
+### main 函数
+
+和传统的静态语言一样， 它们都有个main顶级函数，表示应用的入口:
+
+```dart
+void main(List<String> arguments) {
+  print(arguments);
+
+  assert(arguments.length == 2);
+  assert(int.parse(arguments[0]) == 1);
+  assert(arguments[1] == 'test');
+}
+```
+
+### 作用域和闭包
+
+词法作用域，和 Typescript 一样支持闭包
+
+<br>
+
+### 异常处理
+
+先来看异常的抛出:
+
+```dart
+throw FormatException('Expected at least 1 section');
+
+throw 'anything' // 支持抛出任何值，什么不学，Javascript 这个糟粕学过来了
+```
+
+一般情况下，我们应该抛出 [Exception](https://api.dart.dev/stable/2.6.1/dart-core/Exception-class.html) 的子类型。另外 Dart 还有一个 [Error](https://api.dart.dev/stable/2.6.1/dart-core/Error-class.html) 类型, 用于表示**程序错误**, 例如调用参数不合法，这些异常通常是致命了，开发者不应该去捕获Error类型的异常。
+
+> Typescript 中现在没有舒服的方式来继承 Error，扩展自己的子类型。大部分编译器都禁止了内置类型的扩展
+
+<br>
+
+类型捕获:
+
+```dart
+try {
+  breedMoreLlamas();
+} on OutOfLlamasException {              // 🆕 支持捕获具体类型异常
+  buyMoreLlamas();
+} on Exception catch (e) {
+  print('Unknown exception: $e');
+} catch (e, s) {
+  // 未指定类型，捕获所有 
+  // 第一个参数是异常对象, 第二个参数是调用栈
+  print('Something really unknown: $e');
+  // 🆕 支持重新抛出异常
+  rethrow;
+} finally {
+  cleanLlamaStalls()
+}
+```
 
 - 签名
 - 监听函数
 - async/await
 - 异常捕获
 
-类
+## 类
+
+Dart 是一个面向对象语言，因此类是一个重要的基础设施。
+
+看一下定义语法:
+
+```dart
+class Point {
+  // 定义实例变量，默认值为 null
+  num x; // x: number 
+  num y; // y: number 
+
+  // 定义实例变量，并设置默认值
+  num z = 0; // z = 0
+
+  // getter & setter
+  num get foo => x + y; // get foo(): number { return x + y}
+  set foo(num value) {  // set foo(value: number) {
+    // 🆕 实例变量的获取和设置 this 限定符是可选的，这和 Java 一样
+    x = value / 2;      //   this.x = value / 2
+    y = value / 2;      //   this.y = value / 2
+  }                     // }
+
+  // 构造方法, 和类名同名
+  // 构造方法是可选的
+  Point(num x, num y) { // constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+
+  // 简写形式, 等价于上面
+  Point(this.x, this.y); // constructor(public x: number, public y: number) { 
+
+  // 🆕 命名构造方法.      Typescript 中可以通过 static 实现
+  // 需要注意的是构造方法是不能继承的
+  Point.origin() { // static origin() {
+    x = 0;         //   return new this(0, 0)
+    y = 0;         // }
+  }
+}
+```
 
 - 类
 - 接口
