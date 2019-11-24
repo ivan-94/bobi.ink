@@ -8,18 +8,15 @@
 
 基于`Hexo` + `github-page`
 
+<br>
+
+**其他发布平台**
+
+- [掘金专栏](https://juejin.im/user/5762733b2e958a00696163ea)
+- [知乎专栏](https://zhuanlan.zhihu.com/c_1116785790264463360)
+- 公众号: 前端技术地图
+
 <br/>
-
-**已发布文章:**
-
-- 2019-05-20 [React组件设计实践总结05 - 状态管理](https://bobi.ink/2019/05/20/react-component-design-05/)
-- 2019-05-15 [React组件设计实践总结04 - 组件的思维](https://bobi.ink/2019/05/15/react-component-design-04/)
-- 2019-05-14 [React组件设计实践总结03 - 样式的管理](https://bobi.ink/2019/05/14/react-component-design-03/)
-- 2019-05-11 [React组件设计实践总结02 - 组件的组织](https://bobi.ink/2019/05/11/react-component-design-02/)
-- 2019-05-10 [React组件设计实践总结01 - 类型检查](https://bobi.ink/2019/05/10/react-component-design-01/)
-- 2019-04-19 [Rx建模入门](https://bobi.ink/2019/04/19/rxjs-by-example/)
-- 2019-04-08 [Yarn Plug'n'Play可否助你脱离node_modules苦海?](https://bobi.ink/2019/04/08/plug-n-play/)
-- 2019-04-06 [Rxjs 操作符决策树 - Mindnode](https://bobi.ink/2019/04/06/rx-operations/)
 
 **TODO:**
 
@@ -27,11 +24,11 @@
 - jest单元测试
 - webassembly
 - 长列表的性能优化
-- 为CLI添加Web界面
-- 使用 gitlab 进行项目管理
-- dart for typescripter
-- 微前端
-- react 代码技巧
+- ~~为CLI添加Web界面~~
+- ~~使用 gitlab 进行项目管理~~
+- ~~dart for typescripter~~
+- 微前端 single spa
+- 代码技巧
 - 小程序
 - workerize
 - 元编程
@@ -45,7 +42,7 @@
 - mobx 异步更新
 - DOM 树查询算法
 - react 服务端流
-- Apollo 与 状态管理
+- ~~Apollo 与 状态管理~~
 - effective typescript
   - 函数重载
   - 扩展类型
@@ -55,5 +52,6 @@
   - 国外已经有一本书
 - setImmediate, setTimeout(0), nextTick, queueMicrotask(), requestAnimationFrame, requestIdleCallback,messageChannel
 - node + webassembly + go
-- react vue composite api
 - react batch
+- 大厂的框架体系 umi 
+- 前端的自我修养
