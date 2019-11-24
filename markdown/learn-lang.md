@@ -10,7 +10,7 @@ categories: 前端
 
 **大纲**
 
-<!-- TOC -->
+
 
 - [介绍](#介绍)
   - [1. 假定前提](#1-假定前提)
@@ -32,7 +32,7 @@ categories: 前端
 - [总结](#总结)
 - [扩展](#扩展)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -89,7 +89,7 @@ categories: 前端
 
 <br>
 
-![](/images/learn-lang/langmind.png)
+![](https://bobi.ink/images/learn-lang/langmind.png)
 
 <br>
 
@@ -132,7 +132,7 @@ categories: 前端
 
 随便举几个例子。 Dart 语言:
 
-![](/images/learn-lang/dart.png)
+![](https://bobi.ink/images/learn-lang/dart.png)
 
 > 标签云使用 [WordClouds](https://www.wordclouds.com) 生成
 
@@ -140,19 +140,19 @@ categories: 前端
 
 Go 语言：
 
-![](/images/learn-lang/go.png)
+![](https://bobi.ink/images/learn-lang/go.png)
 
 <br>
 
 Javascript:
 
-![](/images/learn-lang/javascript.png)
+![](https://bobi.ink/images/learn-lang/javascript.png)
 
 <br>
 
 Elixir:
 
-![](/images/learn-lang/elixir.png)
+![](https://bobi.ink/images/learn-lang/elixir.png)
 
 <br>
 <br>
@@ -269,7 +269,7 @@ Dart 也有一些有趣的操作符/表达式，来看看有多甜：
 
   <br>
 
-  ![](/images/learn-lang/flutter-code.png)
+  ![](https://bobi.ink/images/learn-lang/flutter-code.png)
 
 <br>
 
