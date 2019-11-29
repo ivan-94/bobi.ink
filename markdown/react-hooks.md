@@ -1642,7 +1642,7 @@ function useTimeout(ms: string) {
   }, [ms])
 
   const stop = useCallback(() => {
-    clearTimeout(timeRef.current)
+    clearTimeout(timerRef.current)
   }, [])
 
   useOnUnmount(stop)
