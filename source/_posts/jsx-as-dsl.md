@@ -10,25 +10,37 @@ categories: 前端
 
 <!-- TOC -->
 
-- [现有的方案](#现有的方案)
-  - [配置文件形式](#配置文件形式)
-  - [编程语言与 DSL](#编程语言与-dsl)
-- [如何用 JavaScript 来组织描述领域问题？](#如何用-javascript-来组织描述领域问题)
-  - [① 对象形式](#①-对象形式)
-  - [② 链式调用形式](#②-链式调用形式)
-  - [③ ES2015 Template Tag](#③-es2015-template-tag)
-  - [④ 要不试试 JSX？](#④-要不试试-jsx)
-- [扩展](#扩展)
+- [1. 现有的配置方案](#1-现有的配置方案)
+  - [1.1 配置文件形式](#11-配置文件形式)
+  - [1.2 编程语言与 DSL](#12-编程语言与-dsl)
+- [2. 如何用 JavaScript 来组织描述领域问题？](#2-如何用-javascript-来组织描述领域问题)
+  - [2.1 对象形式](#21-对象形式)
+  - [2.2 链式调用形式](#22-链式调用形式)
+  - [2.3 ES2015 Template Tag](#23-es2015-template-tag)
+  - [2.4 要不试试 JSX？](#24-要不试试-jsx)
+- [3. JSX 入门](#3-jsx-入门)
+  - [3.1 自定义工厂](#31-自定义工厂)
+  - [3.2 Host Component vs Custom Component](#32-host-component-vs-custom-component)
+  - [3.3 简单实现 createElement 工厂方法](#33-简单实现-createelement-工厂方法)
+- [4. 基础组件的设计](#4-基础组件的设计)
+  - [4.1 来源于 Koa 的灵感](#41-来源于-koa-的灵感)
+  - [4.2 use 基础组件](#42-use-基础组件)
+  - [4.3 高层组件的封装](#43-高层组件的封装)
+- [5. 浅谈原理](#5-浅谈原理)
+  - [5.1 '渲染'](#51-渲染)
+  - [5.2 运行](#52-运行)
+- [6. 总结，终于完事了](#6-总结终于完事了)
+- [7. 扩展](#7-扩展)
 
 <!-- /TOC -->
 
 <br>
 
-## 现有的方案
+## 1. 现有的配置方案
 
 先来看看现在常见的前端工具是怎么进行配置的。
 
-### 配置文件形式
+### 1.1 配置文件形式
 
 **JSON?**
 
@@ -46,7 +58,7 @@ JSON 是一种非常简单的数据表述, 没有任何学习成本，解析也�
 
 <br>
 
-### 编程语言与 DSL
+### 1.2 编程语言与 DSL
 
 我们需要回到编程语言本身，利用它的编程能力，实现配置文件无法实现的更强大的功能。
 
@@ -130,7 +142,7 @@ end
 <br>
 <br>
 
-## 如何用 JavaScript 来组织描述领域问题？
+## 2. 如何用 JavaScript 来组织描述领域问题？
 
 上节提到了 Groovy、Ruby ‘适合‘ 用作 DSL 母体，并不代表一定要用它们实现，只是说明它们天生具备的一些语言特性可以让实现更加便捷，或者说表现更加简洁。
 
@@ -140,9 +152,9 @@ Google 搜一把 ‘JavaScript DSL‘ 匹配的有效资料很少。 如果你�
 
 <br>
 
-### ① 对象形式
+### 2.1 对象形式
 
-最简单的方式是直接基于对象或者数组，实现简单又保持组织性。例如 [Umi Mock](https://umijs.org/zh/guide/mock-data.html#使用-umi-的-mock-功能) 还有 [飞冰](https://ice.work), 就是基于对象组织的:
+最简单的方式是直接基于对象或者数组进行声明，实现简单又保持组织性。例如 [Umi Mock](https://umijs.org/zh/guide/mock-data.html#使用-umi-的-mock-功能) 还有 [飞冰](https://ice.work), 就是基于对象组织的:
 
 ```js
 export default {
@@ -167,8 +179,9 @@ export default {
 实现和使用都非常简单，简单的 API Mock 场景开箱即用，对于复杂的用法和 API 协议，也可以通过自定义函数进一步封装。
 
 <br>
+<br>
 
-### ② 链式调用形式
+### 2.2 链式调用形式
 
 JavaScript 作为内部 DSL 的另外一种典型的形式是链式调用。
 
@@ -179,6 +192,22 @@ $('.awesome')
   .addClass('flash')
   .draggable()
   .css('color', 'red')
+```
+
+<br>
+
+JQuery 这种 API 模式也影响到了其他领域，比如 [`Ruff`](https://ruff.io/zh-cn/docs/getting-started.html):
+
+```js
+$.ready(function(error) {
+  if (error) {
+    console.log(error)
+    return
+  }
+
+  // 点亮灯
+  $('#led-r').turnOn()
+})
 ```
 
 <br>
@@ -242,8 +271,9 @@ get('/sendFile/:path(.*)').to.sendFile('./{path}')
 你打开 Nock 的 README，会说，Are you killing me? 文档这么长...
 
 <br>
+<br>
 
-### ③ ES2015 Template Tag
+### 2.3 ES2015 Template Tag
 
 近年基于 ES6 Template Tag 特性引入‘新语言‘到 JavaScript 的库层出不穷。
 
@@ -308,7 +338,7 @@ describe.each`
 <br>
 <br>
 
-### ④ 要不试试 JSX？
+### 2.4 要不试试 JSX？
 
 铺垫了这么多，只是前戏。上面提到这些方案，要么过于简单、要么过于复杂、要么平淡无奇。我将目光投向了 JSX，我发现它可以满足我所有的需求。
 
@@ -384,17 +414,604 @@ export default (
 
 <br>
 
-看起来不错？哈？我们看到了 JSX 作为 DSL 的潜力，也把React的组件思维搬到了 GUI 之外的领域。
+看起来不错？哈？我们看到了 JSX 作为 DSL 的潜力，也把 React 的组件思维搬到了 GUI 之外的领域。
 
 你知道我的风格，篇幅较长 ☕️ 休息一会，再往下看。
 
 <br>
 <br>
 
-## 扩展
+## 3. JSX 入门
+
+如果你是 React 的开发者，JSX 应该再熟悉不过了。它不过是一个语法糖，但是它目前不是 JavaScript 标准的一部分。Babel、Typescript 都支持转译 JSX。
+
+例如
+
+```js
+const jsx = (
+  <div foo="bar">
+    <span>1</span>
+    <span>2</span>
+    <Custom>custom element</Custom>
+  </div>
+)
+```
+
+会转译为:
+
+```js
+const jsx = React.createElement(
+  'div',
+  {
+    foo: 'bar',
+  },
+  React.createElement('span', null, '1'),
+  React.createElement('span', null, '2'),
+  React.createElement(Custom, null, 'custom element')
+)
+```
+
+<br>
+
+### 3.1 自定义工厂
+
+JSX 需要一个**工厂方法**来创建创建节点实例。默认是 `React.createElement`。我们可以通过注释配置来提示转译插件。按照习惯，自定义工厂都命名为 `h`:
+
+```js
+/* @jsx h */
+/* @jsxFrag 'fragment' */
+import { h } from 'somelib'
+
+const jsx = (
+  <div foo="bar">
+    <span>1</span>
+    <span>2</span>
+    <>fragement</>
+  </div>
+)
+```
+
+将转译为:
+
+```js
+import { h } from 'somelib'
+
+const jsx = h(
+  'div',
+  {
+    foo: 'bar',
+  },
+  h('span', null, '1'),
+  h('span', null, '2'),
+  h('fragment', null, 'fragement')
+)
+```
+
+<br>
+
+### 3.2 Host Component vs Custom Component
+
+JSX 会区分两种组件类型。小写开头的为内置组件，它们以字符串的形式传入 CreateElement; 大写开头的表示自定义组件, 作用域内必须存在该变量, 否则会报错。
+
+```js
+// 内置组件
+;<div />
+// 自定义组件
+;<Custom />
+```
+
+<br>
+
+### 3.3 简单实现 createElement 工厂方法
+
+```js
+export function createElement(type, props, ...children) {
+  const copy = { ...(props || EMPTY_OBJECT) }
+  copy.children = copy.children || (children.length > 1 ? children : children[0])
+
+  return {
+    _vnode: true,
+    type,
+    props: copy,
+  }
+}
+```
+
+<br>
+<br>
+
+## 4. 基础组件的设计
+
+### 4.1 来源于 Koa 的灵感
+
+大家应该比较熟悉 koa 中间件机制。
+
+```js
+// logger
+app.use(async (ctx, next) => {
+  await next()
+  const rt = ctx.response.get('X-Response-Time')
+  console.log(`${ctx.method} ${ctx.url} - ${rt}`)
+})
+
+// x-response-time
+app.use(async (ctx, next) => {
+  const start = Date.now()
+  await next()
+  const ms = Date.now() - start
+  ctx.set('X-Response-Time', `${ms}ms`)
+})
+
+// response
+app.use(async ctx => {
+  ctx.body = 'Hello World'
+})
+```
+
+形象的说，它就是一个洋葱模型:
+
+![](/images/jsx-as-dsl/koa.png)
+
+<br>
+
+每个中间件调用 next，进入下一级. 如果把函数的边界打破。它的样子确实像洋葱:
+
+![](/images/jsx-as-dsl/koa-2.png)
+
+<br>
+
+**我发现使用 JSX 可以更直观地 表示这种洋葱结构**
+
+![](/images/jsx-as-dsl/koa-3.png)
+
+<br>
+<br>
+
+### 4.2 use 基础组件
+
+于是乎，有了 `<use />` 这个基础组件。它类似于 Koa 的 `app.use`, 用于拦截请求，可以进行响应, 也可以选择进入下一层。
+
+**来看看整体设计**。
+
+use 正是基于上面说的，使用 JSX 来描述中间件包裹层次的基础组件。因为使用的是一种树状结构，所以要区分**兄弟中间件**和**子中间件**:
+
+```js
+<server>
+  <use m={A}>
+    <use m={Aa} /> <use m={Ab} />
+  </use>
+  <use m={B} />
+  <use m={C} />
+</server>
+```
+
+其中 `Aa`、`Ab` 就是 `A` 的**子中间件**。在 A 中可以调用类似 koa 的 `next` 函数，进入下级中间件匹配。
+
+`A`、`B`、`C`之间就是兄弟中间件。当前继中间件未匹配时，就会执行下一个中间件。
+
+乍一看，这就是 koa 和 express 的结合啊!
+
+<br>
+
+**再看看 Props 设计**
+
+```js
+interface UseProps {
+  m: (req, res, recurse: () => Promise<boolean>) => Promise<boolean>;
+  skip?: boolean;
+}
+```
+
+- `m`
+  - `req`、`res`：Express 的请求对象和响应对象
+  - `recurse`：递归执行子级中间件, 类似 koa 的 next。返回一个`Promise<boolean>`, 它将在下级中间件执行完成后 resolve，boolean 表示下级中间件是否匹配。
+  - 返回值：返回一个 `Promise<boolean>` 表示当前中间件是否匹配。如果匹配，后续的兄弟中间件将不会被执行。
+- `skip`：强制跳过，我们在开发时可能会临时跳过匹配请求，这个有点像单元测试中的 skip
+
+<br>
+
+**看一下运行实例**
+
+假设代码为:
+
+```js
+const cb = name => () => {
+  console.log(name)
+  return false
+}
+
+export default (
+  <server>
+    <use
+      m={async (req, res, rec) => {
+        console.log('A')
+        if (req.path === '/user') await rec() // 如果匹配，则放行，让其递归进入内部
+        console.log('end A')
+        return false
+      }}
+    >
+      <use m={cb('A-1')}>如果父级匹配，则这里会被执行</use>
+      <use m={cb('A-2')}>...</use>
+    </use>
+    <use m={cb('B')} />
+    <use m={cb('C')} />
+  </server>
+)
+```
+
+如果请求的是 '/'，那么打印的是 `A -> end A -> B -> C`；如果请求为 '/user', 那么打印的是 `A -> A-1 -> A-2 -> end A -> B -> C`
+
+<br>
+
+我们的基础组件和 Koa / Express 一样，核心保持非常小而简洁，当然它也比较低级，这样能够保证扩展性和灵活性。
+
+**这个简单的基础组件设计就是整个框架的‘基石’**。 如果你了解 Koa 和 Express，这里没有新的东西。只是换了一种表现方式。
+
+<br>
+<br>
+
+### 4.3 高层组件的封装
+
+Ok, 有了 use 这个基础原语, 我可以做很多有意思的事情，使用组件化的思维封装出更高级的 API。
+
+**① `<Log>`：打日志**
+
+封装一个最简单的组件:
+
+```js
+export const Log: Component = props => {
+  return (
+    <use
+      m={async (req, res, rec) => {
+        const start = Date.now()
+        // 进入下一级
+        const rtn = await rec()
+        console.log(`${req.method} ${req.path}: ${Date.now() - start}ms`)
+        return rtn
+      }}
+    >
+      {props.children}
+    </use>
+  )
+}
+```
+
+用法:
+
+```jsx
+<server>
+  <Log>
+    <Get>hello world</Get>
+    <Post path="/login">login sucess</Post>
+    ...
+  </Log>
+</server>
+```
+
+<br>
+<br>
+
+**② `<NotFound>`: 404**
+
+404 页面
+
+```js
+export const NotFound = props => {
+  const { children, onNotFound } = props
+  return (
+    <use
+      m={async (req, res, rec) => {
+        const found = await rec()
+        if (!found) {
+          // 下级未匹配
+          if (onNotFound) {
+            onNotFound(req, res)
+          } else {
+            res.status(404)
+            res.send('Not Found')
+          }
+        }
+        return true
+      }}
+    >
+      {children}
+    </use>
+  )
+}
+```
+
+用法和 Log 一样。recurse 返回 false 时，表示下级没有匹配到请求。
+
+<br>
+<br>
+
+**③ `<Catch>`: 异常处理**
+
+```js
+export const Catch: Component = props => {
+  return (
+    <use
+      m={async (req, res, rec) => {
+        try {
+          return await rec()
+        } catch (err) {
+          res.status(500)
+          res.send(err.message)
+          return true
+        }
+      }}
+    >
+      {props.children}
+    </use>
+  )
+}
+```
+
+用法和 Log 一样。捕获下级中间件的异常。
+
+<br>
+<br>
+
+**④ `<Match>`: 请求匹配**
+
+Match 组件也是一个非常基础的组件，其他高层组件都是基于它来实现。它用于匹配请求，并作出响应。先来看看 Props 设计：
+
+```js
+export type CustomResponder =
+  | MiddlewareMatcher
+  | MockType
+  | boolean
+  | string
+  | number
+  | object
+  | null
+  | undefined
+
+export interface MatchProps {
+  match?: (req: Request, res: Response) => boolean // 请求匹配
+  headers?: StringRecord // 默认响应报头
+  code?: number | string // 默认响应码
+  // children 类型则比较复杂, 可以是原始类型、对象、Mock对象、自定义响应函数，以及下级中间件
+  children?: ComponentChildren | CustomResponder
+}
+```
+
+<br>
+
+Match 组件主体:
+
+```js
+export const Match = (props: MatchProps) => {
+  const { match, skip, children } = props
+  // 对 children 进行转换
+  let response = generateCustomResponder(children, props)
+
+  return (
+    <use
+      skip={skip}
+      m={async (req, res, rec) => {
+        // 检查是否匹配
+        if (match ? match(req, res) : true) {
+          if (response) {
+            return response(req, res, rec)
+          }
+          // 如果没有响应器，则将控制权交给下级组件
+          return rec()
+        }
+
+        return false
+      }}
+    >
+      {children}
+    </use>
+  )
+}
+```
+
+限于篇幅，Match 的具体细节可以看[这里](https://github.com/ivan-94/jsxmock/blob/master/src/components/Match.tsx)
+
+前进，前进。 `Get`、`Post`、`Delete`、`MatchByJSON`、`MatchBySearch` 都是在 `Match` 基础上封装了，这里就不展开了。
+
+<br>
+<br>
+
+**⑤ `<Delay>`: 延迟响应**
+
+太兴奋了，一不小心又写得老长，我可以去写小册了。Ok, 最后一个例子, 在 Mock API 会有模拟延迟响应的场景。对于我们来说实现很简单:
+
+```js
+export const Delay = (props: DelayProps) => {
+  const { timeout = 3000, ...other } = props
+  return (
+    <use
+      m={async (req, res, rec) => {
+        await new Promise(res => setTimeout(res, timeout))
+        return rec()
+      }}
+    >
+      <Match {...other} />
+    </use>
+  )
+}
+```
+
+用法：
+
+```js
+<Get path="/delay">
+  {/* 延迟 5s 返回 */}
+  <Delay timeout={5000}>Delay Delay...</Delay>
+</Get>
+```
+
+坚持到这里不容易，你对它的原理可能感兴趣，那不妨看下去。
+
+<br>
+<br>
+
+## 5. 浅谈原理
+
+简单看一下实现。如果了解过 React 或者 Virtual-DOM 的实现原理。这一切就很好理解了。
+
+### 5.1 '渲染'
+
+这是打了引号的'渲染'。这只是一种习惯的称谓，并不是指它会渲染成 GUI。它用来展开整颗 JSX 树。对于我们来说很简单，我们没有所谓的更新或者 UI 渲染相关的东西。只需递归这个树、收集我们需要的东西即可。
+
+我们的目的是收集到所有的中间件，以及它们的嵌套关系。我们用 Middlewares 这个树形数据结构来存储它们：
+
+```js
+export interface Middlewares {
+  m: Middleware           // 中间件函数
+  skip: boolean           // 是否跳过
+  children: Middlewares[] // 子级中间件
+}
+```
+
+渲染函数:
+
+```js
+let currentMiddlewares
+export function render(vnode) {
+  // ...
+  // 创建根中间件
+  const middlewares = (currentMiddlewares = createMiddlewares())
+  // 挂载
+  const tree = mount(vnode)
+  // ...
+}
+```
+
+<br>
+
+挂载是一个递归的过程，这个过程中，遇到`自定义组件`我们就展开，遇到 use 组件就将它们收集到 `currentMiddlewares` 中:
+
+```js
+function mount(vnode) {
+  let prevMiddlewares
+  if (typeof vnode.type === 'function') {
+    // 🔴自定义组件展开
+    const rtn = vnode.type(vnode.props)
+    if (rtn != null) {
+      // 递归挂载自定义组件的渲染结果
+      mount(rtn, inst)
+    }
+  } else if (typeof vnode.type === 'string') {
+    // 内置组件
+    if (vnode.type === 'use') {
+      // 🔴收集中间件
+      const md = createMiddlewares(inst.props.m)
+      md.skip = !!inst.props.skip
+      currentMiddlewares.children.push(md)
+
+      // 保存父级中间件
+      prevMiddlewares = currentMiddlewares
+      currentMiddlewares = md // ⬇️推入栈，下级的中间件将加入这个列表
+    } else {
+      // ... 其他内置组件
+    }
+
+    // 🔴递归挂载子级节点
+    mountChilren(inst.props.children, inst)
+
+    if (vnode.type === 'use') {
+      currentMiddlewares = prevMiddlewares // ⬆️弹出栈
+    }
+  }
+}
+
+// 🔴 子节点列表挂载
+function mountChilren(children: any, parent: Instance) {
+  childrenToArray(children).forEach(mount)
+}
+```
+
+<br>
+<br>
+
+### 5.2 运行
+
+现在看看怎么运行起来。我们实现了一个简单的中间件机制，相对 Koa 好理解一点：
+
+```js
+export async function runMiddlewares(req, res, current): Promise<boolean> {
+  const { m, skip, children } = current
+  if (skip) {
+    // 跳过, 直接返回 false
+    return false
+  }
+  // 调用中间件
+  return m(req, res, async () => {
+    // recurse 回调
+    // 如果有下级中间件，则递归调用子级中间件
+    if (children && children.length) {
+      for (const child of children) {
+        const matched = await runMiddlewares(req, res, child)
+        if (matched) {
+          // 如果其中一个兄弟中间件匹配，后续的中间件都不会被执行
+          return true
+        }
+      }
+    }
+
+    return false // 没有下级中间件，或者没有任何下级中间件匹配
+  })
+}
+```
+
+很简单哈？ 就是递归递归递归
+
+<br>
+<br>
+
+## 6. 总结，终于完事了
+
+本文从配置文件讲到 DSL，又讲到了 JavaScript 的 DSL 表达形式和能力。最后将焦点聚集在了 JSX 上面。
+
+我通过一个实战的案例展示了 JSX 和 React 的组件化思维，它不仅仅适用于描述用户界面，我们也看到 JSX 作为一种 DSL 的潜力和灵活性。
+
+最后总结一下优缺点。
+
+<br>
+
+**✅ 优点**
+
+- 更好的类型推断和约束。对 Typescript 友好
+- 可组合性。组件封装和组合能力, 可以轻易封装高级、易于使用的接口
+- Just Javascript。 本身就是 JavaScript 代码，很灵活
+- 更好的组织性、媲美配置文件。JSX 语法类似于 XML，有规范的组织方式。
+- 习惯。 如果你习惯 React，Vue 这类前端框架，JSX 配置方式很容易被接受和上手
+- 实现简单。
+- 更能直观地表现层级结构。比如表示中间件的洋葱结构
+- 模块化。与生俱来，可以将接口分发到不同的文件中，然后可轻易地组合起来。
+
+<br>
+
+**⚠️ 缺点**
+
+- 代码需要转译。需要 Babel 和 Typescript 转译。
+- 有点 Verbose。
+
+<br>
+
+**灵活却有组织性**。灵活通常容易导致杂乱无章，组织性则可能意味着牺牲灵活性，两者在某种意义上面看是矛盾的。能够将两者平衡案例其实很少见，JSX 可能是一个。（我好像在吹🐂）
+
+<br>
+
+代码已经在 Github 开源, 目前正处于原型阶段: [ivan-94/jsxmock](https://github.com/ivan-94/jsxmock) 欢迎 ⭐️和贡献。
+
+<br>
+<br>
+
+## 7. 扩展
 
 - [DSL 的误区](https://www.yinwang.org/blog-cn/2017/05/25/dsl)
 - [谈谈 DSL 以及 DSL 的应用（以 CocoaPods 为例）](https://draveness.me/dsl)
 - [JavaScript DSL 示例](https://www.phodal.com/blog/javascript-dsl-example/)
 - [你是如何构建 Web 前端 Mock Server 的？](https://www.zhihu.com/question/35436669)
 - [使用 svrx 实现更优雅的接口 Mock](https://docs.svrx.io/zh/blog/mock.html)
+
+<br>
+
+![](/images/sponsor.jpg)
+
+<br>
