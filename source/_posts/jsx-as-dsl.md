@@ -156,7 +156,7 @@ end
 **我个人要求 DSL 应该具备这些特性**：
 
 - **专注于特定领域**。也就是说它的目的非常明确，因此比通用类型语言要简单很多，但是它的边界有时候并不好把握。
-- **组织性**。它应该方便组织和描述领域问题, 更多的是一种**约束能力**。配置文件组织性就非常好，比如 JSON，它可以很容易地描述数据结构，没有什么心智负担。另一个典型的例子是单元测试框架(例如 jest)，它们使用 describe、it、expect 这些元件，让单元测试更好的组织起来。
+- **组织性**。它应该方便组织和描述领域问题, **或者说这是一种约束能力**。配置文件组织性就非常好，比如 JSON，它可以很容易地描述数据结构，没有什么心智负担。另一个典型的例子是单元测试框架(例如 jest)，它们使用 describe、it、expect 这些元件，让单元测试更好的组织起来。
 - **可读性**。它必须是人类可读的、容易理解的。
 - **声明式**。声明式优于过程式、描述 What 而不是 How。
 - **扩展性**。很多 DSL 一开始并不关注这一点，因为一开始问题可能并不复杂。**问题的领域不是静态不变的，它可能会变大，这时候 DSL 的扩展能力就很关键了**。 就比如 HTML，随着前端开发越来越复杂，原有的元素和功能集合已经无法满足需求，所以衍生除了很多组件或者自定义元素方案。如果原本的 DSL 无法扩展，可以在这个基础之上再套一层 DSL，CSS vs SASS、HTML vs React 就是这样的例子。
@@ -1082,6 +1082,12 @@ export async function runMiddlewares(req, res, current): Promise<boolean> {
 - [JavaScript DSL 示例](https://www.phodal.com/blog/javascript-dsl-example/)
 - [你是如何构建 Web 前端 Mock Server 的？](https://www.zhihu.com/question/35436669)
 - [使用 svrx 实现更优雅的接口 Mock](https://docs.svrx.io/zh/blog/mock.html)
+
+<br>
+
+也学别人建个群(好多读者问过)，试试水吧...
+
+![](/images/group.png)
 
 <br>
 
