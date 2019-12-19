@@ -1,12 +1,12 @@
 ---
-title: '这半年的 Electron 应用开发和优化总结, 干货'
+title: '分享这半年的 Electron 应用开发和优化经验'
 date: 2019/12/16
 categories: 前端
 ---
 
 今年可以拿出来说一说的项目估计就是我们用 Electron 重构了一个桌面端应用。简单介绍一下这个应用的，这个应用类似于钉钉或者企业微信，主要功能有即时通信、语音、会议，基本功能和 PC 端微信差不多，具体细节就不展开了, 这些不重要。
 
-![](/images/electron/mygzb.png)
+![](/images/electron/mygzb.jpeg)
 
 <br>
 
@@ -199,7 +199,7 @@ Electron 不是银弹，鱼和熊掌不可兼得。Electron 带来开发效率�
 
 最好的分析工具是 Chrome 开发者工具的 `Performance`。通过火焰图, JavaScript 执行过程的任何蛛丝马迹都可以直观的看到。
 
-![](/images/TODO:)
+![](/images/electron/chrome-perf.png)
 
 <br>
 
@@ -230,7 +230,7 @@ node --cpu-prof --heap-prof -e "require('request’)”“
 
 最简单的方式。在资源未加载完毕之前，先展示页面的骨架。避免用户看到白茫茫的屏幕:
 
-![](TODO:)
+![](/images/electron/shell.png)
 
 <br>
 
@@ -246,6 +246,8 @@ node --cpu-prof --heap-prof -e "require('request’)”“
   所以要充分评估模块的大小和依赖。
 
 - **划分加载优先级**：既然我们没办法一开始将所有东西都加载出来，那就按照优先级渐进式地将在它们。举个例子，当我们使用 VSCode 打开一个文件时，VScode 会先展示代码面板、接着是目录树、侧边栏、代码高亮、问题面板、初始化各种插件...
+
+![](/images/electron/load-order.gif)
 
 <br>
 
@@ -341,9 +343,36 @@ Atom 有很多优质的文章，分享了他们优化Atom的经历。例如它�
 - 低优先级的任务
 - ...
 
-例如：
+例如 React 代码分割：
 
-TODO:
+```js
+export default function lazy(factory, Fallback) {
+  const Comp = l(factory)
+  // 预加载调度
+  scheduleIdle({
+    name: 'LazyComponent',
+    size: TaskSize.Heavy,
+    task: factory,
+    timeout: 2000,
+  })
+
+  return function LazyComponent(props) {
+    return (
+      <Suspense fallback={Fallback ? <Fallback /> : null}>
+        <Comp {...props} />
+      </Suspense>
+    )
+  } as typeof Comp
+}
+```
+
+<br>
+
+使用:
+
+```js
+const List = lazy(() => import('./List'))
+```
 
 <br>
 
@@ -389,10 +418,106 @@ Electron 的主进程非常重要。它是所有窗口的父进程，它负责�
 
 #### 优化进程通信
 
+**① 巨坑 remote**
+
+[remote](https://electronjs.org/docs/api/remote) 提供了一种简便的、无侵入的形式来访问主进程的API和数据。**其底层基于同步的 IPC**。你可以通过我[这篇文章](https://juejin.im/post/5d4b79a3e51d4561b072dcb0)来了解它的原理。
+
+坑在哪里呢？
+
+① 它是同步的
+② 属性动态获取。为了确保你能够获取到最新的值，remote底层并不会进行缓存，而是每次获取一个属性就动态到主进程中取。
+
+比如获取一个主进程中的对象:
+
+```js
+// 主进程
+global.foo = {
+  foo: 1,
+  bar: {
+    baz: 2
+  }
+}
+```
+
+渲染进程访问:
+
+```js
+import {remote} from 'electron'
+
+JSON.stringify(remote.getGlobal('foo'))
+```
+
+这里会有 4 次 同步 IPC: getGlobal、foo、bar、bar.baz。对于复杂的数据，这个消耗就很难忍受了。不要使用 remote，除非你知道你自己在干什么。
+
+<br>
+
+**② 封装IPC 库**
+
+为了优化 IPC 通信，我们自己基于Electron 的IPC接口, 封装了一套 IPC 库。主要特征有:
+
+- 异步的。没有同步的选项。避免干蠢事
+- 消息合并。合并事件推送，批量传递
+- 序列化。直接 JSON 字符串传递，不让 Electron 干涉序列化。Electron 内部序列化稍微有点复杂，比如会处理 Buffer 等特殊类型。
+- 一致化的、简单易用的 API。使用一样在接口在主进程与渲染进程，以及渲染进程与渲染进程之间双向通信。
+
+举个例子:
+
+```js
+import rpc from 'myrpc'
+
+// 注册方法
+rpc.registerHandler('echo', async data => {
+  return data
+})
+
+// 事件监听
+rpc.on('some-event', (data, source) => {
+  // dosomething
+})
+```
+
+客户端:
+
+```js
+import rpc from 'myrpc'
+
+rpc.emit(target, 'some-event') // target 为接收的窗口或者主进程。
+
+// 方法调用
+const res = await rpc.callHandler(target, 'echo', 'hello-world')
+```
+
+<br>
+
 还不够，我们还在优化，后续再分享给大家。
+
+<br>
+<br>
 
 ## 坑还是会有的
 
+一路走来也遇到很多坑。痛并快乐着。
+
+-	窗口阴影、圆角
+-	剪切板不够强大
+-	remote 巨坑
+-	一些兼容问题
+-	主进程崩溃，渲染进程不会退出，导致进程‘溢出’
+-	截屏。刚开始用 Electron 实现，效果不好，现在是原生实现
+-	...
+
+<br>
+<br>
+
 ## 扩展资料
+
+-	[从 VSCode 看大型 IDE 技术架构](https://zhuanlan.zhihu.com/p/96041706)
+-	[Electron Performance](https://electronjs.org/docs/tutorial/performance)
+-	[CovalenceConf 2019: Visual Studio Code – The First Second](https://www.youtube.com/watch?v=r0OeHRUCCb4)
+-	[Get Started With Analyzing Runtime Performance](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/)
+-	[electron-link](https://github.com/atom/electron-link)
+-	[How to Create a V8 Heap Snapshot of a Javascript File and Use It in Electron](http://peterforgacs.github.io/2018/09/12/How-to-create-a-V8-snapshot-of-your-javascript-file/)
+-	[The State of Atom's Performance](https://blog.atom.io/2018/01/10/the-state-of-atoms-performance.html)
+-	[Improving Startup Time](https://blog.atom.io/2017/04/18/improving-startup-time.html)
 
 <br>
