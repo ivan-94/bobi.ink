@@ -10,13 +10,13 @@ categories: 前端
 
 <br>
 
-![](/images/electron/mygzb.jpeg)
+![](https://bobi.ink/images/electron/mygzb.jpeg)
 
 <br>
 
 **文章大纲**
 
-<!-- TOC -->
+
 
 - [为什么选择 Electron?](#为什么选择-electron)
 - [进程模型](#进程模型)
@@ -30,7 +30,7 @@ categories: 前端
 - [坑还是会有的](#坑还是会有的)
 - [扩展资料](#扩展资料)
 
-<!-- /TOC -->
+
 
 <br>
 
@@ -44,7 +44,7 @@ categories: 前端
 
 先来看一下我们现在的客户端基本架构:
 
-![](/images/electron/client-arch.png)
+![](https://bobi.ink/images/electron/client-arch.png)
 
 <br>
 
@@ -232,7 +232,7 @@ Electron 不是银弹，鱼和熊掌不可兼得。Electron 带来开发效率�
 
 最好的分析工具是 Chrome 开发者工具的 `Performance`。通过火焰图, JavaScript 执行过程的任何蛛丝马迹都可以直观的看到。
 
-![](/images/electron/chrome-perf.png)
+![](https://bobi.ink/images/electron/chrome-perf.png)
 
 <br>
 
@@ -266,7 +266,7 @@ node --cpu-prof --heap-prof -e "require('request’)”“
 
 另外需要设置背景色或者延迟显示窗口，来避免闪烁。
 
-![](/images/electron/shell.png)
+![](https://bobi.ink/images/electron/shell.png)
 _VSCode骨架屏_
 
 <br>
@@ -277,7 +277,7 @@ _VSCode骨架屏_
 
 <br>
 
-![](/images/electron/load-order.gif)
+![](https://bobi.ink/images/electron/load-order.gif)
 
 <br>
 
@@ -578,5 +578,5 @@ const res = await rpc.callHandler(target, 'echo', 'hello-world')
 <br>
 <br>
 
-![](/images/group.jpeg)
+![](https://bobi.ink/images/group.jpeg)
 _回复: `ivan` 进群_
