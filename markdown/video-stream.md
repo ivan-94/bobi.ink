@@ -10,7 +10,7 @@ categories: 前端
 
 <br>
 
-![](/images/video-push/conf.jpeg)
+![](https://bobi.ink/images/video-push/conf.jpeg)
 
 <br>
 
@@ -20,7 +20,7 @@ categories: 前端
 
 因此目前只能选前者，即底层库给 Electron 页面推送视频流，在页面实时播放。 再此之前，笔者几乎没有接触过音视频开发，我能想到的是通过类似直播的方式，底层库作为"主播端", Web 页面作为"观众端"。
 
-![](/images/video-push/overall.png)
+![](https://bobi.ink/images/video-push/overall.png)
 
 <br>
 
@@ -40,7 +40,7 @@ categories: 前端
 
 **目录**
 
-<!-- TOC -->
+
 
 - [① 典型的Web直播方案](#①-典型的web直播方案)
   - [RTMP 推流](#rtmp-推流)
@@ -55,7 +55,7 @@ categories: 前端
 - [③ 直接渲染 YUV](#③-直接渲染-yuv)
 - [扩展阅读](#扩展阅读)
 
-<!-- /TOC -->
+
 
 <br>
 <br>
@@ -184,7 +184,7 @@ Flash 已经过时， 为了在 Web 页面中实现 RTMP 流播放，我们还�
 
 <br>
 
-![](/images/video-push/flv-arch.png)
+![](https://bobi.ink/images/video-push/flv-arch.png)
 
 <br>
 <br>
@@ -276,7 +276,7 @@ Jerry Qu 写得 [《HTML5 视频直播（二）》](https://imququ.com/post/html
 
 <br>
 
-![](/images/video-push/jsmpeg.png)
+![](https://bobi.ink/images/video-push/jsmpeg.png)
 
 <br>
 
@@ -425,7 +425,7 @@ API 很简单，上面我们传递一个画布给 JSMpeg，禁用了 Audio, 并�
 
 受限于终端性能以及解码器效率, 对于平均码率(笔者粗略测试大概为 2000k)较高的视频流，JSMpeg 有很大概率会出现花屏或者内存访问越界问题(memory access out of bounds)。
 
-![](/images/video-push/jsmpeg-problems.png)
+![](https://bobi.ink/images/video-push/jsmpeg-problems.png)
 
 <br>
 
