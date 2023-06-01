@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Electron的remote模块是一个比较神奇的东西，为渲染进程和主进程通信封装了一种简单方法，通过remote你可以’直接’获取主进程对象或者调用主进程函数或对象的方法, 而不必显式发送进程间消息, 类似于 Java 的 RMI. 例如: const &amp;#123; remote &amp;#125; = require(&apos;electron&apos;)const myModal = remote.require">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="揭开Electron的remote模块的面纱">
+<meta property="og:url" content="https://bobi.ink/2019/08/04/electron-remote/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="Electron的remote模块是一个比较神奇的东西，为渲染进程和主进程通信封装了一种简单方法，通过remote你可以’直接’获取主进程对象或者调用主进程函数或对象的方法, 而不必显式发送进程间消息, 类似于 Java 的 RMI. 例如: const &amp;#123; remote &amp;#125; = require(&apos;electron&apos;)const myModal = remote.require">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/ipc.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/meta-transform.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/naruto.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/lifetime.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/callback.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/gzb.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/addListener.png">
+<meta property="og:image" content="https://bobi.ink/images/electron-remote/addListener2.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="揭开Electron的remote模块的面纱">
+<meta name="twitter:description" content="Electron的remote模块是一个比较神奇的东西，为渲染进程和主进程通信封装了一种简单方法，通过remote你可以’直接’获取主进程对象或者调用主进程函数或对象的方法, 而不必显式发送进程间消息, 类似于 Java 的 RMI. 例如: const &amp;#123; remote &amp;#125; = require(&apos;electron&apos;)const myModal = remote.require">
+<meta name="twitter:image" content="https://bobi.ink/images/electron-remote/ipc.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>揭开Electron的remote模块的面纱</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/08/09/ejs/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/07/29/react-event/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/04/electron-remote/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/04/electron-remote/&text=揭开Electron的remote模块的面纱"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/04/electron-remote/&is_video=false&description=揭开Electron的remote模块的面纱"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=揭开Electron的remote模块的面纱&body=Check out this article: https://bobi.ink/2019/08/04/electron-remote/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/04/electron-remote/&name=揭开Electron的remote模块的面纱&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通信协议的定义"><span class="toc-number">1.</span> <span class="toc-text">通信协议的定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对象的序列化"><span class="toc-number">2.</span> <span class="toc-text">对象的序列化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#影子对象"><span class="toc-number">3.</span> <span class="toc-text">影子对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对象的生命周期"><span class="toc-number">4.</span> <span class="toc-text">对象的生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染进程怎么给主进程传递回调"><span class="toc-number">5.</span> <span class="toc-text">渲染进程怎么给主进程传递回调</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一些缺陷"><span class="toc-number">6.</span> <span class="toc-text">一些缺陷</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#remote模块实践和优化"><span class="toc-number">7.</span> <span class="toc-text">remote模块实践和优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">9.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        揭开Electron的remote模块的面纱
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-08-03T16:00:00.000Z" itemprop="datePublished">2019-08-04</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>Electron的remote模块是一个比较神奇的东西，为<code>渲染进程</code>和<code>主进程</code>通信封装了一种简单方法，通过remote你可以’直接’获取主进程对象或者调用主进程函数或对象的方法, 而不必显式发送进程间消息, 类似于 Java 的 RMI. 例如:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; remote &#125; = <span class="built_in">require</span>(<span class="string">'electron'</span>)</span><br><span class="line"><span class="keyword">const</span> myModal = remote.require(<span class="string">'myModal'</span>) <span class="comment">// 让主进程require指定模块，并返回到渲染进程</span></span><br><span class="line">myModal.dosomething()                     <span class="comment">// 调用方法</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>本质上，remote模块是基于Electron的IPC机制的，进程之间的通信的数据必须是可序列化的，比如JSON序列化</strong>。所以本文的目的是介绍Electron是如何设计remote模块的，以及里面有什么坑。</p>
+<p><br></p>
+<p><img src="/images/electron-remote/ipc.png" alt></p>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<ul>
+<li><a href="#%e9%80%9a%e4%bf%a1%e5%8d%8f%e8%ae%ae%e7%9a%84%e5%ae%9a%e4%b9%89">通信协议的定义</a></li>
+<li><a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e5%ba%8f%e5%88%97%e5%8c%96">对象的序列化</a></li>
+<li><a href="#%e5%bd%b1%e5%ad%90%e5%af%b9%e8%b1%a1">影子对象</a></li>
+<li><a href="#%e5%af%b9%e8%b1%a1%e7%9a%84%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f">对象的生命周期</a></li>
+<li><a href="#%e6%b8%b2%e6%9f%93%e8%bf%9b%e7%a8%8b%e6%80%8e%e4%b9%88%e7%bb%99%e4%b8%bb%e8%bf%9b%e7%a8%8b%e4%bc%a0%e9%80%92%e5%9b%9e%e8%b0%83">渲染进程怎么给主进程传递回调</a></li>
+<li><a href="#%e4%b8%80%e4%ba%9b%e7%bc%ba%e9%99%b7">一些缺陷</a></li>
+<li><a href="#remote%e6%a8%a1%e5%9d%97%e5%ae%9e%e8%b7%b5%e5%92%8c%e4%bc%98%e5%8c%96">remote模块实践和优化</a></li>
+<li><a href="#%e6%80%bb%e7%bb%93">总结</a></li>
+<li><a href="#%e6%89%a9%e5%b1%95">扩展</a></li>
+</ul>
+<p><br></p>
+<h2 id="通信协议的定义"><a href="#通信协议的定义" class="headerlink" title="通信协议的定义"></a>通信协议的定义</h2><p>上文说到，remote本质上基于序列化的IPC通信的，所以首先关键需要<strong>定义一个协议来描述一个模块/对象的外形</strong>，其中包含下列类型:</p>
+<ul>
+<li>原始值。例如字符串、数字、布尔值</li>
+<li>数组。</li>
+<li>对象。对象属性、对象的方法、以及对象的原型</li>
+<li>函数。普通函数和构造方法、异常处理</li>
+<li>特殊对象。Date、Buffer、Promise、异常对象等等</li>
+</ul>
+<p><br></p>
+<p>Electron使用MetaData(元数据)来描述这些对象外形的协议. 下面是一些转换的示例:</p>
+<ul>
+<li><p><strong>基本对象</strong>: 基本对象很容易处理，直接值拷贝传递即可</p>
+<ul>
+<li><p>输入</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>;</span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Date</span>();</span><br><span class="line">Buffer.from(<span class="string">'hello world'</span>);</span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'message'</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输出</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;<span class="attr">type</span>: <span class="string">"value"</span>, <span class="attr">value</span>: <span class="number">1</span>&#125;;</span><br><span class="line">&#123;<span class="attr">type</span>: <span class="string">"date"</span>, <span class="attr">value</span>: <span class="number">1565002306662</span>&#125;;  <span class="comment">// 序列化为时间戳</span></span><br><span class="line">&#123;<span class="attr">type</span>: <span class="string">"buffer"</span>, <span class="attr">value</span>: &#123;<span class="attr">data</span>: <span class="built_in">Uint8Array</span>(<span class="number">11</span>), <span class="attr">length</span>: <span class="number">11</span>, <span class="attr">type</span>: <span class="string">"Buffer"</span>&#125;&#125;; <span class="comment">// 序列化为数组</span></span><br><span class="line">&#123;</span><br><span class="line">  members: [</span><br><span class="line">    &#123;</span><br><span class="line">      name: <span class="string">"stack"</span>,</span><br><span class="line">      value: <span class="string">"Error: message\n    at Object.&lt;anonymous&gt; (省略调用栈)"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123; <span class="attr">name</span>: <span class="string">"message"</span>, <span class="attr">value</span>: <span class="string">"message"</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">name</span>: <span class="string">"name"</span>, <span class="attr">value</span>: <span class="string">"Error"</span> &#125;</span><br><span class="line">  ],</span><br><span class="line">  type: <span class="string">"error"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+</li>
+</ul>
+</li>
+<li><p><strong>数组</strong>: 数组也是值拷贝</p>
+<ul>
+<li><p>输入</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输出</p>
+<p>数组会递归对成员进行转换. 注意数组和基本类型没什么区别，它也是值拷贝，也就是说修改数组不会影响到对端进程的数组值。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"members"</span>: [</span><br><span class="line">    &#123;<span class="string">"type"</span>:<span class="string">"value"</span>,<span class="string">"value"</span>:<span class="number">1</span>&#125;,</span><br><span class="line">    &#123;<span class="string">"type"</span>:<span class="string">"value"</span>,<span class="string">"value"</span>:<span class="number">2</span>&#125;,</span><br><span class="line">    &#123;<span class="string">"type"</span>:<span class="string">"value"</span>,<span class="string">"value"</span>:<span class="number">3</span>&#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">"type"</span>:<span class="string">"array"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li><p><strong>纯对象</strong>: </p>
+<ul>
+<li><p>输入</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  a: <span class="number">1</span>,</span><br><span class="line">  b: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.a;</span><br><span class="line">  &#125;,</span><br><span class="line">  c: &#123;</span><br><span class="line">    d: <span class="string">'d'</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输出</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="comment">// 这里有一个id，用于标识主进程的一个对象</span></span><br><span class="line">  id: <span class="number">1</span>,</span><br><span class="line">  <span class="comment">// 对象成员</span></span><br><span class="line">  members: [</span><br><span class="line">    &#123; <span class="attr">enumerable</span>: <span class="literal">true</span>, <span class="attr">name</span>: <span class="string">"a"</span>, <span class="attr">type</span>: <span class="string">"get"</span>, <span class="attr">writable</span>: <span class="literal">true</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">enumerable</span>: <span class="literal">true</span>, <span class="attr">name</span>: <span class="string">"b"</span>, <span class="attr">type</span>: <span class="string">"method"</span>, <span class="attr">writable</span>: <span class="literal">false</span> &#125;,</span><br><span class="line">    <span class="comment">// electron只会转换一层，不会递归转换内嵌对象</span></span><br><span class="line">    &#123; <span class="attr">enumerable</span>: <span class="literal">true</span>, <span class="attr">name</span>: <span class="string">"c"</span>, <span class="attr">type</span>: <span class="string">"get"</span>, <span class="attr">writable</span>: <span class="literal">true</span> &#125;,</span><br><span class="line">  ],</span><br><span class="line">  name: <span class="string">"Object"</span>,</span><br><span class="line">  <span class="comment">// 对象的上级原型的MetaData</span></span><br><span class="line">  proto: <span class="literal">null</span>,</span><br><span class="line">  type: <span class="string">"object"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+</li>
+</ul>
+</li>
+<li><p><strong>函数</strong>:</p>
+<ul>
+<li><p>输入</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">'hello world'</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输出</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="comment">// 函数也有一个唯一id标识，因为它也是对象，主进程需要保持该对象的引用</span></span><br><span class="line">  id: <span class="number">2</span>,</span><br><span class="line">  <span class="comment">// 函数属性成员</span></span><br><span class="line">  members: [],</span><br><span class="line">  name: <span class="string">"Function"</span>,</span><br><span class="line">  type: <span class="string">"function"</span></span><br><span class="line">  <span class="comment">// Electron解析对象的原型链</span></span><br><span class="line">  proto: &#123;</span><br><span class="line">    members: [</span><br><span class="line">      <span class="comment">// 构造函数</span></span><br><span class="line">      &#123;</span><br><span class="line">        enumerable: <span class="literal">false</span>,</span><br><span class="line">        name: <span class="string">"constructor"</span>,</span><br><span class="line">        type: <span class="string">"method"</span>,</span><br><span class="line">        writable: <span class="literal">false</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123; <span class="attr">enumerable</span>: <span class="literal">false</span>, <span class="attr">name</span>: <span class="string">"apply"</span>, <span class="attr">type</span>: <span class="string">"method"</span>, <span class="attr">writable</span>: <span class="literal">false</span> &#125;,</span><br><span class="line">      &#123; <span class="attr">enumerable</span>: <span class="literal">false</span>, <span class="attr">name</span>: <span class="string">"bind"</span>, <span class="attr">type</span>: <span class="string">"method"</span>, <span class="attr">writable</span>: <span class="literal">false</span> &#125;,</span><br><span class="line">      &#123; <span class="attr">enumerable</span>: <span class="literal">false</span>, <span class="attr">name</span>: <span class="string">"call"</span>, <span class="attr">type</span>: <span class="string">"method"</span>, <span class="attr">writable</span>: <span class="literal">false</span> &#125;,</span><br><span class="line">      &#123; <span class="attr">enumerable</span>: <span class="literal">false</span>, <span class="attr">name</span>: <span class="string">"toString"</span>, <span class="attr">type</span>: <span class="string">"method"</span>, <span class="attr">writable</span>: <span class="literal">false</span> &#125;</span><br><span class="line">    ],</span><br><span class="line">    proto: <span class="literal">null</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+</li>
+</ul>
+</li>
+<li><p><strong>Promise</strong>：Promise只需描述then函数</p>
+<ul>
+<li><p>输入:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Promise</span>.resolve();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输入:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Promise这里关键在于then，详见上面的函数元数据</span></span><br><span class="line">&#123;</span><br><span class="line">  type: <span class="string">"promise"</span></span><br><span class="line">  then: &#123;</span><br><span class="line">    id: <span class="number">2</span>,</span><br><span class="line">    members: [],</span><br><span class="line">    name: <span class="string">"Function"</span>,</span><br><span class="line">    proto: &#123;<span class="comment">/*见上面*/</span>&#125;,</span><br><span class="line">    type: <span class="string">"function"</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<p>了解remote的数据传输协议后，有经验的开发者应该心里有底了，它的原理大概是这样的：</p>
+<p><img src="/images/electron-remote/meta-transform.png" alt></p>
+<p>主进程和渲染进程之间需要将对象序列化成MetaData描述，转换的规则上面已经解释的比较清楚了。这里面需要特殊处理是对象和函数，渲染进程拿到MetaData后需要封装成一个影子对象/函数，来供渲染进程应用调用。</p>
+<p>其中比较复杂的是对象和函数的处理，Electron为了防止对象被垃圾回收，需要将这些对象放进一个注册表中，在这个表中每个对象都有一个唯一的id来标识。这个id有点类似于‘指针’，渲染进程会拿着这个id向主进程请求访问对象。</p>
+<p>那什么时候需要释放这些对象呢？下文会讲具体的实现细节。</p>
+<p>还有一个上图没有展示出来的细节是，Electron不会递归去转换对象，也就是说它只会转换一层。这样可以安全地引用存在循环引用的对象、另外所有属性值应该从远程获取最新的值，不能假设它的结构不可变。</p>
+<p><br><br><br></p>
+<h2 id="对象的序列化"><a href="#对象的序列化" class="headerlink" title="对象的序列化"></a>对象的序列化</h2><p>先来看看主进程的实现，它的代码位于<a href="https://github.com/electron/electron/blob/master/lib/browser/rpc-server.js" target="_blank" rel="noopener">/lib/browser/rpc-server.js</a>，代码很少而且很好理解，读者可以自己读一下。</p>
+<p>这里我们不关注对象序列化的细节，重点关注对象的生命周期和调用的流程. </p>
+<p><br></p>
+<p>以<code>remote.require</code>为例, 这个方法用于让主进程去require指定模块，然后返回模块内容给渲染进程：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">handleRemoteCommand(<span class="string">'ELECTRON_BROWSER_REQUIRE'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event, contextId, moduleName</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 调用require</span></span><br><span class="line">  <span class="keyword">const</span> returnValue = process.mainModule.require(moduleName)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 将returnValue序列化为MetaData</span></span><br><span class="line">  <span class="keyword">return</span> valueToMeta(event.sender, contextId, returnValue)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><code>handleRemoteCommand</code> 使用<a href="https://electronjs.org/docs/api/ipc-main" target="_blank" rel="noopener">ipcMain</a>监听renderer发送的请求，<code>contextId</code>用于标识一个渲染进程。</p>
+<p><br></p>
+<p><code>valueToMeta</code>方法将值序列化为MetaData:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> valueToMeta = <span class="function"><span class="keyword">function</span> (<span class="params">sender, contextId, value, optimizeSimpleObject = false</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// Determine the type of value.</span></span><br><span class="line">  <span class="keyword">const</span> meta = &#123; <span class="attr">type</span>: <span class="keyword">typeof</span> value &#125;</span><br><span class="line">  <span class="keyword">if</span> (meta.type === <span class="string">'object'</span>) &#123;</span><br><span class="line">    <span class="comment">// Recognize certain types of objects.</span></span><br><span class="line">    <span class="keyword">if</span> (value === <span class="literal">null</span>) &#123;</span><br><span class="line">      meta.type = <span class="string">'value'</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (bufferUtils.isBuffer(value)) &#123;</span><br><span class="line">      <span class="comment">// ... 🔴 基本类型</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (meta.type === <span class="string">'array'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴 数组转换</span></span><br><span class="line">    meta.members = value.map(<span class="function">(<span class="params">el</span>) =&gt;</span> valueToMeta(sender, contextId, el, optimizeSimpleObject))</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta.type === <span class="string">'object'</span> || meta.type === <span class="string">'function'</span>) &#123;</span><br><span class="line">    meta.name = value.constructor ? value.constructor.name : <span class="string">''</span></span><br><span class="line">    <span class="comment">// 🔴 将对象保存到注册表中，并返回唯一的对象id.</span></span><br><span class="line">    <span class="comment">// Electron会假设渲染进程会一直引用这个对象, 直到渲染进程退出</span></span><br><span class="line">    meta.id = objectsRegistry.add(sender, contextId, value)</span><br><span class="line">    meta.members = getObjectMembers(value)</span><br><span class="line">    meta.proto = getObjectPrototype(value)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta.type === <span class="string">'buffer'</span>) &#123;</span><br><span class="line">    meta.value = bufferUtils.bufferToMeta(value)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta.type === <span class="string">'promise'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴promise</span></span><br><span class="line">    value.then(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;)</span><br><span class="line">    meta.then = valueToMeta(sender, contextId, <span class="function"><span class="keyword">function</span> (<span class="params">onFulfilled, onRejected</span>) </span>&#123;</span><br><span class="line">      value.then(onFulfilled, onRejected)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta.type === <span class="string">'error'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴错误对象</span></span><br><span class="line">    meta.members = plainObjectToMeta(value)</span><br><span class="line">    meta.members.push(&#123;</span><br><span class="line">      name: <span class="string">'name'</span>,</span><br><span class="line">      value: value.name</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (meta.type === <span class="string">'date'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴日期</span></span><br><span class="line">    meta.value = value.getTime()</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 其他</span></span><br><span class="line">    meta.type = <span class="string">'value'</span></span><br><span class="line">    meta.value = value</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> meta</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="影子对象"><a href="#影子对象" class="headerlink" title="影子对象"></a>影子对象</h2><p><img src="/images/electron-remote/naruto.jpeg" alt></p>
+<p>渲染进程会从MetaData中反序列化的对象或函数, 不过这只是一个‘影子’，我们也可以将它们称为<strong>影子对象</strong>或者<strong>代理对象</strong>、<strong>替身</strong>. 类似于火影忍者中的影分身之术，主体存储在主进程中，影子对象不包含任何实体数据，当访问这些对象或调用函数/方法时，影子对象直接远程请求。</p>
+<blockquote>
+<p>渲染进程的代码可以看<a href="https://github.com/electron/electron/blob/master/lib/renderer/api/remote.js" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p>来看看渲染进程怎么创建‘影子对象’:</p>
+<p><strong>函数的处理</strong>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (meta.type === <span class="string">'function'</span>) &#123;</span><br><span class="line">  <span class="comment">// 🔴创建一个'影子'函数</span></span><br><span class="line">  <span class="keyword">const</span> remoteFunction = <span class="function"><span class="keyword">function</span> (<span class="params">...args</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> command</span><br><span class="line">    <span class="comment">// 通过new Obj形式调用</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span> &amp;&amp; <span class="keyword">this</span>.constructor === remoteFunction) &#123;</span><br><span class="line">      command = <span class="string">'ELECTRON_BROWSER_CONSTRUCTOR'</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      command = <span class="string">'ELECTRON_BROWSER_FUNCTION_CALL'</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 🔴同步IPC远程</span></span><br><span class="line">    <span class="comment">// wrapArgs将函数参数序列化为MetaData</span></span><br><span class="line">    <span class="keyword">const</span> obj = ipcRendererInternal.sendSync(command, contextId, meta.id, wrapArgs(args))</span><br><span class="line">    <span class="comment">// 🔴反序列化返回值</span></span><br><span class="line">    <span class="keyword">return</span> metaToValue(obj)</span><br><span class="line">  &#125;</span><br><span class="line">  ret = remoteFunction</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>对象成员的处理</strong>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setObjectMembers</span> (<span class="params">ref, object, metaId, members</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> member <span class="keyword">of</span> members) &#123;</span><br><span class="line">    <span class="keyword">if</span> (object.hasOwnProperty(member.name)) <span class="keyword">continue</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> descriptor = &#123; <span class="attr">enumerable</span>: member.enumerable &#125;</span><br><span class="line">    <span class="keyword">if</span> (member.type === <span class="string">'method'</span>) &#123;</span><br><span class="line">      <span class="comment">// 🔴创建‘影子’方法. 和上面的函数调用差不多</span></span><br><span class="line">      <span class="keyword">const</span> remoteMemberFunction = <span class="function"><span class="keyword">function</span> (<span class="params">...args</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> command</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span> &amp;&amp; <span class="keyword">this</span>.constructor === remoteMemberFunction) &#123;</span><br><span class="line">          command = <span class="string">'ELECTRON_BROWSER_MEMBER_CONSTRUCTOR'</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          command = <span class="string">'ELECTRON_BROWSER_MEMBER_CALL'</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">const</span> ret = ipcRendererInternal.sendSync(command, contextId, metaId, member.name, wrapArgs(args))</span><br><span class="line">        <span class="keyword">return</span> metaToValue(ret)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (member.type === <span class="string">'get'</span>) &#123;</span><br><span class="line">      <span class="comment">// 🔴属性的获取</span></span><br><span class="line">      descriptor.get = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> command = <span class="string">'ELECTRON_BROWSER_MEMBER_GET'</span></span><br><span class="line">        <span class="keyword">const</span> meta = ipcRendererInternal.sendSync(command, contextId, metaId, member.name)</span><br><span class="line">        <span class="keyword">return</span> metaToValue(meta)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 🔴属性的设置</span></span><br><span class="line">      <span class="keyword">if</span> (member.writable) &#123;</span><br><span class="line">        descriptor.set = <span class="function">(<span class="params">value</span>) =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">const</span> args = wrapArgs([value])</span><br><span class="line">          <span class="keyword">const</span> command = <span class="string">'ELECTRON_BROWSER_MEMBER_SET'</span></span><br><span class="line">          <span class="keyword">const</span> meta = ipcRendererInternal.sendSync(command, contextId, metaId, member.name, args)</span><br><span class="line">          <span class="keyword">if</span> (meta != <span class="literal">null</span>) metaToValue(meta)</span><br><span class="line">          <span class="keyword">return</span> value</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Object</span>.defineProperty(object, member.name, descriptor)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="对象的生命周期"><a href="#对象的生命周期" class="headerlink" title="对象的生命周期"></a>对象的生命周期</h2><p><strong>主进程的<code>valueToMeta</code>会将每一个对象和函数都放入注册表中，包括每次函数调用的返回值</strong>。</p>
+<p>这是否意味着，如果频繁调用函数，会导致注册表暴涨占用太多内存呢？这些对象什么时候释放?</p>
+<p><br></p>
+<p>首先<strong>当渲染进程销毁时，主进程会集中销毁掉该进程的所有对象引用</strong>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 渲染进程退出时会通过这个事件告诉主进程，但是这个并不能保证收到</span></span><br><span class="line">handleRemoteCommand(<span class="string">'ELECTRON_BROWSER_CONTEXT_RELEASE'</span>, (event, contextId) =&gt; &#123;</span><br><span class="line">  <span class="comment">// 清空对象注册表</span></span><br><span class="line">  objectsRegistry.clear(event.sender, contextId)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>因为<code>ELECTRON_BROWSER_CONTEXT_RELEASE</code>不能保证能够收到，所以<code>objectsRegistry</code>还会监听对应渲染进程的销毁事件:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ObjectsRegistry</span> </span>&#123;</span><br><span class="line">    registerDeleteListener (webContents, contextId) &#123;</span><br><span class="line">    <span class="comment">// contextId =&gt; $&#123;processHostId&#125;-$&#123;contextCount&#125;</span></span><br><span class="line">    <span class="keyword">const</span> processHostId = contextId.split(<span class="string">'-'</span>)[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">const</span> listener = <span class="function">(<span class="params">event, deletedProcessHostId</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (deletedProcessHostId &amp;&amp;</span><br><span class="line">          deletedProcessHostId.toString() === processHostId) &#123;</span><br><span class="line">        webContents.removeListener(<span class="string">'render-view-deleted'</span>, listener)</span><br><span class="line">        <span class="keyword">this</span>.clear(webContents, contextId)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//🔴 监听渲染进程销毁事件, 确保万无一失</span></span><br><span class="line">    webContents.on(<span class="string">'render-view-deleted'</span>, listener)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>等<strong>到渲染进程销毁再去释放这些对象显然是无法接受的</strong>，和网页不一样，桌面端应用可能会7*24不间断运行，如果要等到渲染进程退出才去回收对象, 最终会导致系统资源被消耗殆尽。</p>
+<p>所以<strong>Electron会在渲染进程中监听对象的垃圾回收事件，再通过IPC通知主进程来递减对应对象的引用计数</strong>， 看看渲染进程是怎么做的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 渲染进程，反序列化</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">metaToValue</span> (<span class="params">meta</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 对象类型转换</span></span><br><span class="line">    <span class="keyword">let</span> ret</span><br><span class="line">    <span class="keyword">if</span> (remoteObjectCache.has(meta.id)) &#123;</span><br><span class="line">      <span class="comment">// 🔴 对象再一次被访问，递增对象引用计数. </span></span><br><span class="line">      <span class="comment">// v8Util是electron原生模块</span></span><br><span class="line">      v8Util.addRemoteObjectRef(contextId, meta.id)</span><br><span class="line">      <span class="keyword">return</span> remoteObjectCache.get(meta.id)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建一个影子类表示远程函数对象</span></span><br><span class="line">    <span class="keyword">if</span> (meta.type === <span class="string">'function'</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> remoteFunction = <span class="function"><span class="keyword">function</span> (<span class="params">...args</span>) </span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">      &#125;</span><br><span class="line">      ret = remoteFunction</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      ret = &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    setObjectMembers(ret, ret, meta.id, meta.members)</span><br><span class="line">    setObjectPrototype(ret, ret, meta.id, meta.proto)</span><br><span class="line">    <span class="built_in">Object</span>.defineProperty(ret.constructor, <span class="string">'name'</span>, &#123; <span class="attr">value</span>: meta.name &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 🔴 监听对象的生命周期，当对象被垃圾回收时，通知到主进程</span></span><br><span class="line">    v8Util.setRemoteObjectFreer(ret, contextId, meta.id)</span><br><span class="line">    v8Util.setHiddenValue(ret, <span class="string">'atomId'</span>, meta.id)</span><br><span class="line">    <span class="comment">// 🔴 添加对象引用计数</span></span><br><span class="line">    v8Util.addRemoteObjectRef(contextId, meta.id)</span><br><span class="line">    remoteObjectCache.set(meta.id, ret)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>简单了解一下ObjectFreer代码:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// atom/common/api/remote_object_freer.cc</span></span><br><span class="line"><span class="comment">// 添加引用计数</span></span><br><span class="line"><span class="keyword">void</span> RemoteObjectFreer::AddRef(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; context_id, <span class="keyword">int</span> object_id) &#123;</span><br><span class="line">  ref_mapper_[context_id][object_id]++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对象释放事件处理器</span></span><br><span class="line"><span class="keyword">void</span> RemoteObjectFreer::RunDestructor() &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">auto</span>* channel = <span class="string">"ELECTRON_BROWSER_DEREFERENCE"</span>;</span><br><span class="line">  base::ListValue args;</span><br><span class="line">  args.AppendString(context_id_);</span><br><span class="line">  args.AppendInteger(object_id_);</span><br><span class="line">  args.AppendInteger(ref_mapper_[context_id_][object_id_]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 🔴 清空引用表</span></span><br><span class="line">  ref_mapper_[context_id_].erase(object_id_);</span><br><span class="line">  <span class="keyword">if</span> (ref_mapper_[context_id_].empty())</span><br><span class="line">    ref_mapper_.erase(context_id_);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 🔴 ipc通知主进程</span></span><br><span class="line">  electron_ptr-&gt;Message(<span class="literal">true</span>, channel, args.Clone());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>再回到主进程, 主进程监听<code>ELECTRON_BROWSER_DEREFERENCE</code>事件，并递减指定对象的引用计数：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">handleRemoteCommand(<span class="string">'ELECTRON_BROWSER_DEREFERENCE'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event, contextId, id, rendererSideRefCount</span>) </span>&#123;</span><br><span class="line">  objectsRegistry.remove(event.sender, contextId, id, rendererSideRefCount)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>如果被上面的代码绕得优点晕，那就看看下面的流程图, 消化消化：</p>
+<p><img src="/images/electron-remote/lifetime.png" alt></p>
+<p><br><br><br></p>
+<h2 id="渲染进程怎么给主进程传递回调"><a href="#渲染进程怎么给主进程传递回调" class="headerlink" title="渲染进程怎么给主进程传递回调"></a>渲染进程怎么给主进程传递回调</h2><p>在渲染进程中，通过remote还可以给主进程的函数传递回调。其实跟主进程暴露函数/对象给渲染进程的原理一样，渲染进程在将回调传递给主进程之前会放置到<strong>回调注册表</strong>中，然后给主进程暴露一个callbackID。</p>
+<p>渲染进程会调用<code>wrapArgs</code>将函数调用参数序列化为MetaData:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">wrapArgs</span> (<span class="params">args, visited = new Set(</span>)) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> valueToMeta = <span class="function">(<span class="params">value</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 🔴 防止循环引用</span></span><br><span class="line">    <span class="keyword">if</span> (visited.has(value)) &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        type: <span class="string">'value'</span>,</span><br><span class="line">        value: <span class="literal">null</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ... 省略其他类型的处理，这些类型基本都是值拷贝</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">typeof</span> value === <span class="string">'function'</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        type: <span class="string">'function'</span>,</span><br><span class="line">        <span class="comment">// 🔴 给主进程传递callbackId，并添加到回调注册表中</span></span><br><span class="line">        id: callbacksRegistry.add(value),</span><br><span class="line">        location: v8Util.getHiddenValue(value, <span class="string">'location'</span>),</span><br><span class="line">        length: value.length</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>回到主进程，这里也有一个对应的<code>unwrapArgs</code>函数来反序列化函数参数：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> unwrapArgs = <span class="function"><span class="keyword">function</span> (<span class="params">sender, frameId, contextId, args</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> metaToValue = <span class="function"><span class="keyword">function</span> (<span class="params">meta</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (meta.type) &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="string">'value'</span>:</span><br><span class="line">        <span class="keyword">return</span> meta.value</span><br><span class="line">      <span class="comment">// ... 省略</span></span><br><span class="line">      <span class="keyword">case</span> <span class="string">'function'</span>: &#123;</span><br><span class="line">        <span class="keyword">const</span> objectId = [contextId, meta.id]</span><br><span class="line">        <span class="comment">// 回调缓存</span></span><br><span class="line">        <span class="keyword">if</span> (rendererFunctions.has(objectId)) &#123;</span><br><span class="line">          <span class="keyword">return</span> rendererFunctions.get(objectId)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 🔴 封装影子函数</span></span><br><span class="line">        <span class="keyword">const</span> callIntoRenderer = <span class="function"><span class="keyword">function</span> (<span class="params">...args</span>) </span>&#123;</span><br><span class="line">          <span class="keyword">let</span> succeed = <span class="literal">false</span></span><br><span class="line">          <span class="keyword">if</span> (!sender.isDestroyed()) &#123;</span><br><span class="line">            <span class="comment">// 🔴 调用时，通过IPC通知渲染进程</span></span><br><span class="line">            <span class="comment">// 忽略回调返回值</span></span><br><span class="line">            succeed = sender._sendToFrameInternal(frameId, <span class="string">'ELECTRON_RENDERER_CALLBACK'</span>, contextId, meta.id, valueToMeta(sender, contextId, args))</span><br><span class="line">          &#125;</span><br><span class="line"></span><br><span class="line">          <span class="keyword">if</span> (!succeed) &#123;</span><br><span class="line">            <span class="comment">// 没有发送成功则表明渲染进程的回调可能被释放了，输出警告信息</span></span><br><span class="line">            <span class="comment">// 这种情况比较常见，比如被渲染进程刷新了</span></span><br><span class="line">            removeRemoteListenersAndLogWarning(<span class="keyword">this</span>, callIntoRenderer)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        v8Util.setHiddenValue(callIntoRenderer, <span class="string">'location'</span>, meta.location)</span><br><span class="line">        <span class="built_in">Object</span>.defineProperty(callIntoRenderer, <span class="string">'length'</span>, &#123; <span class="attr">value</span>: meta.length &#125;)</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 🔴 监听回调函数垃圾回收事件</span></span><br><span class="line">        v8Util.setRemoteCallbackFreer(callIntoRenderer, contextId, meta.id, sender)</span><br><span class="line">        rendererFunctions.set(objectId, callIntoRenderer)</span><br><span class="line">        <span class="keyword">return</span> callIntoRenderer</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">TypeError</span>(<span class="string">`Unknown type: <span class="subst">$&#123;meta.type&#125;</span>`</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> args.map(metaToValue)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>渲染进程响应就比较简单了：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">handleMessage(<span class="string">'ELECTRON_RENDERER_CALLBACK'</span>, (id, args) =&gt; &#123;</span><br><span class="line">  callbacksRegistry.apply(id, metaToValue(args))</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>那回调什么时候释放呢？这个相比渲染进程的对象引用要简单很多，因为主进程只有一个。通过上面的代码可以知道, <code>setRemoteCallbackFreer</code>会监听影子回调是否被垃圾回收，一旦被垃圾回收了则通知渲染进程:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 渲染进程</span></span><br><span class="line">handleMessage(<span class="string">'ELECTRON_RENDERER_RELEASE_CALLBACK'</span>, (id) =&gt; &#123;</span><br><span class="line">  callbacksRegistry.remove(id)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>按照惯例，来个流程图:</p>
+<p><img src="/images/electron-remote/callback.png" alt></p>
+<p><br><br><br></p>
+<h2 id="一些缺陷"><a href="#一些缺陷" class="headerlink" title="一些缺陷"></a>一些缺陷</h2><p>remote机制只是对远程对象的一个‘影分身’，无法百分百和远程对象的行为保持一致，下面是一些比较常见的缺陷:</p>
+<ul>
+<li>当渲染进程调用远程对象的方法/函数时，是进行同步IPC通信的。换言之，同步IPC调用会阻塞用户代码的执行，而且跨端的通信效率无法和原生函数调用相比，所以频繁的IPC调用会影响主进程和渲染进程的性能.</li>
+<li>主进程会保持引用每一个渲染进程访问的对象，包括函数的返回值。同理，频繁的远程对象请求，对内存的占用和垃圾回收造成不小的压力</li>
+<li>无法完全模拟JavaScript对象的行为。比如在remote模块中存在这些问题:<ul>
+<li>数组属于’基本对象’，它是通过值拷贝传递给对端的。也就是说它不是一个‘引用对象’，在对端修改它们时，无法反应到原始的数组.</li>
+<li>对象在第一次引用时，只有可枚举的属性可以远程访问。这也意味着，一开始对象的外形就确定下来了，如果远程对象动态扩展了属性，是无法被远程访问到的</li>
+<li>渲染进程传递的回调会被异步调用，而且主进程会忽略它的返回值。异步调用是为了避免产生死锁</li>
+</ul>
+</li>
+<li>对象泄露。<ul>
+<li>如果远程对象在渲染进程中泄露（例如存储在映射中，但从未释放），则主进程中的相应对象也将被泄漏，所以您应该非常小心，不要泄漏远程对象。</li>
+<li>在给主进程传递回调时也要特别小心，主进程会保持回调的引用，直到它被释放。所以在使用remote模块进行一些‘事件订阅’时，切记要解除事件订阅.</li>
+<li>还有一种场景，下文会提到</li>
+</ul>
+</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="remote模块实践和优化"><a href="#remote模块实践和优化" class="headerlink" title="remote模块实践和优化"></a>remote模块实践和优化</h2><p><img src="/images/electron-remote/gzb.png" alt></p>
+<p>上面是我参与过的某个项目的软件架构图，<code>Hybrid</code>层使用C/C++编写，封装了跨平台的核心业务逻辑，在此之上来构建各个平台的视图。其中桌面端我们使用的是Electron技术。</p>
+<p>如上图，Bridge进是对Hybrid的一层Node桥接封装。一个应用中只能有一个Bridge实例，因此我们的做法是使用Electron的remote模块，让渲染进程通过主进程间接地访问Bridge.</p>
+<p><br></p>
+<p>页面需要监听Bridge的一些事件，最初我们的代码是这样的:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// bridge.ts</span></span><br><span class="line"><span class="comment">// 使用remote的一个好处时，可以配合Typescript实现较好的类型检查</span></span><br><span class="line"><span class="keyword">const</span> bridge = electron.remote.require(<span class="string">'bridge'</span>) <span class="keyword">as</span> <span class="keyword">typeof</span> <span class="keyword">import</span>(<span class="string">'bridge'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> bridge</span><br></pre></td></tr></table></figure>
+<p>监听Bridge事件:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> bridge <span class="keyword">from</span> <span class="string">'~/bridge'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Store <span class="keyword">extends</span> MobxStore &#123;</span><br><span class="line">  <span class="comment">// 初始化</span></span><br><span class="line">  pageReady() &#123;</span><br><span class="line">    <span class="keyword">this</span>.someEventDispose = bridge.addListener(<span class="string">'someEvent'</span>, <span class="keyword">this</span>.handleSomeEvent)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 页面关闭</span></span><br><span class="line">  pageWillClose() &#123;</span><br><span class="line">    <span class="keyword">this</span>.someEventDispose()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>流程图如下:</p>
+<p><img src="/images/electron-remote/addListener.png" alt></p>
+<p>这种方式存在很多问题:</p>
+<ul>
+<li><p>主进程需要为每一个addListener回调都维持一个引用。上面的代码会在页面关闭时释放订阅，但是它没有考虑用户刷新页面或者页面崩溃的场景。这会导致回调在主进程泄露。</p>
+<p>然而就算Electron可以在调用回调时发现回调在渲染进程已经被释放掉了，但是开发者却获取不到这些信息， Bridge会始终保持对影子回调的引用.</p>
+</li>
+<li><p>另外一个比较明显的是调用效率的问题。假设页面监听了N次A事件，当A事件触发时，主进程需要给这个页面发送N个通知。</p>
+</li>
+</ul>
+<p><br></p>
+<p>后来我们抛弃了使用remote进行事件订阅这种方式，让主进程来维护这种订阅关系, 如下图:</p>
+<p><img src="/images/electron-remote/addListener2.png" alt></p>
+<p>我们改进了很多东西：</p>
+<p><strong>主进程现在只维护‘哪个页面’订阅了哪个事件，从‘绑定回调’进化成为‘绑定页面’</strong>。这样可以解决上面调用效率和回调泄露问题、比如不会因为页面刷新导致回调泄露, 并且当事件触发时只会通知一次页面。</p>
+<p>另外这里参考了remote本身的实现，在页面销毁时移除该页面的所有订阅。相比比remote黑盒，我们自己来实现这种事件订阅关系比之前要更好调试。</p>
+<p><br><br><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>remote模块对于Electron开发有很重要的意义，毕竟很多模块只有在主进程才能访问，比如BrowserWindow、dialog. </p>
+<p>相比ipc通信，remote实在方面很多。通过上文我们也了解了它的基本原理和缺陷，所以remote虽好，切忌不要滥用。</p>
+<p>remote的源码也很容易理解，值得学习. 毕竟前端目前跨端通信非常常见，例如WebViewBridge、Worker. </p>
+<p>remote可以给你一些灵感，但是要完全照搬它是不可行的，因为比如它依赖一些v8 ‘Hack’来监听对象的垃圾回收，普通开发场景是做不到的。</p>
+<p>本文完.</p>
+<p><br><br><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://electronjs.org/docs/api/remote" target="_blank" rel="noopener">Electron remote 文档</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#通信协议的定义"><span class="toc-number">1.</span> <span class="toc-text">通信协议的定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对象的序列化"><span class="toc-number">2.</span> <span class="toc-text">对象的序列化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#影子对象"><span class="toc-number">3.</span> <span class="toc-text">影子对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#对象的生命周期"><span class="toc-number">4.</span> <span class="toc-text">对象的生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#渲染进程怎么给主进程传递回调"><span class="toc-number">5.</span> <span class="toc-text">渲染进程怎么给主进程传递回调</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一些缺陷"><span class="toc-number">6.</span> <span class="toc-text">一些缺陷</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#remote模块实践和优化"><span class="toc-number">7.</span> <span class="toc-text">remote模块实践和优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">8.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">9.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/04/electron-remote/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/04/electron-remote/&text=揭开Electron的remote模块的面纱"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/04/electron-remote/&is_video=false&description=揭开Electron的remote模块的面纱"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=揭开Electron的remote模块的面纱&body=Check out this article: https://bobi.ink/2019/08/04/electron-remote/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/04/electron-remote/&title=揭开Electron的remote模块的面纱"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/04/electron-remote/&name=揭开Electron的remote模块的面纱&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="好久不见，接近四个月没更新博客了!  去年最后一篇文章介绍了我们的 Electron 桌面客户端的一些优化措施，这篇文章也跟我们正在开发的 Electron 客户端有一定关系。最近我们正在预研在 Electron 页面中实时播放会议视频流的方案。    视频会议界面是最后一块没有被 Web 取代的页面, 它完全用原生开发的，所以开发效率比较低，比如要做一些动画效果开发很痛苦，难以响应多变的产品需求">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Electron 低延迟视频流播放方案探索">
+<meta property="og:url" content="https://bobi.ink/2020/04/05/video-stream/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="好久不见，接近四个月没更新博客了!  去年最后一篇文章介绍了我们的 Electron 桌面客户端的一些优化措施，这篇文章也跟我们正在开发的 Electron 客户端有一定关系。最近我们正在预研在 Electron 页面中实时播放会议视频流的方案。    视频会议界面是最后一块没有被 Web 取代的页面, 它完全用原生开发的，所以开发效率比较低，比如要做一些动画效果开发很痛苦，难以响应多变的产品需求">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/video-push/conf.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/video-push/overall.png">
+<meta property="og:image" content="https://bobi.ink/images/video-push/flv-arch.png">
+<meta property="og:image" content="https://bobi.ink/images/video-push/jsmpeg.png">
+<meta property="og:image" content="https://bobi.ink/images/video-push/jsmpeg-problems.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Electron 低延迟视频流播放方案探索">
+<meta name="twitter:description" content="好久不见，接近四个月没更新博客了!  去年最后一篇文章介绍了我们的 Electron 桌面客户端的一些优化措施，这篇文章也跟我们正在开发的 Electron 客户端有一定关系。最近我们正在预研在 Electron 页面中实时播放会议视频流的方案。    视频会议界面是最后一块没有被 Web 取代的页面, 它完全用原生开发的，所以开发效率比较低，比如要做一些动画效果开发很痛苦，难以响应多变的产品需求">
+<meta name="twitter:image" content="https://bobi.ink/images/video-push/conf.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Electron 低延迟视频流播放方案探索</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2023/06/01/island-pattern/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/12/16/electron/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2020/04/05/video-stream/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2020/04/05/video-stream/&text=Electron 低延迟视频流播放方案探索"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2020/04/05/video-stream/&is_video=false&description=Electron 低延迟视频流播放方案探索"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Electron 低延迟视频流播放方案探索&body=Check out this article: https://bobi.ink/2020/04/05/video-stream/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2020/04/05/video-stream/&name=Electron 低延迟视频流播放方案探索&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#①-典型的web直播方案"><span class="toc-number">1.</span> <span class="toc-text">① 典型的Web直播方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-推流"><span class="toc-number">1.1.</span> <span class="toc-text">RTMP 推流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-拉流"><span class="toc-number">1.2.</span> <span class="toc-text">RTMP 拉流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-低延迟优化"><span class="toc-number">1.3.</span> <span class="toc-text">RTMP 低延迟优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#②-jsmpeg-amp-broadwayjs"><span class="toc-number">2.</span> <span class="toc-text">② JSMpeg &amp; BroadwayJS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#relay-服务器"><span class="toc-number">2.1.</span> <span class="toc-text">Relay 服务器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#推送"><span class="toc-number">2.2.</span> <span class="toc-text">推送</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#视频播放"><span class="toc-number">2.3.</span> <span class="toc-text">视频播放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多进程优化"><span class="toc-number">2.4.</span> <span class="toc-text">多进程优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#简单说一下-broadway-js"><span class="toc-number">2.5.</span> <span class="toc-text">简单说一下 Broadway.js</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#③-直接渲染-yuv"><span class="toc-number">3.</span> <span class="toc-text">③ 直接渲染 YUV</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Electron 低延迟视频流播放方案探索
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2020-04-04T16:00:00.000Z" itemprop="datePublished">2020-04-05</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>好久不见，接近四个月没更新博客了! </p>
+<p>去年<a href="https://juejin.im/post/5e0010866fb9a015fd69c645#comment" target="_blank" rel="noopener">最后一篇</a>文章介绍了我们的 Electron 桌面客户端的一些优化措施，这篇文章也跟我们正在开发的 Electron 客户端有一定关系。最近我们正在预研在 Electron 页面中实时播放会议视频流的方案。</p>
+<p><br></p>
+<p><img src="/images/video-push/conf.jpeg" alt></p>
+<p><br></p>
+<p>视频会议界面是最后一块没有被 Web 取代的页面, 它完全用原生开发的，所以开发效率比较低，比如要做一些动画效果开发很痛苦，难以响应多变的产品需求。所以我们在想: <strong>能不能将 Web 页面端来播放底层库 WebRTC 接收到的视频流</strong>? <strong>或者为什么不直接通过浏览器的 WebRTC API 来进行通讯呢</strong>？</p>
+<p>先回答后者，因为我们视频会议这块的逻辑处理、音视频处理已经被抽取成独立的、跨平台的模块，统一进行维护；另外浏览器的 WebRTC API 提供的接口非常高级，就像一个黑盒一样，无法定制化、扩展，遇到问题也很难诊断和处理, 受限于浏览器。最大的原因还是变动有点大，时间上不允许。</p>
+<p>因此目前只能选前者，即底层库给 Electron 页面推送视频流，在页面实时播放。 再此之前，笔者几乎没有接触过音视频开发，我能想到的是通过类似直播的方式，底层库作为”主播端”, Web 页面作为”观众端”。</p>
+<p><img src="/images/video-push/overall.png" alt></p>
+<p><br></p>
+<p>因为视频流只是在本地进行转发，所以我们不需要考虑各种复杂的网络情况、带宽限制。唯一的要求是低延迟，低资源消耗：</p>
+<ul>
+<li>我们视频会议语音和视频是分离的。 只有一路混合语音，通过 SIP 传输。而会议视频则可能存在多路，使用 WebRTC 进行传输。我们不需要处理语音(由底层库直接播放), 这就要求我们的视频播放延迟不能太高, 出现语音和视频不同步。</li>
+<li>不需要考虑浏览器兼容性。Electron 浏览器版本为 Chrome 80</li>
+<li>本地转发，不需要考虑网络情况、带宽限制</li>
+</ul>
+<p><br><br><br></p>
+<p><strong>最近因为工作需要才有机会接触到音视频相关的知识，我知道的只是皮毛，所以文章肯定存在不少问题，敬请斧正</strong>。下面，跟着音视频小白的我，一起探索探索有哪些方案。</p>
+<p><br><br><br></p>
+<p><strong>目录</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#①-典型的web直播方案">① 典型的Web直播方案</a><ul>
+<li><a href="#rtmp-推流">RTMP 推流</a></li>
+<li><a href="#rtmp-拉流">RTMP 拉流</a></li>
+<li><a href="#rtmp-低延迟优化">RTMP 低延迟优化</a></li>
+</ul>
+</li>
+<li><a href="#②-jsmpeg--broadwayjs">② JSMpeg &amp; BroadwayJS</a><ul>
+<li><a href="#relay-服务器">Relay 服务器</a></li>
+<li><a href="#推送">推送</a></li>
+<li><a href="#视频播放">视频播放</a></li>
+<li><a href="#多进程优化">多进程优化</a></li>
+<li><a href="#简单说一下-broadwayjs">简单说一下 Broadway.js</a></li>
+</ul>
+</li>
+<li><a href="#③-直接渲染-yuv">③ 直接渲染 YUV</a></li>
+<li><a href="#扩展阅读">扩展阅读</a></li>
+</ul>
+<!-- /TOC -->
+<p><br><br><br></p>
+<h2 id="①-典型的web直播方案"><a href="#①-典型的web直播方案" class="headerlink" title="① 典型的Web直播方案"></a>① 典型的Web直播方案</h2><p>Web 直播有很多方案(参考这篇文章：<a href="https://imweb.io/topic/5a542e43a192c3b460fce3a8" target="_blank" rel="noopener">《Web 直播，你需要先知道这些》</a>):</p>
+<ul>
+<li><strong>RTMP (Real Time Messaging Protocol)</strong> 属于 Adobe。延时低，实时性较好。不过浏览器需要借助 Flash 才能播放; 但是我们也可以转换成 HTTP/Websocket 流喂给 <a href="https://github.com/bilibili/flv.js/tree/master/docs" target="_blank" rel="noopener"><code>flv.js</code></a> 实现播放。</li>
+<li><strong>RTP (Real-time Transport Protocol)</strong> <a href="https://www.jianshu.com/p/17997567d828" target="_blank" rel="noopener">WebRTC 底层就基于 RTP/RTCP</a>。实时性非常好，适用于视频监控、视频会议、IP 电话。</li>
+<li><strong>HLS (Http Live Streaming)</strong> 苹果提出的基于 HTTP 的流媒体传输协议。Safari 支持较好，高版本 Chrome 也支持，也有一些比较成熟的第三方方案。</li>
+</ul>
+<p><br></p>
+<p>HLS 延迟太高，不符合我们的要求，所以一开始就放弃了。搜了很多资料，很多都是介绍 RTMP 的，可见 RTMP 在国内采用有多广泛, 因此我们打算试试:</p>
+<p><br></p>
+<p>首先是搭建 RMTP 服务器，可以直接基于 <a href="https://github.com/illuspas/Node-Media-Server" target="_blank" rel="noopener">Node-Media-Server</a>，代码很简单:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> NodeMediaServer = <span class="built_in">require</span>(<span class="string">'node-media-server'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> config = &#123;</span><br><span class="line">  <span class="comment">// RMTP 服务器, 用于RTMP 推流和拉流</span></span><br><span class="line">  rtmp: &#123;</span><br><span class="line">    port: <span class="number">1935</span>, <span class="comment">// 1935 是RTMP的标准端口</span></span><br><span class="line">    chunk_size: <span class="number">0</span>,</span><br><span class="line">    gop_cache: <span class="literal">false</span>,</span><br><span class="line">    ping: <span class="number">30</span>,</span><br><span class="line">    ping_timeout: <span class="number">60</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// HTTP / WebSocket 流，暴露给 flv.js</span></span><br><span class="line">  http: &#123;</span><br><span class="line">    port: <span class="number">8000</span>,</span><br><span class="line">    allow_origin: <span class="string">'*'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> nms = <span class="keyword">new</span> NodeMediaServer(config)</span><br><span class="line">nms.run()</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="rtmp-推流"><a href="#rtmp-推流" class="headerlink" title="RTMP 推流"></a>RTMP 推流</h3><p><a href="http://www.ffmpeg.org" target="_blank" rel="noopener"><code>ffmpeg</code></a> 是音视频开发的必备神器，本文将通过它来捕获摄像头，进行各种转换和处理，最后进行视频流推送。 下面看看怎么用 ffmpeg 进行 RTMP 推流。</p>
+<p>首先进行视频采集，下面命令列举所有支持的设备类型：</p>
+<blockquote>
+<p>本文的所有命令都在 macOS 下面执行, 其他平台用法差不多，自行搜索</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffmpeg -devices</span><br><span class="line">Devices:</span><br><span class="line"> D. = Demuxing supported</span><br><span class="line"> .E = Muxing supported</span><br><span class="line"> --</span><br><span class="line"> D  avfoundation    AVFoundation input device</span><br><span class="line"> D  lavfi           Libavfilter virtual input device</span><br><span class="line">  E sdl,sdl2        SDL2 output device</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>macOS</code> 下通常使用 <code>avfoundation</code> 进行设备采集, 下面列举当前终端所有支持的输入设备:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> fmpeg -f avfoundation -list_devices true -i ""</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] AVFoundation video devices:</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] [0] FaceTime HD Camera</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] [1] Capture screen 0</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] AVFoundation audio devices:</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] [0] Built-in Microphone</span><br><span class="line">[AVFoundation input device @ 0x7f8487425400] [1] Boom2Device</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们将使用 <code>FaceTime HD Camera</code> 这个输入设备来采集视频，并推送 RTMP 流：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffmpeg -f avfoundation -r 30 -i "FaceTime HD Camera" -c:v libx264 -preset superfast -tune zerolatency -an -f flv rtmp://localhost/live/test</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>稍微解释一下上面的命令:</p>
+<ul>
+<li><code>-f avfoundation -r 30 -i &quot;FaceTime HD Camera&quot;</code> 表示从 <code>FaceTime HD Camera</code> 中以 30 fps 的帧率采集视频</li>
+<li><code>-c:v libx264</code> 输出视频的编码格式是 H.264,  RTMP 通常采用H.264 编码</li>
+<li><code>-f flv</code> 指的视频的封包格式, RTMP 一般采用 flv 封包格式。</li>
+<li><code>-an</code> 忽略音频流</li>
+<li><code>-preset superfast -tune zerolatency</code> H.264 的转码预设参数和调优参数。会影响视频质量和压缩率</li>
+</ul>
+<p><br></p>
+<blockquote>
+<p><strong>封包格式(format)</strong>和<strong>编码(codec)</strong>是音视频开发中最基础的概念。<br><br><br><strong>封包格式</strong>: 相当于一种储存视频信息的容器，将编码好的音频、视频、或者是字幕、脚本之类的文件根据相应的规范组合在一起，从而生成一个封装格式的文件。常见的封包格式有 avi、mpeg、flv、mov 等<br><br><br><strong>编码格式</strong>: 编码主要的目的是为了压缩。从设备采集到的音视频流称为裸码流(rawvideo 格式, 即没有经过编码压缩处理的数据)。举例：一个 720p，30fps，60min 的电影，裸流大小为：12Bx1280x720x30x60x100 = 1.9T。这不管在文件系统上存储、还是在网络上传输，成本都太高了，所以我们需要编码压缩。 H264 是目前最常见的编码格式之一。</p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="rtmp-拉流"><a href="#rtmp-拉流" class="headerlink" title="RTMP 拉流"></a>RTMP 拉流</h3><p>最简单的，我们可以使用 <a href="http://www.ffmpeg.org/ffplay.html" target="_blank" rel="noopener"><code>ffplay</code></a> (ffmpeg 提供的工具套件之一) 播放器来测试推流和拉流是否正常:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffplay rtmp://localhost/live/test</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Flash 已经过时， 为了在 Web 页面中实现 RTMP 流播放，我们还要借助 <a href="https://github.com/bilibili/flv.js" target="_blank" rel="noopener"><code>flv.js</code></a>。 flvjs 估计大家都很熟悉(花边：如何看待哔哩哔哩的 flv.js 作者月薪不到 5000 元？)，它是 B 站开源的 flv 播放器。按照官方的介绍：</p>
+<blockquote>
+<p>flv.js works by transmuxing FLV file stream into ISO BMFF (Fragmented MP4) segments, followed by feeding mp4 segments into an HTML5 <code>&lt;video&gt;</code> element through <code>Media Source Extensions API</code>.</p>
+</blockquote>
+<p><br></p>
+<p>上面提到，flv(Flash Video) 是一个视频封包格式，<code>flvjs</code> 做的就是<strong>把 flv 转换成 Fragmented MP4(ISO BMFF) 封包格式</strong>，然后喂给<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Media_Source_Extensions_API" target="_blank" rel="noopener">Media Source Extension API, MSE</a>, 接着我们将 MSE 挂载到 <code>&lt;video&gt;</code> 就可以直接播放了, 它的架构如下:</p>
+<p><br></p>
+<p><img src="/images/video-push/flv-arch.png" alt></p>
+<p><br><br><br></p>
+<p>flvjs 支持通过 HTTP Streaming、 WebSocket 或者自定义数据源等多种形式拉取二进制视频流。下面示例通过 flvjs 来拉取 <code>node-media-server</code> 的视频流:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;script src=<span class="string">"https://cdn.bootcss.com/flv.js/1.5.0/flv.min.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line">&lt;video id=<span class="string">"video"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">video</span>&gt;</span></span></span><br><span class="line">&lt;button id=<span class="string">"play"</span>&gt;play&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;script&gt;</span></span><br><span class="line"><span class="regexp">  if (flvjs.isSupported()) &#123;</span></span><br><span class="line"><span class="regexp">    const videoElement = document.getElementById('video');</span></span><br><span class="line"><span class="regexp">    const play = document.getElementById('play');</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">    const flvPlayer = flvjs.createPlayer(</span></span><br><span class="line"><span class="regexp">      &#123;</span></span><br><span class="line"><span class="regexp">        type: 'flv',</span></span><br><span class="line"><span class="regexp">        isLive: true,</span></span><br><span class="line"><span class="regexp">        hasAudio: false,</span></span><br><span class="line"><span class="regexp">        url: 'ws:/</span><span class="regexp">/localhost:8000/</span>live/test.flv<span class="string">',</span></span><br><span class="line"><span class="string">      &#125;,</span></span><br><span class="line"><span class="string">      &#123;</span></span><br><span class="line"><span class="string">        enableStashBuffer: true,</span></span><br><span class="line"><span class="string">      &#125;,</span></span><br><span class="line"><span class="string">    );</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    flvPlayer.attachMediaElement(videoElement);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    play.onclick = () =&gt; &#123;</span></span><br><span class="line"><span class="string">      flvPlayer.load();</span></span><br><span class="line"><span class="string">      flvPlayer.play();</span></span><br><span class="line"><span class="string">    &#125;;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<blockquote>
+<p>完整示例代码在<a href="https://github.com/ivan-94/video-push/tree/master/rtmp" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="rtmp-低延迟优化"><a href="#rtmp-低延迟优化" class="headerlink" title="RTMP 低延迟优化"></a>RTMP 低延迟优化</h3><p><strong>推流端</strong></p>
+<p><code>ffmpeg</code> 推流端可以通过一些控制参数来降低推流的延迟，主要优化方向是提高编码的效率、减少缓冲大小，当然有时候要牺牲一些代码质量和带宽。 这篇文章 <a href="https://blog.csdn.net/fireroll/article/details/51902018" target="_blank" rel="noopener">ffmpeg 的转码延时测试与设置优化</a> 总结了一些优化措施可以参考一下:</p>
+<ul>
+<li>关闭 sync-lookahead</li>
+<li>降低 rc-lookahead，但别小于 10,默认是-1</li>
+<li>降低 threads(比如从 12 降到 6)</li>
+<li>禁用 rc-lookahead</li>
+<li>禁用 b-frames</li>
+<li>缩小 GOP</li>
+<li>开启 x264 的 -preset fast/faster/verfast/superfast/ultrafast 参数</li>
+<li>使用-tune zerolatency 参数</li>
+</ul>
+<p><br></p>
+<p><strong>node-media-server</strong></p>
+<p>NMS 也可以通过降低缓冲大小和<a href="https://github.com/ossrs/srs/wiki/v1_CN_LowLatency" target="_blank" rel="noopener">关闭 GOP Cache</a> 来优化延迟。</p>
+<p><br></p>
+<p><strong>flvjs 端</strong></p>
+<p>flvjs 可以开启 <code>enableStashBuffer</code> 来提高实时性。 实际测试中，flvjs 可能会出现’累积延迟’现象，可以通过<a href="https://github.com/bilibili/flv.js/issues/258" target="_blank" rel="noopener">手动 seek</a>来纠正。</p>
+<p><br><br><br></p>
+<p>经过一番折腾，优化到最好的延迟是 400ms，往下就束手无策了(对这块熟悉的同学可以请教一下)。而且在对接到底层库实际推送时，播放效果并不理想，出现各种卡顿、延迟。由于时间和知识有限，我们很难定位到具体的问题在哪， 所以我们暂时放弃了这个方案。</p>
+<p><br><br><br></p>
+<h2 id="②-jsmpeg-amp-broadwayjs"><a href="#②-jsmpeg-amp-broadwayjs" class="headerlink" title="② JSMpeg &amp; BroadwayJS"></a>② JSMpeg &amp; BroadwayJS</h2><p>Jerry Qu 写得 <a href="https://imququ.com/post/html5-live-player-2.html" target="_blank" rel="noopener">《HTML5 视频直播（二）》</a> 给了我不少启发，得知了 <a href="https://github.com/phoboslab/jsmpeg" target="_blank" rel="noopener"><code>JSMpeg</code></a> 和 <a href="https://github.com/mbebenita/Broadway" target="_blank" rel="noopener"><code>Broadwayjs</code></a> 这些方案</p>
+<p><strong>这两个库不依赖于浏览器的 video 的播放机制，使用纯 JS/WASM 实现视频解码器，然后直接通过 Canvas2d 或 WebGL 绘制出来</strong>。Broadwayjs 目前不支持语音，JSMpeg 支持语音(基于 WebAudio)。</p>
+<p><br></p>
+<p>经过简单的测试, 相比 RTMP， JSMpeg 和 BroadwayJS 延迟都非常低，基本符合我们的要求。下面简单介绍一下 JSMpeg 用法。Broadwayjs 用法差不多, 下文会简单带过。它们的基本处理过程如下：</p>
+<p><br></p>
+<p><img src="/images/video-push/jsmpeg.png" alt></p>
+<p><br></p>
+<h3 id="relay-服务器"><a href="#relay-服务器" class="headerlink" title="Relay 服务器"></a>Relay 服务器</h3><p>因为 ffmpeg 无法向 Web 直接推流，因此我们还是需要创建一个中转（relay）服务器来接收视频推流，再通过 WebSocket 转发给页面播放器。</p>
+<p>ffmpeg 支持 HTTP、TCP、UDP 等各种推流方式。HTTP 推流更方便我们处理, 因为是本地环境，这些网络协议不会有明显的性能差别。</p>
+<p>下面创建一个 HTTP 服务器来接收推流，推送路径是 <code>/push/:id</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">this</span>.server = http</span><br><span class="line">  .createServer(<span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> url = req.url || <span class="string">'/'</span></span><br><span class="line">    <span class="keyword">if</span> (!url.startsWith(<span class="string">'/push/'</span>)) &#123;</span><br><span class="line">      res.statusCode = <span class="number">404</span></span><br><span class="line">      <span class="comment">// ...</span></span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> id = url.slice(<span class="number">6</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 禁止超时</span></span><br><span class="line">    res.connection.setTimeout(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 转发出去</span></span><br><span class="line">    req.on(<span class="string">'data'</span>, (c) =&gt; &#123;</span><br><span class="line">      <span class="keyword">this</span>.broadcast(id, c)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    req.on(<span class="string">'end'</span>, () =&gt; &#123;</span><br><span class="line">      <span class="comment">/* ... */</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">  .listen(port)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>接着通过 <code>WebSocket</code> 将流转发出去, 页面可以通过 <code>ws://localhost:PORT/pull/{id}</code> 拉取视频流:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使用 webSocket 拉取流</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">this</span>.wss = <span class="keyword">new</span> ws.Server(&#123;</span><br><span class="line">  server: <span class="keyword">this</span>.server,</span><br><span class="line">  <span class="comment">// 通过 /pull/&#123;id&#125; 拉流</span></span><br><span class="line">  verifyClient: <span class="function">(<span class="params">info, cb</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (info.req.url &amp;&amp; info.req.url.startsWith(<span class="string">'/pull'</span>)) &#123;</span><br><span class="line">      cb(<span class="literal">true</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      cb(<span class="literal">false</span>, <span class="literal">undefined</span>, <span class="string">''</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">this</span>.wss.on(<span class="string">'connection'</span>, (client, req) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> url = req.url</span><br><span class="line">  <span class="keyword">const</span> id = url.slice(<span class="number">6</span>)</span><br><span class="line"></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;prefix&#125;</span>new player attached: <span class="subst">$&#123;id&#125;</span>`</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> buzy = <span class="literal">false</span></span><br><span class="line">  <span class="keyword">const</span> listener = &#123;</span><br><span class="line">    id,</span><br><span class="line">    onMessage: <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 推送</span></span><br><span class="line">      <span class="keyword">if</span> (buzy) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      buzy = <span class="literal">true</span></span><br><span class="line">      client.send(data, &#123; <span class="attr">binary</span>: <span class="literal">true</span> &#125;, <span class="function"><span class="keyword">function</span> <span class="title">ack</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        buzy = <span class="literal">false</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">this</span>.attachListener(listener)</span><br><span class="line"></span><br><span class="line">  client.on(<span class="string">'close'</span>, () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;prefix&#125;</span> player dettached: <span class="subst">$&#123;id&#125;</span>`</span>)</span><br><span class="line">    <span class="keyword">this</span>.detachListener(listener)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="推送"><a href="#推送" class="headerlink" title="推送"></a>推送</h3><p>这里同样使用 ffmpeg 作为推送示例:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffmpeg -f avfoundation -r 30 -i "FaceTime HD Camera" -f mpegts -codec:v mpeg1video -an  -bf 0 -b:v 1500k -maxrate 2500k http://localhost:9999/push/test</span><br></pre></td></tr></table></figure>
+<p>稍微解释一下 ffmpeg 命令</p>
+<ul>
+<li><code>-f mpegts -codec:v mpeg1video -an</code> 指定使用 MPEG-TS 封包格式， 并使用 mpeg1 视频编码，忽略音频</li>
+<li><code>-bf 0</code> JSMpeg 解码器暂时不能正确地处理 B 帧。所以这些将 B 帧禁用。关于什么是 I/B/P 帧, 参考这篇<a href="https://www.jianshu.com/p/b3d1004229db" target="_blank" rel="noopener">文章</a></li>
+<li><code>-b:v 1500k -maxrate 2500k</code> 设置推流的平均码率和最大码率。经过测试，JSMpeg 码率过高容易出现花屏和数组越界崩溃。</li>
+</ul>
+<p>另外 JSMpeg 还要求，视频的宽度必须是 2 的倍数。ffmpeg 可以通过滤镜(filter)或设置视频尺寸(-s)来解决这个问题, 不过多余转换都要消耗一定 CPU 资源的：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ffmpeg -i in.mp4 -f mpeg1video -vf "crop=iw-mod(iw\,2):ih-mod(ih\,2)" -bf 0 out.mpg</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="视频播放"><a href="#视频播放" class="headerlink" title="视频播放"></a>视频播放</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">canvas</span> <span class="attr">id</span>=<span class="string">"video-canvas"</span>&gt;</span><span class="tag">&lt;/<span class="name">canvas</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span> <span class="attr">src</span>=<span class="string">"jsmpeg.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="javascript">  <span class="keyword">const</span> canvas = <span class="built_in">document</span>.getElementById(<span class="string">'video-canvas'</span>)</span></span><br><span class="line"><span class="javascript">  <span class="keyword">const</span> url = <span class="string">'ws://localhost:9999/pull/test'</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> player = <span class="keyword">new</span> JSMpeg.Player(url, &#123;</span></span><br><span class="line"><span class="undefined">    canvas: canvas,</span></span><br><span class="line"><span class="javascript">    audio: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">    pauseWhenHidden: <span class="literal">false</span>,</span></span><br><span class="line"><span class="undefined">    videoBufferSize: 8 * 1024 * 1024,</span></span><br><span class="line"><span class="undefined">  &#125;)</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>API 很简单，上面我们传递一个画布给 JSMpeg，禁用了 Audio, 并设置了一个较大的缓冲区大小, 来应对一些码率波动。</p>
+<p><br></p>
+<blockquote>
+<p>完整代码见<a href="https://github.com/ivan-94/video-push/tree/master/jsmpeg" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="多进程优化"><a href="#多进程优化" class="headerlink" title="多进程优化"></a>多进程优化</h3><p>实际测试下来，JSMpeg 视频延迟在 100ms - 200ms 之间。当然这还取决于视频的质量、终端的性能等因素。</p>
+<p>受限于终端性能以及解码器效率, 对于平均码率(笔者粗略测试大概为 2000k)较高的视频流，JSMpeg 有很大概率会出现花屏或者内存访问越界问题(memory access out of bounds)。</p>
+<p><img src="/images/video-push/jsmpeg-problems.png" alt></p>
+<p><br></p>
+<p>因此我们不得不通过压缩视频的质量、降低视频分辨率等手段来降低视频码率。然而这并不能根本解决问题，这是使用 JSMpeg 的痛点之一。详见<a href="https://github.com/phoboslab/jsmpeg#performance-considerations" target="_blank" rel="noopener">JSMpeg 的性能说明</a></p>
+<p><br></p>
+<p>因为解码本身是一个 CPU 密集型的操作，且由浏览器来执行，CPU 占用还是挺高的(笔者机器单个页面单个播放器, CPU 占用率在 16%左右)，而且 JSMpeg 播放器一旦异常崩溃会难以恢复。</p>
+<p>在我们的实际应用场景中，一个页面可能会播放多路视频, 如果所有视频都在浏览器主进程中进行解码渲染，页面操作体验会很差。 所以最好是将 JSMpeg 分离到 Worker 中, <strong>一来保证主进程可以响应用户的交互，二来 JSMpeg 崩溃不会连累主进程</strong>。</p>
+<p>好在将 JSMpeg 放在 Worker 中执行容易: Worker 中支持独立 WebSocket 请求，另外 Canvas 通过 <code>transferControlToOffscreen()</code> 方法创建 <code>OffscreenCanvas</code> 对象并传递给 Worker，实现 canvas 离屏渲染。</p>
+<p>先来看看 <code>worker.js</code>, 和上面的代码差不多，主要是新增了 worker 通讯:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">importScripts(<span class="string">'./jsmpeg.js'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">this</span>.window = <span class="keyword">this</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">this</span>.addEventListener(<span class="string">'message'</span>, (evt) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> data = evt.data</span><br><span class="line"></span><br><span class="line">  <span class="keyword">switch</span> (data.type) &#123;</span><br><span class="line">    <span class="comment">// 创建播放器</span></span><br><span class="line">    <span class="keyword">case</span> <span class="string">'create'</span>:</span><br><span class="line">      <span class="keyword">const</span> &#123; url, canvas, ...config &#125; = data.data</span><br><span class="line">      <span class="keyword">this</span>.id = url</span><br><span class="line">      <span class="keyword">this</span>.player = <span class="keyword">new</span> JSMpeg.Player(url, &#123;</span><br><span class="line">        canvas,</span><br><span class="line">        audio: <span class="literal">false</span>,</span><br><span class="line">        pauseWhenHidden: <span class="literal">false</span>,</span><br><span class="line">        videoBufferSize: <span class="number">10</span> * <span class="number">1024</span> * <span class="number">1024</span>,</span><br><span class="line">        ...config,</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 销毁播放器</span></span><br><span class="line">    <span class="keyword">case</span> <span class="string">'destroy'</span>:</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.player) &#123;</span><br><span class="line">          <span class="keyword">this</span>.player.destroy()</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.postMessage(&#123; <span class="attr">type</span>: <span class="string">'destroyed'</span> &#125;)</span><br><span class="line">      &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(LOGGER_FREFIX + <span class="string">'销毁失败: '</span>, global.id, err)</span><br><span class="line">        <span class="keyword">this</span>.postMessage(&#123;</span><br><span class="line">          type: <span class="string">'fatal'</span>,</span><br><span class="line">          data: err,</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 就绪</span></span><br><span class="line"><span class="keyword">this</span>.postMessage(&#123; <span class="attr">type</span>: <span class="string">'ready'</span>, <span class="attr">data</span>: &#123;&#125; &#125;)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>再来看看主进程, 通过 <code>transferControlToOffscreen()</code> 生成离屏渲染画布，让 JSMpeg 可以无缝迁移到 Worker:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> video = <span class="built_in">document</span>.getElementById(<span class="string">'video'</span>)</span><br><span class="line"><span class="keyword">const</span> wk = <span class="keyword">new</span> Worker(<span class="string">'./jsmpeg.worker.js'</span>)</span><br><span class="line"></span><br><span class="line">wk.onmessage = <span class="function">(<span class="params">evt</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> data = evt.data</span><br><span class="line">  <span class="keyword">switch</span> (data.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">'ready'</span>:</span><br><span class="line">      <span class="comment">// 创建 OffscreenCanvas 对象</span></span><br><span class="line">      <span class="keyword">const</span> oc = video.transferControlToOffscreen()</span><br><span class="line"></span><br><span class="line">      wk.postMessage(</span><br><span class="line">        &#123;</span><br><span class="line">          type: <span class="string">'create'</span>,</span><br><span class="line">          data: &#123;</span><br><span class="line">            canvas: oc,</span><br><span class="line">            url: <span class="string">'ws://localhost:9999/pull/test'</span>,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">        [oc] <span class="comment">// 注意这里</span></span><br><span class="line">      )</span><br><span class="line"></span><br><span class="line">      <span class="keyword">break</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="简单说一下-broadway-js"><a href="#简单说一下-broadway-js" class="headerlink" title="简单说一下 Broadway.js"></a>简单说一下 Broadway.js</h3><p>还有一个类似 JSMpeg 的解决方案 ———— <a href="https://github.com/mbebenita/Broadway" target="_blank" rel="noopener">Broadwayjs</a>。 它是一个 <code>H.264</code> 解码器, 通过 <a href="https://github.com/emscripten-core/emscripten" target="_blank" rel="noopener"><code>Emscripten</code></a> 工具从 Android 的 H.264 解码器转化而成。它支持接收 H.264 裸流，不过也有一些限制：不支持 <a href="https://github.com/mbebenita/Broadway#encoding-video" target="_blank" rel="noopener"><code>weighted prediction for P-frames</code> &amp; <code>CABAC entropy encoding</code></a>。</p>
+<p><br></p>
+<p>推送示例：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffmpeg -f avfoundation  -r 30 -i "FaceTime HD Camera"  -f rawvideo -c:v libx264 -pix_fmt yuv420p -vprofile baseline -tune zerolatency -coder 0 -bf 0 -flags -loop -wpredp 0 -an  http://localhost:9999/push/test</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>客户端示例：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> video = <span class="built_in">document</span>.getElementById(<span class="string">'video'</span>)</span><br><span class="line"><span class="keyword">const</span> url = <span class="string">`ws://localhost:9999/pull/test`</span></span><br><span class="line"><span class="keyword">const</span> player = <span class="keyword">new</span> Player(&#123;</span><br><span class="line">  canvas: video,</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">const</span> ws = <span class="keyword">new</span> WebSocket(url)</span><br><span class="line">ws.binaryType = <span class="string">'arraybuffer'</span></span><br><span class="line"></span><br><span class="line">ws.onmessage = <span class="function"><span class="keyword">function</span> (<span class="params">evt</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> data = evt.data</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> data !== <span class="string">'string'</span>) &#123;</span><br><span class="line">    player.decode(<span class="keyword">new</span> <span class="built_in">Uint8Array</span>(data))</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'get command from server: '</span>, data)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>完整代码看<a href="https://github.com/ivan-94/video-push/tree/master/broadway" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p>经过测试，同等质量和尺寸的视频流 JSMpeg 和 Broadway CPU 消耗差不多。但是 Broadway 视频流不受码率限制，没有花屏和崩溃现象。当然, 对于高质量视频, ffmpeg 转换和 Broadway 播放, 资源消耗都非常惊人。</p>
+<p><br></p>
+<p>其他类似的方案:</p>
+<ul>
+<li><a href="https://github.com/ChihChengYang/wfs.js" target="_blank" rel="noopener">wfs</a> html5 player for raw h.264 streams.</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="③-直接渲染-yuv"><a href="#③-直接渲染-yuv" class="headerlink" title="③ 直接渲染 YUV"></a>③ 直接渲染 YUV</h2><p><strong>回到文章开始，其实底层库从 WebRTC 中拿到的是 YUV 的原始视频流, 也就是没有经过编码压缩的一帧一帧的图像。上文介绍的方案都有额外的解封包、解编码的过程，最终输出的也是 YUV 格式的视频帧，它们的最后一步都是将这些 YUV 格式视频帧转换成 RGB 格式，渲染到 Canvas 中</strong>。</p>
+<p><strong>那能不能将原始的 YUV 视频帧直接转发过来，直接在 Cavans 上渲染不就得了</strong>？ 将去掉中间的解编码过程, 效果怎样？试一试。</p>
+<p><br></p>
+<blockquote>
+<p>此前已经有文章做过这方面的尝试: <a href="https://juejin.im/post/5de29d7be51d455f9b335efa" target="_blank" rel="noopener">《IVWEB 玩转 WASM 系列-WEBGL YUV 渲染图像实践》</a>。我们参考它搞一个。</p>
+</blockquote>
+<p>至于什么是 <code>YUV</code>，我就不科普, 自行搜索。 YUV 帧的大小可以根据这个公式计算出来： <code>(width * height * 3) &gt;&gt; 1</code>,<br><strong>即 <code>YUV420p</code> 的每个像素占用 1.5 bytes</strong>。</p>
+<p>因此我们只需要知道视频的大小, 就可以切割视频流，将视频帧分离出来了。 下面新建一个中转服务器来接收推流, 在这里将 YUV 裸流切割成一帧一帧图像数据，下发给浏览器：</p>
+<p><br></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">this</span>.server = http.createServer(<span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">const</span> parsed = <span class="keyword">new</span> URL(<span class="string">'http://host'</span> + url)</span><br><span class="line">  <span class="keyword">let</span> id = parsed.searchParams.get(<span class="string">'id'</span>),</span><br><span class="line">    width = parsed.searchParams.get(<span class="string">'width'</span>),</span><br><span class="line">    height = parsed.searchParams.get(<span class="string">'height'</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> nwidth = <span class="built_in">parseInt</span>(width)</span><br><span class="line">  <span class="keyword">const</span> nheight = <span class="built_in">parseInt</span>(height)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> frameSize = (nwidth * nheight * <span class="number">3</span>) &gt;&gt; <span class="number">1</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 按照字节大小切割流</span></span><br><span class="line">  <span class="keyword">const</span> stream = req.pipe(<span class="keyword">new</span> Splitter(frameSize))</span><br><span class="line"></span><br><span class="line">  stream.on(<span class="string">'data'</span>, (c) =&gt; &#123;</span><br><span class="line">    <span class="keyword">this</span>.broadcast(id, c)</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/ivan-94/video-push/blob/master/yuv/size-split.js" target="_blank" rel="noopener"><code>Splitter</code></a> 根据固定字节大小切割 Buffer。 </p>
+<p><br></p>
+<p>如果渲染 YUV ？ 可以参考 <a href="https://github.com/phoboslab/jsmpeg/blob/master/src/webgl.js" target="_blank" rel="noopener">JSMpeg WebGL 渲染器</a>, <a href="https://github.com/mbebenita/Broadway/blob/master/Player/YUVCanvas.js" target="_blank" rel="noopener">Broadway.js WebGL 渲染器</a>。 具体如何渲染就不展开了， 下面直接将 Broadway.js 的 <a href="https://github.com/mbebenita/Broadway/blob/master/Player/YUVCanvas.js" target="_blank" rel="noopener"><code>YUVCanvas.js</code></a> 直接拿过来用：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> renderer = <span class="keyword">new</span> YUVCanvas(&#123;</span><br><span class="line">  canvas: video,</span><br><span class="line">  type: <span class="string">'yuv420'</span>,</span><br><span class="line">  width: width,</span><br><span class="line">  height: height,</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过 WebSocket 接收 YUV 帧. 并抽取出 YUV 分量</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">onData</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> ylen = width * height</span><br><span class="line">  <span class="keyword">const</span> uvlen = (width / <span class="number">2</span>) * (height / <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">  renderer.render(</span><br><span class="line">    buff.subarray(<span class="number">0</span>, ylen),</span><br><span class="line">    buff.subarray(ylen, ylen + uvlen),</span><br><span class="line">    buff.subarray(ylen + uvlen, ylen + uvlen + uvlen),</span><br><span class="line">    <span class="literal">true</span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<blockquote>
+<p>需要注意的是：JSMpeg 和 Broadway 的 Canvas 渲染都要求视频的宽度必须是 8 的倍数。不符合这个要求的会报错，<a href="https://juejin.im/post/5de29d7be51d455f9b335efa" target="_blank" rel="noopener">《IVWEB 玩转 WASM 系列-WEBGL YUV 渲染图像实践》</a> 处理了这个问题。</p>
+</blockquote>
+<p><br></p>
+<p>最后看看 ffmpeg 推送示例:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> ffmpeg -f avfoundation -r 30 -i "FaceTime HD Camera" -f rawvideo -c:v rawvideo -pix_fmt yuv420p "http://localhost:9999/push?id=test&amp;width=320&amp;height=240"</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<blockquote>
+<p>完整代码看<a href="https://github.com/ivan-94/video-push/tree/master/yuv" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p><br><br><br></p>
+<p>下面看看简单资源消耗对比。 笔者设备是 15 款 Macboook pro, 视频源采集自摄像头，分辨率 320x240、像素格式 uyvy422、帧率 30。</p>
+<p><em>下表 <code>J</code> 表示 <code>JSMpeg</code>、<code>B</code> 表示 <code>Broadway</code>、<code>Y</code> 表示 <code>YUV</code></em></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CPU (J/B/Y)</th>
+<th>内存 (J/B/Y)</th>
+<th>平均码率 (J/B/Y)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ffmpeg</td>
+<td>9% / 9% / 5%</td>
+<td>12MB / 12MB / 9MB</td>
+<td>1600k / 200k / 27000k</td>
+</tr>
+<tr>
+<td>服务器</td>
+<td>0.6% / 0.6% /1.4%</td>
+<td>18MB / 18MB / 42MB</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>播放器</td>
+<td>16% / 13% / 8%</td>
+<td>70MB / 200MB / 50MB</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>从结果来看，直接渲染 YUV 综合占用的资源最少。因为没有经过压缩，码率也是非常高的，不过本地环境不受带宽限制，这个问题也不大。我们还可以利用<code>requestAnimationFrame</code> 由浏览器来调度播放的速率，丢掉积累的帧，保持低延迟播放。</p>
+<p><br><br><br></p>
+<p>本文完</p>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><ul>
+<li><a href="https://juejin.im/post/5ab851b6f265da23826df601" target="_blank" rel="noopener">直播原理与 web 直播实战</a></li>
+<li><a href="https://juejin.im/post/5de29d7be51d455f9b335efa" target="_blank" rel="noopener">IVWEB 玩转 WASM 系列-WEBGL YUV 渲染图像实践</a></li>
+<li><a href="https://github.com/ossrs/srs/wiki/v1_CN_LowLatency" target="_blank" rel="noopener">低延时直播应用</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/100519553" target="_blank" rel="noopener">基于 H5 的直播协议和视频监控方案</a></li>
+<li><a href="https://imququ.com/post/html5-live-player-2.html" target="_blank" rel="noopener">HTML5 视频直播（二）</a> </li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#①-典型的web直播方案"><span class="toc-number">1.</span> <span class="toc-text">① 典型的Web直播方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-推流"><span class="toc-number">1.1.</span> <span class="toc-text">RTMP 推流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-拉流"><span class="toc-number">1.2.</span> <span class="toc-text">RTMP 拉流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rtmp-低延迟优化"><span class="toc-number">1.3.</span> <span class="toc-text">RTMP 低延迟优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#②-jsmpeg-amp-broadwayjs"><span class="toc-number">2.</span> <span class="toc-text">② JSMpeg &amp; BroadwayJS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#relay-服务器"><span class="toc-number">2.1.</span> <span class="toc-text">Relay 服务器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#推送"><span class="toc-number">2.2.</span> <span class="toc-text">推送</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#视频播放"><span class="toc-number">2.3.</span> <span class="toc-text">视频播放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#多进程优化"><span class="toc-number">2.4.</span> <span class="toc-text">多进程优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#简单说一下-broadway-js"><span class="toc-number">2.5.</span> <span class="toc-text">简单说一下 Broadway.js</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#③-直接渲染-yuv"><span class="toc-number">3.</span> <span class="toc-text">③ 直接渲染 YUV</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2020/04/05/video-stream/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2020/04/05/video-stream/&text=Electron 低延迟视频流播放方案探索"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2020/04/05/video-stream/&is_video=false&description=Electron 低延迟视频流播放方案探索"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Electron 低延迟视频流播放方案探索&body=Check out this article: https://bobi.ink/2020/04/05/video-stream/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2020/04/05/video-stream/&title=Electron 低延迟视频流播放方案探索"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2020/04/05/video-stream/&name=Electron 低延迟视频流播放方案探索&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

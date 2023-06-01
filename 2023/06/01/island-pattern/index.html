@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="好久没跟大家见面了。这两三年一直专注于公司的开发工作，做了很多事情，但回头看看，感觉这两年一直在吃 ’老本‘，前端相关的技术也没怎么追了。 现在重新捡起笔吧！补补课，记录一些最近学到的新东西，以及过去几年总结。 首先从岛屿架构开始吧。 岛屿架构岛屿架构(Islands Architecture) 如今已经不是新鲜的概念了，社区上已经有了较多成熟的方案。 概览图：   这其中的典型代表是 Astr">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="岛屿架构">
+<meta property="og:url" content="https://bobi.ink/2023/06/01/island-pattern/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="好久没跟大家见面了。这两三年一直专注于公司的开发工作，做了很多事情，但回头看看，感觉这两年一直在吃 ’老本‘，前端相关的技术也没怎么追了。 现在重新捡起笔吧！补补课，记录一些最近学到的新东西，以及过去几年总结。 首先从岛屿架构开始吧。 岛屿架构岛屿架构(Islands Architecture) 如今已经不是新鲜的概念了，社区上已经有了较多成熟的方案。 概览图：   这其中的典型代表是 Astr">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://images.unsplash.com/photo-1516091877740-fde016699f2c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=6000">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/island-pattern/Untitled%205.png">
+<meta property="og:updated_time" content="2023-06-01T10:07:58.113Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="岛屿架构">
+<meta name="twitter:description" content="好久没跟大家见面了。这两三年一直专注于公司的开发工作，做了很多事情，但回头看看，感觉这两年一直在吃 ’老本‘，前端相关的技术也没怎么追了。 现在重新捡起笔吧！补补课，记录一些最近学到的新东西，以及过去几年总结。 首先从岛屿架构开始吧。 岛屿架构岛屿架构(Islands Architecture) 如今已经不是新鲜的概念了，社区上已经有了较多成熟的方案。 概览图：   这其中的典型代表是 Astr">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1516091877740-fde016699f2c?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=6000">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>岛屿架构</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2020/04/05/video-stream/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/01/island-pattern/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/01/island-pattern/&text=岛屿架构"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/01/island-pattern/&is_video=false&description=岛屿架构"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=岛屿架构&body=Check out this article: https://bobi.ink/2023/06/01/island-pattern/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/01/island-pattern/&name=岛屿架构&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#岛屿架构"><span class="toc-number">1.</span> <span class="toc-text">岛屿架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#岛屿架构的优势"><span class="toc-number">2.</span> <span class="toc-text">岛屿架构的优势</span></a></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#小结"><span class="toc-number"></span> <span class="toc-text">小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文献"><span class="toc-number">1.</span> <span class="toc-text">参考文献</span></a></li></ol>
+    </li></div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        岛屿架构
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-05-31T16:00:00.000Z" itemprop="datePublished">2023-06-01</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="https://images.unsplash.com/photo-1516091877740-fde016699f2c?ixlib=rb-4.0.3&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;w=6000" alt="https://images.unsplash.com/photo-1516091877740-fde016699f2c?ixlib=rb-4.0.3&amp;q=85&amp;fm=jpg&amp;crop=entropy&amp;cs=srgb&amp;w=6000"></p>
+<p>好久没跟大家见面了。这两三年一直专注于公司的开发工作，做了很多事情，但回头看看，感觉这两年一直在吃 ’老本‘，前端相关的技术也没怎么追了。</p>
+<p>现在重新捡起笔吧！补补课，记录一些最近学到的新东西，以及过去几年总结。</p>
+<p>首先从岛屿架构开始吧。</p>
+<h2 id="岛屿架构"><a href="#岛屿架构" class="headerlink" title="岛屿架构"></a>岛屿架构</h2><p>岛屿架构(<a href="https://www.patterns.dev/posts/islands-architecture" target="_blank" rel="noopener">Islands Architecture</a>) 如今已经不是新鲜的概念了，社区上已经有了较多成熟的方案。</p>
+<p>概览图：</p>
+<p><img src="/images/island-pattern/Untitled.png" alt="Untitled"></p>
+<p><br><br><br><br><br></p>
+<p>这其中的典型代表是 <a href="https://docs.astro.build/zh-cn/concepts/islands/" target="_blank" rel="noopener">Astro</a>。Astro 对岛屿架构的解释，也非常直观：</p>
+<blockquote>
+<p>“Astro 群岛“指的是<code>静态 HTML</code> 中的<code>交互性的 UI 组件</code>。一个页面上可以有多个岛屿，并且每个岛屿都被<code>独立呈现</code>。<strong>你可以将它们想象成在一片由静态（不可交互）的 HTML 页面中的动态岛屿</strong>。</p>
+</blockquote>
+<p>从上面这句话的定义中可以提炼一些要点：</p>
+<ul>
+<li>静态 HTML。</li>
+<li>交互性的 UI 组件。</li>
+<li>多个岛屿，支持独立呈现。</li>
+</ul>
+<p><br><br><br></p>
+<p>为了解析这些要点，我们还是得简单了解一下 Astro 这个框架的特性。</p>
+<p>Astro 宣称自己是 ‘<strong><code>zero-JS frontend architecture</code></strong>’，即 Astro 在服务端渲染静态 HTML，客户端中不需要加载额外的 JS 就能完整呈现内容。</p>
+<p><br><br><br><br><br><br><br></p>
+<hr>
+<p>写一个简单 DEMO 试试：</p>
+<p>React 组件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import &#123; useState &#125; from &apos;react&apos;</span><br><span class="line"></span><br><span class="line">export const Counter = () =&gt; &#123;</span><br><span class="line">  const [count, setCount] = useState(0)</span><br><span class="line"></span><br><span class="line">  return &lt;div onClick=&#123;() =&gt; setCount((i) =&gt; i + 1)&#125;&gt;click me to increment: &#123;count&#125;&lt;/div&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Astro 文件：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">import Layout from '../layouts/Layout.astro';</span><br><span class="line">import Card from '../components/Card.astro';</span><br><span class="line">import &#123; Counter &#125; from '../components/Counter';</span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">Layout</span> <span class="attr">title</span>=<span class="string">"Welcome to Astro."</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">main</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Counter</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span> <span class="attr">role</span>=<span class="string">"list"</span> <span class="attr">class</span>=<span class="string">"link-card-grid"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Card</span></span></span><br><span class="line"><span class="tag">        <span class="attr">href</span>=<span class="string">"https://docs.astro.build/"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">title</span>=<span class="string">"Documentation"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">body</span>=<span class="string">"Learn how Astro works and explore the official API docs."</span></span></span><br><span class="line"><span class="tag">      /&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">Card</span></span></span><br><span class="line"><span class="tag">        <span class="attr">href</span>=<span class="string">"https://astro.build/integrations/"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">title</span>=<span class="string">"Integrations"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">body</span>=<span class="string">"Supercharge your project with new frameworks and libraries."</span></span></span><br><span class="line"><span class="tag">      /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">main</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Layout</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="undefined">  ...;</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这语法，astro 集大家之所长，吸取了 Vue SFC 和 React 的 JSX, 还有 MDX。</p>
+<p><img src="/images/island-pattern/Untitled%201.png" alt="Untitled"></p>
+<p>运行后， 服务端直出 HTML，除了 HMR ，没有引入额外的 JavaScript。真 Zero JS!</p>
+<p><br><br><br><br><br></p>
+<hr>
+<p>然而，这个有别于典型的 SSR 框架。SSR 也是在服务端渲染完整 HTML 树，但是在客户端依然需要加载完整的视图框架代码，然后进行水合(Hydration)，才能让页面变得可交互:</p>
+<p><img src="/images/island-pattern/Untitled%202.png" alt="Untitled"></p>
+<p>那 Astro 没有 JS，显然是无法与用户进行动态交互的。Astro 的解决办法就是 <code>岛屿架构</code>, 我们只需将需要动态交互的页面模块声明为岛屿，如下图，页头和图片轮播就是可交互的岛屿。</p>
+<p><img src="/images/island-pattern/Untitled%203.png" width="400px"></p>
+<p>来源：astro 文档</p>
+<p><br><br><br><br><br><br><br></p>
+<hr>
+<p>现在将 React 组件声明为岛屿：</p>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="comment">---</span></span><br><span class="line">import Layout from '../layouts/Layout.astro';</span><br><span class="line">import Card from '../components/Card.astro';</span><br><span class="line">import &#123; Counter &#125; from '../components/Counter';</span><br><span class="line"><span class="comment">---</span></span><br><span class="line"></span><br><span class="line">&lt;Layout title="Welcome to Astro."&gt;</span><br><span class="line">  &lt;main&gt;</span><br><span class="line"><span class="deletion">-    &lt;Counter/&gt;</span></span><br><span class="line"><span class="addition">+    &lt;Counter client:load /&gt;</span></span><br><span class="line">    &lt;ul role="list" class="link-card-grid"&gt;</span><br><span class="line">      &lt;Card</span><br><span class="line">        href="https://docs.astro.build/"</span><br><span class="line">        title="Documentation"</span><br><span class="line">        body="Learn how Astro works and explore the official API docs."</span><br><span class="line">      /&gt;</span><br><span class="line">      &lt;Card</span><br><span class="line">        href="https://astro.build/integrations/"</span><br><span class="line">        title="Integrations"</span><br><span class="line">        body="Supercharge your project with new frameworks and libraries."</span><br><span class="line">      /&gt;</span><br><span class="line">    &lt;/ul&gt;</span><br><span class="line">  &lt;/main&gt;</span><br><span class="line">&lt;/Layout&gt;</span><br></pre></td></tr></table></figure>
+<p>我们只需将对应的 React 组件加上 <code>client:load</code> 指令，Astro 就是将其识别为岛屿，该 React 组件的代码及其相关依赖会被打包到一起，在客户端端加载和水合。</p>
+<p><img src="/images/island-pattern/Untitled%204.png" alt="Untitled"></p>
+<p>现在我们的 Counter 组件在客户端就是一个可交互的状态了。Astro 基本上没有什么上手门槛，建议读者自己玩一下。有机会再展开讲一下它的实现原理。</p>
+<hr>
+<p><br><br><br><br><br></p>
+<p>有了‘岛屿’赋能的 Astro 架构：</p>
+<p><img src="/images/island-pattern/Untitled%205.png" alt="Untitled"></p>
+<p>Astro 在服务端渲染完整的 HTML 树，然后在客户端中按需加载岛屿代码，并进行水合。看起来有点像微前端、或者 iframe 这样的机制。</p>
+<p>现在来回顾一下开头提到的 <code>‘要点’</code>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>岛屿架构</th>
+<th>SSR + CSR</th>
+<th>CSR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>静态 HTML</td>
+<td>静态 HTML 优先，无 JavaScript</td>
+<td>服务端渲染 HTML 初始内容, 包含完整的客户端副本</td>
+<td>完全在客户端加载渲染</td>
+</tr>
+<tr>
+<td>交互性的 UI 组件</td>
+<td>默认完全静态，通过岛屿局部增强可交互性</td>
+<td>全局可交互</td>
+<td>全局可交互</td>
+</tr>
+<tr>
+<td>多个岛屿，支持独立呈现</td>
+<td>岛屿之间互相独立，可以独立加载和交互</td>
+<td>完整加载。可以通过代码分块 + <a href="https://www.patterns.dev/posts/progressive-hydration" target="_blank" rel="noopener">https://www.patterns.dev/posts/progressive-hydration</a> 实现按需加载</td>
+<td>完整加载。可以通过代码分块实现按需加载</td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br><br><br></p>
+<h2 id="岛屿架构的优势"><a href="#岛屿架构的优势" class="headerlink" title="岛屿架构的优势"></a>岛屿架构的优势</h2><p>岛屿架构非常适合<code>以内容为中心</code>的网站，比如博客，文档网站，新闻网站等等。在 Astro 的定位非常清晰，它把站点类型分为两种：</p>
+<ul>
+<li>内容为中心 → 也称为 网站 → Astro 擅长</li>
+<li>交互为中心的 → 也称为 Web 应用程序 → 应该使用 Next.js 或者 Nuxt.js 这样的框架</li>
+</ul>
+<p>在岛屿架构擅长的场景中，Astro 给出了比较：</p>
+<ul>
+<li><a href="https://twitter.com/t3dotgg/status/1437195415439360003" target="_blank" rel="noopener">Astro vs. SPA (Next.js)</a> - 94% less JavaScript</li>
+<li><a href="https://twitter.com/jlengstorf/status/1442707241627385860?lang=en" target="_blank" rel="noopener">Astro vs. SPA (Next.js)</a> - 34% 更快地加载</li>
+<li><a href="https://vanntile.com/blog/next-to-astro" target="_blank" rel="noopener">Astro vs. SPA (Next.js)</a> – 65% 网络使用减少</li>
+<li><a href="https://www.youtube.com/watch?v=2ZEMb_H-LYE&amp;t=8163s" target="_blank" rel="noopener">Astro vs. SPA (Remix, SvelteKit)</a> - “这令人置信的 Google Lighthouse 分数”</li>
+<li><a href="https://www.youtube.com/watch?v=2ZEMb_H-LYE&amp;t=8504s" target="_blank" rel="noopener">Astro vs. Qwik</a> - 43% 更快的 TTI</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>岛屿架构本身概念并不复杂，是前端框架和工程化发展的一个阶段性质变结果。</p>
+<p>前后端分离(分工上)还是不变的趋势，相比传统的 MPA ，岛屿架构更加现代化，拥有更好的开发体验。</p>
+<p>相比 SPA，岛屿架构在<code>以内容为中心</code>的场景下，优势也非常明显。</p>
+<p><br><br><br><br><br></p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul>
+<li><a href="https://www.patterns.dev/posts/islands-architecture" target="_blank" rel="noopener">Islands Architecture</a></li>
+<li><a href="https://jasonformat.com/islands-architecture/" target="_blank" rel="noopener">Islands Architecture</a></li>
+<li><a href="https://www.youtube.com/watch?v=k-A2VfuUROg" target="_blank" rel="noopener">Rendering on the Web: Performance Implications of Application Architecture</a></li>
+<li><a href="https://dev.to/this-is-learning/is-0kb-of-javascript-in-your-future-48og" target="_blank" rel="noopener">Is 0kb of JavaScript in your Future?</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#岛屿架构"><span class="toc-number">1.</span> <span class="toc-text">岛屿架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#岛屿架构的优势"><span class="toc-number">2.</span> <span class="toc-text">岛屿架构的优势</span></a></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#小结"><span class="toc-number"></span> <span class="toc-text">小结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#参考文献"><span class="toc-number">1.</span> <span class="toc-text">参考文献</span></a></li></ol>
+    </li></div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/01/island-pattern/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/01/island-pattern/&text=岛屿架构"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/01/island-pattern/&is_video=false&description=岛屿架构"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=岛屿架构&body=Check out this article: https://bobi.ink/2023/06/01/island-pattern/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/01/island-pattern/&title=岛屿架构"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/01/island-pattern/&name=岛屿架构&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

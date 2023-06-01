@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="这是一个新开的’实验性’文章系列，如其名‘技术地图’，这个系列计划剖析一些前端开源项目，可能会探讨这些项目的设计和组织、整理他们使用到技术栈。 首先拿vue-cli小试牛刀，再决定后续要不要继续这个系列.  我一直在思考我们编程主要在做什么？我们有一大部分工作就是选择各种工具/库/框架，来黏合业务. 工具和场景越匹配、原理了解越多，运用越娴熟，我们效率可能就越高. 这种说法很有争议，就像程序=算法">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈 vue-cli 的插件设计">
+<meta property="og:url" content="https://bobi.ink/2019/05/26/vue-cli-map/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="这是一个新开的’实验性’文章系列，如其名‘技术地图’，这个系列计划剖析一些前端开源项目，可能会探讨这些项目的设计和组织、整理他们使用到技术栈。 首先拿vue-cli小试牛刀，再决定后续要不要继续这个系列.  我一直在思考我们编程主要在做什么？我们有一大部分工作就是选择各种工具/库/框架，来黏合业务. 工具和场景越匹配、原理了解越多，运用越娴熟，我们效率可能就越高. 这种说法很有争议，就像程序=算法">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/05/awesome.png">
+<meta property="og:image" content="https://bobi.ink/images/05/rails-cli.png">
+<meta property="og:image" content="https://bobi.ink/images/05/vue-cli-struct.png">
+<meta property="og:image" content="https://bobi.ink/images/05/plugins.png">
+<meta property="og:image" content="https://bobi.ink/codes/vue-plugin.png">
+<meta property="og:image" content="https://bobi.ink/images/05/vue-cli.png">
+<meta property="og:image" content="https://bobi.ink/images/05/vue-service-struct.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅谈 vue-cli 的插件设计">
+<meta name="twitter:description" content="这是一个新开的’实验性’文章系列，如其名‘技术地图’，这个系列计划剖析一些前端开源项目，可能会探讨这些项目的设计和组织、整理他们使用到技术栈。 首先拿vue-cli小试牛刀，再决定后续要不要继续这个系列.  我一直在思考我们编程主要在做什么？我们有一大部分工作就是选择各种工具/库/框架，来黏合业务. 工具和场景越匹配、原理了解越多，运用越娴熟，我们效率可能就越高. 这种说法很有争议，就像程序=算法">
+<meta name="twitter:image" content="https://bobi.ink/images/05/awesome.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>浅谈 vue-cli 的插件设计</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/05/29/styled-components-map/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/05/20/react-component-design-05/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/26/vue-cli-map/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/26/vue-cli-map/&text=浅谈 vue-cli 的插件设计"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/26/vue-cli-map/&is_video=false&description=浅谈 vue-cli 的插件设计"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈 vue-cli 的插件设计&body=Check out this article: https://bobi.ink/2019/05/26/vue-cli-map/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/26/vue-cli-map/&name=浅谈 vue-cli 的插件设计&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue-cli"><span class="toc-number">1.</span> <span class="toc-text">vue-cli</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本设计"><span class="toc-number">2.</span> <span class="toc-text">基本设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#目录结构"><span class="toc-number">2.1.</span> <span class="toc-text">目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分离-cli-层和-service-层"><span class="toc-number">2.2.</span> <span class="toc-text">分离 CLI 层和 Service 层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#插件系统"><span class="toc-number">2.3.</span> <span class="toc-text">插件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#插件"><span class="toc-number">2.3.1.</span> <span class="toc-text">插件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#preset"><span class="toc-number">2.3.2.</span> <span class="toc-text">preset</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#配置"><span class="toc-number">2.3.3.</span> <span class="toc-text">配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#基本流程"><span class="toc-number">2.4.</span> <span class="toc-text">基本流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#技术地图"><span class="toc-number">3.</span> <span class="toc-text">技术地图</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        浅谈 vue-cli 的插件设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-05-25T16:00:00.000Z" itemprop="datePublished">2019-05-26</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这是一个新开的’实验性’文章系列，如其名‘技术地图’，这个系列计划剖析一些前端开源项目，可能会探讨这些项目的<strong>设计和组织</strong>、整理他们使用到<strong>技术栈</strong>。 首先拿<code>vue-cli</code>小试牛刀，再决定后续要不要继续这个系列.</p>
+<p><br></p>
+<p>我一直在思考我们编程主要在做什么？我们有一大部分工作就是选择各种工具/库/框架，来黏合业务. 工具和场景越匹配、原理了解越多，运用越娴熟，我们效率可能就越高. 这种说法很有争议，就像<code>程序=算法+数据结构</code>不能完全表达现今的软件工程一样, 说我们的工作就是堆砌工具，黏合业务, 一定程度上有自贬的意思。 但这确实是大部分程序员的真实写照。</p>
+<p>这系列文章其实有点类似于 github 上面的<code>Awesome</code>项目. 这些 Awesome 项目就是一个<strong>生态展览馆</strong>, 里面项目琳琅满目. 因为数量太多了，而且缺少评分机制，大部分情况我们不可能一个个去查看，很难从中选择符合需求的项目(当然你带着明确的目的，且目标范围非常小，可能比较有用)。</p>
+<center><br><img src="/images/05/awesome.png" width="400"><br></center>
+
+<p>是否可以尝试换个角度，<strong>选取一些有趣的开源项目，看看它是怎么应用这些工具的, 有序的罗列出来? 对于有相同场景的项目, 参考或者模仿价值可能会更大一些</strong>. 这些开源项目就是巨人，站在巨人肩膀上显然省事多了</p>
+<p>只是技术栈罗列未免过于简单，笔者还希望从这些项目中学点东西，比如他的设计和项目组织. 我会尝试简化和通俗解释里面的关键知识或亮点, 但是不求甚解。为了避免陷入细节泥潭，我会尽量使用图形化方式展示他们程序流程，避免拘泥于细节。你也可以把这些文章作为深入阅读这些项目源码的引导</p>
+<p>我也希望读者同我交流反馈，共同学习和进步。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="vue-cli"><a href="#vue-cli" class="headerlink" title="vue-cli"></a>vue-cli</h2><p>说到 CLI, 不得不提<a href="https://ruby-china.github.io/rails-guides/getting_started.html" target="_blank" rel="noopener">Rails</a>框架，它可能是<em>框架提供 CLI 的先祖</em>(具体历史没有深入考究). Rails 有一个重要的指导思想，即<strong>约定大于配置</strong>, <strong>它为 Web 应用的大多数需求都提供了最好的解决方法，并且默认使用这些约定，而不是在长长的配置文件中设置每个细节</strong>。</p>
+<p><strong>CLI 也是这个指导思想下的产物</strong>, 例如通过它提供的 CLI，可以在<a href="https://ruby-china.github.io/rails-guides/getting_started.html" target="_blank" rel="noopener">15 分钟内构建一个简易的博客</a>, 可以通过 CLI 启动服务器和 REPL、生成项目脚手架、生成代码文件、路由、数据库迁移等等:</p>
+<center><br>  <img src="/images/05/rails-cli.png" width="500"><br></center>
+
+<p>Rails 的很多设计在那个年代就是就是一个明星(闪瞎 PHP、JSP、 ASP…, 想想要配置各种服务器，各种 xml 文件)，它的很多设计模式深刻影响了后面的 web 框架，比如 Django、Laravel, 甚至很多模仿 Rails 命名的，如 Sails、Grails.</p>
+<p>Rails 对于前端开发影响也很深远，比如在 Nodejs 出来之前，Rails 社区就开始使用 <code>coffeescript + sass</code>预编译语言进行前端开发了, <a href="https://ruby-china.github.io/rails-guides/asset_pipeline.html" target="_blank" rel="noopener">Asset Pipeline</a>可以说是最早的’前端工程化’, 配合<a href="https://github.com/turbolinks/turbolinks" target="_blank" rel="noopener">Turbolink</a>可以让传统后端渲染页面拥有不亚于单页应用的用户体验…</p>
+<p>当初 Rails 给我带来的各种震撼还历历在目, <a href="https://ruby-china.org" target="_blank" rel="noopener">Ruby China 社区</a>也是国内最好社区之一. 但是目前 Rails 的关注度不如从前, 在前端社区像 Rails 这种集大成的框架也早已不吃香(参考 Ember, 某种程度上 Angular 也算吧?).</p>
+<p>说实在话如果一生只学一门语言，我会选 Ruby，如果选一个 web 框架，那就是 Rails。</p>
+<p>推荐大家阅读<a href="https://ruby-china.org/wiki/the-rails-doctrine" target="_blank" rel="noopener">The Rails Doctrine - Rails 信条</a> 这篇文章里面有一句话笔者非常喜欢: <strong>“只要放下了自负的个人喜好，便可以跳过无谓的世俗决定，专注在最重要的地方下更快的决定。”</strong>。为人写程序，而不是为了机器写程序.</p>
+<p><strong>约定大于配置</strong>可以减少我们做决定的数量，减少无谓的争论和考虑，让我们可以专注于更重要的事情. 这个原则可以提高开发和团队协作效率, 甚至可以凝聚一个社区.</p>
+<p>以 Webpack 为例，恶心复杂的配置被人诟病，所以才需要 vue-cli 或者 create-react-app 这些工具.</p>
+<blockquote>
+<p>没有用 Ruby/Rails 工作过, 默默写了个 Ruby China 小程序(微信搜<code>Ruby CN</code>)，算是感恩回馈社区吧</p>
+</blockquote>
+<p><br></p>
+<p>Ok, 忍不住吹了一波 Rails, 回到正题.</p>
+<p>笔者是使用 React 作为主力开发的，Vue 也是我非常喜欢的一个开源项目，不说别的，在开发者的’用户体验’方面 Vue 是我见过最好之一，主要体现在 API 的简洁性和易用性、文档还有项目构建工具(今天的主角).</p>
+<p>vue-cli-ui 是我想写这系列文章的动机之一. 前阵子用了一下<code>vue-cli-ui</code>, 感觉很不错, 支持可视化配置和任务运行，比我在终端下一个项目一个项目跑 task 清爽多了. 很想在我们自家的构建工具上也搞一套，怎搞？ 学习它的源码, 我觉得可以作为博客记录下来.</p>
+<p>现在前端工程师也有‘webpack 配置工程师’的戏称，这能说明 webpack 配置是费时费力的苦事(Angular 例外). 这不后来就有了<code>parcel</code>宣称零配置的轮子, 还有 React 社区的<code>create-react-app</code>, vue-cli 前期是基于模板的创建项目, 不算此列。</p>
+<p>后来 vue-cli 汲取着前者的很多优点，把这块做大做优了(看来 vue 很擅长做这些事情). 我们可以来对比一下这些工具:</p>
+<p><br></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Vue CLI</th>
+<th>create-react-app</th>
+<th>parcel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快速原型开发</td>
+<td>支持</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>全局模式</td>
+<td>零配置原型开发就是全局的</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>插件</td>
+<td>支持</td>
+<td>-</td>
+<td>支持，扩展文件类型和文件输出</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>强，通过插件扩展 wepack 配置</td>
+<td>弱, 强约定, 无法配置 webpack，可以 eject, 然后手工配置；支持 babel-macro;(严格说可以通过<a href="https://github.com/timarney/react-app-rewired" target="_blank" rel="noopener">react-app-rewired</a>进行扩展)</td>
+<td>中(可以配置 babel，postcss，Typescript); 提供了 Node API; 支持插件扩展文件类型</td>
+</tr>
+<tr>
+<td>多页面</td>
+<td>支持</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>适用范围</td>
+<td>Vue 组件的第一公民。通过扩展可以支持任意前端框架</td>
+<td>针对 React 开发，不支持其他框架</td>
+<td>parcel 是一个通用的打包工具，它的竞争对手是 webpack</td>
+</tr>
+<tr>
+<td>编译速度</td>
+<td>cache-loader,thread-loader 来加速 JS 和 TS 编译</td>
+<td>babel-loader 开启了 cache</td>
+<td>编译速度号称是 webpack 的两倍</td>
+</tr>
+<tr>
+<td>可升级性</td>
+<td>支持升级 cli-service, 插件需要单独升级, 插件需要遵循语义化版本. 太多插件存在升级风险</td>
+<td>支持升级 react-script, 官方维护，且强约定基本可以保障向下兼容</td>
+<td>支持升级 parcel-bundler</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>图形化管理是 CLI 的特色之一</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>通过上面的对比，可以看出 <strong>vue-cli 是一个扩展性非常强的构建工具，以致于它不仅限于 Vue，也可以用来构建 React 甚至其他前端框架</strong>。</p>
+<p>相比而言 <code>create-react-app</code> 就是一个非常 Opinionated(坚持己见) 的工具，强约定. 一个典型的例子就是它不内置开启 babel 装饰器转译，CRA 团队认为已经废弃(或者不成熟)的语言特性不应该带到 CRA 中; 后面为了给‘优雅’地给 babel 扩展插件，就捣鼓出来了<code>babel-macro</code>, 这是一种’免配置’的 babel 插件规范.</p>
+<p>这种强约定也是有好处的，比如不需要管理配置; 而且 CRA 团队谨慎可靠地维护着 CRA，这使得开发者可以一般无痛地升级 CRA. 如果要扩展 webpack，一般只有 eject，这就走回了手动配置 webpack 的老路, 不可取.</p>
+<p>vue-cli 也是一个’渐进式’的 cli，vue-cli 提供了默认的 preset，但不阻止你对其进行扩展. vue-cli 的扩展接口也非常简洁(合理, 不多不少), 还有 UI 管理界面，可视化管理项目的配置和插件，用户体验很棒，计划在下一篇文章介绍 vue ui. 唯一比较不舒服的是如果滥用这种扩展性，装 N 多插件，而且插件之间还存在依赖关系时，也会成为升级维护的负担.</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="基本设计"><a href="#基本设计" class="headerlink" title="基本设计"></a>基本设计</h2><p>注意，本文不是 vue-cli 的教程，最好的教程是<a href="https://cli.vuejs.org/zh/dev-guide/plugin-dev.html#prompts" target="_blank" rel="noopener">官方文档</a>.</p>
+<p><br></p>
+<h3 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h3><p>下面是 vue-cli 的基本目录结构. 大部分大型的前端项目都使用 lerna 实现 mono-repo 模式, 然后统一分发到 npm. 这种模式有利于项目模块组织</p>
+<center><br>  <img src="/images/05/vue-cli-struct.png" width="700"><br></center>
+
+<p><br></p>
+<h3 id="分离-cli-层和-service-层"><a href="#分离-cli-层和-service-层" class="headerlink" title="分离 CLI 层和 Service 层"></a><strong>分离 CLI 层和 Service 层</strong></h3><p>这个设计是借鉴<code>create-react-app</code>的, CLI 层只是一些基础的命令一般不需要频繁升级，而且是全局安装; 而 Service 层是多变的, 作为项目的局部依赖，不应该硬编码在 CLI 里面. CLI 和 Service 的职责划分如下:</p>
+<p><br></p>
+<ul>
+<li><p>CLI: 用于项目创建和管理</p>
+<ul>
+<li>全局安装</li>
+<li><code>vue create</code> 创建项目脚手架. 拉取最新的 Service，并选择配置需要的插件</li>
+<li><code>vue ui</code>. 启动 UI 管理界面</li>
+<li>快速原型开发: <code>vue serve</code> | <code>vue build</code>, 直接伺服和编译一个 Vue 文件</li>
+<li>插件管理: <code>vue add</code> | <code>vue invoke</code> 安装插件和调用插件生成器</li>
+</ul>
+</li>
+<li><p>Service: 负责项目的实际构建</p>
+<ul>
+<li>局部安装</li>
+<li>集成 webpack 构建环境，<strong>Service 本身只有一个插件机制, 所有构建相关逻辑都由内置插件和外部插件提供</strong></li>
+<li>内置插件(命令): serve, build, inspect</li>
+</ul>
+</li>
+</ul>
+<p><br><br><br></p>
+<h3 id="插件系统"><a href="#插件系统" class="headerlink" title="插件系统"></a><strong>插件系统</strong></h3><p>vue-cli 提供了类似 babel、eslint 的插件机制。</p>
+<center><br>  <img src="/images/05/plugins.png" width="400"><br></center>
+
+<p><br></p>
+<h4 id="插件"><a href="#插件" class="headerlink" title="插件"></a><strong>插件</strong></h4><p>插件机制是 vue-cli 的核心, 用于扩展 Service. Service 的<code>命令</code>和 webpack 配置都由插件提供.</p>
+<p>其实插件机制本身并没有什么技术难度, 换句话说<strong>插件其实就是一个协议的设计</strong>. vue-cli 插件的协议如下:</p>
+<ul>
+<li><strong>命名</strong>: <code>@vue/cli-plugin-*</code>或<code>vue-cli-plugin-*</code>. package.json 中按着这个命名约定的依赖会被识别为 vue-cli 插件，另外命名约定也有利于在 github 或 npm 上筛选</li>
+<li><strong>生命周期</strong>:<br>一个插件的生命周期可以分为<code>安装阶段</code>和<code>运行阶段</code>. <code>vue create</code>命令创建项目脚手架、<code>vue add</code>以及<code>vue invoke</code>插件安装命令都属于安装阶段; 而 cli-service 命令执行时属于运行阶段.</li>
+<li><p><strong>基本结构</strong>: 区分了生命周期后，插件的结构就比较清晰了:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── README.md</span><br><span class="line">├── generator.js  # generator (可选)</span><br><span class="line">├── prompts.js    # prompt 文件 (可选)</span><br><span class="line">├── index.js      # service 插件</span><br><span class="line">└── package.json</span><br></pre></td></tr></table></figure>
+<ul>
+<li>安装阶段:<ul>
+<li>prompts: 收集用户意见和配置</li>
+<li>gernerator: 在安装阶段生成模板文件</li>
+</ul>
+</li>
+<li>运行时: index.js<ul>
+<li>注入 service 命令</li>
+<li>扩展和修改 webpack 配置. vue-cli 通过<code>webpack-chain</code>和<code>webpack-merge</code>来实现 webpack 可配置化</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<p>一个简单的插件结构是这样子的:</p>
+<center><br>  <img src="/codes/vue-plugin.png" width="600"><br></center>
+
+<p><br></p>
+<h4 id="preset"><a href="#preset" class="headerlink" title="preset"></a><strong>preset</strong></h4><p>这个 preset 和 babel 的 preset 概念实际上是不一样的:</p>
+<p><strong>vue-cli 的 preset 一个脚手架创建方案</strong>, 也就是说它只作用于<code>vue create</code>阶段。比如<code>vue create</code>时默认使用的就是 babel+eslint preset. preset 可以简化项目脚手架的创建。<strong>团队可以共享一个 preset 来创建脚手架</strong>。</p>
+<p><strong>而 babel 中的 preset 是一个插件集合，他可以统一收纳和管理一组插件方案</strong>. 例如<code>babel-preset-react</code>、 <code>babel-preset-env</code>. 上文说到如果扩展性被滥用，装 N 多插件，而且插件之间还存在依赖关系时，也会成为升级维护的负担. 而 ‘babel 式’的 preset 可以让插件更方便维护和和<strong>一键式升级</strong>。</p>
+<p>尽管目前 vue 也提供了<code>vue upgrade</code>对插件进行升级，这个是基于语义化版本约定的, 且当插件之间存在依赖关系时, 不排除升级存在风险. 尤其对于团队项目还是推荐有统一地管理这些插件, 实现傻瓜化的升级。 实际上这种 ‘babel 式’的 preset 是可以通过 vue-plugin 实现和转发的。</p>
+<p><br></p>
+<h4 id="配置"><a href="#配置" class="headerlink" title="配置"></a><strong>配置</strong></h4><p>vue 支持在 package.json 的 <code>vue</code> 字段或<code>vue.config.js</code>中进行配置。这里可以对 Service 核心功能和插件进行配置, 也可以直接修改 webpack 配置. 另外部分构建行为是通过环境变量进行影响的，这些可以通过<code>.env.*</code>文件进行配置</p>
+<p><br></p>
+<h3 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a><strong>基本流程</strong></h3><p>现在来看看一个 vue-cli 内部的基本流程, Service 的插件实现是 vue-cli 比较有意思的点. 以<code>vue serve</code>为例:</p>
+<center><br>  <img src="/images/05/vue-cli.png"><br></center>
+
+<p>Service 对象是 vue-cli 的核心对象，负责管理和应用插件，所有命令和 webpack 配置都是以插件的形式存在:</p>
+<center><br>  <img src="/images/05/vue-service-struct.png" width="700"><br></center>
+
+<p><strong>首先划分为配置阶段和运行阶段</strong>。 配置阶段 vue-cli 会加载配置文件，并查找和应用所有插件。将 PluginAPI 实例和项目配置传递给插件运行时, 插件运行时通过 PluginAPI 注入命令(registerCommand)和 扩展 webpack 配置(chainWebpack, configureWebpack).</p>
+<p>运行阶段则根据用户传入的命令名调用插件注入命令。在命令实现函数中，可以调用 resolveWebpackConfig()来生成最终的 webpack 配置。以 serve 命令为例，获取到 webpackConfig 后会创建一个 webpack 编译器，并开启 webpack-dev-server 开发服务器.</p>
+<p><br></p>
+<h2 id="技术地图"><a href="#技术地图" class="headerlink" title="技术地图"></a>技术地图</h2><ul>
+<li><strong>组织</strong><ul>
+<li><a href="http://lernajs.io" target="_blank" rel="noopener">lerna</a></li>
+</ul>
+</li>
+<li><strong>cli 命令行相关工具</strong><ul>
+<li><a href="https://github.com/chalk/chalk" target="_blank" rel="noopener">chalk</a>: 命令行字体颜色样式</li>
+<li><a href="https://www.npmjs.com/package/cli-highlight" target="_blank" rel="noopener">cli-highlight</a>: 终端语法高亮输出, 类似于 Highlight.js</li>
+<li><a href="https://www.npmjs.com/package/cliui" target="_blank" rel="noopener">cliui</a>: 在终端中进行多列输出</li>
+<li><a href="https://github.com/dcporter/didyoumean.js" target="_blank" rel="noopener">didyoumean</a>: 根据单词相似度，来对用户输入纠正提示</li>
+<li><a href="https://www.npmjs.com/package/semver" target="_blank" rel="noopener">semver</a>: 提供语义化版本号相关的工具函数。 例如比较，规范化</li>
+<li><a href="https://github.com/tj/commander.js#readme" target="_blank" rel="noopener">commander</a> TJ 写的命令行选项和参数解析器，支持子命令，选项校验和类型转换，帮组信息生成等等. API 简单优雅</li>
+<li><a href="https://www.npmjs.com/package/minimist" target="_blank" rel="noopener">minimist</a>: 一个极简的命令行参数解析器。如果只是简单的选项解析，可以用这个库</li>
+<li><a href="https://github.com/SBoudrias/Inquirer.js" target="_blank" rel="noopener">inquirer</a> 命令行询问</li>
+<li><a href="https://github.com/sindresorhus/ora" target="_blank" rel="noopener">ora</a> 命令行 spinner</li>
+<li><a href="https://github.com/yyx990803/launch-editor" target="_blank" rel="noopener">launch-editor</a> 打开编辑器. 通过 node 打开编辑器，前端可以 express 暴露接口调用打开</li>
+<li><a href="https://www.npmjs.com/package/open" target="_blank" rel="noopener">open</a> 打开 URL、文件、可执行文件</li>
+<li><a href="https://www.npmjs.com/package/execa" target="_blank" rel="noopener">execa</a> 更好的 child_process，修复了原生 exec 的一些问题</li>
+<li>validate-npm-package-name: 验证 npm 包名称，比如创建的项目名是否合法</li>
+<li><a href="https://www.npmjs.com/package/dotenv" target="_blank" rel="noopener">dotenv</a> &amp; <a href="https://www.npmjs.com/package/dotenv-expand" target="_blank" rel="noopener">dotenv-expand</a>: 从.env 文件中加载配置，环境变量</li>
+</ul>
+</li>
+<li><strong>网络相关</strong><ul>
+<li><a href="https://www.npmjs.com/package/portfinder" target="_blank" rel="noopener">portfinder</a>: 获取可用的端口</li>
+<li><a href="https://www.npmjs.com/package/address" target="_blank" rel="noopener">address</a>: 获取当前主机的 ip，MAC 和 DNS 服务器</li>
+</ul>
+</li>
+<li><strong>文件处理相关</strong><ul>
+<li><a href="https://www.npmjs.com/package/slash" target="_blank" rel="noopener">slash</a> 一致化处理路径中的分隔符</li>
+<li><a href="https://www.npmjs.com/package/fs-extra" target="_blank" rel="noopener">fs-extra</a> node fs 模块扩展</li>
+<li>globby: glob 模式匹配</li>
+<li>rimraf 跨平台文件删除命令</li>
+<li><a href="https://www.npmjs.com/package/memfs" target="_blank" rel="noopener">memfs</a> 兼容 Node fs API 的内存文件系统</li>
+</ul>
+</li>
+<li><strong>数据检验</strong><ul>
+<li><a href="https://www.npmjs.com/package/@hapi/joi" target="_blank" rel="noopener">@hapi/joi</a> JSON schema 校验</li>
+</ul>
+</li>
+<li><strong>调试</strong><ul>
+<li><a href="https://www.npmjs.com/package/debug" target="_blank" rel="noopener">debug</a>: 这是一个 debug 日志利器, 支持通过环境变量或动态设置来确定是否需要输出; 支持 printf 风格格式化</li>
+</ul>
+</li>
+<li><strong>算法</strong><ul>
+<li>hash-sum: 散列值计算</li>
+<li>deepmerge 深合并</li>
+</ul>
+</li>
+<li><strong>其他</strong><ul>
+<li><a href="https://github.com/benjamn/recast" target="_blank" rel="noopener">recast</a> Javascript 语法树转换器，支持非破坏性的格式化输出. 常用于扩展 js 代码</li>
+<li><a href="https://www.npmjs.com/package/javascript-stringify" target="_blank" rel="noopener">javascript-stringify</a>: 类似于 JSON.stringify, 将对象字符串化。</li>
+</ul>
+</li>
+<li><strong>webpack</strong><ul>
+<li>配置定义<ul>
+<li>webpack-merge: 合并 webpack 配置对象</li>
+<li>webpack-chain: 链式配置 webpack. 这两个库是 vue-cli 插件的重要成员</li>
+</ul>
+</li>
+<li>webpack-dev-server: webpack 开发服务器，支持代码热重载，错误信息展示，接口代理等等</li>
+<li>webpack-bundle-analyzer: webpack 包分析器</li>
+</ul>
+</li>
+<li><strong>扩展(一些相关的技术栈)</strong><ul>
+<li>http-server 快速伺服静态文件</li>
+<li>plop 模板生成器</li>
+<li>yeoman 项目脚手架工具</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue-cli"><span class="toc-number">1.</span> <span class="toc-text">vue-cli</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#基本设计"><span class="toc-number">2.</span> <span class="toc-text">基本设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#目录结构"><span class="toc-number">2.1.</span> <span class="toc-text">目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分离-cli-层和-service-层"><span class="toc-number">2.2.</span> <span class="toc-text">分离 CLI 层和 Service 层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#插件系统"><span class="toc-number">2.3.</span> <span class="toc-text">插件系统</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#插件"><span class="toc-number">2.3.1.</span> <span class="toc-text">插件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#preset"><span class="toc-number">2.3.2.</span> <span class="toc-text">preset</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#配置"><span class="toc-number">2.3.3.</span> <span class="toc-text">配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#基本流程"><span class="toc-number">2.4.</span> <span class="toc-text">基本流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#技术地图"><span class="toc-number">3.</span> <span class="toc-text">技术地图</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/26/vue-cli-map/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/26/vue-cli-map/&text=浅谈 vue-cli 的插件设计"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/26/vue-cli-map/&is_video=false&description=浅谈 vue-cli 的插件设计"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈 vue-cli 的插件设计&body=Check out this article: https://bobi.ink/2019/05/26/vue-cli-map/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/26/vue-cli-map/&title=浅谈 vue-cli 的插件设计"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/26/vue-cli-map/&name=浅谈 vue-cli 的插件设计&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

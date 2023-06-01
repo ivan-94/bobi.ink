@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="在 React 的世界里”一切都是组件“， 组件可以映射作函数式编程中的函数，React 的组件和函数一样的灵活的特性不仅仅可以用于绘制 UI，还可以用于封装业务状态和逻辑，或者非展示相关的副作用, 再通过组合方式组成复杂的应用. 本文尝试解释用 React 组件的思维来处理常见的业务开发场景. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React组件设计实践总结04 - 组件的思维">
+<meta property="og:url" content="https://bobi.ink/2019/05/15/react-component-design-04/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="在 React 的世界里”一切都是组件“， 组件可以映射作函数式编程中的函数，React 的组件和函数一样的灵活的特性不仅仅可以用于绘制 UI，还可以用于封装业务状态和逻辑，或者非展示相关的副作用, 再通过组合方式组成复杂的应用. 本文尝试解释用 React 组件的思维来处理常见的业务开发场景. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/04/hooks-transform.png">
+<meta property="og:image" content="https://bobi.ink/images/04/mobx.png">
+<meta property="og:image" content="https://bobi.ink/images/04/hook-stream.png">
+<meta property="og:image" content="https://bobi.ink/images/04/overlay.png">
+<meta property="og:image" content="https://bobi.ink/images/04/modal-demo.png">
+<meta property="og:image" content="https://bobi.ink/images/04/modal-confirm.jpg">
+<meta property="og:image" content="https://bobi.ink/images/04/static-router.png">
+<meta property="og:image" content="https://bobi.ink/images/04/router-demo.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React组件设计实践总结04 - 组件的思维">
+<meta name="twitter:description" content="在 React 的世界里”一切都是组件“， 组件可以映射作函数式编程中的函数，React 的组件和函数一样的灵活的特性不仅仅可以用于绘制 UI，还可以用于封装业务状态和逻辑，或者非展示相关的副作用, 再通过组合方式组成复杂的应用. 本文尝试解释用 React 组件的思维来处理常见的业务开发场景. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理">
+<meta name="twitter:image" content="https://bobi.ink/images/04/hooks-transform.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>React组件设计实践总结04 - 组件的思维</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/05/20/react-component-design-05/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/05/14/react-component-design-03/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/15/react-component-design-04/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/15/react-component-design-04/&text=React组件设计实践总结04 - 组件的思维"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/15/react-component-design-04/&is_video=false&description=React组件设计实践总结04 - 组件的思维"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结04 - 组件的思维&body=Check out this article: https://bobi.ink/2019/05/15/react-component-design-04/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/15/react-component-design-04/&name=React组件设计实践总结04 - 组件的思维&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-高阶组件"><span class="toc-number">1.</span> <span class="toc-text">1. 高阶组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-render-props"><span class="toc-number">2.</span> <span class="toc-text">2. Render Props</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-使用组件的方式来抽象业务逻辑"><span class="toc-number">3.</span> <span class="toc-text">3. 使用组件的方式来抽象业务逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-hooks-取代高阶组件"><span class="toc-number">4.</span> <span class="toc-text">4. hooks 取代高阶组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-hooks-实现响应式编程"><span class="toc-number">5.</span> <span class="toc-text">5. hooks 实现响应式编程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-类继承也有用处"><span class="toc-number">6.</span> <span class="toc-text">6. 类继承也有用处</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-模态框管理"><span class="toc-number">7.</span> <span class="toc-text">7. 模态框管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-使用-context-进行依赖注入"><span class="toc-number">8.</span> <span class="toc-text">8. 使用 Context 进行依赖注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-不可变的状态"><span class="toc-number">9.</span> <span class="toc-text">9. 不可变的状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-react-router-url-即状态"><span class="toc-number">10.</span> <span class="toc-text">10. React-router: URL 即状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-组件规范"><span class="toc-number">11.</span> <span class="toc-text">11. 组件规范</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">12.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        React组件设计实践总结04 - 组件的思维
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-05-14T16:00:00.000Z" itemprop="datePublished">2019-05-15</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>在 React 的世界里”<strong>一切都是组件</strong>“， 组件可以映射作函数式编程中的函数，React 的组件和函数一样的灵活的特性不仅仅可以用于绘制 UI，还可以用于封装业务状态和逻辑，或者非展示相关的副作用, 再通过组合方式组成复杂的应用. 本文尝试解释用 React 组件的思维来处理常见的业务开发场景.</p>
+<p><strong>系列目录</strong></p>
+<ul>
+<li><a href="/2019/05/10/react-component-design-01/">01 类型检查</a></li>
+<li><a href="/2019/05/11/react-component-design-02/">02 组件的组织</a></li>
+<li><a href="/2019/05/14/react-component-design-03/">03 样式的管理</a></li>
+<li><a href="/2019/05/15/react-component-design-04/">04 组件的思维</a></li>
+<li><a href="/2019/05/20/react-component-design-05/">05 状态管理</a></li>
+</ul>
+<p><br></p>
+<p><strong>目录</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#1-高阶组件">1. 高阶组件</a></li>
+<li><a href="#2-render-props">2. Render Props</a></li>
+<li><a href="#3-使用组件的方式来抽象业务逻辑">3. 使用组件的方式来抽象业务逻辑</a></li>
+<li><a href="#4-hooks-取代高阶组件">4. hooks 取代高阶组件</a></li>
+<li><a href="#5-hooks-实现响应式编程">5. hooks 实现<code>响应式</code>编程</a></li>
+<li><a href="#6-类继承也有用处">6. 类继承也有用处</a></li>
+<li><a href="#7-模态框管理">7. 模态框管理</a></li>
+<li><a href="#8-使用-context-进行依赖注入">8. 使用 Context 进行依赖注入</a></li>
+<li><a href="#9-不可变的状态">9. 不可变的状态</a></li>
+<li><a href="#10-react-router-url-即状态">10. React-router: URL 即状态</a></li>
+<li><a href="#11-组件规范">11. 组件规范</a></li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="1-高阶组件"><a href="#1-高阶组件" class="headerlink" title="1. 高阶组件"></a>1. 高阶组件</h2><p>在很长一段时期里，高阶组件都是增强和组合 React 组件的最流行的方式. 这个概念源自于函数式编程的高阶函数. 高阶组件可以定义为: <strong>高阶组件是函数，它接收原始组件并返回原始组件的增强/填充版本</strong>:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HOC = <span class="function"><span class="params">Component</span> =&gt;</span> EnhancedComponent;</span><br></pre></td></tr></table></figure>
+<p>首先要明白我们<strong>为什么需要高阶组件</strong>:</p>
+<p>React 的<a href="https://react.docschina.org/docs/higher-order-components.html" target="_blank" rel="noopener">文档</a>说的非常清楚, <strong>高阶组件是一种用于复用组件逻辑模式</strong>. 最为常见的例子就是 redux 的<code>connect</code>和 react-router 的 <code>withRouter</code>. 高阶组件最初用于取代 mixin(了解<a href="https://zhuanlan.zhihu.com/p/20361937" target="_blank" rel="noopener">React Mixin 的前世今生</a>). 总结来说就是两点:</p>
+<ul>
+<li>逻辑复用. 把一些通用的代码逻辑提取出来放到高阶组件中, 让更多组件可以共享</li>
+<li>分离关注点. 在之前的章节中提到”逻辑和视图分离”的原则. 高阶组件可以作为实现该原则的载体. 我们一般将行为层或者业务层抽取到高阶组件中来实现, 让展示组件只关注于 UI</li>
+</ul>
+<p>高阶组件的一些<strong>实现方法</strong>主要有两种:</p>
+<ul>
+<li><p><code>属性代理(Props Proxy)</code>: 代理传递给被包装组件的 props, 对 props 进行操作. 这种方式用得最多. 使用这种方式可以做到:</p>
+<ul>
+<li>操作 props</li>
+<li>访问被包装组件实例</li>
+<li>提取 state</li>
+<li>用其他元素包裹被包装组件</li>
+</ul>
+</li>
+<li><p><code>反向继承(Inheritance Inversion)</code>: 高阶组件继承被包装的组件. 例如:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myhoc</span>(<span class="params">WrappedComponent</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">class</span> Enhancer <span class="keyword">extends</span> WrappedComponent &#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">super</span>.render();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以实现:</p>
+<ul>
+<li>渲染劫持: 即控制被包装组件的渲染输出.</li>
+<li>操作 state: state 一般属于组件的内部细节, 通过继承的方式可以暴露给子类. 可以增删查改被包装组件的 state, 除非你知道你在干什么, 一般不建议这么做.</li>
+</ul>
+</li>
+</ul>
+<p>实际上高阶组件能做的不止上面列举的, 高阶组件非常灵活, 全凭你的想象力. 读者可以了解 <a href="https://github.com/acdlite/recompose/blob/master/docs/API.md" target="_blank" rel="noopener">recompose</a>这个库, 简直把高阶组件玩出花了.</p>
+<p>总结一下高阶组件的<strong>应用场景</strong>:</p>
+<ul>
+<li>操作 props: 增删查改 props. 例如转换 props, 扩展 props, 固定 props, 重命名 props</li>
+<li>依赖注入. 注入 context 或外部状态和逻辑, 例如 redux 的 connnect, react-router 的 withRouter. 旧 context 是实验性 API, 所以很多库都不会将 context 保留出来, 而是通过高阶组件形式进行注入</li>
+<li>扩展 state: 例如给函数式组件注入状态</li>
+<li>避免重复渲染: 例如 React.memo</li>
+<li>分离逻辑, 让组件保持 dumb</li>
+</ul>
+<blockquote>
+<p>高阶组件相关文档在网上有很多, 本文不打算展开描述. 深入了解<a href="https://zhuanlan.zhihu.com/p/24776678" target="_blank" rel="noopener">高阶组件</a></p>
+</blockquote>
+<p>高阶组件的一些<strong>规范</strong>:</p>
+<ul>
+<li><p>包装显示名字以便于调试</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">withSubscription</span>(<span class="params">WrappedComponent</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">class</span> WithSubscription <span class="keyword">extends</span> React.Component &#123;</span><br><span class="line">    <span class="comment">/* ... */</span></span><br><span class="line">  &#125;</span><br><span class="line">  WithSubscription.displayName = <span class="string">`WithSubscription(<span class="subst">$&#123;getDisplayName(WrappedComponent)&#125;</span>)`</span>;</span><br><span class="line">  <span class="keyword">return</span> WithSubscription;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getDisplayName</span>(<span class="params">WrappedComponent</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> WrappedComponent.displayName || WrappedComponent.name || <span class="string">'Component'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>使用 React.forwardRef 来转发 ref</p>
+</li>
+<li><p>使用’高阶函数’来配置’高阶组件’, 这样可以让高阶组件的组合性最大化. Redux 的 connect 就是典型的例子</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> ConnectedComment = connect(</span><br><span class="line">  commentSelector,</span><br><span class="line">  commentActions,</span><br><span class="line">)(Comment);</span><br></pre></td></tr></table></figure>
+<p>当使用 compose 进行组合时就能体会到它的好处:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 🙅 不推荐</span></span><br><span class="line"><span class="keyword">const</span> EnhancedComponent = withRouter(connect(commentSelector)(WrappedComponent));</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 使用compose方法进行组合</span></span><br><span class="line"><span class="comment">// compose(f, g, h) 和 (...args) =&gt; f(g(h(...args)))是一样的</span></span><br><span class="line"><span class="keyword">const</span> enhance = compose(</span><br><span class="line">  <span class="comment">// 这些都是单独一个参数的高阶组件</span></span><br><span class="line">  withRouter,</span><br><span class="line">  connect(commentSelector),</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> EnhancedComponent = enhance(WrappedComponent);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>转发所有不相关 props 属性给被包装的组件</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">render() &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; extraProp, ...passThroughProps &#125; = <span class="keyword">this</span>.props;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;WrappedComponent</span><br><span class="line">      injectedProp=&#123;injectedProp&#125;</span><br><span class="line">      &#123;...passThroughProps&#125;</span><br><span class="line">    /&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>命名: 一般以 with*命名, 如果携带参数, 则以 create*命名</p>
+</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="2-render-props"><a href="#2-render-props" class="headerlink" title="2. Render Props"></a>2. Render Props</h2><p>Render Props(Function as Child) 也是一种常见的 react 模式, 比如官方的 <a href="https://reactjs.org/docs/context.html" target="_blank" rel="noopener">Context API</a> 和 <a href="https://www.react-spring.io" target="_blank" rel="noopener">react-spring</a> 动画库. 目的高阶组件差不多: 都是为了分离关注点, 对组件的逻辑进行复用; 在使用和实现上比高阶组件要简单, 在某些场景可以取代高阶组件. 官方的定义是:</p>
+<blockquote>
+<p><strong>是指一种在 React 组件之间使用一个值为函数的 prop 在 React 组件间共享代码的简单技术</strong></p>
+</blockquote>
+<p>React 并没有限定任何 props 的类型, 所以 props 也可以是函数形式. 当 props 为函数时, 父组件可以通过函数参数给子组件传递一些数据进行动态渲染. 典型代码为:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">&lt;FunctionAsChild&gt;&#123;<span class="function"><span class="params">()</span> =&gt;</span> &lt;div&gt;Hello,World!&lt;<span class="regexp">/div&gt;&#125;&lt;/</span>FunctionAsChild&gt;</span><br></pre></td></tr></table></figure>
+<p>使用示例:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">&lt;Spring <span class="keyword">from</span>=&#123;&#123; opacity: <span class="number">0</span> &#125;&#125; to=&#123;&#123; opacity: <span class="number">1</span> &#125;&#125;&gt;</span><br><span class="line">  &#123;<span class="function"><span class="params">props</span> =&gt;</span> &lt;div style=&#123;props&#125;&gt;hello&lt;<span class="regexp">/div&gt;&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>Spring&gt;</span><br></pre></td></tr></table></figure>
+<p>某种程度上, 这种模式相比高阶组件要简单很多, 不管是实现还是使用层次. 缺点也很明显:</p>
+<ul>
+<li>可读性差, 尤其是多层嵌套情况下</li>
+<li>组合性差. 只能通过 JSX 一层一层嵌套, 一般不宜多于一层</li>
+<li>适用于动态渲染. 因为局限在 JSX 节点中, 当前组件是很难获取到 render props 传递的数据. 如果要传递给当前组件还是得通过 props, 也就是通过高阶组件传递进来</li>
+</ul>
+<p>再开一下脑洞. 通过一个 Fetch 组件来进行接口请求:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">&lt;Fetch method=<span class="string">"user.getById"</span> id=&#123;userId&#125;&gt;</span><br><span class="line">  &#123;<span class="function">(<span class="params">&#123; data, error, retry, loading &#125;</span>) =&gt;</span> (</span><br><span class="line">    &lt;Container&gt;</span><br><span class="line">      &#123;loading ? (</span><br><span class="line">        &lt;Loader /&gt;</span><br><span class="line">      ) : error ? (</span><br><span class="line">        &lt;ErrorMessage error=&#123;error&#125; retry=&#123;retry&#125; /&gt;</span><br><span class="line">      ) : data ? (</span><br><span class="line">        &lt;Detail data=&#123;data&#125; /&gt;</span><br><span class="line">      ) : <span class="literal">null</span>&#125;</span><br><span class="line">    &lt;<span class="regexp">/Container&gt;</span></span><br><span class="line"><span class="regexp">  )&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>Fetch&gt;</span><br></pre></td></tr></table></figure>
+<p>在 React Hooks 出现之前, 为了给函数组件(或者说 dumb component)添加状态, 通常会使用这种模式. 比如 <a href="https://github.com/renatorib/react-powerplug" target="_blank" rel="noopener">react-powerplug</a></p>
+<blockquote>
+<p>官方<a href="https://react.docschina.org/docs/render-props.html" target="_blank" rel="noopener">文档</a></p>
+</blockquote>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="3-使用组件的方式来抽象业务逻辑"><a href="#3-使用组件的方式来抽象业务逻辑" class="headerlink" title="3. 使用组件的方式来抽象业务逻辑"></a>3. 使用组件的方式来抽象业务逻辑</h2><p>大部分情况下, 组件表示是一个 UI 对象. 其实组件不单单可以表示 UI, 也可以用来抽象业务对象, 有时候抽象为组件可以巧妙地解决一些问题.</p>
+<p>举一个例子: 当一个审批人在审批一个请求时, 请求发起者是不能重新编辑的; 反之发起者在编辑时, 审批人不能进行审批. 这是一个锁定机制, 后端一般使用类似心跳机制来维护这个’锁’, 这个锁可以显式释放，也可以在超过一定时间没有激活时自动释放，比如页面关闭. 所以前端通常会使用轮询机制来激活锁.</p>
+<p>一般的实现:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> MyPage <span class="keyword">extends</span> React.Component &#123;</span><br><span class="line">  <span class="keyword">public</span> componentDidMount() &#123;</span><br><span class="line">    <span class="comment">// 根据一些条件触发, 可能还要监听这些条件的变化，然后停止加锁轮询. 这个逻辑实现起来比较啰嗦</span></span><br><span class="line">    <span class="keyword">if</span> (someCondition) &#123;</span><br><span class="line">      <span class="keyword">this</span>.timer = setInterval(<span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">        <span class="comment">// 轮询</span></span><br><span class="line">        tryLock();</span><br><span class="line">        <span class="comment">// 错误处理，可以加锁失败...</span></span><br><span class="line">      &#125;, <span class="number">5000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> componentWillUnmount() &#123;</span><br><span class="line">    clearInterval(<span class="keyword">this</span>.timer);</span><br><span class="line">    <span class="comment">// 页面卸载时显式释放</span></span><br><span class="line">    releaseLock();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> componentDidUpdate() &#123;</span><br><span class="line">    <span class="comment">// 监听条件变化，开始或停止锁定</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>随着功能的迭代, MyPage 会变得越来越臃肿, 这时候你开始考虑将这些业务逻辑抽取出去. 一般情况下通过高阶组件或者 hook 来实现, 但都不够灵活, 比如<strong>条件锁定这个功能实现起来就比较别扭</strong>.</p>
+<p>有时候考虑将业务抽象成为组件, 可能可以巧妙地解决我们的问题, 例如 Locker:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 锁定器</span><br><span class="line"> */</span><br><span class="line">const Locker: FC&lt;&#123; onError: err =&gt; boolean, id: string &#125;&gt; = props =&gt; &#123;</span><br><span class="line">  const &#123;id, onError&#125; = props</span><br><span class="line">  useEffect(() =&gt; &#123;</span><br><span class="line">    let timer</span><br><span class="line">    const poll = () =&gt; &#123;</span><br><span class="line">      timer = setTimeout(async () =&gt; &#123;</span><br><span class="line">        // ...</span><br><span class="line">        // 轮询，处理异常等情况</span><br><span class="line">      &#125;, 5000)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    poll()</span><br><span class="line"></span><br><span class="line">    return () =&gt; &#123;</span><br><span class="line">      clearTimeout(timer)</span><br><span class="line">      releaseLock()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, [id])</span><br><span class="line"></span><br><span class="line">  return null</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>使用 Locker</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">render() &#123;</span><br><span class="line">  <span class="keyword">return</span> (&lt;div&gt;</span><br><span class="line">    &#123;someCondition &amp;&amp; &lt;Locker id=&#123;<span class="keyword">this</span>.id&#125; onError=&#123;<span class="keyword">this</span>.handleError&#125;&gt;&lt;<span class="regexp">/Locker&gt;&#125;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里面有一个要点：我们将一个业务抽象为了一个组件后，业务逻辑有了和组件一样的生命周期。<strong>现在组件内部只需关心自身的逻辑，比如只关心资源请求和释放(即 How)，而何时进行，什么条件进行(即 When)则由父级来决定</strong>, 这样就符合了单一职责原则。 上面的例子父级通过 JSX 的条件渲染就可以动态控制锁定, 比之前的实现简单了很多</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="4-hooks-取代高阶组件"><a href="#4-hooks-取代高阶组件" class="headerlink" title="4. hooks 取代高阶组件"></a>4. hooks 取代高阶组件</h2><p>个人觉得 hooks 对于 React 开发来说是一个革命性的特性, 它改变了开发的思维和模式. 首先要问一下, “它解决了什么问题? 带来了什么新的东西?”</p>
+<p>hooks 首先是要解决高阶组件或者 Render Props 的痛点的. 官方在’<strong>动机</strong>‘上就说了:</p>
+<ul>
+<li><ol>
+<li><strong>很难在组件之间复用状态逻辑</strong>:</li>
+</ol>
+<ul>
+<li>问题: React 框架本身并没有提供一种将可复用的逻辑注入到组件上的方式/原语. RenderProps 和高阶组件只是’模式层面(或者说语言层面)’的东西:</li>
+<li>此前的方案: 高阶组件和 Render Props。<strong>这些方案都是基于组件本身的机制</strong><ul>
+<li>高阶组件和 Render Props 会造成多余的节点嵌套. 即 Wrapper hell</li>
+<li>需要调整你的组件结构, 会让代码变得笨重, 且难以理解</li>
+<li>高阶组件复杂, 难以理解</li>
+<li>此前高阶组件也要 ref 转发问题等等</li>
+</ul>
+</li>
+<li><p>hooks 如何解决:</p>
+<ul>
+<li>将状态逻辑从组件中脱离, 让他可以被单独的测试和复用.</li>
+<li>hooks 可以在组件之间共享, 不会影响组件的结构</li>
+</ul>
+<p><br></p>
+</li>
+</ul>
+</li>
+<li><ol start="2">
+<li><strong>复杂的组件难以理解</strong>: 复杂组件的特点是有一大堆分散的状态逻辑和副作用. 例如每个生命周期函数常常包含一些互不相关的逻辑, 这些互不相关的逻辑会慢慢变成面条式的代码, 但是你发现很难再对它们进行拆解, 更别说测试它们</li>
+</ol>
+<ul>
+<li>问题:<ul>
+<li>实际情况，我们很难将这些组件分解成更小的组件，因为状态到处都是。测试它们也很困难。</li>
+<li>经常导致过分抽象, 比如 redux, 需要在多个文件中跳转, 需要很多模板文件和模板代码</li>
+</ul>
+</li>
+<li>此前的解决方法: 高阶组件和 Render Props 或者状态管理器. 分割抽离逻辑和 UI, 切割成更小粒度的组件</li>
+<li><p>hooks 如何解决: Hooks 允许您根据相关部分(例如设置订阅或获取数据)将一个组件分割成更小的函数，而不是强制基于生命周期方法进行分割。你还可以选择使用一个 reducer 来管理组件的本地状态，以使其更加可预测</p>
+<p><br></p>
+</li>
+</ul>
+</li>
+<li><ol start="3">
+<li>基于 class 的组件对机器和用户都不友好:</li>
+</ol>
+<ul>
+<li>问题:<ul>
+<li>对于人: 需要理解 this, 代码冗长</li>
+<li>对于机器: 不好优化</li>
+</ul>
+</li>
+<li>hooks 如何解决: 函数式组件</li>
+<li>新的问题: 你要了解闭包</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<p>Hooks 带来的<strong>新东西</strong>: <strong>hook 旨在让组件的内部逻辑组织成可复用的更小单元，这些单元各自维护一部分组件‘状态和逻辑’</strong>。</p>
+<p><img alt="migrate to hooks" src="/images/04/hooks-transform.png" width="800"><br>图片来源于twitter(<a href="https://twitter.com/threepointone/status/1056594421079261185/photo/1?ref_src=twsrc%5Etfw%7Ctwcamp%5Etweetembed%7Ctwterm%5E1056594421079261185&amp;ref_url=https%3A%2F%2Fmedium.com%2Fmedia%2Fe55e7bcbf2d4912af7e539a2646388e2%3FpostId%3Dfdbde8803889" target="_blank" rel="noopener">@sunil Pai</a>)</p>
+<ul>
+<li><strong>一种新的组件编写方式</strong>. 和此前基于 class 或纯函数组件的开发方式不太一样, hook 提供了更简洁的 API 和代码复用机制, 这使得组件代码变得更简短. 例如 👆 上图就是迁移到 hooks 的代码结构对比, 读者也可以看这个演讲(<a href="https://www.youtube.com/watch?v=wXLf18DsV-I" target="_blank" rel="noopener">90% Cleaner React</a>).<br><br></li>
+<li><strong>更细粒度的状态控制(useState)</strong>. 以前一个组件只有一个 setState 集中式管理组件状态, <strong>现在 hooks 像组件一样, 是一个逻辑和状态的聚合单元. 这意味着不同的 hook 可以维护自己的状态</strong>.<br><br></li>
+<li><p><strong>不管是 hook 还是组件，都是普通函数</strong>.</p>
+<ul>
+<li><strong>从某种程度上看组件和 hooks 是同质的(都包含状态和逻辑)</strong>. 统一使用函数形式开发, 这使得你不需要在类、高阶组件或者 renderProps 上下文之间切换, 降低项目的复杂度. 对于 React 的新手来说，各种高阶组件、render props 各种概念拉高了学习曲线</li>
+<li><strong>函数是一种最简单的代码复用单元, 最简单也意味着更灵活</strong>。相比组件的 props，函数的传参更加灵活； 函数也更容易进行组合, hooks 组合其他 hook 或普通函数来实现复杂逻辑.</li>
+<li><strong>本质上讲，hooks 就是给函数带来了状态的概念</strong><br><br></li>
+</ul>
+</li>
+<li><p><strong>高阶组件之间只能简单嵌套复合(compose), 而多个 hooks 之间是平铺的, 可以定义更复杂的关系(依赖)</strong>.<br><br></p>
+</li>
+<li><strong>更容易进行逻辑和视图分离</strong>. hooks 天然隔离 JSX, 视图和逻辑之间的界限比较清晰, 这使得 hooks 可以更专注组件的行为.<br><br></li>
+<li><strong>淡化组件生命周期概念, 将本来分散在多个生命周期的相关逻辑聚合起来</strong><br><br></li>
+<li><strong>一点点’响应式编程’的味道</strong>, 每个 hooks 都包含一些状态和副作用，这些数据可以在 hooks 之间传递流动和响应， 见下文<br><br></li>
+<li><strong>跨平台的逻辑复用</strong>. 这是我自己开的脑洞, React hooks 出来之后<a href="https://github.com/yyx990803" target="_blank" rel="noopener">尤雨溪</a>就推了一个<a href="https://github.com/yyx990803/vue-hooks" target="_blank" rel="noopener">vue-hooks</a>试验项目, 如果后面发展顺利, hooks 是可能被用于跨框架复用?</li>
+</ul>
+<p><br></p>
+<p>一个<strong>示例</strong>: 无限加载列表</p>
+<iframe src="https://codesandbox.io/embed/rwq4opm70n?codemirror=1&fontsize=14&view=editor" title="useList" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+<p><br></p>
+<p>一般 hooks 的基本代码结构为:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useHook</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ⚛️states</span></span><br><span class="line">  <span class="keyword">const</span> [someState, setSomeState] = useState(initialValue);</span><br><span class="line">  <span class="comment">// ⚛️derived state</span></span><br><span class="line">  <span class="keyword">const</span> computedState = useMemo(<span class="function"><span class="params">()</span> =&gt;</span> computed, [dependencies]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️refs</span></span><br><span class="line">  <span class="keyword">const</span> refSomething = useRef();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️side effect</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;, []);</span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;, [dependencies]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️state operations</span></span><br><span class="line">  <span class="keyword">const</span> handleChange = useCallback(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    setSomeState(newState)</span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️output</span></span><br><span class="line">  <span class="keyword">return</span> &lt;div&gt;&#123;...&#125;&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>自定义 hook 和函数组件的代码结构基本一致, 所以有时候<strong>hooks 写着写着原来越像组件, 组件写着写着越像 hooks. 我觉得可以认为组件就是一种特殊的 hook, 只不过它输出 Virtual DOM</strong>.</p>
+<p><br></p>
+<p>一些<strong>注意事项</strong>:</p>
+<ul>
+<li>只能在组件顶层调用 hooks。不要在循环，控制流和嵌套的函数中调用 hooks</li>
+<li>只能从 React 的函数组件中调用 hooks</li>
+<li>自定义 hooks 使用 use*命名</li>
+</ul>
+<p><br></p>
+<p>总结 hooks 的<strong>常用场景</strong>:</p>
+<ul>
+<li><strong>副作用封装和监听</strong>: 例如 useWindowSize(监听窗口大小)，useOnlineStatus(在线状态)</li>
+<li><strong>副作用衍生</strong>: useEffect, useDebounce, useThrottle, useTitle, useSetTimeout</li>
+<li><strong>DOM 事件封装</strong>：useActive，useFocus, useDraggable, useTouch</li>
+<li><strong>获取 context</strong></li>
+<li><strong>封装可复用逻辑和状态</strong>: useInput, usePromise(异步请求), useList(列表加载)<ul>
+<li>取代高阶组件和 render Props. 例如使用 useRouter 取代 withRouter, useSpring 取代旧的 Spring Render Props 组件</li>
+<li>取代容器组件</li>
+<li>状态管理器: use-global-hook, unstated</li>
+</ul>
+</li>
+<li><strong>扩展状态操作</strong>: 原始的 useState 很简单，所以有很大的扩展空间，例如 useSetState(模拟旧的 setState), useToggle(boolean 值切换)，useArray, useLocalStorage(同步持久化到本地存储)</li>
+<li>继续开脑洞…: hooks 的探索还在<a href="https://usehooks.com/" target="_blank" rel="noopener">继续</a></li>
+</ul>
+<p>学习 hooks:</p>
+<ul>
+<li><a href="https://react.docschina.org/docs/hooks-overview.html" target="_blank" rel="noopener">官方文档</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/50597236" target="_blank" rel="noopener">一篇看懂 React Hooks</a></li>
+<li><a href="https://www.youtube.com/watch?v=dpw9EHDh2bM" target="_blank" rel="noopener">React Today and Tomorrow and 90% Cleaner React With Hooks</a></li>
+<li><a href="https://www.hooks.guide/" target="_blank" rel="noopener">hook-guide</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/50274018" target="_blank" rel="noopener">精读《怎么用 React Hooks 造轮子》</a></li>
+<li><a href="https://medium.com/@dan_abramov/making-sense-of-react-hooks-fdbde8803889" target="_blank" rel="noopener">Making Sense of React Hooks</a></li>
+<li><a href="https://medium.com/@ryardley/react-hooks-not-magic-just-arrays-cd4f1857236e" target="_blank" rel="noopener">React hooks: not magic, just arrays</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="5-hooks-实现响应式编程"><a href="#5-hooks-实现响应式编程" class="headerlink" title="5. hooks 实现响应式编程"></a>5. hooks 实现<code>响应式</code>编程</h2><p><code>Vue</code>的非侵入性<a href="https://cn.vuejs.org/v2/guide/reactivity.html" target="_blank" rel="noopener">响应式系统</a>是其最独特的特性之一, 可以按照 Javascript 的数据操作习惯来操作组件状态， 然后自动响应到页面中. 而 React 这边则提供了 setState, 对于复杂的组件状态, setState 会让代码变得的又臭又长. 例如:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">this</span>.setState(&#123;</span><br><span class="line">  pagination: &#123;</span><br><span class="line">    ...this.state.pagination,</span><br><span class="line">    current: defaultPagination.current || <span class="number">1</span>,</span><br><span class="line">    pageSize: defaultPagination.pageSize || <span class="number">15</span>,</span><br><span class="line">    total: <span class="number">0</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>后来有了<a href="https://cn.mobx.js.org" target="_blank" rel="noopener">mobx</a>, 基本接近了 Vue 开发体验:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="meta">@observer</span></span><br><span class="line"><span class="keyword">class</span> TodoView <span class="keyword">extends</span> React.Component &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="meta">@observable</span> loading: <span class="built_in">boolean</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="meta">@observable</span> error?: <span class="built_in">Error</span>;</span><br><span class="line">  <span class="keyword">private</span> <span class="meta">@observable</span> list: Item[] = [];</span><br><span class="line">  <span class="comment">// 衍生状态</span></span><br><span class="line">  <span class="keyword">private</span> <span class="meta">@computed</span> <span class="keyword">get</span> completed() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.list.filter(<span class="function"><span class="params">i</span> =&gt;</span> i.completed)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> componentDidMount() &#123;</span><br><span class="line">    <span class="keyword">this</span>.load();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> render() &#123;</span><br><span class="line">    <span class="comment">/// ...</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">async</span> load() &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.error = <span class="literal">undefined</span></span><br><span class="line">      <span class="keyword">this</span>.loading = <span class="literal">true</span></span><br><span class="line">      <span class="keyword">const</span> list = <span class="keyword">await</span> fetchList()</span><br><span class="line">      <span class="keyword">this</span>.list = list</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      <span class="keyword">this</span>.error = err</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.loading = <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其实 mobx 也有挺多缺点:</p>
+<ul>
+<li>代码侵入性. 所有需要响应数据变动的组件都需要使用 observer 装饰, 属性需要使用 observable 装饰, 以及数据操作方式. 对 mobx 耦合较深, 日后切换框架或重构的成本很高</li>
+<li><p>兼容性. mobx v5 后使用 Proxy 进行重构, Proxy 在 Chrome49 之后才支持. 如果要兼容旧版浏览器则只能使用 v4, v4 有一些<a href="https://cn.mobx.js.org/#mobx-4-vs-mobx-5" target="_blank" rel="noopener">坑</a>, 这些坑对于不了解 mobx 的新手很难发现:</p>
+<ul>
+<li>Observable 数组并非真正的数组. 比如 antd 的 Table 组件就不认 mobx 的数组, 需要传入到组件之间使用 slice 进行转换</li>
+<li>向一个已存在的 observable 对象中添加属性不会被自动捕获</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<p>于是 hooks 出现了, 它让组件的状态管理变得更简单直接, 而且它的思想也很接近 mobx 响应式编程哲学:</p>
+<p><img src="/images/04/mobx.png" alt="mobx"></p>
+<p><br></p>
+<ol>
+<li>简洁地声明状态</li>
+</ol>
+<p><strong>状态</strong> 是驱动应用的数据. 例如 UI 状态或者业务领域状态</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Demo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [list, setList] = useState&lt;Item[]&gt;([]);</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>衍生</li>
+</ol>
+<p>任何 源自状态并且不会再有任何进一步的相互作用的东西就是衍生。包括用户视图, 衍生状态, 其他副作用</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Demo</span>(<span class="params">props: &#123; id: <span class="built_in">string</span> &#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; id &#125; = props;</span><br><span class="line">  <span class="comment">// 取代mobx的observable: 获取列表, 在挂载或id变动时请求</span></span><br><span class="line">  <span class="keyword">const</span> [value, setValue, loading, error, retry] = usePromise(</span><br><span class="line">    <span class="keyword">async</span> id =&gt; &#123;</span><br><span class="line">      <span class="keyword">return</span> getList(id);</span><br><span class="line">    &#125;,</span><br><span class="line">    [id],</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 衍生状态: 取代mobx的computed</span></span><br><span class="line">  <span class="keyword">const</span> unreads = useMemo(<span class="function"><span class="params">()</span> =&gt;</span> value.filter(<span class="function"><span class="params">i</span> =&gt;</span> !i.readed), [value]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 衍生副作用: value变动后自动持久化</span></span><br><span class="line">  useDebounce(</span><br><span class="line">    () =&gt; &#123;</span><br><span class="line">      saveList(id, value);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">1000</span>,</span><br><span class="line">    [value],</span><br><span class="line">  );</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 衍生视图</span></span><br><span class="line">  <span class="keyword">return</span> &lt;List data=&#123;value&#125; onChange=&#123;setValue&#125; error=&#123;error&#125; loading=&#123;loading&#125; retry=&#123;retry&#125; /&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/04/hook-stream.png" width="400"></p>
+<p>所以说 hook 是一个革命性的东西, 它可以让组件的状态数据流更加清晰. 换做 class 组件, 我们通常的做法可能是在 <code>componentDidUpdate</code>生命周期方法中进行数据比较, 然后命令式地触发一些方法. 比如 id 变化时触发 getList, list 变化时进行 saveList.</p>
+<p><strong>hook 似乎在淡化组件生命周期的概念, 让开发者更专注于状态的关系, 以数据流的方式来思考组件的开发</strong>. <a href="https://mobile.twitter.com/dan_abramov" target="_blank" rel="noopener">Dan Abramov</a>在<a href="https://overreacted.io/zh-hans/writing-resilient-components/" target="_blank" rel="noopener">编写有弹性的组件</a>也提到了一个原则”不要阻断数据流”, 证实了笔者的想法:</p>
+<blockquote>
+<p>无论何时使用 props 和 state，请考虑如果它们发生变化会发生什么。在大多数情况下，组件不应以不同方式处理初始渲染和更新流程。这使它能够适应逻辑上的变化。</p>
+</blockquote>
+<p>读者可以看一下<a href="https://github.com/rehooks/awesome-react-hooks" target="_blank" rel="noopener">awesome-react-hooks</a>, 这些开源的 hook 方案都挺有意思. 例如<a href="https://github.com/LeetCode-OpenSource/rxjs-hooks" target="_blank" rel="noopener">rxjs-hooks</a>, 巧妙地将 react hooks 和 rxjs 结合的起来:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">App</span>(<span class="params">props: &#123; foo: <span class="built_in">number</span> &#125;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 响应props的变动</span></span><br><span class="line">  <span class="keyword">const</span> value = useObservable(inputs$ =&gt; inputs$.pipe(map(<span class="function">(<span class="params">[val]</span>) =&gt;</span> val + <span class="number">1</span>)), <span class="number">200</span>, [props.foo]);</span><br><span class="line">  <span class="keyword">return</span> &lt;h1&gt;&#123;value&#125;&lt;<span class="regexp">/h1&gt;;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="6-类继承也有用处"><a href="#6-类继承也有用处" class="headerlink" title="6. 类继承也有用处"></a>6. 类继承也有用处</h2><p>就如 react 官方文档说的: “我们的 React 使用了数以千计的组件，然而却还未发现任何需要推荐你使用继承的情况。”, React 偏向于函数式编程的组合模式, 面向对象的继承实际的应用场景很少.</p>
+<p>当我们需要将一些传统的第三方库转换成 React 组件库时, 继承就可能派上用场. 因为这些库大部分是使用面向对象的范式来组织的, 比较典型的就是地图 SDK. 以<a href="http://lbsyun.baidu.com/cms/jsapi/reference/jsapi_reference_3_0.html" target="_blank" rel="noopener">百度地图</a>为例:</p>
+<p><img src="/images/04/overlay.png" alt="baidu overlay"></p>
+<p>百度地图有各种组件类型: controls, overlays, tileLayers. 这些类型都有多个子类, 如上图, overlay 有 Label, Marker, Polyline 等这些子类, 且这些子类有相同的生命周期, 都是通过 addOverlay 方法来渲染到地图画布上. 我们可以通过继承的方式将他们生命周期管理抽取到父类上, 例如:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Overlay抽象类, 负责管理Overlay的生命周期</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">abstract</span> <span class="keyword">class</span> Overlay&lt;P&gt; <span class="keyword">extends</span> React.PureComponent&lt;OverlayProps &amp; P&gt; &#123;</span><br><span class="line">  <span class="keyword">protected</span> initialize?: <span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">public</span> componentDidMount() &#123;</span><br><span class="line">    <span class="comment">// 子类在constructor或initialize方法中进行实例化</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.initialize) &#123;</span><br><span class="line">      <span class="keyword">this</span>.initialize();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.instance &amp;&amp; <span class="keyword">this</span>.context) &#123;</span><br><span class="line">      <span class="comment">// 渲染到Map画布中</span></span><br><span class="line">      <span class="keyword">this</span>.context.nativeInstance!.addOverlay(<span class="keyword">this</span>.instance);</span><br><span class="line">      <span class="comment">// 初始化参数</span></span><br><span class="line">      <span class="keyword">this</span>.initialProperties();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> componentDidUpdate(prevProps: P &amp; OverlayProps) &#123;</span><br><span class="line">    <span class="comment">// 属性更新</span></span><br><span class="line">    <span class="keyword">this</span>.updateProperties(prevProps);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> componentWillUnmount() &#123;</span><br><span class="line">    <span class="comment">// 组件卸载</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.instance &amp;&amp; <span class="keyword">this</span>.context) &#123;</span><br><span class="line">      <span class="keyword">this</span>.context.nativeInstance!.removeOverlay(<span class="keyword">this</span>.instance);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 其他通用方法</span></span><br><span class="line">  <span class="keyword">private</span> forceReloadIfNeed(props: P, prevProps: P) &#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>子类的工作就变得简单很多, 声明自己的属性/事件和实例化具体类:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> Label <span class="keyword">extends</span> Overlay&lt;LabelProps&gt; &#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> defaultProps = &#123;</span><br><span class="line">    enableMassClear: <span class="literal">true</span>,</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">constructor</span>(<span class="params">props: LabelProps</span>) &#123;</span><br><span class="line">    <span class="keyword">super</span>(props);</span><br><span class="line">    <span class="keyword">const</span> &#123; position, content &#125; = <span class="keyword">this</span>.props;</span><br><span class="line">    <span class="comment">// 声明支持的属性和回调</span></span><br><span class="line">    <span class="keyword">this</span>.extendedProperties = PROPERTIES;</span><br><span class="line">    <span class="keyword">this</span>.extendedEnableableProperties = ENABLEABLE_PROPERTIES;</span><br><span class="line">    <span class="keyword">this</span>.extendedEvents = EVENTS;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 实例化具体类</span></span><br><span class="line">    <span class="keyword">this</span>.instance = <span class="keyword">new</span> BMap.Label(content, &#123;</span><br><span class="line">      position,</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>代码来源于 <a href="https://github.com/ivan-94/react-bdmap" target="_blank" rel="noopener">react-bdmap</a></p>
+</blockquote>
+<p>当然这个不是唯一的解决方法, 使用高阶组件和 hooks 同样能够实现. 只不过对于原本就采用面向对象范式组织的库, 使用继承方式会更加好理解</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="7-模态框管理"><a href="#7-模态框管理" class="headerlink" title="7. 模态框管理"></a>7. 模态框管理</h2><p><img src="/images/04/modal-demo.png" alt="modal demo"></p>
+<p>模态框是应用开发中使用频率非常高组件，尤其在中后台管理系统中. 但是在 React 中用着并不是特别爽, 典型的代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const Demo: FC&lt;&#123;&#125;&gt; = props =&gt; &#123;</span><br><span class="line">  // ...</span><br><span class="line">  const [visible, setVisible] = useState(false);</span><br><span class="line">  const [editing, setEditing] = useState();</span><br><span class="line">  const handleCancel = () =&gt; &#123;</span><br><span class="line">    setVisible(false);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  const prepareEdit = async (item: Item) =&gt; &#123;</span><br><span class="line">    // 加载详情</span><br><span class="line">    const detail = await loadingDeatil(item.id);</span><br><span class="line">    setEditing(detail);</span><br><span class="line">    setVisible(true);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  const handleOk = async () =&gt; &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      const values = await form.validate();</span><br><span class="line">      // 保存</span><br><span class="line">      await save(editing.id, values);</span><br><span class="line">      // 隐藏</span><br><span class="line">      setVisible(false);</span><br><span class="line">    &#125; catch &#123;&#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  return;</span><br><span class="line">  &lt;&gt;</span><br><span class="line">    &lt;Table</span><br><span class="line">      dataSource=&#123;list&#125;</span><br><span class="line">      columns=&#123;[</span><br><span class="line">        &#123;</span><br><span class="line">          text: &apos;操作&apos;,</span><br><span class="line">          render: item =&gt; &#123;</span><br><span class="line">            return &lt;a onClick=&#123;() =&gt; prepareEdit(item)&#125;&gt;编辑&lt;/a&gt;;</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      ]&#125;</span><br><span class="line">    /&gt;</span><br><span class="line">    &lt;Modal visible=&#123;visible&#125; onOk=&#123;handleOk&#125; onCancel=&#123;handleHide&#125;&gt;</span><br><span class="line">      &#123;/* 表单渲染 */&#125;</span><br><span class="line">    &lt;/Modal&gt;</span><br><span class="line">  &lt;/&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>上面的代码太丑了， 不相关逻辑堆积在一个组件下 ，不符合单一职责. 所以我们要将模态框相关代码抽取出去, 放到 EditModal 中:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const EditModal: FC&lt;&#123; id?: string; visible: boolean; onCancel: () =&gt; void; onOk: () =&gt; void &#125;&gt; = props =&gt; &#123;</span><br><span class="line">  // ...</span><br><span class="line">  const &#123; visible, id, onHide, onOk &#125; = props;</span><br><span class="line">  const detail = usePromise(async (id: string) =&gt; &#123;</span><br><span class="line">    return loadDetail(id);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  useEffect(() =&gt; &#123;</span><br><span class="line">    if (id != null) &#123;</span><br><span class="line">      detail.call(id);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, [id]);</span><br><span class="line"></span><br><span class="line">  const handleOk = () =&gt; &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">      const values = await form.validate();</span><br><span class="line">      // 保存</span><br><span class="line">      await save(editing.id, values);</span><br><span class="line">      onOk();</span><br><span class="line">    &#125; catch &#123;&#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  return (</span><br><span class="line">    &lt;Modal visible=&#123;visible&#125; onOk=&#123;onOk&#125; onCancel=&#123;onCancel&#125;&gt;</span><br><span class="line">      &#123;detail.value &amp;&amp;</span><br><span class="line">        &#123;</span><br><span class="line">          /* 表单渲染 */</span><br><span class="line">        &#125;&#125;</span><br><span class="line">    &lt;/Modal&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 使用</span><br><span class="line"> */</span><br><span class="line">const Demo: FC&lt;&#123;&#125;&gt; = props =&gt; &#123;</span><br><span class="line">  // ...</span><br><span class="line">  const [visible, setVisible] = useState(false);</span><br><span class="line">  const [editing, setEditing] = useState&lt;string | undefined&gt;(undefined);</span><br><span class="line">  const handleHide = () =&gt; &#123;</span><br><span class="line">    setVisible(false);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  const prepareEdit = async (item: Item) =&gt; &#123;</span><br><span class="line">    setEditing(item.id);</span><br><span class="line">    setVisible(true);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  return;</span><br><span class="line">  &lt;&gt;</span><br><span class="line">    &lt;Table</span><br><span class="line">      dataSource=&#123;list&#125;</span><br><span class="line">      columns=&#123;[</span><br><span class="line">        &#123;</span><br><span class="line">          text: &apos;操作&apos;,</span><br><span class="line">          render: item =&gt; &#123;</span><br><span class="line">            return &lt;a onClick=&#123;() =&gt; prepareEdit(item)&#125;&gt;编辑&lt;/a&gt;;</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      ]&#125;</span><br><span class="line">    /&gt;</span><br><span class="line">    &lt;EditModal id=&#123;editing&#125; visible=&#123;visible&#125; onOk=&#123;handleHide&#125; onCancel=&#123;handleHide&#125;&gt;</span><br><span class="line">      &#123;&apos; &apos;&#125;</span><br><span class="line">    &lt;/EditModal&gt;</span><br><span class="line">  &lt;/&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>现在编辑相关的逻辑抽取到了 EditModal 上，但是 Demo 组件还要维护模态框的打开状态和一些数据状态。一个复杂的页面可能会有很多模态框，这样的代码会变得越来越恶心， 各种 xxxVisible 状态满天飞. 从实际开发角度上将，模态框控制的最简单的方式应该是这样的：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const handleEdit = item =&gt; &#123;</span><br><span class="line">  EditModal.show(&#123;</span><br><span class="line">    // 🔴 通过函数调用的方式出发弹窗. 这符合对模态框的习惯用法, 不关心模态框的可见状态. 例如window.confirm, wx.showModal().</span><br><span class="line">    id: item.id, // 🔴 传递数据给模态框</span><br><span class="line">    onOk: saved =&gt; &#123;</span><br><span class="line">      // 🔴 事件回调</span><br><span class="line">      refreshList(saved);</span><br><span class="line">    &#125;,</span><br><span class="line">    onCancel: async () =&gt; &#123;</span><br><span class="line">      return confirm(&apos;确认取消&apos;); // 控制模态框是否隐藏</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这种方式在社区上也是有争议的，有些人认为这是 React 的反模式，<a href="https://www.zhihu.com/people/yu-san-geng" target="_blank" rel="noopener">@欲三更</a>在<a href="https://zhuanlan.zhihu.com/p/54492049" target="_blank" rel="noopener">Modal.confirm 违反了 React 的模式吗？</a>就探讨了这个问题。 以图为例：</p>
+<p><img src="/images/04/modal-confirm.jpg" alt="modal confirm"></p>
+<p>红线表示时间驱动(或者说时机驱动), 蓝线表示数据驱动。欲三更认为“哪怕一个带有明显数据驱动特色的 React 项目，也存在很多部分不是数据驱动而是事件驱动的. 数据只能驱动出状态，只有时机才能驱动出行为, 对于一个时机驱动的行为，你非得把它硬坳成一个数据驱动的状态，你不觉得很奇怪吗?”. 他的观点正不正确笔者不做评判, 但是某些场景严格要求‘数据驱动’，可能会有很多模板代码，写着会很难受.</p>
+<p>So 怎么实现?</p>
+<p>可以参考 antd <a href="https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx" target="_blank" rel="noopener">Modal.confirm</a>的实现, 它使用<code>ReactDOM.render</code>来进行外挂渲染，也有人使用<a href="https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81" target="_blank" rel="noopener">Context API</a>来实现的. 笔者认为比较接近理想的(至少 API 上看)是<a href="https://github.com/haradakunihiko/react-confirm" target="_blank" rel="noopener">react-comfirm</a>这样的:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * EditModal.tsx</span><br><span class="line"> */</span><br><span class="line">import &#123; confirmable &#125; from &apos;react-confirm&apos;;</span><br><span class="line">const EditModal = props =&gt; &#123;</span><br><span class="line">  /*...*/</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export default confirmable(EditModal);</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> *  Demo.tsx</span><br><span class="line"> */</span><br><span class="line">import EditModal from &apos;./EditModal&apos;;</span><br><span class="line"></span><br><span class="line">const showEditModal = createConfirmation(EditModal);</span><br><span class="line"></span><br><span class="line">const Demo: FC&lt;&#123;&#125;&gt; = props =&gt; &#123;</span><br><span class="line">  const prepareEdit = async (item: Item) =&gt; &#123;</span><br><span class="line">    showEditModal(&#123;</span><br><span class="line">      id: item.id, // 🔴 传递数据给模态框</span><br><span class="line">      onOk: saved =&gt; &#123;</span><br><span class="line">        // 🔴 事件回调</span><br><span class="line">        refreshList(saved);</span><br><span class="line">      &#125;,</span><br><span class="line">      onCancel: async someValues =&gt; &#123;</span><br><span class="line">        return confirm(&apos;确认取消&apos;); // 控制模态框是否隐藏</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  // ...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>使用<code>ReactDOM.render</code>外挂渲染形式的缺点就是无法访问 Context，所以还是要妥协一下，结合 Context API 来实现示例：</p>
+<iframe src="https://codesandbox.io/embed/lryom9617l?autoresize=1&fontsize=14" title="useModal" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+<p>扩展</p>
+<ul>
+<li><a href="https://github.com/ant-design/ant-design/blob/master/components/modal/confirm.tsx" target="_blank" rel="noopener">Modal.confirm</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/54492049" target="_blank" rel="noopener">Modal.confirm 违反了 React 的模式吗？</a></li>
+<li><a href="https://www.zhihu.com/search?type=content&amp;q=react%20modal" target="_blank" rel="noopener">使用 render props 抽象 Modal 组件的状态</a></li>
+<li><a href="https://github.com/haradakunihiko/react-confirm" target="_blank" rel="noopener">react-confirm</a></li>
+<li><a href="https://medium.com/@BogdanSoare/how-to-use-reacts-new-context-api-to-easily-manage-modals-2ae45c7def81" target="_blank" rel="noopener">How to use React’s new Context API to easily manage modals</a> 基于 Context 的方案</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="8-使用-context-进行依赖注入"><a href="#8-使用-context-进行依赖注入" class="headerlink" title="8. 使用 Context 进行依赖注入"></a>8. 使用 Context 进行依赖注入</h2><p>Context 为组件树提供了一个传递数据的方法，从而避免了在每一个层级手动的传递 props 属性.</p>
+<p>Context 在 React 应用中使用非常频繁, 新的<a href="https://react.docschina.org/docs/context.html#when-to-use-context" target="_blank" rel="noopener">Context API</a>也非常易用. Context 常用于以下场景:</p>
+<ul>
+<li><strong>共享那些被认为对于一个’组件树’而言是“全局”的数据</strong>. 如当前认证的用户, 主题, i18n 配置, 表单状态</li>
+<li><strong>组件配置</strong>. 配置组件的行为, 如 antd 的 ConfigProvider</li>
+<li><strong>跨组件通信</strong>. 不推荐通过’事件’进行通信, 而是通过’状态’进行通信</li>
+<li><strong>依赖注入</strong></li>
+<li><strong>状态管理器</strong>. Context 经过一些封装可以基本取代 Redux 和 Mobx 这些状态管理方案. 后续有专门文章介绍</li>
+</ul>
+<p>Context 的作用域是子树, 也就是说一个 Context Provider 可以应用于多个子树, 子树的 Provider 也可以覆盖父级的 Provider 的 value. 基本结构:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import React, &#123;useState, useContext&#125; from &apos;react&apos;</span><br><span class="line"></span><br><span class="line">export inteface MyContextValue &#123;</span><br><span class="line">  state: number</span><br><span class="line">  setState: (state: number) =&gt; void</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const MyContext = React.createContext&lt;MyContextValue&gt;(</span><br><span class="line">  &#123;</span><br><span class="line">    state: 1,</span><br><span class="line">    // 设置默认值, 抛出错误, 必须配合Provider使用</span><br><span class="line">    setState: () =&gt; throw new Error(&apos;请求MyContextProvider组件下级调用&apos;)</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">export const MyContextProvider: FC&lt;&#123;&#125;&gt; = props =&gt; &#123;</span><br><span class="line">  const [state, setState] = useState(1)</span><br><span class="line">  return &lt;MyContext.Provider value=&#123;&#123;state, setState&#125;&#125;&gt;&#123;props.children&#125;&lt;/MyContext.Provider&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export function useMyContext() &#123;</span><br><span class="line">  return useContext(MyContext)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default MyContextProvider</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Context 默认值中的方法应该抛出错误, 警告不规范的使用</p>
+</blockquote>
+<p>扩展：</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/50336226" target="_blank" rel="noopener">避免 React Context 导致的重复渲染</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="9-不可变的状态"><a href="#9-不可变的状态" class="headerlink" title="9. 不可变的状态"></a>9. 不可变的状态</h2><p>对于函数式编程范式的 React 来说，不可变状态有重要的意义.</p>
+<ul>
+<li><p>不可变数据具有可预测性。 可不变数据可以让应用更好调试，对象的变更更容易被跟踪和推导.<br>就比如 Redux, 它要求只能通过 dispatch+reducer 进行状态变更，配合它的 Devtool 可以很好的跟踪状态是如何被变更的. 这个特性对于大型应用来说意义重大，因为它的状态非常复杂，如果不加以组织和约束，你不知道是哪个地方修改了状态， 出现 bug 时很难跟踪.</p>
+<p>所以说对于严格要求单向数据流的状态管理器(Redux)来说，不可变数据是基本要求，它要求整个应用由一个单一的状态进行映射，不可变数据可以让整个应用变得可被预测.</p>
+</li>
+<li><p>不可变数据还使一些复杂的功能更容易实现。避免数据改变，使我们能够安全保留对旧数据的引用，可以方便地实现撤销重做，或者时间旅行这些功能</p>
+</li>
+<li>可以精确地进行重新渲染判断。可以简化 shouldComponentUpdate 比较。</li>
+</ul>
+<p>实现不可变数据的流行方法:</p>
+<ul>
+<li><a href="https://github.com/immerjs/immer" target="_blank" rel="noopener">immer</a></li>
+<li><a href="https://github.com/immutable-js/immutable-js" target="_blank" rel="noopener">Immutable.js</a></li>
+</ul>
+<p>笔者比较喜欢 immer，没有什么心智负担, 按照 JS 习惯的对象操作方式就可以实现不可变数据。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="10-react-router-url-即状态"><a href="#10-react-router-url-即状态" class="headerlink" title="10. React-router: URL 即状态"></a>10. React-router: URL 即状态</h2><center><br> <img src="/images/04/static-router.png" width="300"><br></center>
+
+<p>传统的路由主要用于区分页面, 所以一开始前端路由设计也像后端路由(也称为<strong>静态路由</strong>)一样, 使用对象配置方式, 给不同的 url 分配不同的页面组件, 当应用启动时, 在路由配置表中查找匹配 URL 的组件并渲染出来.</p>
+<p>React-Router v4 算是一个真正意义上符合<em>组件化</em>思维的路由库, React-Router 官方称之为‘动态路由’, 官方的解释是”指的是在应用程序渲染时发生的路由，而不是在运行应用程序之外的配置或约定中发生的路由”, 具体说, <code>&lt;Route/&gt;</code>变成了一个普通 React 组件, 它在渲染时判断是否匹配 URL, 如果匹配就渲染指定的组件, 不匹配就返回 null.</p>
+<p>这时候 URL 意义已经不一样了, <strong>URL 不再是简单的页面标志, 而是应用的状态</strong>; <strong>应用构成也不再局限于扁平页面, 而是多个可以响应 URL 状态的区域(可嵌套)</strong>. 因为思维转变很大, 所以它刚出来时并不受青睐. 这种方式更加灵活， 所以选择 v4 不代表放弃旧的路由方式, 你完全可以按照<a href="https://react-router.docschina.org/core/guides/static-routes" target="_blank" rel="noopener">旧的方式</a>来实现页面路由.</p>
+<p>举个应用实例: 一个应用由三个区域组成: 侧边栏放置多个入口, 点击这些入口会加载对应类型的列表, 点击列表项需要加载详情. 三个区域存在级联关系</p>
+<p><img src="/images/04/router-demo.png" alt="router demo"></p>
+<p>首先设计能够表达这种级联关系的 URL, 比如<code>/{group}/{id}</code>, URL 设计一般遵循<a href="https://ruby-china.github.io/rails-guides/v5.0/routing.html#嵌套资源" target="_blank" rel="noopener">REST 风格</a>, 那么应用的大概结构是这样子:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// App</span><br><span class="line">const App = () =&gt; &#123;</span><br><span class="line">  &lt;div className=&quot;app&quot;&gt;</span><br><span class="line">    &lt;SideBar /&gt;</span><br><span class="line">    &lt;Route path=&quot;/:group&quot; component=&#123;ListPage&#125; /&gt;</span><br><span class="line">    &lt;Route path=&quot;/:group/:id&quot; component=&#123;Detail&#125; /&gt;</span><br><span class="line">  &lt;/div&gt;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">// SideBar</span><br><span class="line">const Sidebar = () =&gt; &#123;</span><br><span class="line">  return (</span><br><span class="line">    &lt;div className=&quot;sidebar&quot;&gt;</span><br><span class="line">      &#123;/* 使用NavLink 在匹配时显示激活状态 */&#125;</span><br><span class="line">      &lt;NavLink to=&quot;/message&quot;&gt;消息&lt;/NavLink&gt;</span><br><span class="line">      &lt;NavLink to=&quot;/task&quot;&gt;任务&lt;/NavLink&gt;</span><br><span class="line">      &lt;NavLink to=&quot;/location&quot;&gt;定位&lt;/NavLink&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">// ListPage</span><br><span class="line">const ListPage = props =&gt; &#123;</span><br><span class="line">  const &#123; group &#125; = props.match.params;</span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  // 响应group变化, 并加载指定类型列表</span><br><span class="line">  useEffect(() =&gt; &#123;</span><br><span class="line">    load(group);</span><br><span class="line">  &#125;, [group]);</span><br><span class="line"></span><br><span class="line">  // 列表项也会使用NavLink, 用于匹配当前展示的详情, 激活显示</span><br><span class="line">  return &lt;div className=&quot;list&quot;&gt;&#123;renderList()&#125;&lt;/div&gt;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">// DetailPage</span><br><span class="line">const DetailPage = props =&gt; &#123;</span><br><span class="line">  const &#123; group, id &#125; = props.match.params;</span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  // 响应group和id, 并加载详情</span><br><span class="line">  useEffect(() =&gt; &#123;</span><br><span class="line">    loadDetail(group, id);</span><br><span class="line">  &#125;, [group, id]);</span><br><span class="line"></span><br><span class="line">  return &lt;div className=&quot;detail&quot;&gt;&#123;renderDetail()&#125;&lt;/div&gt;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>扩展</p>
+<ul>
+<li><a href="https://react-router.docschina.org/core/guides/philosophy" target="_blank" rel="noopener">React Router 哲学</a></li>
+<li><a href="https://juejin.im/post/5986d1456fb9a03c3f405bd2" target="_blank" rel="noopener">聊聊 React Router v4 的设计思想</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="11-组件规范"><a href="#11-组件规范" class="headerlink" title="11. 组件规范"></a>11. 组件规范</h2><ul>
+<li>开启严格模式: 开启 StrictMode，尽早发现潜在问题和不规范用法</li>
+<li>第三方开发规范:<ul>
+<li><a href="https://github.com/airbnb/javascript/tree/master/react#ordering" target="_blank" rel="noopener">Airbnb React/JSX Style Guide</a></li>
+<li><a href="https://vasanthk.gitbooks.io/react-bits/patterns/30.component-switch.html" target="_blank" rel="noopener">React bits</a></li>
+<li><a href="https://github.com/krasimir/react-in-patterns" target="_blank" rel="noopener">react-in-patterns</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://github.com/acdlite/recompose/blob/master/docs/API.md" target="_blank" rel="noopener">recompose</a></li>
+<li><a href="https://overreacted.io/zh-hans/writing-resilient-components/" target="_blank" rel="noopener">编写有弹性的组件</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-高阶组件"><span class="toc-number">1.</span> <span class="toc-text">1. 高阶组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-render-props"><span class="toc-number">2.</span> <span class="toc-text">2. Render Props</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-使用组件的方式来抽象业务逻辑"><span class="toc-number">3.</span> <span class="toc-text">3. 使用组件的方式来抽象业务逻辑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-hooks-取代高阶组件"><span class="toc-number">4.</span> <span class="toc-text">4. hooks 取代高阶组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-hooks-实现响应式编程"><span class="toc-number">5.</span> <span class="toc-text">5. hooks 实现响应式编程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-类继承也有用处"><span class="toc-number">6.</span> <span class="toc-text">6. 类继承也有用处</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-模态框管理"><span class="toc-number">7.</span> <span class="toc-text">7. 模态框管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-使用-context-进行依赖注入"><span class="toc-number">8.</span> <span class="toc-text">8. 使用 Context 进行依赖注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-不可变的状态"><span class="toc-number">9.</span> <span class="toc-text">9. 不可变的状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-react-router-url-即状态"><span class="toc-number">10.</span> <span class="toc-text">10. React-router: URL 即状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-组件规范"><span class="toc-number">11.</span> <span class="toc-text">11. 组件规范</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">12.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/15/react-component-design-04/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/15/react-component-design-04/&text=React组件设计实践总结04 - 组件的思维"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/15/react-component-design-04/&is_video=false&description=React组件设计实践总结04 - 组件的思维"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结04 - 组件的思维&body=Check out this article: https://bobi.ink/2019/05/15/react-component-design-04/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/15/react-component-design-04/&title=React组件设计实践总结04 - 组件的思维"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/15/react-component-design-04/&name=React组件设计实践总结04 - 组件的思维&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

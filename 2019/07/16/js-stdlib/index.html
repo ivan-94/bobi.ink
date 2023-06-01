@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：一个初学者试图在浏览器中导入Node.js的net模块。结果在控制台打印后是一个空对象。 对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些Node模块经过Webpack处理, 所以变成了一个空对象，更好的处理方式应该是抛出异常. 仔细反思一下，对于这些刚入门Javas">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Javascript竟然没有标准库?">
+<meta property="og:url" content="https://bobi.ink/2019/07/16/js-stdlib/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：一个初学者试图在浏览器中导入Node.js的net模块。结果在控制台打印后是一个空对象。 对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些Node模块经过Webpack处理, 所以变成了一个空对象，更好的处理方式应该是抛出异常. 仔细反思一下，对于这些刚入门Javas">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/js-stdlib/outline.png">
+<meta property="og:image" content="https://bobi.ink/images/js-stdlib/brw.png">
+<meta property="og:image" content="https://bobi.ink/images/js-stdlib/webAPI.png">
+<meta property="og:image" content="https://bobi.ink/images/js-stdlib/dep.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Javascript竟然没有标准库?">
+<meta name="twitter:description" content="最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：一个初学者试图在浏览器中导入Node.js的net模块。结果在控制台打印后是一个空对象。 对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些Node模块经过Webpack处理, 所以变成了一个空对象，更好的处理方式应该是抛出异常. 仔细反思一下，对于这些刚入门Javas">
+<meta name="twitter:image" content="https://bobi.ink/images/js-stdlib/outline.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Javascript竟然没有标准库?</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/07/17/modern-module/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/07/10/typeof-testing/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/16/js-stdlib/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/16/js-stdlib/&text=Javascript竟然没有标准库?"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/16/js-stdlib/&is_video=false&description=Javascript竟然没有标准库?"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript竟然没有标准库?&body=Check out this article: https://bobi.ink/2019/07/16/js-stdlib/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/16/js-stdlib/&name=Javascript竟然没有标准库?&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的javascript-api结构"><span class="toc-number">1.</span> <span class="toc-text">现有的Javascript API结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#标准内置对象层主要包含这些东西"><span class="toc-number">1.1.</span> <span class="toc-text">标准内置对象层主要包含这些东西</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是标准库"><span class="toc-number">2.</span> <span class="toc-text">什么是标准库?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#我们需要标准库"><span class="toc-number">3.</span> <span class="toc-text">我们需要标准库?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#近期的一些尝试"><span class="toc-number">4.</span> <span class="toc-text">近期的一些尝试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">6.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Javascript竟然没有标准库?
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-07-15T16:00:00.000Z" itemprop="datePublished">2019-07-16</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>最近在SegmentFault热心解题，一个问题比较让我比较印象深刻：<em>一个初学者试图在浏览器中导入Node.js的net模块。结果在控制台打印后是一个空对象</em>。</p>
+<p>对于有点Javascript经验的人来说，这是一个‘弱智’问题，怎么可以在浏览器端运行Node程序呢？因为这些Node模块经过<a href="http://webpack.docschina.org/configuration/node/#其他-node-js-核心库-node-js-core-libraries-" target="_blank" rel="noopener">Webpack处理</a>, 所以变成了一个空对象，更好的处理方式应该是抛出异常.</p>
+<p><strong>仔细反思一下，对于这些刚入门Javascript的或者从其他语言切换过来的开发者，他们压根就没有概念，比如Python、Ruby、Java这些语言都有强大的标准库，可以满足80%的开发需求，不管它在什么环境、什么平台运行，基本上都可以统一使用这套标准库。而Javascript目前的现状是：不同的运行环境，API结构是割裂的</strong>。</p>
+<p>Javascript这门十几天开发出来的、专供浏览器的语言，可能当初设计是根本就没有考虑标准库这些玩意，比如文件系统，网络等等。<strong>因为这个背景, Javascript长期不具备独立性，它深度依赖于浏览器这个运行环境, 处于一种给浏览器打辅助的角色</strong>, 所以Javascript很多年没有走出浏览器玩具语言这个范围.</p>
+<p>当然这既是劣势，也是优势, 现在没任何语言能撼动Javascript在浏览器中的地位。</p>
+<p>我想很多人跟我当初一样认为<strong>浏览器提供的Web API === Javascript的标准库</strong>, 比如<code>console.log</code>、<code>setTimeout</code>(下文会介绍这些功能都不在Javascript规范里面). 正如当年那些把JQuery当成‘Javascript’的人.</p>
+<p>直到NodeJS的出现，Javascript才挣脱浏览器约束，延伸到服务器领域, 不再是一个’沙盒语言’。NodeJS定义了很多模块来支撑服务端的开发, 如fs、os、Buffer、net。但是这些API一样不是Javascript的标准、也就是说<strong>NodeJS !== Javascript</strong>.</p>
+<p>再到后来，学不动了，NodeJS原作者吐槽了一通NodeJS，又搞出了一个<a href="https://deno.land" target="_blank" rel="noopener">Deno</a>, 它也会有自己标准库，会定义自己的文件系统、网络API。从名字上就暗示着这些API不可能和NodeJS兼容。Ok，现在回到文章开始那个问题，<strong>如果deno发展起来，说不定哪天又有人尝试在浏览器引用Deno的模块</strong>？</p>
+<p><br><br><br></p>
+<h2 id="现有的javascript-api结构"><a href="#现有的javascript-api结构" class="headerlink" title="现有的Javascript API结构"></a>现有的Javascript API结构</h2><p><img src="/images/js-stdlib/outline.png" alt></p>
+<p>如上图, Javascript其实是有一层比较薄全局的、通用的、<strong>标准的</strong>、核心的API层，即<code>标准内置对象</code>，这是一些语言核心的内置对象，可以全局访问。关键的是这些是标准的，它们在<a href="https://tc39.es/ecma262/#sec-global-object" target="_blank" rel="noopener">ECMAScript规范</a>中被定义. 在这个基础之上，不同的运行环境拓展了自己的API。</p>
+<p>以浏览器为例:</p>
+<p><img src="/images/js-stdlib/brw.png" alt></p>
+<p>浏览器端的Web API是一个非常复杂API集合，上图总结了一下，基本就包含两块东西:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model" target="_blank" rel="noopener">Core DOM</a>. DOM是一个通用的技术，不仅仅局限于浏览器，这个规范定义了结构化(structured document)文档的解析和操作规范。定义了基本的节点类型和操作方法。不局限于HTML的操作</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM" target="_blank" rel="noopener">HTML DOM</a>. 可以认为是Core DOM的扩展，这里面定义了各种HTML元素对象类型、扩展了元素的操作方法，另外还包含了浏览器相关的接口，如XMLHttpRequest。这一块通常也被统称为BOM</li>
+</ul>
+<p>WebAPI基本概览:</p>
+<p><img src="/images/js-stdlib/webAPI.png" alt></p>
+<p>如果你有留心查看MDN文档下面的规范引用，你会发现有些规范引用了<a href="https://www.w3.org/TR/" target="_blank" rel="noopener">W3C</a>, 有些则引用了<a href="https://html.spec.whatwg.org/multipage/" target="_blank" rel="noopener">WHATWG</a>. 到底谁说了算?</p>
+<p>如果你掀开锅盖，就会发现这是一场闹剧. 如果前阵子有关注新闻，会看到这些标题‘<em>WHATWG 击败 W3C，赢得 HTML 和 DOM 的控制权</em>’、’<em>W3C将与WHATWG合作制定最新HTML和DOM规范标准</em>‘. 大概可以猜出这两个组织之间的关系. 本文就不扯这些‘八卦’了，相关背景可以看这篇文章<a href="https://www.infoq.cn/article/bsvFxt96DOh-SBZphBwJ" target="_blank" rel="noopener">WHATWG 击败 W3C，赢得 HTML 和 DOM 的控制权</a></p>
+<p>相对而言, 语言层则由ECMAScript规范定义的，比较独立, 近些年成果也比较显著.</p>
+<p><br></p>
+<h3 id="标准内置对象层主要包含这些东西"><a href="#标准内置对象层主要包含这些东西" class="headerlink" title="标准内置对象层主要包含这些东西"></a>标准内置对象层主要包含这些东西</h3><ul>
+<li>特殊值<ul>
+<li>Infinity</li>
+<li>NaN</li>
+<li>undefined</li>
+<li>null</li>
+<li>globalThis</li>
+</ul>
+</li>
+<li>函数<ul>
+<li>eval()</li>
+<li>uneval() </li>
+<li>isFinite()</li>
+<li>isNaN()</li>
+<li>parseFloat()</li>
+<li>parseInt()</li>
+<li>decodeURI()</li>
+<li>decodeURIComponent()</li>
+<li>encodeURI()</li>
+<li>encodeURIComponent()</li>
+</ul>
+</li>
+<li>基础对象<ul>
+<li>Object</li>
+<li>Function</li>
+<li>Boolean</li>
+<li>Symbol</li>
+<li>Error</li>
+<li>EvalError</li>
+<li>InternalError </li>
+<li>RangeError</li>
+<li>ReferenceError</li>
+<li>SyntaxError</li>
+<li>TypeError</li>
+<li>URIError</li>
+</ul>
+</li>
+<li>数值和时间<ul>
+<li>Number</li>
+<li>BigInt</li>
+<li>Math</li>
+<li>Date</li>
+</ul>
+</li>
+<li>文本处理<ul>
+<li>String</li>
+<li>RegExp</li>
+</ul>
+</li>
+<li>索引容器<ul>
+<li>Array</li>
+<li>‘TypedArray’</li>
+</ul>
+</li>
+<li>键值容器<ul>
+<li>Map</li>
+<li>Set</li>
+<li>WeakMap</li>
+<li>WeakSet</li>
+</ul>
+</li>
+<li>结构化数据<ul>
+<li>ArrayBuffer</li>
+<li>SharedArrayBuffer </li>
+<li>Atomics </li>
+<li>DataView</li>
+<li>JSON</li>
+</ul>
+</li>
+<li>控制抽象化对象<ul>
+<li>Promise</li>
+<li>Generator</li>
+<li>GeneratorFunction</li>
+<li>AsyncFunction </li>
+</ul>
+</li>
+<li>反射<ul>
+<li>Reflect</li>
+<li>Proxy</li>
+</ul>
+</li>
+<li>国际化<ul>
+<li>Intl</li>
+</ul>
+</li>
+<li>WebAssembly</li>
+<li>其他<ul>
+<li>arguments</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<p>这些全局基本对象数量很少, 这些对象是每个JavaScript开发者必须掌握的. </p>
+<p>平时我们使用的非常频繁的Timer和Console都不再此列.</p>
+<p>这些对象只能满足很基本开发需求, 根本不能和其他语言的标准库相比. <strong>当然这和语言的定位也有一定关系</strong></p>
+<p><br><br><br></p>
+<h2 id="什么是标准库"><a href="#什么是标准库" class="headerlink" title="什么是标准库?"></a>什么是标准库?</h2><p>标准库没有一个严格的定义，按照Wiki的说法标准库就是<strong>该语言在不同实现中都按例提供的库</strong>, 比如Ruby官方实现cRuby和基于JVM的JRuby都按照官方标准库规范实现了标准库。 <strong>标准库怎么设计，需要包含什么内容取决于语言各自秉持的哲学和定位</strong>。 我认为标准库应该有以下特征:</p>
+<ul>
+<li>标准化的. 有规范明确定义它的内容和行为</li>
+<li>内容经过仔细雕琢和挑选，可以覆盖大部分使用场景或者符合的语言定位</li>
+<li>可选的、按需导入. 标准库不是全局的，需要通过模块导入, 非强制性使用</li>
+</ul>
+<p><br></p>
+<p>至于标准库需要包含什么内容，可以参考其他语言的实现。比如：</p>
+<ul>
+<li><a href="https://golang.org/pkg/" target="_blank" rel="noopener">go</a></li>
+<li><a href="http://ruby-doc.org/stdlib-2.6.3/" target="_blank" rel="noopener">ruby</a></li>
+<li><a href="https://docs.python.org/3/library/index.html" target="_blank" rel="noopener">python</a></li>
+</ul>
+<p><br></p>
+<p>大概分析一下，它们标准库大致都有这些内容：</p>
+<ul>
+<li>网络协议</li>
+<li>文件系统<ul>
+<li>文件系统</li>
+<li>流</li>
+<li>标准输入输出</li>
+<li>二进制处理</li>
+</ul>
+</li>
+<li>算法<ul>
+<li>密码算法</li>
+<li>编码</li>
+<li>压缩、归档</li>
+<li>排序</li>
+<li>数学</li>
+<li>字符串、文本</li>
+</ul>
+</li>
+<li>数据结构, 例如树、堆、队列等等</li>
+<li>数据持久化和序列化. 比如JSON序列化，二进制序列化，数据库操作等等</li>
+<li>调试/辅助</li>
+<li>单元测试</li>
+<li>文档处理</li>
+<li>设计模式. 标准库中经常会携带(或辅助设计)该语言的最佳实践和设计模式, 例如go中的context, Ruby中的singleton</li>
+<li>国际化</li>
+<li>时间、日期</li>
+<li>操作系统<ul>
+<li>命令行</li>
+<li>环境变量</li>
+<li>系统资源</li>
+</ul>
+</li>
+<li>并发<ul>
+<li>进程</li>
+<li>线程</li>
+<li>协程</li>
+</ul>
+</li>
+<li>语言或运行时的底层接口</li>
+</ul>
+<p>大部分语言的核心都很小(C++除外)，我们学一门语言，大部分时间是花在标准库上和语言的生态上面，但是你会发现这些标准库一般都是大同小异，这就是为什么有经验的开发者可以很快地入手一门语言.</p>
+<p>显然上面这些功能大部分在NodeJS中已经实现了，<strong>鉴于NodeJS这么广泛的使用率，NodeJS可以算是事实上的标准了</strong></p>
+<p><br></p>
+<h2 id="我们需要标准库"><a href="#我们需要标准库" class="headerlink" title="我们需要标准库?"></a>我们需要标准库?</h2><p><img src="/images/js-stdlib/dep.png" alt></p>
+<p>显然要结合当前的背景来辩证地考虑。</p>
+<p><strong>有标准库有什么好处?</strong></p>
+<ul>
+<li>标准库提供通用、定义良好、优化的功能和行为，减少第三方模块依赖, 而且第三方库很难保证质量</li>
+<li>避免社区割裂, 抚平不同运行环境的差异. 现在有NodeJS、后面有Deno，可能还会有Aeno、Beno, 尽管取代NodeJS的可能性很低，有规范化的标准库可以避免重复造轮子，不然真会学不动</li>
+<li>安全性. <a href="https://mp.weixin.qq.com/s/UEPZwFuousrRVj17zZU80w" target="_blank" rel="noopener">近期npm安全事件频发</a>，投毒、删库(left-pad事件)、npm商业运作, 给社区带了不少麻烦。而标准库由运行环境内置，可以避免引用第三方库导致的安全问题</li>
+<li>今天的Javascript应用会有很多依赖(node_modules hell)，打包出来的体积很大，网络加载和脚本解析需要耗费一定的资源，而且这些资源不能在多个应用之间被缓存. 一个很大的原因是npm的依赖过于零碎(比如几行代码的包)和重复(依赖不同的版本、Dead Code)，使用标准库可以减少这部分依赖</li>
+<li>选择困难症. 没有标准库，可以选择npm上的第三方库，在npm上挑选靠谱、高质量的库是需要一定的时间成本的. 有时候我们就是懒得去比较和选择</li>
+<li>优雅的标准库，是学习的榜样. 网上很多教程都是钻研标准库算法和实现的，对语言的开发者来说标准库是一块宝藏</li>
+<li>学习成本。其他语言的开发者，可以较快入手</li>
+</ul>
+<p><br></p>
+<p><strong>标准库可能会有什么问题?</strong></p>
+<ul>
+<li>标准可能滞后跟不上社区发展. Javascript正处于快速发展阶段，很多规范的定义是由社区驱动的，比如Promise、async/await. 跟不上社区的发展结果可能就是没人用</li>
+<li>想下WebComponent目前的境遇</li>
+<li>标准库不可能满足所有人的口味</li>
+</ul>
+<p><br></p>
+<p><strong>如何设计标准库? 标准库推进进程可能会有什么障碍?</strong></p>
+<ul>
+<li>NodeJS已经是事实上的标准, 怎么兼容现有的生态?</li>
+<li>标准库应该包含什么内容，如何保持和社区同步?</li>
+<li><p>如何把控标准库内容的尺度? </p>
+<p>最小化的标准库容易被维护和升级，但可能出现’没什么卵用’的情况；</p>
+<p>最大化的标准库，例如Java的标准库，几乎包含了所有的东西，开发者可以快速开发一个东西, 但是过了几年很多API就会变得过时，一般为了保持向下兼容，这些API会一直像一根刺一样卡在那里.<br>另一个非常典型的反例就是PHP的标准库，这里可以看到各种风格的API.</p>
+<p>标准库是跟随语言发布的，如果你的项目中使用了过时的API，又想升级语言版本，就需要重构项目。而使用第三方库则可能可以保持不动。</p>
+</li>
+<li><p>Javascript的主要战场还是浏览器, 标准库是否应该有一个’基本版’(用于浏览器或者一些抽象操作系统的运行环境), 还有个’旗舰版’(服务端), 或者只提供一个跨越所有平台的标准库?</p>
+</li>
+<li>如何处理兼容性问题? 老旧浏览器如何Polyfill?</li>
+<li>如何与现有的全局对象或用户模块分离？</li>
+</ul>
+<p><br></p>
+<h2 id="近期的一些尝试"><a href="#近期的一些尝试" class="headerlink" title="近期的一些尝试"></a>近期的一些尝试</h2><ul>
+<li><a href="https://github.com/tc39/proposal-javascript-standard-library" target="_blank" rel="noopener">proposal-javascript-standard-library</a> 这是一个非常早期的语言提议，定义了如何引用标准库(built-in modules)，但是没有定义标准库的内容</li>
+<li><p><a href="https://developers.google.com/web/updates/2019/03/kv-storage" target="_blank" rel="noopener">KV Storage: the Web’s First Built-in Module</a> Chrome在年初推出的实验性功能，尝试实现proposal-javascript-standard-library提议. 它通过下面方式来引用‘标准库’模块:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;storage, StorageArea&#125; <span class="keyword">from</span> <span class="string">'std:kv-storage'</span>; <span class="comment">// std: 前缀，和普通模块区分开来</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文从一个SegmentFault上的一个问题开始，对比其他语言，揭露Javascript没有标准库的窘境. 接着介绍现有Javascript的API结构，介绍什么是标准库，辩证考虑标准库的优缺点，以及推行上面可能会遇到的阻碍.</p>
+<p><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://www.infoworld.com/article/3048833/brendan-eich-javascript-standard-library-will-stay-small.html" target="_blank" rel="noopener">Brendan Eich: JavaScript standard library will stay small</a></li>
+<li><a href="https://medium.com/@thomasfuchs/what-if-we-had-a-great-standard-library-in-javascript-52692342ee3f" target="_blank" rel="noopener">What if we had a great standard library in JavaScript?</a></li>
+<li><a href="https://www.i-programmer.info/news/167-javascript/12608-the-javascript-standard-library.html" target="_blank" rel="noopener">The JavaScript Standard Library</a></li>
+<li><a href="https://www.w3.org/TR/" target="_blank" rel="noopener">W3C</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noopener">Web API 索引</a></li>
+<li><a href="https://dev.to/sloan/explain-like-im-five-whats-a-standard-library-4gi" target="_blank" rel="noopener">Explain Like I’m Five: What’s a standard library?</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的javascript-api结构"><span class="toc-number">1.</span> <span class="toc-text">现有的Javascript API结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#标准内置对象层主要包含这些东西"><span class="toc-number">1.1.</span> <span class="toc-text">标准内置对象层主要包含这些东西</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是标准库"><span class="toc-number">2.</span> <span class="toc-text">什么是标准库?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#我们需要标准库"><span class="toc-number">3.</span> <span class="toc-text">我们需要标准库?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#近期的一些尝试"><span class="toc-number">4.</span> <span class="toc-text">近期的一些尝试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">6.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/16/js-stdlib/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/16/js-stdlib/&text=Javascript竟然没有标准库?"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/16/js-stdlib/&is_video=false&description=Javascript竟然没有标准库?"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript竟然没有标准库?&body=Check out this article: https://bobi.ink/2019/07/16/js-stdlib/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/16/js-stdlib/&title=Javascript竟然没有标准库?"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/16/js-stdlib/&name=Javascript竟然没有标准库?&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

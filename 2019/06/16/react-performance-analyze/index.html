@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="上一篇文章讲了 React 性能优化的一些方向和手段，这篇文章再补充说一下如何进行性能测量和分析, 介绍 React 性能分析的一些工具和方法. 进行任何性能优化的前提是你要找出’性能问题‘，这样才能针对性地进行优化。我觉得对于 React 的性能优化可以分两个阶段:  1. 分析阶段  通过分析器(Profiler)找出重新渲染的组件、重新渲染的次数、以及重新渲染耗费的资源与时间 变动检测. 通">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React性能测量和分析">
+<meta property="og:url" content="https://bobi.ink/2019/06/16/react-performance-analyze/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="上一篇文章讲了 React 性能优化的一些方向和手段，这篇文章再补充说一下如何进行性能测量和分析, 介绍 React 性能分析的一些工具和方法. 进行任何性能优化的前提是你要找出’性能问题‘，这样才能针对性地进行优化。我觉得对于 React 的性能优化可以分两个阶段:  1. 分析阶段  通过分析器(Profiler)找出重新渲染的组件、重新渲染的次数、以及重新渲染耗费的资源与时间 变动检测. 通">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://codesandbox.io/static/img/play-codesandbox.svg">
+<meta property="og:image" content="https://bobi.ink/images/10/hightlight-update.png">
+<meta property="og:image" content="https://bobi.ink/images/10/hightlight-update.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/hightlight-update-pure.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/select-profile.png">
+<meta property="og:image" content="https://bobi.ink/images/10/start-record.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-outline.png">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-commit.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/ranked.png">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-framegraph.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-props.gif">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-component-detail.png">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-settings.png">
+<meta property="og:image" content="https://bobi.ink/images/10/profile-demo.png">
+<meta property="og:image" content="https://bobi.ink/images/10/chrome-performance.png">
+<meta property="og:image" content="https://bobi.ink/images/10/wdyu.png">
+<meta property="og:image" content="https://bobi.ink/images/10/mobx-devtool.png">
+<meta property="og:image" content="https://bobi.ink/images/10/mobx-trace.png">
+<meta property="og:image" content="https://bobi.ink/images/10/interaction.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.330Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React性能测量和分析">
+<meta name="twitter:description" content="上一篇文章讲了 React 性能优化的一些方向和手段，这篇文章再补充说一下如何进行性能测量和分析, 介绍 React 性能分析的一些工具和方法. 进行任何性能优化的前提是你要找出’性能问题‘，这样才能针对性地进行优化。我觉得对于 React 的性能优化可以分两个阶段:  1. 分析阶段  通过分析器(Profiler)找出重新渲染的组件、重新渲染的次数、以及重新渲染耗费的资源与时间 变动检测. 通">
+<meta name="twitter:image" content="https://codesandbox.io/static/img/play-codesandbox.svg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>React性能测量和分析</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/06/20/codesandbox/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/06/14/react-performance/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/06/16/react-performance-analyze/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/06/16/react-performance-analyze/&text=React性能测量和分析"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/06/16/react-performance-analyze/&is_video=false&description=React性能测量和分析"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React性能测量和分析&body=Check out this article: https://bobi.ink/2019/06/16/react-performance-analyze/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/06/16/react-performance-analyze/&name=React性能测量和分析&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#分析器"><span class="toc-number">1.</span> <span class="toc-text">分析器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#react-devtool"><span class="toc-number">1.1.</span> <span class="toc-text">React Devtool</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#高亮更新"><span class="toc-number">1.1.1.</span> <span class="toc-text">高亮更新</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#分析器-1"><span class="toc-number">1.1.2.</span> <span class="toc-text">分析器</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#chrome-performance-工具"><span class="toc-number">1.2.</span> <span class="toc-text">Chrome Performance 工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他工具"><span class="toc-number">1.3.</span> <span class="toc-text">其他工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#变动检测"><span class="toc-number">2.</span> <span class="toc-text">变动检测</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#props-变动检测"><span class="toc-number">2.1.</span> <span class="toc-text">props 变动检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mobx-变动检测"><span class="toc-number">2.2.</span> <span class="toc-text">mobx 变动检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#context-变更检测"><span class="toc-number">2.3.</span> <span class="toc-text">Context 变更检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#react-devtool-的-interactions"><span class="toc-number">2.4.</span> <span class="toc-text">React Devtool 的 Interactions</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">3.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        React性能测量和分析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-06-15T16:00:00.000Z" itemprop="datePublished">2019-06-16</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>上一篇<a href="https://juejin.im/post/5d045350f265da1b695d5bf2" target="_blank" rel="noopener">文章</a>讲了 React 性能优化的一些方向和手段，这篇文章再补充说一下如何进行性能测量和分析, 介绍 React 性能分析的一些工具和方法.</p>
+<p>进行任何性能优化的前提是你要找出’性能问题‘，这样才能针对性地进行优化。我觉得对于 React 的性能优化可以分两个阶段:</p>
+<ul>
+<li><p><strong>1. 分析阶段</strong></p>
+<ul>
+<li>通过分析器(Profiler)找出重新渲染的组件、重新渲染的次数、以及重新渲染耗费的资源与时间</li>
+<li>变动检测. 通过分析器我们可以知道’什么被重新渲染, 重新渲染的代价’，那么变动检测回答的问题就是： ’为什么这些进行了重新渲染?’</li>
+</ul>
+</li>
+<li><p><strong>2. 优化阶段</strong>. 优化阶段我们针对分析阶段抛出的问题进行解决，解决的方法有很多，可以参考本文的姊妹篇&lt;<a href="https://juejin.im/post/5d045350f265da1b695d5bf2" target="_blank" rel="noopener">浅谈React性能优化的方向</a>&gt;</p>
+</li>
+</ul>
+<p><br></p>
+<p><strong>本文大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#分析器">分析器</a><ul>
+<li><a href="#react-devtool">React Devtool</a><ul>
+<li><a href="#高亮更新">高亮更新</a></li>
+<li><a href="#分析器-1">分析器</a></li>
+</ul>
+</li>
+<li><a href="#chrome-performance-工具">Chrome Performance 工具</a></li>
+<li><a href="#其他工具">其他工具</a></li>
+</ul>
+</li>
+<li><a href="#变动检测">变动检测</a><ul>
+<li><a href="#props-变动检测">props 变动检测</a></li>
+<li><a href="#mobx-变动检测">mobx 变动检测</a></li>
+<li><a href="#context-变更检测">Context 变更检测</a></li>
+<li><a href="#react-devtool-的-interactions">React Devtool 的 Interactions</a></li>
+</ul>
+</li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<p>下面本文测试的样板代码.</p>
+<blockquote>
+<p>推荐点击 Preview 面板的<code>Open In New Window</code>, 或者直接点击该<a href="https://igz9h.codesandbox.io/" target="_blank" rel="noopener">链接</a>，在线动手实践</p>
+</blockquote>
+<iframe src="https://codesandbox.io/embed/react-performance-analyze-demo-igz9h?autoresize=1&fontsize=14" title="React-Performance-Analyze-Demo" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+<p><a href="https://codesandbox.io/s/react-performance-analyze-demo-igz9h?fontsize=14" target="_blank" rel="noopener"><img src="https://codesandbox.io/static/img/play-codesandbox.svg" alt="Edit React-Performance-Analyze-Demo"></a></p>
+<p><br><br><br></p>
+<h2 id="分析器"><a href="#分析器" class="headerlink" title="分析器"></a>分析器</h2><p>分析哪些组件进行了渲染，以及渲染消耗的时间以及资源。主要工具有 React 官方的开发者工具以及 Chrome 的 Performance 工具。</p>
+<h3 id="react-devtool"><a href="#react-devtool" class="headerlink" title="React Devtool"></a>React Devtool</h3><p>最先应该使用的肯定是官方提供的开发者工具，React v16.5 引入了新的 Profiler 功能，让分析组件渲染过程变得更加简单，而且可以很直观地查看哪些组件被渲染.</p>
+<h4 id="高亮更新"><a href="#高亮更新" class="headerlink" title="高亮更新"></a>高亮更新</h4><p><strong>首先最简单也是最方便的判断组件是否被重新渲染的方式是’高亮更新(Hightlight Updates)’</strong>.</p>
+<p>① 开启高亮更新:</p>
+<center><br> <img src="/images/10/hightlight-update.png"><br></center>
+
+<p>② 运行效果如下:</p>
+<center><br>  <img src="/images/10/hightlight-update.gif"><br></center>
+
+<p>③ 通过高亮更新，基本上可以确定哪些组件被重新渲染. 所以现在我们给 ListItem 加上 React.memo(查看 PureList 示例), 看一下效果:</p>
+<center><br> <img src="/images/10/hightlight-update-pure.gif"><br></center>
+
+<p>效果非常明显，现在只有递增的 ListItem 会被更新，而且当数组排序时只有 List 组件会被刷新. 所以说‘纯组件’是 React 优化的第一张牌, 也是最有效的一张牌.</p>
+<p><br><br><br></p>
+<h4 id="分析器-1"><a href="#分析器-1" class="headerlink" title="分析器"></a>分析器</h4><p>如果<code>高亮更新</code>无法满足你的需求，比如<strong>你需要知道具体哪些组件被渲染、渲染消耗多少时间、进行了多少次的提交(渲染)等等</strong>, 这时候就需要用到分析器了.</p>
+<p>① 首先选择需要收集测量信息的节点(一般默认选中根节点，有一些应用可能存在多个组件树，这时候需要手动选择):</p>
+<center><br> <img src="/images/10/select-profile.png"><br></center>
+
+<p>② Ok，点击 Record 开始测量</p>
+<center><br> <img src="/images/10/start-record.gif"><br></center>
+
+<p><br></p>
+<p>③ 看看测量的结果，先来了解一下 Profiler 面板的基本结构:</p>
+<center><br> <img src="/images/10/profile-outline.png"><br></center>
+
+<ul>
+<li><p><strong>1️⃣ 这是一个 commit 列表</strong>。commit 列表表示录制期间发生的 commit(可以认为是渲染) 操作，要理解 commit 的意思还需要了解 React 渲染的基本原理.</p>
+<p>在 v16 后 React 组件渲染会分为两个阶段，即 render 和 commit 阶段。</p>
+<ul>
+<li><strong>render 阶段决定需要进行哪些变更，比如 DOM</strong>。顾名思义, 这个阶段 React 会调用 render 函数，并将结果和上一次 render 的结果进行 diff, 计算出需要进行变更的操作队列</li>
+<li><strong>commit 阶段</strong>。或者称为提交阶段, 在这个阶段会执行 render 阶段 diff 出来的变更请求。比如 DOM 插入、更新、删除、排序等等。在这个阶段 React 还会调用 componentDidMount 和 componentDidUpdate 生命周期函数.</li>
+</ul>
+<p>在 v16 之前，或者在 Preact 这些’类 React’ 框架中，并不区分 render 阶段和 commit 阶段，也就说这两个阶段糅合在一起，一边 diff 一边 commit。有兴趣的读者可以看笔者之前写的<a href="https://juejin.im/post/5cfa29e151882539c33e4f5e" target="_blank" rel="noopener">从 Preact 中了解组件和 hooks 基本原理</a><br><br></p>
+<p>切换 commit:</p>
+<p><img src="/images/10/profile-commit.gif" alt><br><br></p>
+</li>
+<li><p><strong>2️⃣ 选择其他图形展示形式</strong>，例如 <code>Ranked 视图</code>，这个视图按照渲染消耗时间对组件进行排序：</p>
+<p><img src="/images/10/ranked.png" alt></p>
+<p><br></p>
+</li>
+<li><p><strong>3️⃣ 火焰图</strong> 这个图其实就是<strong>组件树</strong>，Profiler 使用颜色来标记哪些组件被重新渲染。<strong>和 commit 列表以及 Ranked 图一样，颜色在这里是有意义的，比如灰色表示没有重新渲染；从渲染消耗的时间上看的话: <code>黑色 &gt; 黄色 &gt; 蓝色</code>, 通过 👆Ranked 图可以直观感受到不同颜色之间的意义</strong></p>
+<p><img src="/images/10/profile-framegraph.gif" alt></p>
+<p><br></p>
+</li>
+<li><p><strong>4️⃣ 当前选中组件或者 Commit 的详情</strong>, 可以查看该组件渲染时的 props 和 state</p>
+<p><img src="/images/10/profile-props.gif" alt></p>
+<p>双击具体组件可以详细比对每一次 commit 消耗的时间:</p>
+<p><img src="/images/10/profile-component-detail.png" alt></p>
+<p><br></p>
+</li>
+<li><p><strong>5️⃣ 设置</strong></p>
+<p>另外可以通过设置，筛选 Commit，以及是否显示原生元素:</p>
+<p><img src="/images/10/profile-settings.png" alt></p>
+</li>
+</ul>
+<p><br></p>
+<p>④ 现在使用 Profiler 来分析一下 PureList 的渲染过程:</p>
+<p><img src="/images/10/profile-demo.png" alt></p>
+<p><br></p>
+<blockquote>
+<p>关于 Profiler 的详细介绍可以看这篇官方博客&lt;<a href="https://zh-hans.reactjs.org/blog/2018/09/10/introducing-the-react-profiler.html" target="_blank" rel="noopener">Introducing the React Profiler</a>&gt;</p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="chrome-performance-工具"><a href="#chrome-performance-工具" class="headerlink" title="Chrome Performance 工具"></a>Chrome Performance 工具</h3><p>在 v16.5 之前，我们一般都是利用 Chrome 自带的 Performance 来进行 React 性能测量:</p>
+<p><img src="/images/10/chrome-performance.png" alt></p>
+<p><br></p>
+<p>React 使用标准的<code>User Timing API</code>(所有支持该标准的浏览器都可以用来分析 React)来记录操作，所以我们在 Timings 标签中查看 React 的渲染过程。React 还特意使用 emoji 标记.</p>
+<p>相对 React Devtool 而言 Performance 工具可能还不够直观，但是它非常强大，举个例子，<strong>如果说 React-Devtool 是<a href="https://www.telerik.com/fiddler" target="_blank" rel="noopener">Fiddler</a>, 那么 Performance 就是<a href="https://www.wireshark.org/" target="_blank" rel="noopener">Wireshark</a>. 使用 Performance 可以用来定位一些比较深层次的问题，这可能需要你对 React 的实现原理有一定了解, 就像使用 Wireshark 你需要懂点网络协议一样</strong></p>
+<p>所以说使用 Performance 工具有以下优势:</p>
+<ul>
+<li>可以测量分析整个渲染的过程细节. 它可以定位某些具体方法的调用过程和消耗, 方便定位一些深层次问题.</li>
+<li>可以测量分析底层 DOM 的绘制、布局、合成等细节。方便定位浏览器性能问题</li>
+</ul>
+<p>其实 Performance 是一个通用的性能检测工具，所以其细节不在本文讨论访问。 详细参考</p>
+<ul>
+<li><a href="https://calibreapp.com/blog/react-performance-profiling-optimization/" target="_blank" rel="noopener">Profiling React performance with React 16 and Chrome Devtools</a></li>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/" target="_blank" rel="noopener">Chrome 官方的 Performance 使用文档</a></li>
+</ul>
+<p><br></p>
+<h3 id="其他工具"><a href="#其他工具" class="headerlink" title="其他工具"></a>其他工具</h3><p>上面介绍的这些工具基本上已经够用了。社区上还有一些比较流行的工具，不过这些工具迟早/已经要被官方取代(招安)，而且它们也跟不上 React 的更新。</p>
+<ul>
+<li><a href="https://reactjs.org/docs/perf.html" target="_blank" rel="noopener">react-addons-perf</a> React v16 不支持了，不说了。老版本可用</li>
+<li><a href="https://github.com/nitin42/react-perf-devtool" target="_blank" rel="noopener">react-perf-devtool</a> 也不活跃了，不推荐使用</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="变动检测"><a href="#变动检测" class="headerlink" title="变动检测"></a>变动检测</h2><p>OK, 我们通过分析工具已经知道我们的应用存在哪些问题了，诊断出了哪些组件被无意义的渲染。下一步操作就是找出组件重新渲染的元凶, 检测为什么组件进行了更新.</p>
+<p><strong>我们先假设我们的组件是一个’纯组件‘，也就是说我们认为只有组件依赖的状态变更时，组件才会重新渲染</strong>. 非纯组件没有讨论的意义，因为只要状态变更或父级变更他都会重新渲染。</p>
+<p><strong>那么对于一个’纯组件‘来说，一般会有下面这些因素都可能导致组件重新渲染</strong>:</p>
+<ul>
+<li><strong>props + state</strong> 毫无疑问. 这里我们只需要关注<strong>来源于外部的 props</strong>. 内部 state 变动一般是人为触发的，比较容易发现</li>
+<li><strong>Mobx observable value</strong>. 如果访问了 mobx 传进来的响应式数据，就会建立一个状态依赖关系，这个相对于 props 和 context 来说是隐式的，检测它的变动我们可能需要利用 mobx 提供的一些工具</li>
+<li><strong>Context</strong>。 Context 的 value 的变更会强制重新渲染组件</li>
+</ul>
+<p><br></p>
+<h3 id="props-变动检测"><a href="#props-变动检测" class="headerlink" title="props 变动检测"></a>props 变动检测</h3><p>在上一篇文章中我就建议简化 props，简单组件的 props 的变更很容易预测, 甚至你肉眼都可以察觉出来。另外如果你使用 Redux，如果严格按照 Redux 的最佳实践，配合 Redux 的开发者工具，也可以很直观地判断哪些状态发生了变更。</p>
+<p>如果你没办法满足以上条件，可能就得依赖工具了。之前有一个<a href="https://github.com/maicki/why-did-you-update" target="_blank" rel="noopener">why-did-you-update</a>的库，<strong>很可惜现在已经没怎么维护了(旧版本可以使用它)</strong>。这个库使用猴补丁(monkey patches)来扩展 React，比对检测哪些 props 和 state 发生了变化：</p>
+<p><img src="/images/10/wdyu.png" alt></p>
+<p>后面也有人借鉴 why-did-you-update 写了个<a href="https://github.com/welldone-software/why-did-you-render" target="_blank" rel="noopener">why-did-you-render</a>. 不过笔者还是不看好这些通过猴补丁扩展 React 的实现，依赖于 React 的内部实现细节，维护成本太高了，跟不上 React 更新基本就废了.</p>
+<p>如果你现在使用 hook 的话，自己手写一个也很简单, 这个 idea 来源于<a href="https://github.com/devhubapp/devhub/blob/master/packages/components/src/hooks/use-why-did-you-update.ts" target="_blank" rel="noopener">use-why-did-you-update</a>:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useEffect, useRef &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">useWhyDidYouUpdate</span>(<span class="params">name: <span class="built_in">string</span>, props: Record&lt;<span class="built_in">string</span>, <span class="built_in">any</span>&gt;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ⚛️保存上一个props</span></span><br><span class="line">  <span class="keyword">const</span> latestProps = useRef(props);</span><br><span class="line"></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">'development'</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> allKeys = <span class="built_in">Object</span>.keys(&#123; ...latestProps.current, ...props &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> changesObj: Record&lt;<span class="built_in">string</span>, &#123; <span class="keyword">from</span>: <span class="built_in">any</span>; to: <span class="built_in">any</span> &#125;&gt; = &#123;&#125;;</span><br><span class="line">    allKeys.forEach(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (latestProps.current[key] !== props[key]) &#123;</span><br><span class="line">        changesObj[key] = &#123; <span class="keyword">from</span>: latestProps.current[key], to: props[key] &#125;;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">Object</span>.keys(changesObj).length) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[why-did-you-update]'</span>, name, changesObj);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 其他原因导致组件渲染</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    latestProps.current = props;</span><br><span class="line">  &#125;, <span class="built_in">Object</span>.values(props));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const Counter = React.memo(props =&gt; &#123;</span><br><span class="line">  useWhyDidYouUpdate(&apos;Counter&apos;, props);</span><br><span class="line">  return &lt;div style=&#123;props.style&#125;&gt;&#123;props.count&#125;&lt;/div&gt;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>如果是类组件，可以在<code>componentDidUpdate</code>使用类似上面的方式来比较 props</p>
+<p><br></p>
+<h3 id="mobx-变动检测"><a href="#mobx-变动检测" class="headerlink" title="mobx 变动检测"></a>mobx 变动检测</h3><p>排除了 props 变更导致的重新渲染，现在来看看是否是 mobx 响应式数据导致的变更. 如果你们团队不使用 mobx，可以跳过这一节。</p>
+<p><strong>首先不管是 Redux 和 Mobx，我们都应该让状态的变动变得可预测</strong>. 因为 Mobx 没有 Redux 那样固化的数据变更模式，Mobx 并不容易自动化地监测数据是如何被变更的。在 mobx 中我们使用<code>@action</code> 来标志状态的变更操作，但是它拿异步操作没办法。好在后面 mobx 推出了 <code>flow</code> API👏。</p>
+<p>对于 Mobx 首先建议开启严格模式, 要求所有数据变更都放在@action 或 flow 中:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure &#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line">configure(&#123; <span class="attr">enforceActions</span>: <span class="string">'always'</span> &#125;);</span><br></pre></td></tr></table></figure>
+<p>定义状态变更操作</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; observable, action, flow &#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterStore</span> </span>&#123;</span><br><span class="line">  @observable count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 同步操作</span></span><br><span class="line">  @action(<span class="string">'increment count'</span>)</span><br><span class="line">  increment = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.count++;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 异步操作</span></span><br><span class="line">  <span class="comment">// 这是一个生成器，类似于saga的机制</span></span><br><span class="line">  fetchCount = flow(<span class="function"><span class="keyword">function</span>*(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> count = <span class="keyword">yield</span> getCount();</span><br><span class="line">    <span class="keyword">this</span>.count = count;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Ok 有了上面的约定，现在可以在控制台(通过 mobx-logger)或者 <a href="https://github.com/mobxjs/mobx-devtools" target="_blank" rel="noopener">Mobx 开发者工具</a>中跟踪 Mobx 响应式数据的变动了。</p>
+<p><img src="/images/10/mobx-devtool.png" alt></p>
+<p><br></p>
+<p>如果不按照规范来，出现问题会比较浪费时间, 但也不是没办法解决。Mobx 还提供了一个<a href="https://mobx.js.org/best/trace.html" target="_blank" rel="noopener">trace</a>函数, 用来检测为什么会执行 SideEffect:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> ListItem = observer(<span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; item, onShiftDown &#125; = props;</span><br><span class="line">  trace();</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"list-item"</span>&gt;</span>&#123;/*...*/&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>运行效果(递增了 value 值):</p>
+<p><img src="/images/10/mobx-trace.png" alt="mobx-trace"></p>
+<p><br></p>
+<h3 id="context-变更检测"><a href="#context-变更检测" class="headerlink" title="Context 变更检测"></a>Context 变更检测</h3><p>Ok, 如果排除了 props 和 mobx 数据变更还会重新渲染，那么 100%是 Context 导致的，因为一旦 Context 数据变动，组件就会被强制渲染。笔者在<a href="https://juejin.im/post/5d045350f265da1b695d5bf2#heading-14" target="_blank" rel="noopener">浅谈 React 性能优化的方向</a>提到了 ContextAPI 的一些陷阱。先排除一下是否是这些原因导致的.</p>
+<p>现在并没有合适的跟踪 context 变动的机制，我们可以采取像上文的<code>useWhyDidYouUpdate</code>一样的方式来比对 Context 的值：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useIsContextUpdate</span>(<span class="params">contexts: object = &#123;&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> latestContexts = useRef(contexts);</span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">'development'</span>) <span class="keyword">return</span>;</span><br><span class="line">    <span class="keyword">const</span> changedContexts: string[] = [];</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">in</span> contexts) &#123;</span><br><span class="line">      <span class="keyword">if</span> (contexts[key] !== latestContexts.current[key]) &#123;</span><br><span class="line">        changedContexts.push(key);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (changedContexts.length) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">`[is-context-update]: <span class="subst">$&#123;changedContexts.join(<span class="string">', '</span>)&#125;</span>`</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    latestContexts.current = contexts;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用法:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> router = useRouter();</span><br><span class="line"><span class="keyword">const</span> myContext = useContext(MyContext);</span><br><span class="line"></span><br><span class="line">useIsContextUpdate(&#123;</span><br><span class="line">  router,</span><br><span class="line">  myContext,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="react-devtool-的-interactions"><a href="#react-devtool-的-interactions" class="headerlink" title="React Devtool 的 Interactions"></a>React Devtool 的 Interactions</h3><p>这是 React Devtool 的一个实验性功能，Interactions 翻译为中文是‘交互’？这个东西目的其实就是为了跟踪‘什么导致了更新’，也就是我们上面说的变动检测。React希望提供一个通用的API给开发者或第三方工具，方便开发者直观地定位更新的原因:</p>
+<p><img src="/images/10/interaction.png" alt></p>
+<p>上图表示在记录期间跟踪到了四个交互，以及交互触发的时间和耗时。因为还是一个Idea阶段，所以我们就挑选一些API代码随便看看：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">/** 跟踪状态变更 **/</span></span><br><span class="line"><span class="keyword">import</span> &#123; unstable_trace <span class="keyword">as</span> trace &#125; <span class="keyword">from</span> <span class="string">"scheduler/tracing"</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  handleLoginButtonClick = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 跟踪setState</span></span><br><span class="line">    trace(<span class="string">"Login button click"</span>, performance.now(), () =&gt; &#123;</span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; <span class="attr">isLoggingIn</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// render ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 跟踪异步操作 **/</span></span><br><span class="line"><span class="keyword">import</span> &#123;</span><br><span class="line">  unstable_trace <span class="keyword">as</span> trace,</span><br><span class="line">  unstable_wrap <span class="keyword">as</span> wrap</span><br><span class="line">&#125; <span class="keyword">from</span> <span class="string">"scheduler/tracing"</span>;</span><br><span class="line"></span><br><span class="line">trace(<span class="string">"Some event"</span>, performance.now(), () =&gt; &#123;</span><br><span class="line">  setTimeout(</span><br><span class="line">    wrap(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// Do some async work</span></span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 跟踪初始化渲染 **/</span></span><br><span class="line">trace(<span class="string">"initial render"</span>, performance.now(), () =&gt; render(<span class="xml"><span class="tag">&lt;<span class="name">Application</span> /&gt;</span>));</span></span><br></pre></td></tr></table></figure>
+<p>好了行文结束，如果觉得可以就点个 👍 吧</p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://zh-hans.reactjs.org/blog/2018/09/10/introducing-the-react-profiler.html" target="_blank" rel="noopener">Introducing the React Profiler</a></li>
+<li><a href="https://calibreapp.com/blog/react-performance-profiling-optimization/" target="_blank" rel="noopener">Profiling React performance with React 16 and Chrome Devtools.</a></li>
+<li><a href="https://www.youtube.com/watch?v=nl8VVig_9aM" target="_blank" rel="noopener">Tools For Measuring React Performance - Brenda Jimenez @ ReactNYC</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#分析器"><span class="toc-number">1.</span> <span class="toc-text">分析器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#react-devtool"><span class="toc-number">1.1.</span> <span class="toc-text">React Devtool</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#高亮更新"><span class="toc-number">1.1.1.</span> <span class="toc-text">高亮更新</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#分析器-1"><span class="toc-number">1.1.2.</span> <span class="toc-text">分析器</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#chrome-performance-工具"><span class="toc-number">1.2.</span> <span class="toc-text">Chrome Performance 工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#其他工具"><span class="toc-number">1.3.</span> <span class="toc-text">其他工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#变动检测"><span class="toc-number">2.</span> <span class="toc-text">变动检测</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#props-变动检测"><span class="toc-number">2.1.</span> <span class="toc-text">props 变动检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#mobx-变动检测"><span class="toc-number">2.2.</span> <span class="toc-text">mobx 变动检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#context-变更检测"><span class="toc-number">2.3.</span> <span class="toc-text">Context 变更检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#react-devtool-的-interactions"><span class="toc-number">2.4.</span> <span class="toc-text">React Devtool 的 Interactions</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">3.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/06/16/react-performance-analyze/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/06/16/react-performance-analyze/&text=React性能测量和分析"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/06/16/react-performance-analyze/&is_video=false&description=React性能测量和分析"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React性能测量和分析&body=Check out this article: https://bobi.ink/2019/06/16/react-performance-analyze/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/06/16/react-performance-analyze/&title=React性能测量和分析"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/06/16/react-performance-analyze/&name=React性能测量和分析&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

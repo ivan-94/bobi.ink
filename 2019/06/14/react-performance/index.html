@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="本文来源于公司内部的一次闪电分享，稍作润色分享出来。主要讨论 React 性能优化的主要方向和一些小技巧。如果你觉得可以，请多点赞，鼓励我写出更精彩的文章🙏。  React 渲染性能优化的三个方向，其实也适用于其他软件开发领域，这三个方向分别是:  减少计算的量。 -&amp;gt; 对应到 React 中就是减少渲染的节点 或者 降低组件渲染的复杂度 利用缓存。-&amp;gt; 对应到 React 中就是如">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浅谈React性能优化的方向">
+<meta property="og:url" content="https://bobi.ink/2019/06/14/react-performance/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="本文来源于公司内部的一次闪电分享，稍作润色分享出来。主要讨论 React 性能优化的主要方向和一些小技巧。如果你觉得可以，请多点赞，鼓励我写出更精彩的文章🙏。  React 渲染性能优化的三个方向，其实也适用于其他软件开发领域，这三个方向分别是:  减少计算的量。 -&amp;gt; 对应到 React 中就是减少渲染的节点 或者 降低组件渲染的复杂度 利用缓存。-&amp;gt; 对应到 React 中就是如">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/09/styled-components.png">
+<meta property="og:image" content="https://bobi.ink/images/09/vl.png">
+<meta property="og:image" content="https://bobi.ink/images/09/vl-compare.png">
+<meta property="og:image" content="https://bobi.ink/images/09/style-compare.png">
+<meta property="og:image" content="https://bobi.ink/images/09/list.png">
+<meta property="og:image" content="https://bobi.ink/images/09/vue-compare.png">
+<meta property="og:image" content="https://bobi.ink/images/09/my-component1.png">
+<meta property="og:image" content="https://bobi.ink/images/09/my-component2.png">
+<meta property="og:image" content="https://bobi.ink/images/09/list-demo.png">
+<meta property="og:image" content="https://bobi.ink/images/09/list-demo2.png">
+<meta property="og:image" content="https://bobi.ink/images/09/use-context1.png">
+<meta property="og:image" content="https://bobi.ink/images/09/use-context2.png">
+<meta property="og:image" content="https://bobi.ink/images/09/context-vs-props.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.330Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浅谈React性能优化的方向">
+<meta name="twitter:description" content="本文来源于公司内部的一次闪电分享，稍作润色分享出来。主要讨论 React 性能优化的主要方向和一些小技巧。如果你觉得可以，请多点赞，鼓励我写出更精彩的文章🙏。  React 渲染性能优化的三个方向，其实也适用于其他软件开发领域，这三个方向分别是:  减少计算的量。 -&amp;gt; 对应到 React 中就是减少渲染的节点 或者 降低组件渲染的复杂度 利用缓存。-&amp;gt; 对应到 React 中就是如">
+<meta name="twitter:image" content="https://bobi.ink/images/09/styled-components.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>浅谈React性能优化的方向</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/06/16/react-performance-analyze/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/06/02/preact-map/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/06/14/react-performance/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/06/14/react-performance/&text=浅谈React性能优化的方向"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/06/14/react-performance/&is_video=false&description=浅谈React性能优化的方向"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈React性能优化的方向&body=Check out this article: https://bobi.ink/2019/06/14/react-performance/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/06/14/react-performance/&name=浅谈React性能优化的方向&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#减少渲染的节点-降低渲染计算量-复杂度"><span class="toc-number">1.</span> <span class="toc-text">减少渲染的节点/降低渲染计算量(复杂度)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-不要在渲染函数都进行不必要的计算"><span class="toc-number">1.1.</span> <span class="toc-text">0️⃣ 不要在渲染函数都进行不必要的计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-减少不必要的嵌套"><span class="toc-number">1.2.</span> <span class="toc-text">1️⃣ 减少不必要的嵌套</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-虚拟列表"><span class="toc-number">1.3.</span> <span class="toc-text">2️⃣ 虚拟列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-惰性渲染"><span class="toc-number">1.4.</span> <span class="toc-text">3️⃣ 惰性渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-选择合适的样式方案"><span class="toc-number">1.5.</span> <span class="toc-text">4️⃣ 选择合适的样式方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#避免重新渲染"><span class="toc-number">2.</span> <span class="toc-text">避免重新渲染</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-简化-props"><span class="toc-number">2.1.</span> <span class="toc-text">0️⃣ 简化 props</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-不变的事件处理器"><span class="toc-number">2.2.</span> <span class="toc-text">1️⃣ 不变的事件处理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-不可变数据"><span class="toc-number">2.3.</span> <span class="toc-text">2️⃣ 不可变数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-简化-state"><span class="toc-number">2.4.</span> <span class="toc-text">3️⃣ 简化 state</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-使用-recompose-精细化比对"><span class="toc-number">2.5.</span> <span class="toc-text">4️⃣ 使用 recompose 精细化比对</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#精细化渲染"><span class="toc-number">3.</span> <span class="toc-text">精细化渲染</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-响应式数据的精细化渲染"><span class="toc-number">3.1.</span> <span class="toc-text">0️⃣ 响应式数据的精细化渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-不要滥用-context"><span class="toc-number">3.2.</span> <span class="toc-text">1️⃣ 不要滥用 Context</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">4.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        浅谈React性能优化的方向
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-06-13T16:00:00.000Z" itemprop="datePublished">2019-06-14</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>本文来源于公司内部的一次闪电分享，稍作润色分享出来。主要讨论 React 性能优化的主要方向和一些小技巧。<strong>如果你觉得可以，请多点赞，鼓励我写出更精彩的文章</strong>🙏。</p>
+<p><br></p>
+<p>React 渲染性能优化的三个方向，其实也适用于其他软件开发领域，这三个方向分别是:</p>
+<ul>
+<li><strong>减少计算的量</strong>。 -&gt; 对应到 React 中就是<strong>减少渲染的节点 或者 降低组件渲染的复杂度</strong></li>
+<li><strong>利用缓存</strong>。-&gt; 对应到 React 中就是<strong>如何避免重新渲染，利用函数式编程的 memo 方式来避免组件重新渲染</strong></li>
+<li><strong>精确重新计算的范围</strong>。 对应到 React 中就是<strong>绑定组件和状态关系, 精确判断更新的’时机’和’范围’. 只重新渲染’脏’的组件，或者说降低渲染范围</strong></li>
+</ul>
+<p><br></p>
+<p><strong>目录</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#减少渲染的节点降低渲染计算量复杂度">减少渲染的节点/降低渲染计算量(复杂度)</a><ul>
+<li><a href="#0️⃣-不要在渲染函数都进行不必要的计算">0️⃣ 不要在渲染函数都进行不必要的计算</a></li>
+<li><a href="#1️⃣-减少不必要的嵌套">1️⃣ 减少不必要的嵌套</a></li>
+<li><a href="#2️⃣-虚拟列表">2️⃣ 虚拟列表</a></li>
+<li><a href="#3️⃣-惰性渲染">3️⃣ 惰性渲染</a></li>
+<li><a href="#4️⃣-选择合适的样式方案">4️⃣ 选择合适的样式方案</a></li>
+</ul>
+</li>
+<li><a href="#避免重新渲染">避免重新渲染</a><ul>
+<li><a href="#0️⃣-简化-props">0️⃣ 简化 props</a></li>
+<li><a href="#1️⃣-不变的事件处理器">1️⃣ 不变的事件处理器</a></li>
+<li><a href="#2️⃣-不可变数据">2️⃣ 不可变数据</a></li>
+<li><a href="#3️⃣-简化-state">3️⃣ 简化 state</a></li>
+<li><a href="#4️⃣-使用-recompose-精细化比对">4️⃣ 使用 recompose 精细化比对</a></li>
+</ul>
+</li>
+<li><a href="#精细化渲染">精细化渲染</a><ul>
+<li><a href="#0️⃣-响应式数据的精细化渲染">0️⃣ 响应式数据的精细化渲染</a></li>
+<li><a href="#1️⃣-不要滥用-context">1️⃣ 不要滥用 Context</a></li>
+</ul>
+</li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br><br><br></p>
+<h2 id="减少渲染的节点-降低渲染计算量-复杂度"><a href="#减少渲染的节点-降低渲染计算量-复杂度" class="headerlink" title="减少渲染的节点/降低渲染计算量(复杂度)"></a>减少渲染的节点/降低渲染计算量(复杂度)</h2><p>首先从计算的量上下功夫，减少节点渲染的数量或者降低渲染的计算量可以显著的提高组件渲染性能。</p>
+<p><br></p>
+<h3 id="0️⃣-不要在渲染函数都进行不必要的计算"><a href="#0️⃣-不要在渲染函数都进行不必要的计算" class="headerlink" title="0️⃣ 不要在渲染函数都进行不必要的计算"></a>0️⃣ 不要在渲染函数都进行不必要的计算</h3><p>比如不要在渲染函数(render)中进行数组排序、数据转换、订阅事件、创建事件处理器等等. <strong>渲染函数中不应该放置太多副作用</strong></p>
+<p><br></p>
+<h3 id="1️⃣-减少不必要的嵌套"><a href="#1️⃣-减少不必要的嵌套" class="headerlink" title="1️⃣ 减少不必要的嵌套"></a>1️⃣ 减少不必要的嵌套</h3><center><br> <img src="/images/09/styled-components.png"><br></center>
+
+<p>我们团队是重度的 <code>styled-components</code> 用户，<strong>其实大部分情况下我们都不需要这个玩意</strong>，比如纯静态的样式规则，以及需要重度性能优化的场景。除了性能问题，另外一个困扰我们的是它带来的节点嵌套地狱(如上图)。</p>
+<p>所以我们需要理性地选择一些工具，比如使用原生的 CSS，减少 React 运行时的负担.</p>
+<p><strong>一般不必要的节点嵌套都是滥用高阶组件/RenderProps 导致的。所以还是那句话‘只有在必要时才使用 xxx’</strong>。 有很多种方式来代替高阶组件/RenderProps，例如优先使用 props、React Hooks</p>
+<p><br></p>
+<h3 id="2️⃣-虚拟列表"><a href="#2️⃣-虚拟列表" class="headerlink" title="2️⃣ 虚拟列表"></a>2️⃣ 虚拟列表</h3><p>虚拟列表是常见的‘长列表’和’复杂组件树’优化方式，它优化的本质就是减少渲染的节点。</p>
+<p>虚拟列表只渲染当前视口可见元素:</p>
+<center><br> <img src="/images/09/vl.png" width="500"><br></center>
+
+<p>虚拟列表渲染性能对比:</p>
+<center><br> <img src="/images/09/vl-compare.png" width="500"><br></center>
+
+<p>虚拟列表常用于以下组件场景:</p>
+<ul>
+<li>无限滚动列表，grid, 表格，下拉列表，spreadsheets</li>
+<li>无限切换的日历或轮播图</li>
+<li>大数据量或无限嵌套的树</li>
+<li>聊天窗，数据流(feed), 时间轴</li>
+<li>等等</li>
+</ul>
+<p>相关组件方案:</p>
+<ul>
+<li><a href="https://github.com/bvaughn/react-virtualized" target="_blank" rel="noopener">react-virtualized</a></li>
+<li><a href="https://github.com/bvaughn/react-window" target="_blank" rel="noopener">react-window</a> 更轻量的 react-virtualized, 同出一个作者</li>
+<li><a href="https://github.com/bvaughn/react-virtualized#friends" target="_blank" rel="noopener">更多</a></li>
+</ul>
+<p>扩展：</p>
+<ul>
+<li><a href="https://bvaughn.github.io/forward-js-2017/#/0/0" target="_blank" rel="noopener">Creating more efficient React views with windowing</a></li>
+<li><a href="https://addyosmani.com/blog/react-window/" target="_blank" rel="noopener">Rendering large lists with react-window</a></li>
+</ul>
+<p><br><br><br></p>
+<h3 id="3️⃣-惰性渲染"><a href="#3️⃣-惰性渲染" class="headerlink" title="3️⃣ 惰性渲染"></a>3️⃣ 惰性渲染</h3><p><strong>惰性渲染的初衷本质上和虚表一样，也就是说我们只在必要时才去渲染对应的节点</strong>。</p>
+<p>举个典型的例子，我们常用 Tab 组件，我们没有必要一开始就将所有 Tab 的 panel 都渲染出来，而是等到该 Tab 被激活时才去惰性渲染。</p>
+<p>还有很多场景会用到惰性渲染，例如树形选择器，模态弹窗，下拉列表，折叠组件等等。</p>
+<p>这里就不举具体的代码例子了，留给读者去思考.</p>
+<p><br></p>
+<h3 id="4️⃣-选择合适的样式方案"><a href="#4️⃣-选择合适的样式方案" class="headerlink" title="4️⃣ 选择合适的样式方案"></a>4️⃣ 选择合适的样式方案</h3><center><br>  <img src="/images/09/style-compare.png" width="500"><br></center>
+
+<p>如图(图片来源于<a href="https://blog.primehammer.com/the-performance-of-styled-react-components/" target="_blank" rel="noopener">THE PERFORMANCE OF STYLED REACT COMPONENTS</a>), 这个图片是17年的了，但是大抵的趋势还是这样。</p>
+<p>所以在样式运行时性能方面大概可以总结为：<code>CSS &gt; 大部分CSS-in-js &gt; inline style</code></p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="避免重新渲染"><a href="#避免重新渲染" class="headerlink" title="避免重新渲染"></a>避免重新渲染</h2><p>减少不必要的重新渲染也是 React 组件性能优化的重要方向. 为了避免不必要的组件重新渲染需要在做到两点:</p>
+<ol>
+<li>保证组件纯粹性。即控制组件的副作用，如果组件有副作用则无法安全地缓存渲染结果</li>
+<li>通过<code>shouldComponentUpdate</code>生命周期函数来比对 state 和 props, 确定是否要重新渲染。对于函数组件可以使用<code>React.memo</code>包装</li>
+</ol>
+<p>另外这些措施也可以帮助你更容易地优化组件重新渲染:</p>
+<p><br></p>
+<h3 id="0️⃣-简化-props"><a href="#0️⃣-简化-props" class="headerlink" title="0️⃣ 简化 props"></a>0️⃣ 简化 props</h3><p><strong>① 如果一个组件的 props 太复杂一般意味着这个组件已经违背了‘单一职责’，首先应该尝试对组件进行拆解</strong>.<br><strong>② 另外复杂的 props 也会变得难以维护, 比如会影响<code>shallowCompare</code>效率, 还会让组件的变动变得难以预测和调试</strong>.</p>
+<p>下面是一个典型的例子, 为了判断列表项是否处于激活状态，这里传入了一个当前激活的 id:</p>
+  <center><br>    <img src="/images/09/list.png" width="500"><br>  </center>
+
+<p>这是一个非常糟糕的设计，一旦激活 id 变动，所有列表项都会重新刷新. 更好的解决办法是使用类似<code>actived</code>这样的布尔值 prop. actived 现在只有两种变动情况，也就是说激活 id 的变动，最多只有两个组件需要重新渲染.</p>
+<p><strong>简化的 props 更容易理解, 且可以提高组件缓存的命中率</strong></p>
+<p><br></p>
+<h3 id="1️⃣-不变的事件处理器"><a href="#1️⃣-不变的事件处理器" class="headerlink" title="1️⃣ 不变的事件处理器"></a>1️⃣ 不变的事件处理器</h3><p>①<strong>避免使用箭头函数形式的事件处理器</strong>, 例如:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;ComplexComponent onClick=&#123;evt =&gt; onClick(evt.id)&#125; otherProps=&#123;values&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<p>假设 ComplexComponent 是一个复杂的 PureComponent, 这里使用箭头函数，其实每次渲染时都会创建一个新的事件处理器，这会导致 ComplexComponent 始终会被重新渲染.</p>
+<p>更好的方式是使用实例方法:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    &lt;ComplexComponent onClick=&#123;<span class="keyword">this</span>.handleClick&#125; otherProps=&#123;values&#125; /&gt;;</span><br><span class="line">  &#125;</span><br><span class="line">  handleClick = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">/*...*/</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  <br></p>
+<p>② 即使现在使用<code>hooks</code>，我依然会<strong>使用<code>useCallback</code>来包装事件处理器</strong>，尽量给下级组件暴露一个静态的函数:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> handleClick = useCallback(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">/*...*/</span></span><br><span class="line">&#125;, []);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">ComplexComponent</span> <span class="attr">onClick</span>=<span class="string">&#123;handleClick&#125;</span> <span class="attr">otherProps</span>=<span class="string">&#123;values&#125;</span> /&gt;</span>;</span></span><br></pre></td></tr></table></figure>
+<p>但是如果<code>useCallback</code>依赖于很多状态，你的<code>useCallback</code>可能会变成这样:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> handleClick = useCallback(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">/*...*/</span></span><br><span class="line">  <span class="comment">// 🤭</span></span><br><span class="line">&#125;, [foo, bar, baz, bazz, bazzzz]);</span><br></pre></td></tr></table></figure>
+<p>这种写法实在让人难以接受，这时候谁还管什么函数式非函数式的。我是这样处理的:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">useRefProps</span>&lt;<span class="title">T</span>&gt;(<span class="params">props: T</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> ref = useRef &lt; T &gt; props;</span><br><span class="line">  <span class="comment">// 每次渲染更新props</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    ref.current = props;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyComp</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> propsRef = useRefProps(props);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 现在handleClick是始终不变的</span></span><br><span class="line">  <span class="keyword">const</span> handleClick = useCallback(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; foo, bar, baz, bazz, bazzzz &#125; = propsRef.current;</span><br><span class="line">    <span class="comment">// do something</span></span><br><span class="line">  &#125;, []);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>③<strong>设计更方便处理的 Event Props</strong>. 有时候我们会被逼的不得不使用箭头函数来作为事件处理器：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;List&gt;</span><br><span class="line">  &#123;list.map(<span class="function"><span class="params">i</span> =&gt;</span> (</span><br><span class="line">    &lt;Item key=&#123;i.id&#125; onClick=&#123;() =&gt; handleDelete(i.id)&#125; value=&#123;i.value&#125; /&gt;</span><br><span class="line">  ))&#125;</span><br><span class="line">&lt;<span class="regexp">/List&gt;</span></span><br></pre></td></tr></table></figure>
+<p>上面的 onClick 是一个糟糕的实现，它没有携带任何信息来标识事件来源，所以这里只能使用闭包形式，更好的设计可能是这样的:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// onClick传递事件来源信息</span></span><br><span class="line"><span class="keyword">const</span> handleDelete = useCallback(<span class="function">(<span class="params">id: string</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">/*删除操作*/</span></span><br><span class="line">&#125;, []);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> (</span><br><span class="line">  &lt;List&gt;</span><br><span class="line">    &#123;list.map(<span class="function"><span class="params">i</span> =&gt;</span> (</span><br><span class="line">      &lt;Item key=&#123;i.id&#125; id=&#123;i.id&#125; onClick=&#123;handleDelete&#125; value=&#123;i.value&#125; /&gt;</span><br><span class="line">    ))&#125;</span><br><span class="line">  &lt;<span class="regexp">/List&gt;</span></span><br><span class="line"><span class="regexp">);</span></span><br></pre></td></tr></table></figure>
+<p>如果是第三方组件或者 DOM 组件呢? 实在不行，看能不能传递<code>data-*</code>属性:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> handleDelete = useCallback(<span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> id = event.currentTarget.dataset.id;</span><br><span class="line">  <span class="comment">/*删除操作*/</span></span><br><span class="line">&#125;, []);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> (</span><br><span class="line">  &lt;ul&gt;</span><br><span class="line">    &#123;list.map(<span class="function"><span class="params">i</span> =&gt;</span> (</span><br><span class="line">      &lt;li key=&#123;i.id&#125; data-id=&#123;i.id&#125; onClick=&#123;handleDelete&#125; value=&#123;i.value&#125; /&gt;</span><br><span class="line">    ))&#125;</span><br><span class="line">  &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">);</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="2️⃣-不可变数据"><a href="#2️⃣-不可变数据" class="headerlink" title="2️⃣ 不可变数据"></a>2️⃣ 不可变数据</h3><p>不可变数据可以让状态变得可预测，也让 shouldComponentUpdate ‘浅比较’变得更可靠和高效. 笔者在<a href="https://juejin.im/post/5cdc2f54e51d453b0c35930d#heading-8" target="_blank" rel="noopener">React 组件设计实践总结 04 - 组件的思维</a>介绍过不可变数据，有兴趣读者可以看看.</p>
+<p>相关的工具有<a href="https://github.com/facebook/immutable-js" target="_blank" rel="noopener">Immutable.js</a>、<a href="https://github.com/mweststrate/immer" target="_blank" rel="noopener">Immer</a>、immutability-helper 以及 seamless-immutable。</p>
+<p><br></p>
+<h3 id="3️⃣-简化-state"><a href="#3️⃣-简化-state" class="headerlink" title="3️⃣ 简化 state"></a>3️⃣ 简化 state</h3><p><strong>不是所有状态都应该放在组件的 state 中</strong>. 例如缓存数据。按照我的原则是：<strong>如果需要组件响应它的变动, 或者需要渲染到视图中的数据才应该放到 state 中。这样可以避免不必要的数据变动导致组件重新渲染.</strong></p>
+<p><br></p>
+<h3 id="4️⃣-使用-recompose-精细化比对"><a href="#4️⃣-使用-recompose-精细化比对" class="headerlink" title="4️⃣ 使用 recompose 精细化比对"></a>4️⃣ 使用 recompose 精细化比对</h3><p>尽管 hooks 出来后，recompose 宣称不再更新了，但还是不影响我们使用 recompose 来控制<code>shouldComponentUpdate</code>方法, 比如它提供了以下方法来精细控制应该比较哪些 props:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 相当于React.memo */</span></span><br><span class="line">pure()</span><br><span class="line"><span class="comment">/* 自定义比较 */</span></span><br><span class="line">shouldUpdate(test: <span class="function">(<span class="params">props: <span class="built_in">Object</span>, nextProps: <span class="built_in">Object</span></span>) =&gt;</span> <span class="built_in">boolean</span>): HigherOrderComponent</span><br><span class="line"><span class="comment">/* 只比较指定key */</span></span><br><span class="line">onlyUpdateForKeys( propKeys: <span class="built_in">Array</span>&lt;<span class="built_in">string</span>&gt;): HigherOrderComponent</span><br></pre></td></tr></table></figure>
+<p>其实还可以再扩展一下，比如<code>omitUpdateForKeys</code>忽略比对某些 key.</p>
+<p><br><br><br></p>
+<h2 id="精细化渲染"><a href="#精细化渲染" class="headerlink" title="精细化渲染"></a>精细化渲染</h2><p>所谓精细化渲染指的是<strong>只有一个数据来源导致组件重新渲染</strong>, 比如说 A 只依赖于 a 数据，那么只有在 a 数据变动时才渲染 A, 其他状态变化不应该影响组件 A。</p>
+<p>Vue 和 Mobx 宣称自己性能好的一部分原因是它们的’响应式系统’, <strong>它允许我们定义一些‘响应式数据’，当这些响应数据变动时，依赖这些响应式数据视图就会重新渲染</strong>. 来看看 Vue 官方是如何描述的:</p>
+<center><br>  <img src="/images/09/vue-compare.png" width="500"><br></center>
+
+<p><br></p>
+<h3 id="0️⃣-响应式数据的精细化渲染"><a href="#0️⃣-响应式数据的精细化渲染" class="headerlink" title="0️⃣ 响应式数据的精细化渲染"></a>0️⃣ 响应式数据的精细化渲染</h3><p><strong>大部分情况下，响应式数据可以实现视图精细化的渲染, 但它还是不能避免开发者写出低效的程序</strong>. <strong>本质上还是因为组件违背‘单一职责’</strong>.</p>
+<p>举个例子，现在有一个 MyComponent 组件，依赖于 A、B、C 三个数据源，来构建一个 vdom 树。现在的问题是什么呢？现在只要 A、B、C 任意一个变动，那么 MyComponent 整个就会重新渲染:</p>
+<center><br>  <img src="/images/09/my-component1.png" width="300"><br></center>
+
+<p>更好的做法是让组件的职责更单一，精细化地依赖响应式数据，或者说对响应式数据进行‘隔离’. 如下图, A、B、C 都抽取各自的组件中了，现在 A 变动只会渲染 A 组件本身，而不会影响父组件和 B、C 组件:</p>
+<center><br>  <img src="/images/09/my-component2.png" width="480"><br></center>
+
+<p><br></p>
+<p>举一个典型的例子，列表渲染:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; observable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react-lite'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> initialList = [];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">  initialList.push(&#123; <span class="attr">id</span>: i, <span class="attr">name</span>: <span class="string">`name-<span class="subst">$&#123;i&#125;</span>`</span>, <span class="attr">value</span>: <span class="number">0</span> &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = observable(&#123;</span><br><span class="line">  list: initialList,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> List = observer(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> list = store.list;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'List渲染'</span>);</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div className=<span class="string">"list-container"</span>&gt;</span><br><span class="line">      &lt;ul&gt;</span><br><span class="line">        &#123;list.map(<span class="function">(<span class="params">i, idx</span>) =&gt;</span> (</span><br><span class="line">          &lt;div className=<span class="string">"list-item"</span> key=&#123;i.id&#125;&gt;</span><br><span class="line">            &#123;<span class="comment">/* 假设这是一个复杂的组件 */</span>&#125;</span><br><span class="line">            &#123;<span class="built_in">console</span>.log(<span class="string">'render'</span>, i.id)&#125;</span><br><span class="line">            &lt;span className=<span class="string">"list-item-name"</span>&gt;&#123;i.name&#125; &lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">            &lt;span className="list-item-value"&gt;&#123;i.value&#125; &lt;/</span>span&gt;</span><br><span class="line">            &lt;button</span><br><span class="line">              className=<span class="string">"list-item-increment"</span></span><br><span class="line">              onClick=&#123;() =&gt; &#123;</span><br><span class="line">                i.value++;</span><br><span class="line">                <span class="built_in">console</span>.log(<span class="string">'递增'</span>);</span><br><span class="line">              &#125;&#125;</span><br><span class="line">            &gt;</span><br><span class="line">              递增</span><br><span class="line">            &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">            &lt;button</span></span><br><span class="line"><span class="regexp">              className="list-item-increment"</span></span><br><span class="line"><span class="regexp">              onClick=&#123;() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">                if (idx &lt; list.length - 1) &#123;</span></span><br><span class="line"><span class="regexp">                  console.log('移位');</span></span><br><span class="line"><span class="regexp">                  let t = list[idx];</span></span><br><span class="line"><span class="regexp">                  list[idx] = list[idx + 1];</span></span><br><span class="line"><span class="regexp">                  list[idx + 1] = t;</span></span><br><span class="line"><span class="regexp">                &#125;</span></span><br><span class="line"><span class="regexp">              &#125;&#125;</span></span><br><span class="line"><span class="regexp">            &gt;</span></span><br><span class="line"><span class="regexp">              下移</span></span><br><span class="line"><span class="regexp">            &lt;/</span>button&gt;</span><br><span class="line">          &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        ))&#125;</span></span><br><span class="line"><span class="regexp">      &lt;/u</span>l&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;);</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上述的例子是存在性能问题的，单个 list-item 的递增和移位都会导致整个列表的重新渲染:</p>
+<center><br>  <img src="/images/09/list-demo.png" width="380"><br></center>
+
+<p>原因大概能猜出来吧? 对于 Vue 或者 Mobx 来说，<strong>一个组件的渲染函数就是一个依赖收集的上下文</strong>。上面 List 组件渲染函数内’访问’了所有的列表项数据，那么 Vue 或 Mobx 就会认为你这个组件依赖于所有的列表项，这样就导致，只要任意一个列表项的属性值变动就会重新渲染整个 List 组件。</p>
+<p>解决办法也很简单，就是将数据隔离抽取到单一职责的组件中。<strong>对于 Vue 或 Mobx 来说，越细粒度的组件，可以收获更高的性能优化效果</strong>:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> ListItem = observer(<span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; item, onShiftDown &#125; = props;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div className=<span class="string">"list-item"</span>&gt;</span><br><span class="line">      &#123;<span class="built_in">console</span>.log(<span class="string">'render'</span>, item.id)&#125;</span><br><span class="line">      &#123;<span class="comment">/* 假设这是一个复杂的组件 */</span>&#125;</span><br><span class="line">      &lt;span className=<span class="string">"list-item-name"</span>&gt;&#123;item.name&#125; &lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">      &lt;span className="list-item-value"&gt;&#123;item.value&#125; &lt;/</span>span&gt;</span><br><span class="line">      &lt;button</span><br><span class="line">        className=<span class="string">"list-item-increment"</span></span><br><span class="line">        onClick=&#123;() =&gt; &#123;</span><br><span class="line">          item.value++;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">'递增'</span>);</span><br><span class="line">        &#125;&#125;</span><br><span class="line">      &gt;</span><br><span class="line">        递增</span><br><span class="line">      &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">      &lt;button className="list-item-increment" onClick=&#123;() =&gt; onShiftDown(item)&#125;&gt;</span></span><br><span class="line"><span class="regexp">        下移</span></span><br><span class="line"><span class="regexp">      &lt;/</span>button&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;);</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export const List = observer(() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">  const list = store.list;</span></span><br><span class="line"><span class="regexp">  const handleShiftDown = useCallback(item =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    const idx = list.findIndex(i =&gt; i.id === item.id);</span></span><br><span class="line"><span class="regexp">    if (idx !== -1 &amp;&amp; idx &lt; list.length - 1) &#123;</span></span><br><span class="line"><span class="regexp">      console.log('移位');</span></span><br><span class="line"><span class="regexp">      let t = list[idx];</span></span><br><span class="line"><span class="regexp">      list[idx] = list[idx + 1];</span></span><br><span class="line"><span class="regexp">      list[idx + 1] = t;</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">    /</span><span class="regexp">/ eslint-disable-next-line react-hooks/</span>exhaustive-deps</span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'List 渲染'</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div className=<span class="string">"list-container"</span>&gt;</span><br><span class="line">      &lt;ul&gt;</span><br><span class="line">        &#123;list.map(<span class="function">(<span class="params">i, idx</span>) =&gt;</span> (</span><br><span class="line">          &lt;ListItem key=&#123;i.id&#125; item=&#123;i&#125; onShiftDown=&#123;handleShiftDown&#125; /&gt;</span><br><span class="line">        ))&#125;</span><br><span class="line">      &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>效果很明显, list-item 递增只会重新渲染本身; 而移位只会重新渲染 List， 因为列表项没有变动, 所以下级 list-item 也不需要重新渲染:</p>
+<center><br>  <img src="/images/09/list-demo2.png" width="380"><br></center>
+
+<p><br><br><br></p>
+<h3 id="1️⃣-不要滥用-context"><a href="#1️⃣-不要滥用-context" class="headerlink" title="1️⃣ 不要滥用 Context"></a>1️⃣ 不要滥用 Context</h3><p><strong>其实 Context 的用法和响应式数据正好相反</strong>。笔者也看过不少滥用 Context API 的例子, 说到底还是没有处理好‘状态的作用域问题’.</p>
+<p>首先要理解 Context API 的更新特点，<strong>它是可以穿透<code>React.memo</code>或者<code>shouldComponentUpdate</code>的比对的，也就是说，一旦 Context 的 Value 变动，所有依赖该 Context 的组件会全部 forceUpdate</strong>.</p>
+<p><strong>这个和 Mobx 和 Vue 的响应式系统不同，Context API 并不能细粒度地检测哪些组件依赖哪些状态，所以说上节提到的‘精细化渲染’组件模式，在 Context 这里就成为了‘反模式’</strong>.</p>
+<p>总结一下使用 Context API 要遵循一下原则:</p>
+<p><br></p>
+<ul>
+<li><p><strong>明确状态作用域, Context 只放置必要的，关键的，被大多数组件所共享的状态</strong>。比较典型的是鉴权状态</p>
+<p>举一个简单的例子:</p>
+<center><br>  <img src="/images/09/use-context1.png" width="400"><br></center>
+
+<center><br>  <img src="/images/09/use-context2.png" width="650"><br></center>
+
+<p>扩展：Context其实有个实验性或者说非公开的选项<code>observedBits</code>, 可以用于控制ContextConsumer是否需要更新. 详细可以看这篇文章&lt;<a href="https://zhuanlan.zhihu.com/p/51073183" target="_blank" rel="noopener">ObservedBits: React Context的秘密功能</a>&gt;. 不过不推荐在实际项目中使用，而且这个API也比较难用，不如直接上mobx。</p>
+</li>
+<li><p><strong>粗粒度地订阅 Context</strong></p>
+<p>如下图. 细粒度的 Context 订阅会导致不必要的重新渲染, 所以这里推荐粗粒度的订阅. 比如在父级订阅 Context，然后再通过 props 传递给下级。</p>
+<center><br>  <img src="/images/09/context-vs-props.png" width="600"><br></center>
+
+</li>
+</ul>
+<p><br></p>
+<p>另外程墨 Morgan 在<a href="https://zhuanlan.zhihu.com/p/50336226" target="_blank" rel="noopener">避免 React Context 导致的重复渲染</a>一文中也提到 ContextAPI 的一个陷阱:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;Context.Provider</span><br><span class="line">  value=&#123;&#123; <span class="attr">theme</span>: <span class="keyword">this</span>.state.theme, <span class="attr">switchTheme</span>: <span class="keyword">this</span>.switchTheme &#125;&#125;</span><br><span class="line">&gt;</span><br><span class="line">  &lt;div className=<span class="string">"App"</span>&gt;</span><br><span class="line">    &lt;Header /&gt;</span><br><span class="line">    &lt;Content /&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>Context.Provider&gt;</span><br></pre></td></tr></table></figure>
+<p>上面的组件会在 state 变化时重新渲染整个组件树，至于为什么留给读者去思考。</p>
+<p>所以我们一般都不会裸露地使用 Context.Provider, 而是封装为独立的 Provider 组件:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">ThemeProvider</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [theme, switchTheme] = useState(redTheme);</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Context.Provider value=&#123;&#123; theme, switchTheme &#125;&#125;&gt;</span><br><span class="line">      &#123;props.children&#125;</span><br><span class="line">    &lt;<span class="regexp">/Context.Provider&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 顺便暴露useTheme, 让外部必须直接使用Context</span></span><br><span class="line"><span class="regexp">export function useTheme() &#123;</span></span><br><span class="line"><span class="regexp">  return useContext(Context);</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>现在 theme 变动就不会重新渲染整个组件树，因为 props.children 由外部传递进来，并没有发生变动。</p>
+<p><strong>其实上面的代码还有另外一个比较难发现的陷阱(官方文档也有<a href="https://zh-hans.reactjs.org/docs/context.html#caveats" target="_blank" rel="noopener">提到</a>)</strong>:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">ThemeProvider</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [theme, switchTheme] = useState(redTheme);</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &#123;<span class="comment">/* 👇 💣这里每一次渲染ThemeProvider, 都会创建一个新的value(即使theme和switchTheme没有变动),</span></span><br><span class="line"><span class="comment">        从而导致强制渲染所有依赖该Context的组件 */</span>&#125;</span><br><span class="line">    &lt;Context.Provider value=&#123;&#123; theme, switchTheme &#125;&#125;&gt;</span><br><span class="line">      &#123;props.children&#125;</span><br><span class="line">    &lt;<span class="regexp">/Context.Provider&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>所以<strong>传递给 Context 的 value 最好做一下缓存</strong>:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">ThemeProvider</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [theme, switchTheme] = useState(redTheme);</span><br><span class="line">  <span class="keyword">const</span> value = useMemo(<span class="function"><span class="params">()</span> =&gt;</span> (&#123; theme, switchTheme &#125;), [theme]);</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Context.Provider</span> <span class="attr">value</span>=<span class="string">&#123;value&#125;</span>&gt;</span>&#123;props.children&#125;<span class="tag">&lt;/<span class="name">Context.Provider</span>&gt;</span>;</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://react.docschina.org/docs/optimizing-performance.html" target="_blank" rel="noopener">Optimizing Performance</a> React 官方文档，最好的教程, 利用好 React 的性能分析工具。</li>
+<li><a href="https://medium.com/@paularmstrong/twitter-lite-and-high-performance-react-progressive-web-apps-at-scale-d28a00e780a3" target="_blank" rel="noopener">Twitter Lite and High Performance React Progressive Web Apps at Scale</a> 看看 Twitter 如何优化的</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#减少渲染的节点-降低渲染计算量-复杂度"><span class="toc-number">1.</span> <span class="toc-text">减少渲染的节点/降低渲染计算量(复杂度)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-不要在渲染函数都进行不必要的计算"><span class="toc-number">1.1.</span> <span class="toc-text">0️⃣ 不要在渲染函数都进行不必要的计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-减少不必要的嵌套"><span class="toc-number">1.2.</span> <span class="toc-text">1️⃣ 减少不必要的嵌套</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-虚拟列表"><span class="toc-number">1.3.</span> <span class="toc-text">2️⃣ 虚拟列表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-惰性渲染"><span class="toc-number">1.4.</span> <span class="toc-text">3️⃣ 惰性渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-选择合适的样式方案"><span class="toc-number">1.5.</span> <span class="toc-text">4️⃣ 选择合适的样式方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#避免重新渲染"><span class="toc-number">2.</span> <span class="toc-text">避免重新渲染</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-简化-props"><span class="toc-number">2.1.</span> <span class="toc-text">0️⃣ 简化 props</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-不变的事件处理器"><span class="toc-number">2.2.</span> <span class="toc-text">1️⃣ 不变的事件处理器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-不可变数据"><span class="toc-number">2.3.</span> <span class="toc-text">2️⃣ 不可变数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-简化-state"><span class="toc-number">2.4.</span> <span class="toc-text">3️⃣ 简化 state</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-使用-recompose-精细化比对"><span class="toc-number">2.5.</span> <span class="toc-text">4️⃣ 使用 recompose 精细化比对</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#精细化渲染"><span class="toc-number">3.</span> <span class="toc-text">精细化渲染</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#0️⃣-响应式数据的精细化渲染"><span class="toc-number">3.1.</span> <span class="toc-text">0️⃣ 响应式数据的精细化渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-不要滥用-context"><span class="toc-number">3.2.</span> <span class="toc-text">1️⃣ 不要滥用 Context</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">4.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/06/14/react-performance/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/06/14/react-performance/&text=浅谈React性能优化的方向"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/06/14/react-performance/&is_video=false&description=浅谈React性能优化的方向"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浅谈React性能优化的方向&body=Check out this article: https://bobi.ink/2019/06/14/react-performance/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/06/14/react-performance/&title=浅谈React性能优化的方向"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/06/14/react-performance/&name=浅谈React性能优化的方向&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

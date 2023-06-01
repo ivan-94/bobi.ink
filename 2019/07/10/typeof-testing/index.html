@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="原文链接: Types Of Software Testing: Different Testing Types With Details  文章为意译，并且在原文的基础之上进行演绎和扩展   文章篇幅较长，阅读完大概20min，读完会有收获。欢迎点赞收藏关注     有多少软件测试类型呢? 我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="你需要知道的软件测试类型和常识">
+<meta property="og:url" content="https://bobi.ink/2019/07/10/typeof-testing/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="原文链接: Types Of Software Testing: Different Testing Types With Details  文章为意译，并且在原文的基础之上进行演绎和扩展   文章篇幅较长，阅读完大概20min，读完会有收获。欢迎点赞收藏关注     有多少软件测试类型呢? 我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/Types-of-Testing1.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/Types-of-Software-Testing.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/ab.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/alpha-testing.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/firefox.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/accept.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/acs.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/brw.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/black-box.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/wzr.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/comp.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/nightwatch.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/part.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/explorer.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/gr.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/blue-screen.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/ingr.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/perf.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/monkey-testing.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/mut.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/bug-fix.gif">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/phantomcss.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/smoke.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/sec.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/note7.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/review.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/str.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/unit-test.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/bdd.png">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/glassbox.jpg">
+<meta property="og:image" content="https://bobi.ink/images/typeof-testing/all.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="你需要知道的软件测试类型和常识">
+<meta name="twitter:description" content="原文链接: Types Of Software Testing: Different Testing Types With Details  文章为意译，并且在原文的基础之上进行演绎和扩展   文章篇幅较长，阅读完大概20min，读完会有收获。欢迎点赞收藏关注     有多少软件测试类型呢? 我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、">
+<meta name="twitter:image" content="https://bobi.ink/images/typeof-testing/Types-of-Testing1.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>你需要知道的软件测试类型和常识</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/07/16/js-stdlib/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/07/07/sockjs/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/10/typeof-testing/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/10/typeof-testing/&text=你需要知道的软件测试类型和常识"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/10/typeof-testing/&is_video=false&description=你需要知道的软件测试类型和常识"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=你需要知道的软件测试类型和常识&body=Check out this article: https://bobi.ink/2019/07/10/typeof-testing/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/10/typeof-testing/&name=你需要知道的软件测试类型和常识&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#不同的软件测试类型"><span class="toc-number">1.</span> <span class="toc-text">不同的软件测试类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0-a-b测试-a-b-testing"><span class="toc-number">2.</span> <span class="toc-text">0) A/B测试(A/B Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-alpha测试-alpha-testing"><span class="toc-number">3.</span> <span class="toc-text">1) Alpha测试(Alpha Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-验收测试-acceptance-testing"><span class="toc-number">4.</span> <span class="toc-text">2) 验收测试(Acceptance Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-临时测试-ad-hoc-testing"><span class="toc-number">5.</span> <span class="toc-text">3) 临时测试(Ad-hoc Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-可访问性测试-accessibility-testing"><span class="toc-number">6.</span> <span class="toc-text">4) 可访问性测试(Accessibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-beta测试-beta-testing"><span class="toc-number">7.</span> <span class="toc-text">5) Beta测试(Beta Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-后端测试-back-end-testing"><span class="toc-number">8.</span> <span class="toc-text">6) 后端测试(Back-end Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-浏览器兼容测试-browser-compatibility-testing"><span class="toc-number">9.</span> <span class="toc-text">7) 浏览器兼容测试(Browser Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-后向兼容测试-backward-compatibility-testing"><span class="toc-number">10.</span> <span class="toc-text">8) 后向兼容测试(Backward Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-黑盒测试-black-box-testing"><span class="toc-number">11.</span> <span class="toc-text">9) 黑盒测试(Black Box Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-边界值测试-boundary-value-testing"><span class="toc-number">12.</span> <span class="toc-text">10) 边界值测试(Boundary Value Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-分支测试-branch-testing"><span class="toc-number">13.</span> <span class="toc-text">11) 分支测试(Branch Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-比较测试-comparison-testing"><span class="toc-number">14.</span> <span class="toc-text">12) 比较测试(Comparison Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-兼容性测试-compatibility-testing"><span class="toc-number">15.</span> <span class="toc-text">13) 兼容性测试(Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-组件测试-component-testing"><span class="toc-number">16.</span> <span class="toc-text">14) 组件测试(Component Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-端到端测试-end-to-end-testing"><span class="toc-number">17.</span> <span class="toc-text">15) 端到端测试(End-to-End Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-等价划分-equivalence-partitioning"><span class="toc-number">18.</span> <span class="toc-text">16) 等价划分(Equivalence Partitioning)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#17-实例测试-example-testing"><span class="toc-number">19.</span> <span class="toc-text">17) 实例测试(Example Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#18-探索测试-exploratory-testing"><span class="toc-number">20.</span> <span class="toc-text">18) 探索测试(Exploratory Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#20-功能测试-functional-testing"><span class="toc-number">21.</span> <span class="toc-text">20) 功能测试(Functional Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#21-gui测试-graphical-user-interface-gui-testing"><span class="toc-number">22.</span> <span class="toc-text">21) GUI测试(Graphical User Interface (GUI) Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#22-大猩猩测试-gorilla-testing"><span class="toc-number">23.</span> <span class="toc-text">22) 大猩猩测试(Gorilla Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#23-乐观路线测试-happy-path-testing"><span class="toc-number">24.</span> <span class="toc-text">23) 乐观路线测试(Happy Path Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24-增量集成测试-incremental-integration-testing"><span class="toc-number">25.</span> <span class="toc-text">24) 增量集成测试(Incremental Integration Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-安装卸载测试-install-uninstall-testing"><span class="toc-number">26.</span> <span class="toc-text">25) 安装卸载测试(Install/Uninstall Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#26-集成测试-integration-testing"><span class="toc-number">27.</span> <span class="toc-text">26) 集成测试(Integration Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#27-负载测试-load-testing"><span class="toc-number">28.</span> <span class="toc-text">27) 负载测试(Load Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#28-猴子测试-monkey-testing"><span class="toc-number">29.</span> <span class="toc-text">28) 猴子测试(Monkey Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#29-变异测试-mutation-testing"><span class="toc-number">30.</span> <span class="toc-text">29) 变异测试(Mutation Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#30-悲观测试-negative-testing"><span class="toc-number">31.</span> <span class="toc-text">30) 悲观测试(Negative Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#31-非功能测试-non-functional-testing"><span class="toc-number">32.</span> <span class="toc-text">31) 非功能测试(Non-Functional Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#32-性能测试-performance-testing"><span class="toc-number">33.</span> <span class="toc-text">32) 性能测试(Performance Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#33-恢复测试-recovery-testing"><span class="toc-number">34.</span> <span class="toc-text">33) 恢复测试(Recovery Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#34-回归测试-regression-testing"><span class="toc-number">35.</span> <span class="toc-text">34) 回归测试(Regression Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#35-基于风险的测试-risk-based-testing-rbt"><span class="toc-number">36.</span> <span class="toc-text">35) 基于风险的测试(Risk-Based Testing (RBT))</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#36-完整性测试-sanity-testing"><span class="toc-number">37.</span> <span class="toc-text">36) 完整性测试(Sanity Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#37-安全测试-security-testing"><span class="toc-number">38.</span> <span class="toc-text">37) 安全测试(Security Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#38-冒烟测试-smoke-testing"><span class="toc-number">39.</span> <span class="toc-text">38) 冒烟测试(Smoke Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#39-静态测试-static-testing"><span class="toc-number">40.</span> <span class="toc-text">39) 静态测试(Static Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#40-压力测试-stress-testing"><span class="toc-number">41.</span> <span class="toc-text">40) 压力测试(Stress Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#41-系统测试-system-testing"><span class="toc-number">42.</span> <span class="toc-text">41) 系统测试(System Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#42-单元测试-unit-testing"><span class="toc-number">43.</span> <span class="toc-text">42) 单元测试(Unit Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#43-可用性测试-usability-testing"><span class="toc-number">44.</span> <span class="toc-text">43) 可用性测试(Usability Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#44-漏洞测试-vulnerability-testing"><span class="toc-number">45.</span> <span class="toc-text">44) 漏洞测试(Vulnerability Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#45-容量测试-volume-testing"><span class="toc-number">46.</span> <span class="toc-text">45) 容量测试(Volume Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#46-白盒测试-white-box-testing"><span class="toc-number">47.</span> <span class="toc-text">46) 白盒测试(White Box Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">48.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        你需要知道的软件测试类型和常识
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-07-09T16:00:00.000Z" itemprop="datePublished">2019-07-10</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>原文链接: <a href="https://www.softwaretestinghelp.com/types-of-software-testing/" target="_blank" rel="noopener">Types Of Software Testing: Different Testing Types With Details</a></p>
+<blockquote>
+<p>文章为意译，并且在原文的基础之上进行演绎和扩展</p>
+</blockquote>
+<blockquote>
+<p>文章篇幅较长，阅读完大概20min，读完会有收获。欢迎点赞收藏关注</p>
+</blockquote>
+<p><br></p>
+<p><img src="/images/typeof-testing/Types-of-Testing1.jpg" alt></p>
+<p><br></p>
+<p>有多少软件测试类型呢?</p>
+<p>我们作为测试人员了解很多种不同的软件测试类型，例如功能测试(Functional Test)、非功能测试、自动测试、敏捷测试、以及它们的各种子类型. 尽管在我们的测试过程中会接触很多种测试类型, 或者听说过某些测试类型，但是很少人敢说精通所有的测试类型.</p>
+<p>每个测试类型都有自己的特点、优势和劣势。所以我写这篇文章，科普一下我们今天最常用的测试类型.</p>
+<p><br></p>
+<h2 id="不同的软件测试类型"><a href="#不同的软件测试类型" class="headerlink" title="不同的软件测试类型"></a>不同的软件测试类型</h2><p><img src="/images/typeof-testing/Types-of-Software-Testing.jpg" alt></p>
+<p>下面是软件测试的通用类型列表</p>
+<ul>
+<li><p>功能测试类型:</p>
+<ul>
+<li>单元测试(Unit testing)</li>
+<li>集成测试(Integration testing)</li>
+<li>系统测试(System testing)</li>
+<li>健全性测试(Sanity testing)</li>
+<li>冒烟测试(Smoke testing)</li>
+<li>接口测试(Interface testing)</li>
+<li>回归测试(Regression testing)</li>
+<li>Beta/验收测试(Beta/Acceptance testing)</li>
+</ul>
+</li>
+<li><p>非功能测试类型:</p>
+<ul>
+<li>性能测试(Performance Testing)</li>
+<li>负载测试(Load testing)</li>
+<li>压力测试(Stress testing)</li>
+<li>容量测试(Volume testing)</li>
+<li>安全测试(Security testing)</li>
+<li>兼容性测试(Compatibility testing)</li>
+<li>安装测试(Install testing)</li>
+<li>恢复测试(Recovery testing)</li>
+<li>可靠性测试(Reliability testing)</li>
+<li>可用性测试(Usability testing)</li>
+<li>一致性测试(Compliance testing)</li>
+<li>本地化测试(Localization testing)</li>
+</ul>
+</li>
+</ul>
+<p>来看看这些测试类型的细节</p>
+<p><br></p>
+<h2 id="0-a-b测试-a-b-testing"><a href="#0-a-b测试-a-b-testing" class="headerlink" title="0) A/B测试(A/B Testing)"></a>0) A/B测试(A/B Testing)</h2><p><img src="/images/typeof-testing/ab.png" alt></p>
+<p>顾名思义， <a href="https://maxket.com/ab-test-best-practice/" target="_blank" rel="noopener">A/B测试</a>就是准备两个(A/B)或两个以上的版本，让不同的用户来随机访问这些版本，收集各群组的用户体验数据和业务数据，最后分析、评估出最好版本，正式采用。如上图，谷歌使用A/B测试来决定导航应该是红色还是蓝色。</p>
+<p><br></p>
+<h2 id="1-alpha测试-alpha-testing"><a href="#1-alpha测试-alpha-testing" class="headerlink" title="1) Alpha测试(Alpha Testing)"></a>1) Alpha测试(Alpha Testing)</h2><p><strong><a href="https://www.softwaretestinghelp.com/what-is-alpha-testing-beta-testing/" target="_blank" rel="noopener">Alpha测试</a>这是软件工程中很常见的测试类型。它的目标就是尽可能地在发布到市场或交付给用户之前找出所有的问题和缺陷</strong>。</p>
+<p>Alpha测试一般在开发的末段且在Beta测试之前进行。在这个测试过程中可能会驱动开发者进行一些小(minor)的设计变动. Alpha测试一般在开发者网站进行，即只对开发者或内部用户开放，一般可以为此类测试创建内部虚拟的用户环境。</p>
+<p><br></p>
+<p>一般大型的软件项目都有规范化的<strong>软件版本周期</strong>:</p>
+<p><img src="/images/typeof-testing/alpha-testing.png" alt></p>
+<ul>
+<li><strong>Pre-alpha</strong>: 有时候软件会在Alpha或Beta版本前先发布Pre-alpha版本, 相比Alpha和Beta，这是一个功能不完整的版本</li>
+<li><strong>Alpha</strong>: Alpha版本功能还没完善，需要进一步测试。Alpha版本通常会发送到开发软件的组织或某群体中的软件测试者进行内部测试。</li>
+<li><strong>Beta</strong>: 一般Beta版本会包含所有功能，但可能又有一些Bug，需要调试反馈。 Beta版本是软件最早对外公开的软件版本，由公众（通常为公司外的第三方开发者和业余玩家）参与测试。</li>
+<li><strong>Release Candidate(rc)</strong>: 发布候选版本，如果没有出现问题则可发布成为正式的版本。这个版本包含完整且比较稳定的功能</li>
+</ul>
+<p>举一个典型的例子, 最近把我<a href="https://juejin.im/pin/5d1ecb656fb9a00259a176a5" target="_blank" rel="noopener">坑得有点惨</a>的iOS13的发布计划:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">June 3: iOS 13 beta 1 and first look at WWDC 2019                 # -&gt; WWDC后就可以装的，相当于pre-alpha或Alpha阶段吧</span><br><span class="line">June 17: iOS 13 beta 2 launched for developers</span><br><span class="line">June 24: iOS 13 public beta release date for adventurous testers  # -&gt; 公开Beta版本，相当于上面说的Beta阶段</span><br><span class="line">July 3: iOS 13 developer beta 3 launch with some new features     </span><br><span class="line">July 8: iOS 13 public beta 2 release date</span><br><span class="line">Early September 2019: iOS 13 Golden Master (final dev beta)       # -&gt; 九月初，该发最终Beta版本了，相当于进入RC阶段了</span><br><span class="line">Mid-September 2019: iOS 13 likely to launch with new 2019 iPhones # -&gt; 正式版本</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>现在很多开源项目，已经淡化了瀑布式的软件版本周期，变成一种持续(Continuous)的、常态化的行为, 例如Firefox:</p>
+<p><img src="/images/typeof-testing/firefox.png" alt></p>
+<p><br></p>
+<h2 id="2-验收测试-acceptance-testing"><a href="#2-验收测试-acceptance-testing" class="headerlink" title="2) 验收测试(Acceptance Testing)"></a>2) 验收测试(Acceptance Testing)</h2><p><strong><a href="https://www.softwaretestinghelp.com/what-is-acceptance-testing/" target="_blank" rel="noopener">验收测试</a>通常是部署软件之前的最后一个测试操作, 也称为交付测试, 由最终客户执行，他们会验证端到端(end to end)的系统流程是否符合业务需求，以及功能是否是满足最终用户的需求</strong>。只有当所有的特性和功能按照期望的运行，客户才会接受软件</p>
+<p>这是测试的最后阶段，在验收测试之后，软件将投入生产环境. 所以它也叫用户验收测试(UAT)</p>
+<p><img src="/images/typeof-testing/accept.png" alt></p>
+<p>举个例子，验收测试就相当于收快递, 包裹是软件、你就是客户，是验收方，如果货物不符合你的要求，是要退货的。</p>
+<p><br></p>
+<h2 id="3-临时测试-ad-hoc-testing"><a href="#3-临时测试-ad-hoc-testing" class="headerlink" title="3) 临时测试(Ad-hoc Testing)"></a>3) 临时测试(Ad-hoc Testing)</h2><p>Ad-hoc中文应该理解为临时的意思。顾名思义，这种测试是在临时基础上进行的, 有时候也称为随机测试。即没有参考测试用例、没有针对该测试的任何计划和文档。Ad-hoc测试的目的就是<strong>通过执行随意的流程或任意的功能来找出应用的缺陷和问题</strong></p>
+<p>Ad-hoc测试一种非正式的方法，可以由项目中的任何人执行。尽管没有测试用例很难识别缺陷，但是有些时候在Ad-hoc测试期间发现的缺陷可能无法使用现有的测试用例来识别, <strong>也就是说它一般用来发现‘意外’的缺陷</strong>.</p>
+<p><br></p>
+<h2 id="4-可访问性测试-accessibility-testing"><a href="#4-可访问性测试-accessibility-testing" class="headerlink" title="4) 可访问性测试(Accessibility Testing)"></a>4) 可访问性测试(Accessibility Testing)</h2><p><strong>可访问性测试的目的是确定软件或应用程序是否可供残疾人使用</strong>。残疾是指聋人，色盲，智障人士，失明者，老年人和其他残疾人群体。这里会执行各种检查，例如针对视觉残疾的字体大小测试，针对色盲的颜色和对比度测试等等。</p>
+<p>不同平台、不同应用类型对可访问性支持情况不太一样，比如iOS相比其他操作系统则更重视可访问, 而国外比国内更重视可访问性。</p>
+<p><img src="/images/typeof-testing/acs.png" alt></p>
+<p><br></p>
+<h2 id="5-beta测试-beta-testing"><a href="#5-beta测试-beta-testing" class="headerlink" title="5) Beta测试(Beta Testing)"></a>5) Beta测试(Beta Testing)</h2><p>上文Alpha测试已经提及Beta测试, <strong>Beta测试是一种正式的软件测试类型，在将产品发布到市场或者实际最终用户之前，由客户在真实的应用环境中执行</strong>。</p>
+<p>执行Beta测试目的是确保软件或产品中没有重大故障，并且满足最终用户的业务需求。当客户接受软件时，Beta测试才算通过。</p>
+<p>通常，此类测试由最终用户或其他人完成。这是在将应用发布作为商业用途之前完成的最终测试。通常，发布的软件或产品的Beta版本仅限于特定区域中的特定数量的用户。<br>所以最终用户实际使用软件后会将一些问题反馈给公司。公司可以在全面发布之前采取必要的措施。</p>
+<p>Beta测试在正式版本之前也可能会迭代进行多次.</p>
+<p><br></p>
+<h2 id="6-后端测试-back-end-testing"><a href="#6-后端测试-back-end-testing" class="headerlink" title="6) 后端测试(Back-end Testing)"></a>6) 后端测试(Back-end Testing)</h2><p>前端应用输入的数据，一般都会存储在数据库，所以针对数据库的这类测试称为<strong>数据库测试或者后端测试</strong>. 市面有不同的数据库，如SQL Server，MySQL和Oracle等。数据库测试会涉及表结构，模式，存储过程，数据结构等。</p>
+<p>后端测试一般不会涉及GUI，测试人员通过某些手段直接连接到数据库，从而可以容易地运行一些数据库请求来验证数据。<strong>通过后端测试可以发现一些数据库问题，比如数据丢失、死锁、数据损坏。这些问题在系统投入生产环境之前进行修复至关重要</strong></p>
+<p><br></p>
+<h2 id="7-浏览器兼容测试-browser-compatibility-testing"><a href="#7-浏览器兼容测试-browser-compatibility-testing" class="headerlink" title="7) 浏览器兼容测试(Browser Compatibility Testing)"></a>7) 浏览器兼容测试(Browser Compatibility Testing)</h2><p><img src="/images/typeof-testing/brw.png" alt></p>
+<p>这是兼容性测试的子类型，由测试团队执行. <strong><a href="http://frontend.turing.io/lessons/module-2/cross-browser-compat.html" target="_blank" rel="noopener">浏览器兼容测试</a>主要针对Web应用，用于确保软件可以在不同浏览器或操作系统中运行; 或者验证Web应用程序是否支持在浏览器的所有版本上运行, 以确定应用最终兼容的范围</strong>.</p>
+<p>浏览器兼容测试是前端开发者绕不开的坑。</p>
+<p>我们有很多<strong>策略</strong>来应对浏览器兼容性，比如渐进增强或者优雅降级, 还有制定浏览器兼容规范; </p>
+<p>为了<strong>抚平浏览器之间的差异</strong>，我们会使用各种特性检测工具(Modernizr), 还有各种polyfill(CSS Normaliz, polyfill/shim, css-autoprefixer);</p>
+<p>当然为了<strong>测试跨浏览器兼容性</strong>，还要一些辅助工具，例如<a href="https://www.browserstack.com/" target="_blank" rel="noopener">BrowserStack</a>, 对于我们这些小团队，只能下一堆Portable(<em>Portable浏览器运行时相互隔离的, 所以不会存在配置文件等冲突问题</em>) 浏览器，手工测试了。</p>
+<p><br></p>
+<h2 id="8-后向兼容测试-backward-compatibility-testing"><a href="#8-后向兼容测试-backward-compatibility-testing" class="headerlink" title="8) 后向兼容测试(Backward Compatibility Testing)"></a>8) 后向兼容测试(Backward Compatibility Testing)</h2><p><strong>向后兼容测试, 用于验证新开发或更新的软件是否能在旧版本的环境中运行</strong>。</p>
+<p>比如向后兼容测试会检查新版软件是否可以正确地处理旧版本软件创建的文件格式。例如新版的Office 2016是否可以打开2012创建的文件。</p>
+<p>同理也可以检查新版本是否可以兼容旧版本软件创建的数据表、数据文件、数据结构、配置文件。 </p>
+<p>任何软件更新应该在先前版本的基础之上良好地运行</p>
+<p><br></p>
+<h2 id="9-黑盒测试-black-box-testing"><a href="#9-黑盒测试-black-box-testing" class="headerlink" title="9) 黑盒测试(Black Box Testing)"></a>9) 黑盒测试(Black Box Testing)</h2><p><img src="/images/typeof-testing/black-box.png" alt></p>
+<p>黑盒测试不考虑软件的内部系统设计，它基于需求和功能进行测试, 只关心系统的输入/输出以及功能流程。 </p>
+<p>换句话说<strong>黑盒测试从用户的角度出发针对软件界面、功能及外部结构进行测试，而不考虑程序内部逻辑结构</strong>.</p>
+<p>黑盒测试下面有很多子类，例如集成测试、系统测试、大部分非功能性测试</p>
+<p>关于黑盒测试的优缺点以及测试类型可以看<a href="https://www.softwaretestinghelp.com/black-box-testing/" target="_blank" rel="noopener">这里</a></p>
+<p><br></p>
+<h2 id="10-边界值测试-boundary-value-testing"><a href="#10-边界值测试-boundary-value-testing" class="headerlink" title="10) 边界值测试(Boundary Value Testing)"></a>10) 边界值测试(Boundary Value Testing)</h2><p><strong>边界值测试, 测试应用处于边界条件(boundary level)的行为</strong>。很多边界条件开发者是很难考虑周到的，所以才有一个专门的测试类型来验证这种情况</p>
+<p>边界值测试检查应用处于边界值时是否存在缺陷。边界值测试通常用于测试不同范围的数字, 每个范围都有一个上下边界，边界测试则是针对这些边界值进行测试。</p>
+<p>比如数字范围为1-500, 那么边界值测试会在这些值上进行验证: 0、1、2、499、500、501</p>
+<p><br></p>
+<h2 id="11-分支测试-branch-testing"><a href="#11-分支测试-branch-testing" class="headerlink" title="11) 分支测试(Branch Testing)"></a>11) 分支测试(Branch Testing)</h2><p>这是白盒测试的子类型，在单元测试中实施. 顾名思义，<strong>分支测试表示测试要覆盖程序代码的各种条件分支, 避免遗漏缺陷</strong>。分支覆盖是单元测试覆盖率的一个指标之一</p>
+<p><br></p>
+<h2 id="12-比较测试-comparison-testing"><a href="#12-比较测试-comparison-testing" class="headerlink" title="12) 比较测试(Comparison Testing)"></a>12) 比较测试(Comparison Testing)</h2><p><img src="/images/typeof-testing/wzr.png" alt></p>
+<p><strong>比较测试，将产品的优点和弱点与旧版本或者同类(竞品)产品进行比较.</strong></p>
+<p>比如类似王自如这种数码测评栏目，评测一个手机或者其他数码产品时，一般会横向和友商产品进行比较，有时候也会纵向和上一代产品比较.</p>
+<p>还有一种比较典型的例子就是和行业的领导者比较，比如我们做IM的，会经常和微信比较: ‘你这个应用的启动速度怎么比微信慢这么多?’</p>
+<p><br></p>
+<h2 id="13-兼容性测试-compatibility-testing"><a href="#13-兼容性测试-compatibility-testing" class="headerlink" title="13) 兼容性测试(Compatibility Testing)"></a>13) 兼容性测试(Compatibility Testing)</h2><p>这是一个大类, <strong>兼容性测试用于验证应用在不同环境、web服务器、硬件、网络条件下的行为</strong>。兼容性测试确保软件可以在不同的配置、不同的数据库、不同的浏览器，以及它们不同的版本下运行。兼容性测试由测试团队实施</p>
+<p><br></p>
+<h2 id="14-组件测试-component-testing"><a href="#14-组件测试-component-testing" class="headerlink" title="14) 组件测试(Component Testing)"></a>14) 组件测试(Component Testing)</h2><p><a href="https://www.guru99.com/component-testing.html" target="_blank" rel="noopener">组件测试</a>(此组件非GUI组件, 取组合测试可能更好理解一点)，<strong>一般也称为模块测试(Module Testing), 一般由开发者在完成单元测试后执行。组件测试将多个功能组合起来作为单一的整体进行测试，目的是发现多个功能在相互连接起来之后的缺陷</strong>。</p>
+<p>组件测试可大可小，小到函数级别或者类级别的组合，大可以大到几个单独的页面、模块、子系统的组合。 举一个前端例子，将多个页面路由组合起来，测试它们的流程跳转，就属于组件测试。</p>
+<p><img src="/images/typeof-testing/comp.png" alt></p>
+<p><br></p>
+<h2 id="15-端到端测试-end-to-end-testing"><a href="#15-端到端测试-end-to-end-testing" class="headerlink" title="15) 端到端测试(End-to-End Testing)"></a>15) 端到端测试(End-to-End Testing)</h2><p>端到端测试也是一种黑盒测试类型，类似于系统测试. <strong>端到端测试在模拟的、完整的、真实应用环境下模拟真实用户对应用进行测试，比如应用会和数据库交互、会使用网络通信、或者在适当的情况下和其他硬件、应用、系统进行交互</strong>. 端到端是指从一个端点到另一个端点的意思，所以端到端测试重点用于测试模块和模块之间的协调性。</p>
+<p>当应用是分布式系统或者需要和其他外部系统协同时，端到端测试扮演着非常重要的角色, 它可以全面检查以确保软件在不同平台和环境产品能准确地交互。端到端测试有以下目的:</p>
+<ul>
+<li>确保应用可以和外部系统之间良好的协调。对于前端来说，是确保页面和后端之间良好协调</li>
+<li>检查从源系统到目标系统的所有系统流</li>
+<li>从最终用户角度验证需求</li>
+<li>识别异构环境中的问题</li>
+</ul>
+<p>前端也有很多自动化的端到端测试工具，比如nightwatch，通过它们可以模拟用户对页面进行操作，从而检验整个应用流程是否正常和符合需求:</p>
+<p><img src="/images/typeof-testing/nightwatch.png" alt></p>
+<p>因为和<strong>系统测试</strong>很相似，所以它们也被经常拿来<a href="https://www.softwaretestinghelp.com/system-vs-end-to-end-testing/" target="_blank" rel="noopener">比较</a></p>
+<p><br></p>
+<h2 id="16-等价划分-equivalence-partitioning"><a href="#16-等价划分-equivalence-partitioning" class="headerlink" title="16) 等价划分(Equivalence Partitioning)"></a>16) 等价划分(Equivalence Partitioning)</h2><p>等价划分, 这是一种黑盒测试的测试技术. <strong>通过等价划分，可以将所有的输入数据合理地划分为多个分组，我们只需在每个分组中取一个数据作为测试的输入条件, 这样可以实现用少量代表性的测试数据取得较好的测试结果</strong>.</p>
+<p>所以说这个测试的目的: 是在不导致缺陷的前提下，移除指定分组中的重复的用例, 简化测试的工作</p>
+<p><img src="/images/typeof-testing/part.png" alt></p>
+<p>比如一个程序应用接受-10到+10之间的值，使用等价分区方法可以划分为三个分组: 0、负值、正值. 接下来的测试只需从这个三个分组中取一个成员进行测试, 而不需要-10到+10每个成员都测试一遍.</p>
+<p><br></p>
+<h2 id="17-实例测试-example-testing"><a href="#17-实例测试-example-testing" class="headerlink" title="17) 实例测试(Example Testing)"></a>17) 实例测试(Example Testing)</h2><p>It means real-time testing. Example testing includes the real-time scenario, it also involves the scenarios based on the experience of the testers.</p>
+<p>实例测试意味着实时测试。实例测试包含了实时场景、另外还涉及基于测试人员经验的场景。</p>
+<blockquote>
+<p>🤔 这里不是特别能理解这个测试类型，所以贴上原文。知道的告诉我呀</p>
+</blockquote>
+<p><br></p>
+<h2 id="18-探索测试-exploratory-testing"><a href="#18-探索测试-exploratory-testing" class="headerlink" title="18) 探索测试(Exploratory Testing)"></a>18) 探索测试(Exploratory Testing)</h2><p><img src="/images/typeof-testing/explorer.png" alt></p>
+<p>探索性测试有点类似于Ad-Hoc测试. 探索性测试是由测试团队进行的非正式测试。此测试的目的是探索应用并查找应用中存在的缺陷。像探险一样，在测试期间是有一定几率发现的重大、甚至可能导致系统故障的缺陷.</p>
+<p>在探索性测试期间，建议跟踪记录好测试的流程、以及开始该流程之前的活动记录, 方便复现bug.</p>
+<p>探索测试不需要任何文档和测试用例.</p>
+<p><br></p>
+<h2 id="20-功能测试-functional-testing"><a href="#20-功能测试-functional-testing" class="headerlink" title="20) 功能测试(Functional Testing)"></a>20) 功能测试(Functional Testing)</h2><p>功能测试是一个大类, 又称为行为测试，  <strong>功能测试会忽略内部实现而关注组件的输出，目的是验证是否符合需求，这是一种面向功能需求的黑盒测试类型</strong>。关于功能测试的细节请看<a href="https://www.softwaretestinghelp.com/guide-to-functional-testing/" target="_blank" rel="noopener">这里</a></p>
+<p>功能测试是相对非功能测试而言的, 功能测试需要关心功能或者业务，需要业务耦合程度高；而非功能测试则是通用的，比如压力测试、负载测试，这些测试都有通用的工具来支持，不需要或很少定制化操作.</p>
+<p><br></p>
+<h2 id="21-gui测试-graphical-user-interface-gui-testing"><a href="#21-gui测试-graphical-user-interface-gui-testing" class="headerlink" title="21) GUI测试(Graphical User Interface (GUI) Testing)"></a>21) GUI测试(Graphical User Interface (GUI) Testing)</h2><p>GUI测试的目的是根据业务需求验证GUI。在详细设计文档和GUI模型(UI设计文档)中一般会提到应用期望的GUI.</p>
+<p>常见的GUI测试包括测试屏幕上显示的按钮和输入字段的大小、表格中所有文本、表格或内容的对齐规则等等. 如果团队有UI设计规范，还会验证是否符合设计规范</p>
+<p><br></p>
+<h2 id="22-大猩猩测试-gorilla-testing"><a href="#22-大猩猩测试-gorilla-testing" class="headerlink" title="22) 大猩猩测试(Gorilla Testing)"></a>22) 大猩猩测试(Gorilla Testing)</h2><p><img src="/images/typeof-testing/gr.jpg" alt></p>
+<p>大猩猩测试是由测试人员执行的测试类型，有时也由开发人员执行。在大猩猩测试中，对模块中的一个模块或功能进行了彻底和严格的测试。原文没有说出大猩猩测试的精髓，大猩猩测试会对一个功能或模块进行重复‘上百次’的测试, 人类根本受不了这样子的测试方式，所以大猩猩测试的另一个别名是‘令人沮丧的测试(Frustrating Testing)’</p>
+<p>这种测试的目的是检查应用程序的稳健性(robustness)</p>
+<p><br></p>
+<h2 id="23-乐观路线测试-happy-path-testing"><a href="#23-乐观路线测试-happy-path-testing" class="headerlink" title="23) 乐观路线测试(Happy Path Testing)"></a>23) 乐观路线测试(Happy Path Testing)</h2><p><strong>乐观路线测试</strong>的目标是在正常流程上成功测试应用。它不会考虑各种负面或异常情况。重点只关注于验证应用在有效和合法输入的条件下生成期望的输出. 比如银行付款，只考虑账户有钱的正常状态😂</p>
+<p><br></p>
+<h2 id="24-增量集成测试-incremental-integration-testing"><a href="#24-增量集成测试-incremental-integration-testing" class="headerlink" title="24) 增量集成测试(Incremental Integration Testing)"></a>24) 增量集成测试(Incremental Integration Testing)</h2><p>增量集成测试是一种自下而上的测试方法，即在添加新功能时立即集成应用程序进行连续测试。应用程序功能和模块应该足够独立，以便单独测试。这通常由程序员或测试人员完成。</p>
+<p><br></p>
+<h2 id="25-安装卸载测试-install-uninstall-testing"><a href="#25-安装卸载测试-install-uninstall-testing" class="headerlink" title="25) 安装卸载测试(Install/Uninstall Testing)"></a>25) 安装卸载测试(Install/Uninstall Testing)</h2><p><img src="/images/typeof-testing/blue-screen.jpg" alt></p>
+<p>安装和卸载测试是在不同硬件或软件环境下的不同操作系统上的进行完整/部分的安装、升级、卸载、回滚等测试. 常用于桌面端应用</p>
+<p><br></p>
+<h2 id="26-集成测试-integration-testing"><a href="#26-集成测试-integration-testing" class="headerlink" title="26) 集成测试(Integration Testing)"></a>26) 集成测试(Integration Testing)</h2><p>集成测试是指将所有模块集成之后，验证合并后的功能. 模块通常是代码模块、单个应用、网络上的客户端和服务器应用等等。</p>
+<p><img src="/images/typeof-testing/ingr.png" alt></p>
+<p>集成测试一般在单元测试之后，所以单元测试是集成测试的基础，没有进行单元测试的集成测试是不靠谱的。所以最简单的形式是：’把两个已经测试过的单元组合成一个组件，测试它们之间的接口’。也就是说<strong>集成测试在单元测试的基础之上，将单元测试中独立的单元合并起来，验证它们的协调性, 合并后的组件又是一个新的‘单元’，这样逐步合并测试，最终形成完整的应用程序</strong>。</p>
+<p>这种类型的测试常用于B/S软件和分布式系统。</p>
+<p><br></p>
+<h2 id="27-负载测试-load-testing"><a href="#27-负载测试-load-testing" class="headerlink" title="27) 负载测试(Load Testing)"></a>27) 负载测试(Load Testing)</h2><p>它是一种非功能性测试，负载测试的目的是检查系统可以承受多少负载而不会降低性能, 或者说确定最大工作负载是多少。</p>
+<p>负载测试有助于查找特定负载下系统的最大容量以及导致软件性能下降的任何原因。可以使用JMeter，LoadRunner，WebLoad，Silk执行程序等工具执行负载测试。</p>
+<p><img src="/images/typeof-testing/perf.png" alt></p>
+<p>负载测试经常和性能测试、压力测试、稳定性测试等联系在一起。如上图(来源于淘宝性能白皮书). 其中TPS(Transation Per Second)指的是每秒钟系统可以处理的交易或事务的数量; Server Resource指的是系统资源占有.</p>
+<ul>
+<li><strong>性能测试</strong>. 主要位于a-b之间. 在系统设计初期就会规划一个预期目标, 比如给定资源Ax，a点就是性能期望值。也就是说在给定固定资源Ax的情况下，如果TPS可以达到a点甚至更高，就说明系统性能达到或者好于预期. <strong>通过性能测试可以验证系统的处理能力有没有达到预期</strong></li>
+<li><strong>负载测试</strong>. 位于b-c之间。对系统不断增加并发请求，直到系统的某项或者多项指标达到安全的临界值，如上图中的c，这个c就是所谓的最大负载量。后面再增加请求压力，系统的处理能力不但不能提高，返回会下降. <strong>通过压力测试可以得出系统最大的安全负载值</strong></li>
+<li><strong>压力测试</strong>. 位于c-d之间。在超过安全负载的情况下，继续对系统增加压力，直到达到崩溃点, 即上图的d. <strong>通过压力测试可以得出系统的最大承受能力</strong></li>
+<li><strong>稳定性测试</strong>. 位于a-d之间。在a、b、c、d不同的点(代表特定的硬件、软件和网络环境)，让系统运行一段较长的时间，<strong>检测系统在不同条件下的系统运行的稳定性</strong>。</li>
+</ul>
+<p>另外也推荐阅读&lt;&lt;大型网站技术架构&gt;&gt;这本书</p>
+<p><br></p>
+<h2 id="28-猴子测试-monkey-testing"><a href="#28-猴子测试-monkey-testing" class="headerlink" title="28) 猴子测试(Monkey Testing)"></a>28) 猴子测试(Monkey Testing)</h2><p><img src="/images/typeof-testing/monkey-testing.jpg" alt></p>
+<p>猴子测试是由测试人员进行的，即把自己当成猴子，在没有任何知识背景或者理解应用前提下，随意输入和操作。</p>
+<p>猴子测试的目标是通过提供随机输入值/数据来检查应用程序或系统是否崩溃。 猴子是随机执行的，没有测试用例, 也没有必要了解系统的全部功能</p>
+<p><br></p>
+<h2 id="29-变异测试-mutation-testing"><a href="#29-变异测试-mutation-testing" class="headerlink" title="29) 变异测试(Mutation Testing)"></a>29) 变异测试(Mutation Testing)</h2><p>变异测试(或者说可变性测试)是一种白盒测试，这是一种和单元测试反着来的测试类型。</p>
+<p><img src="/images/typeof-testing/mut.png" alt></p>
+<p><strong>通常单元测试的思路是通过测试用例来验证代码是否有效可靠，而变异测试是反过来. 它首先更改其中一个程序的源代码，再跑单元测试，如果单元测试通过则可能说明测试用例没有效果，或者测试用例没有覆盖到这处代码变异</strong>. </p>
+<p>所以说变异测试可以反过来验证你的测试用例是否有效, 还有可以帮助我们找出一些无法被当前测试所防止的潜在错误.</p>
+<p><br></p>
+<h2 id="30-悲观测试-negative-testing"><a href="#30-悲观测试-negative-testing" class="headerlink" title="30) 悲观测试(Negative Testing)"></a>30) 悲观测试(Negative Testing)</h2><p>悲观测试和乐观路线测试相反, 它要求测试者要具有“打破”常规的态度，考虑各种异常情况, 使用各种邪恶的👿、不怀好意、不合法的操作来测试系统。悲观测试会使用不正确的数据、无效数据或输入来进行验证。它验证系统是否可以识别异常情况，并按预期运行。</p>
+<p><br></p>
+<h2 id="31-非功能测试-non-functional-testing"><a href="#31-非功能测试-non-functional-testing" class="headerlink" title="31) 非功能测试(Non-Functional Testing)"></a>31) 非功能测试(Non-Functional Testing)</h2><p>每个大型的组织都有一个独立的团队，通常称为非功能测试（NFT）团队或性能团队。</p>
+<p>非功能性测试涉及测试非功能性需求，如负载测试、压力测试、安全性、容量，恢复测试等等. NFT测试的目标是确保软件或应用程序的响应时间是否满足业务需求。</p>
+<p>例如加载任何页面或系统都不应该花费太多时间，并且在负载峰值期间应该维持良好运行状态。</p>
+<p><br></p>
+<h2 id="32-性能测试-performance-testing"><a href="#32-性能测试-performance-testing" class="headerlink" title="32) 性能测试(Performance Testing)"></a>32) 性能测试(Performance Testing)</h2><p>这个术语通常与“压力”和“负载”测试互换使用。<a href="https://en.wikipedia.org/wiki/Software_performance_testing" target="_blank" rel="noopener">性能测试</a>用于检查系统是否满足性能要求。它会使用不同的性能和负载工具来执行此测试。</p>
+<p><a href="https://www.softwaretestinghelp.com/introduction-to-performance-testing-loadrunner-training-tutorial-part-1/" target="_blank" rel="noopener">性能测试</a>这个范围比较大，<strong>广义上的性能测试包括了上文提到的负载测试、压力测试、稳定性测试、容量测试等等。狭义的性能测试则是指在特定资源条件下，测试系统能否达到期望值, 也就是基线测试(Baseline Test).</strong></p>
+<p>总结一下性能测试的类型:</p>
+<ul>
+<li><strong>基线测试(Baseline Test)</strong>: 在给定的资源下，测试最佳的性能，用作后续测量的参考‘基线’。注意基线测试和基准测试是有区别的, 这么理解，基准是你想达到的，比如100短跑世界纪录，基线是你的成绩。</li>
+<li><strong>负载测试(Load Test)</strong>: 在预期峰值的生产负载下测量系统的性能。上文负载测试已经大概介绍了</li>
+<li><strong>稳定性测试(Endurance Test)</strong>: 在指定负载下，长时间测量系统的稳定性</li>
+<li><strong>压力测试(Stress Test)</strong>: 测试极端条件下的系统性能</li>
+</ul>
+<p><br></p>
+<h2 id="33-恢复测试-recovery-testing"><a href="#33-恢复测试-recovery-testing" class="headerlink" title="33) 恢复测试(Recovery Testing)"></a>33) 恢复测试(Recovery Testing)</h2><p>恢复测试用于验证应用或系统中崩溃或灾难中恢复的程度. 确定系统是否能够在灾难发生后继续运行。</p>
+<p>比如应用通过网络电缆接收数据，突然断开了网络电缆的连接, 过一段时间，再插上网线, 系统应该开始恢复由于网络电缆拔出而丢失连接的数据</p>
+<p><br></p>
+<h2 id="34-回归测试-regression-testing"><a href="#34-回归测试-regression-testing" class="headerlink" title="34) 回归测试(Regression Testing)"></a>34) 回归测试(Regression Testing)</h2><p>在修改任意模块或者功能后，将应用作为一个整体进行测试，称为回归测试。<strong>回归测试的目的就是验证在软件原有的功能变动后是否保持完整性</strong>. </p>
+<p><img src="/images/typeof-testing/bug-fix.gif" alt></p>
+<p><strong>有观点认为回归测试就是回归测试是指重复执行以前的全部或部分相同的测试工作, 其实不是不无道理。而且因为局部修改而牵一发动全身的意外在平时开发中并不少见，这种意外性就是回归测试的存在的目的</strong>.</p>
+<p>因为在回归测试中很难覆盖所有系统，通常最好使用自动化测试工具进行这些类测试。比如每次修改完代码，跑单元测试来确保不影响确保其他软件单元。</p>
+<p>在前端中<a href="https://jestjs.io/docs/en/snapshot-testing" target="_blank" rel="noopener">组件快照测试(Snapshot Testing)</a>和一些<a href="https://github.com/HuddleEng/PhantomCSS" target="_blank" rel="noopener">CSS UI测试</a>，都是属于回归测试类型,它们的原理都是和上一次测试生成的结果进行比对，以确保没有意外的修改:</p>
+<p><img src="/images/typeof-testing/phantomcss.png" alt></p>
+<p><br></p>
+<h2 id="35-基于风险的测试-risk-based-testing-rbt"><a href="#35-基于风险的测试-risk-based-testing-rbt" class="headerlink" title="35) 基于风险的测试(Risk-Based Testing (RBT))"></a>35) 基于风险的测试(Risk-Based Testing (RBT))</h2><p>在基于风险的测试中，功能或需求将根据其优先级进行测试。基于风险的测试会优先测试高度关键的功能，因为这些功能对业务影响最大或者故障概率非常高. 而优先级由业务需求决定，因此一旦为所有功能设置了优先级，则应该首先执行高优先级功能或测试用例，然后再执行低优先级功能。 低优先级功能可以在时间充裕时测试，或者不测试。</p>
+<p><strong>基于风险的测试应该在‘不够时间来测试整个应用，但是又要按时交付软件’的情况下执行</strong>，通常还需要客户和高级管理层的讨论和批准之后才进行</p>
+<p><br></p>
+<h2 id="36-完整性测试-sanity-testing"><a href="#36-完整性测试-sanity-testing" class="headerlink" title="36) 完整性测试(Sanity Testing)"></a>36) 完整性测试(Sanity Testing)</h2><p>完整性测试用于确定一个新的软件版本是否可以开始进行正式的测试，如果一个应该在一开始使用时就崩溃，那么就说明系统还不够稳定，没有必要进行下一步测试。这种情况应该打回给开发，以免浪费时间</p>
+<p>以我们公司为例:</p>
+<p><img src="/images/typeof-testing/smoke.png" alt></p>
+<ul>
+<li>在软件设计阶段，测试团队就会为编写冒烟测试用例; </li>
+<li>开发团队在提交版本给测试之前会自己跑一下冒烟用例, 确保没有重大故障；</li>
+<li>将版本提交给测试团队后，测试团队就会先跑一下完整性测试，检查一下有没有重大的，影响测试进程的bug，如果有则退回开发</li>
+<li>如果通过了完整性测试, 则进行冒烟测试，如果冒烟测试没有通过也会立即打回开发。</li>
+<li>顺利通过完整性测试和冒烟测试之后才会进入正式测试阶段。</li>
+</ul>
+<p>这么做的目的之一就是为了降低测试团队的工作负担，因为他们要对接多个开发团队的测试任务。</p>
+<p><br></p>
+<h2 id="37-安全测试-security-testing"><a href="#37-安全测试-security-testing" class="headerlink" title="37) 安全测试(Security Testing)"></a>37) 安全测试(Security Testing)</h2><p><img src="/images/typeof-testing/sec.png" alt></p>
+<p>安全也是一个庞大的学科，而且知识每天都在更新，所以安全测试一般由特殊的安全团队执行，他们以各种黑客手段对系统进行渗透测试。</p>
+<p>安全测试旨在确保应用或网站免受内部和外部威胁的侵害。这个测试包括预防恶意程序、病毒； 检验授权和身份验证过程的安全性。</p>
+<p>它还会检查软件对任何黑客攻击和恶意程序的反应方式，以及在遭到黑客攻击后如何维护软件以保护数据安全</p>
+<p><br></p>
+<h2 id="38-冒烟测试-smoke-testing"><a href="#38-冒烟测试-smoke-testing" class="headerlink" title="38) 冒烟测试(Smoke Testing)"></a>38) 冒烟测试(Smoke Testing)</h2><p><img src="/images/typeof-testing/note7.jpg" alt></p>
+<p>冒烟测试，每当开发团队提交新的构建时，软件测试团队就会先验证构建, 并确保不存在重大问题, 如果存在重大问题会直接打回开发团队.</p>
+<p>如何通俗地理解冒烟测试呢？这个属于来源于硬件行业，对一个硬件或硬件组件进行更改或修复后，直接给设备加电。如果没有冒烟，则该组件就通过了测试。举个例子，给三星Note7加电，如果没爆炸，就说明通过了‘冒烟测试’(感觉当手机测试者不容易，容易有生命危险😂)?</p>
+<p>测试团队在确保构建稳定后才会进一步执行详细的测试。 冒烟检查会检查构建中是否存在中断缺陷(stopper defect, 即影响继续测试的缺陷)，这将阻止测试团队进一步详细测试。 即如果测试人员发现主要功能不能工作，他们会拒绝这次构建，并退回给开发团队。</p>
+<p>冒烟测试一般在回归测试或其他详细测试之前进行</p>
+<p><br></p>
+<h2 id="39-静态测试-static-testing"><a href="#39-静态测试-static-testing" class="headerlink" title="39) 静态测试(Static Testing)"></a>39) 静态测试(Static Testing)</h2><p><img src="/images/typeof-testing/review.jpg" alt></p>
+<p>静态测试有点类似于代码Review，在不执行任何代码的情况下执行(也就是不运行应用)，它涉及对可交付成果审查(inspection)、review和演练(walkthrough). 比如检查代码语法、命名约定、项目组织。</p>
+<p>静态测试不仅适用于代码, 也适用于测试用例、测试计划和设计文档. 如果在静态测试阶段发现缺陷，可以将缺陷成本降到最低。比如在设计阶段就发现问题，相比到开发阶段甚至到生产环境出现问题要好解决</p>
+<p>举前端的例子，静态测试可能包括:</p>
+<ul>
+<li>使用Lint工具对程序进行规范检查，相关的工具有ESLint、TSLint、Stylint等, 甚至Typescript这些类型检查器也可以归到这个范畴</li>
+<li>代码Review。有一些问题是无法通过Lint工具覆盖的，比如代码逻辑、异常捕获、项目组织、内存泄露等等，这些需要人工进行走查Review</li>
+<li>检查代码是否与设计一致，是否符合软件需求、概要和详细设计，这不仅可以看出代码问题，也可以反过来更早发现需求或设计是否正确。</li>
+</ul>
+<p><br></p>
+<h2 id="40-压力测试-stress-testing"><a href="#40-压力测试-stress-testing" class="headerlink" title="40) 压力测试(Stress Testing)"></a>40) 压力测试(Stress Testing)</h2><p><img src="/images/typeof-testing/str.jpg" alt></p>
+<p><strong>通过压力测试，模拟系统受到超出其规格的压力时失败的方式和时间, 找出系统的崩溃点</strong>. 这个测试在高负载情况下执行的，例如存取超过容量限制的数据、执行复杂的数据库查询、连续暴力输入到系统或加载到数据库。</p>
+<p><br></p>
+<h2 id="41-系统测试-system-testing"><a href="#41-系统测试-system-testing" class="headerlink" title="41) 系统测试(System Testing)"></a>41) 系统测试(System Testing)</h2><p>系统测试在完整的集成系统上进行测试，也就是说<strong>系统测试一般在集成测试之后进行，集成测试之后系统成为了一个整体，系统测试在这个基础上、在真实的运行环境中验证系统是否符合业务需求</strong>。 这是一种黑盒型测试，基于总体需求规范，涵盖系统的所有组合部分。</p>
+<p>系统测试其实不是一个具体的测试技术，而是一个测试阶段。 这个阶段会进行很多种测试，一般公司的测试团队的工作就集中在这一块。 一般包含:</p>
+<ul>
+<li><strong>功能测试</strong>: 即上面讲的，从系统的整体上测试是否符合业务需求</li>
+<li><strong>各种非功能测试</strong>：例如恢复测试、性能测试、压力测试、安全测试等等。</li>
+</ul>
+<p>归纳一下<strong>系统测试的目的</strong>:</p>
+<ul>
+<li>确保应用<strong>作为一个整体</strong>可以良好地运行.</li>
+<li>确保应用符合业务需求</li>
+<li>确保应用在真实的环境可以良好地运行。比如进行一些非功能测试，验证系统的健壮性</li>
+</ul>
+<p>其实系统测试和上文说的端到端测试很像，它们要求系统作为一个整体进行测试。可以简单展开对比一下</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>系统测试</th>
+<th>端到端测试</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>测试范围</td>
+<td>一般针对被测应用本身</td>
+<td>一般针对被测应用以及其依赖的其他系统。正如其名，端到端，即从一端点到另一端点。重点关注前端、后端以及中间件之间的处理流程</td>
+</tr>
+<tr>
+<td>测试类型</td>
+<td>包含功能测试和非功能测试</td>
+<td>一般涵盖所有源系统和目标系统之间的接口级别的测试</td>
+</tr>
+<tr>
+<td>测试时机</td>
+<td>一般在集成测试之后</td>
+<td>一般在系统测试之后</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<h2 id="42-单元测试-unit-testing"><a href="#42-单元测试-unit-testing" class="headerlink" title="42) 单元测试(Unit Testing)"></a>42) 单元测试(Unit Testing)</h2><p><img src="/images/typeof-testing/unit-test.png" alt></p>
+<p><strong>测试独立的软件单元或模块称为单元测试</strong>。它通常由开发者完成，而不是由测试人员完成，因为它需要详细了解内部程序设计和代码。</p>
+<p>单元测试是和我们开发者最密切相关的测试类型。它的测试对象是软件单元。<strong>软件单元可以是一个函数/方法、一个类或者一个GUI组件等</strong>。</p>
+<p>这是一种白盒测试，所以要求由开发者自己进行，因为只有开发者才知道单元的内部实现。<strong>单元测试一般会使用测试覆盖率来验证单元测试的完成度</strong>. </p>
+<p>前端常见的单元测试工具有Jest、Mocha、Jasmine等等. 下面是典型的BDD风格的单元测试组织:</p>
+<p><img src="/images/typeof-testing/bdd.png" alt></p>
+<p><br></p>
+<h2 id="43-可用性测试-usability-testing"><a href="#43-可用性测试-usability-testing" class="headerlink" title="43) 可用性测试(Usability Testing)"></a>43) 可用性测试(Usability Testing)</h2><p>可用性测试用于检测应用的用户友好程度(User-friendliness). 它会验证新用户受可以轻松理解应用流程，如果用户陷入麻烦，测试人员要记录好并提供帮助。可以认为可用性测试是在检查系统的导航性(navigation)</p>
+<p><br></p>
+<h2 id="44-漏洞测试-vulnerability-testing"><a href="#44-漏洞测试-vulnerability-testing" class="headerlink" title="44) 漏洞测试(Vulnerability Testing)"></a>44) 漏洞测试(Vulnerability Testing)</h2><p>漏洞测试，涉及识别软件、硬件和网络中的漏洞。如果漏洞容易受到攻击，或者容易受到病毒和蠕虫感染，黑客或恶意程序就可以控制系统。</p>
+<p>因此有必要在投入生产环境之前检查这些系统是否存在漏洞。</p>
+<p><br></p>
+<h2 id="45-容量测试-volume-testing"><a href="#45-容量测试-volume-testing" class="headerlink" title="45) 容量测试(Volume Testing)"></a>45) 容量测试(Volume Testing)</h2><p>容量测试是由性能测试团队执行的一种非功能测试。容量测试会检查应用程序遇到大量的数据时的系统行为和响应时间。这种大量数据可能会影响系统的性能和处理时间的速度。</p>
+<p><br></p>
+<h2 id="46-白盒测试-white-box-testing"><a href="#46-白盒测试-white-box-testing" class="headerlink" title="46) 白盒测试(White Box Testing)"></a>46) 白盒测试(White Box Testing)</h2><p><img src="/images/typeof-testing/glassbox.jpg" alt></p>
+<p>白盒测试, 它也被称为玻璃盒测试、结构测试、逻辑驱动测试或基于代码的测试, 基于应用程序代码的内部逻辑。即测试人员应该知道内部软件和代码是如何工作的, 对所有的逻辑路径进行覆盖测试。上面提到的单元测试和静态测试就是典型的白盒测试, 基本上白盒测试可以等价于单元测试</p>
+<p><strong>逻辑路径包括语句覆盖、判定覆盖、条件覆盖、判定/条件覆盖、条件组合覆盖和路径覆盖等等</strong>.</p>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="/images/typeof-testing/all.png" alt></p>
+<p>上面提到的软件测试类型只是测试中的一部分，实际有超过100种的测试类型，但是并非所有测试类型都会被所有项目使用，所以我这里只是列举一些比较常见的软件测试类型。</p>
+<p>另外不同的组织中可能会有不同的定义或过程，但是基本概念在任何地方都是相同的。当项目、需求和范围发生变化时，这些测试类型、过程及其实现方法会不断演变</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#不同的软件测试类型"><span class="toc-number">1.</span> <span class="toc-text">不同的软件测试类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0-a-b测试-a-b-testing"><span class="toc-number">2.</span> <span class="toc-text">0) A/B测试(A/B Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-alpha测试-alpha-testing"><span class="toc-number">3.</span> <span class="toc-text">1) Alpha测试(Alpha Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-验收测试-acceptance-testing"><span class="toc-number">4.</span> <span class="toc-text">2) 验收测试(Acceptance Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-临时测试-ad-hoc-testing"><span class="toc-number">5.</span> <span class="toc-text">3) 临时测试(Ad-hoc Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-可访问性测试-accessibility-testing"><span class="toc-number">6.</span> <span class="toc-text">4) 可访问性测试(Accessibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-beta测试-beta-testing"><span class="toc-number">7.</span> <span class="toc-text">5) Beta测试(Beta Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-后端测试-back-end-testing"><span class="toc-number">8.</span> <span class="toc-text">6) 后端测试(Back-end Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-浏览器兼容测试-browser-compatibility-testing"><span class="toc-number">9.</span> <span class="toc-text">7) 浏览器兼容测试(Browser Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-后向兼容测试-backward-compatibility-testing"><span class="toc-number">10.</span> <span class="toc-text">8) 后向兼容测试(Backward Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-黑盒测试-black-box-testing"><span class="toc-number">11.</span> <span class="toc-text">9) 黑盒测试(Black Box Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-边界值测试-boundary-value-testing"><span class="toc-number">12.</span> <span class="toc-text">10) 边界值测试(Boundary Value Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-分支测试-branch-testing"><span class="toc-number">13.</span> <span class="toc-text">11) 分支测试(Branch Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-比较测试-comparison-testing"><span class="toc-number">14.</span> <span class="toc-text">12) 比较测试(Comparison Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-兼容性测试-compatibility-testing"><span class="toc-number">15.</span> <span class="toc-text">13) 兼容性测试(Compatibility Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#14-组件测试-component-testing"><span class="toc-number">16.</span> <span class="toc-text">14) 组件测试(Component Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#15-端到端测试-end-to-end-testing"><span class="toc-number">17.</span> <span class="toc-text">15) 端到端测试(End-to-End Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#16-等价划分-equivalence-partitioning"><span class="toc-number">18.</span> <span class="toc-text">16) 等价划分(Equivalence Partitioning)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#17-实例测试-example-testing"><span class="toc-number">19.</span> <span class="toc-text">17) 实例测试(Example Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#18-探索测试-exploratory-testing"><span class="toc-number">20.</span> <span class="toc-text">18) 探索测试(Exploratory Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#20-功能测试-functional-testing"><span class="toc-number">21.</span> <span class="toc-text">20) 功能测试(Functional Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#21-gui测试-graphical-user-interface-gui-testing"><span class="toc-number">22.</span> <span class="toc-text">21) GUI测试(Graphical User Interface (GUI) Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#22-大猩猩测试-gorilla-testing"><span class="toc-number">23.</span> <span class="toc-text">22) 大猩猩测试(Gorilla Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#23-乐观路线测试-happy-path-testing"><span class="toc-number">24.</span> <span class="toc-text">23) 乐观路线测试(Happy Path Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#24-增量集成测试-incremental-integration-testing"><span class="toc-number">25.</span> <span class="toc-text">24) 增量集成测试(Incremental Integration Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#25-安装卸载测试-install-uninstall-testing"><span class="toc-number">26.</span> <span class="toc-text">25) 安装卸载测试(Install/Uninstall Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#26-集成测试-integration-testing"><span class="toc-number">27.</span> <span class="toc-text">26) 集成测试(Integration Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#27-负载测试-load-testing"><span class="toc-number">28.</span> <span class="toc-text">27) 负载测试(Load Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#28-猴子测试-monkey-testing"><span class="toc-number">29.</span> <span class="toc-text">28) 猴子测试(Monkey Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#29-变异测试-mutation-testing"><span class="toc-number">30.</span> <span class="toc-text">29) 变异测试(Mutation Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#30-悲观测试-negative-testing"><span class="toc-number">31.</span> <span class="toc-text">30) 悲观测试(Negative Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#31-非功能测试-non-functional-testing"><span class="toc-number">32.</span> <span class="toc-text">31) 非功能测试(Non-Functional Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#32-性能测试-performance-testing"><span class="toc-number">33.</span> <span class="toc-text">32) 性能测试(Performance Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#33-恢复测试-recovery-testing"><span class="toc-number">34.</span> <span class="toc-text">33) 恢复测试(Recovery Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#34-回归测试-regression-testing"><span class="toc-number">35.</span> <span class="toc-text">34) 回归测试(Regression Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#35-基于风险的测试-risk-based-testing-rbt"><span class="toc-number">36.</span> <span class="toc-text">35) 基于风险的测试(Risk-Based Testing (RBT))</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#36-完整性测试-sanity-testing"><span class="toc-number">37.</span> <span class="toc-text">36) 完整性测试(Sanity Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#37-安全测试-security-testing"><span class="toc-number">38.</span> <span class="toc-text">37) 安全测试(Security Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#38-冒烟测试-smoke-testing"><span class="toc-number">39.</span> <span class="toc-text">38) 冒烟测试(Smoke Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#39-静态测试-static-testing"><span class="toc-number">40.</span> <span class="toc-text">39) 静态测试(Static Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#40-压力测试-stress-testing"><span class="toc-number">41.</span> <span class="toc-text">40) 压力测试(Stress Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#41-系统测试-system-testing"><span class="toc-number">42.</span> <span class="toc-text">41) 系统测试(System Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#42-单元测试-unit-testing"><span class="toc-number">43.</span> <span class="toc-text">42) 单元测试(Unit Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#43-可用性测试-usability-testing"><span class="toc-number">44.</span> <span class="toc-text">43) 可用性测试(Usability Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#44-漏洞测试-vulnerability-testing"><span class="toc-number">45.</span> <span class="toc-text">44) 漏洞测试(Vulnerability Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#45-容量测试-volume-testing"><span class="toc-number">46.</span> <span class="toc-text">45) 容量测试(Volume Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#46-白盒测试-white-box-testing"><span class="toc-number">47.</span> <span class="toc-text">46) 白盒测试(White Box Testing)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">48.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/10/typeof-testing/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/10/typeof-testing/&text=你需要知道的软件测试类型和常识"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/10/typeof-testing/&is_video=false&description=你需要知道的软件测试类型和常识"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=你需要知道的软件测试类型和常识&body=Check out this article: https://bobi.ink/2019/07/10/typeof-testing/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/10/typeof-testing/&title=你需要知道的软件测试类型和常识"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/10/typeof-testing/&name=你需要知道的软件测试类型和常识&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

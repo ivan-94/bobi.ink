@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="原文地址: Modern Script Loading, 文章作者是Preact作者Jason Miller    背景知识先简单介绍一下模块script(Module script), 它指的是现代浏览器支持通过&amp;lt;script type=module src=main.js&amp;gt;&amp;lt;/script&amp;gt;来加载现代的ES6模块. 现代浏览器对ES6现代语法有良好的支持，这意味着我们可">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="现代脚本的加载">
+<meta property="og:url" content="https://bobi.ink/2019/07/17/modern-module/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="原文地址: Modern Script Loading, 文章作者是Preact作者Jason Miller    背景知识先简单介绍一下模块script(Module script), 它指的是现代浏览器支持通过&amp;lt;script type=module src=main.js&amp;gt;&amp;lt;/script&amp;gt;来加载现代的ES6模块. 现代浏览器对ES6现代语法有良好的支持，这意味着我们可">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/modern-module/modern-script-loading.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="现代脚本的加载">
+<meta name="twitter:description" content="原文地址: Modern Script Loading, 文章作者是Preact作者Jason Miller    背景知识先简单介绍一下模块script(Module script), 它指的是现代浏览器支持通过&amp;lt;script type=module src=main.js&amp;gt;&amp;lt;/script&amp;gt;来加载现代的ES6模块. 现代浏览器对ES6现代语法有良好的支持，这意味着我们可">
+<meta name="twitter:image" content="https://bobi.ink/images/modern-module/modern-script-loading.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>现代脚本的加载</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/07/18/why-vue-cli3/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/07/16/js-stdlib/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/17/modern-module/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/17/modern-module/&text=现代脚本的加载"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/17/modern-module/&is_video=false&description=现代脚本的加载"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=现代脚本的加载&body=Check out this article: https://bobi.ink/2019/07/17/modern-module/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/17/modern-module/&name=现代脚本的加载&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景知识"><span class="toc-number">1.</span> <span class="toc-text">背景知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#怎么办"><span class="toc-number">2.</span> <span class="toc-text">怎么办?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项1-动态加载"><span class="toc-number">3.</span> <span class="toc-text">选项1: 动态加载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项2-用户代理嗅探"><span class="toc-number">4.</span> <span class="toc-text">选项2: 用户代理嗅探</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项-3-不考虑旧版本浏览器"><span class="toc-number">5.</span> <span class="toc-text">选项 3:不考虑旧版本浏览器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项-4-使用条件包"><span class="toc-number">6.</span> <span class="toc-text">选项 4: 使用条件包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#你应该怎么做"><span class="toc-number">7.</span> <span class="toc-text">你应该怎么做?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">8.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        现代脚本的加载
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-07-16T16:00:00.000Z" itemprop="datePublished">2019-07-17</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>原文地址: <a href="https://jasonformat.com/modern-script-loading/" target="_blank" rel="noopener">Modern Script Loading</a>, 文章作者是Preact作者<a href="https://twitter.com/_developit" target="_blank" rel="noopener">Jason Miller</a></p>
+<p><br></p>
+<p><img src="/images/modern-module/modern-script-loading.jpg" alt></p>
+<p><br></p>
+<h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><p>先简单介绍一下<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules" target="_blank" rel="noopener"><code>模块script(Module script)</code></a>, 它指的是<strong>现代浏览器支持通过<code>&lt;script type=module src=main.js&gt;&lt;/script&gt;</code>来加载现代的ES6模块</strong>. 现代浏览器对ES6现代语法有良好的支持，这意味着<strong>我们可以给这些现代浏览器提供更紧凑的‘现代代码’，一方面可以减小打包的体积，减少网络传输的带宽，另外还可以提高脚本解析的效率和运行效率</strong>.</p>
+<p>下图来源于<a href="https://philipwalton.com/articles/deploying-es2015-code-in-production-today/" target="_blank" rel="noopener"><code>module/nomodule pattern</code></a>, 对比了<strong>模块script</strong>和<strong>传统(legacy) script</strong>的性能:</p>
+<p>体积对比:</p>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Size (minified)</th>
+<th>Size (minified + gzipped)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ES2015+ (main.mjs)</td>
+<td>80K</td>
+<td>21K</td>
+</tr>
+<tr>
+<td>ES5 (main.es5.js)</td>
+<td>175K</td>
+<td>43K</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>解析效率:</p>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Parse/eval time (individual runs)</th>
+<th>Parse/eval time (avg)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ES2015+ (main.mjs)</td>
+<td>184ms, 164ms, 166ms</td>
+<td>172ms</td>
+</tr>
+<tr>
+<td>ES5 (main.es5.js)</td>
+<td>389ms, 351ms, 360ms</td>
+<td>367ms</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>Ok，为了兼容旧浏览器, <a href="https://philipwalton.com/articles/deploying-es2015-code-in-production-today/" target="_blank" rel="noopener">module/nomodule pattern</a>这篇文章介绍了一种<strong>module/nomodule 模式</strong>, 简单说就是<strong>同时提供两个script, 由浏览器来决定加载哪个文件</strong>：</p>
+<p><br></p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 支持模块script的浏览器会加载这个文件 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"module"</span> <span class="attr">src</span>=<span class="string">"main.mjs"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 旧浏览器会加载这个文件 --&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 因为加了nomdule, 所以现代浏览器不会加载该文件 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">nomodule</span> <span class="attr">src</span>=<span class="string">"main.es5.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>看起来很美好是吧? 现实是：<strong>中间存在一些浏览器，它们可以识别<code>模块script</code>但是不认识<code>nomodule</code>属性, 这就导致了这些浏览器会同时加载这两个文件(下文统一称为‘双重加载’(over-fetching))</strong>.</p>
+<p><br><br><br></p>
+<blockquote>
+<p>OK，正式进入正文. 给正确的浏览器交付正确代码是一件棘手的事情。本文会介绍几种方式, 来解决上述的问题:</p>
+</blockquote>
+<p>给现代浏览器伺服’现代的代码’对性能有很大的帮助。所以你应该针对现代浏览器提供包含更紧凑和优化的现代语法的Javascript包，同时又可以保持对旧浏览器的支持</p>
+<p>现有的工具链的生态系统基本都是在<code>module/nomodule模式</code>上整合的，它声明式加载现代和传统代码(legacy code)，即给浏览器提供两个源代码，让它来自己来决定用哪个:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"module"</span> <span class="attr">src</span>=<span class="string">"/modern.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">nomodule</span> <span class="attr">src</span>=<span class="string">"/legacy.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>然而现实总是给你当头一棒，它没我们期望的那么简单直接。上述基于HTML的加载方式在<a href="https://gist.github.com/jakub-g/5fc11af85a061ca29cc84892f1059fec" target="_blank" rel="noopener"><strong>Edge和Safari中会被同时加载</strong></a>!</p>
+<p><br></p>
+<h2 id="怎么办"><a href="#怎么办" class="headerlink" title="怎么办?"></a>怎么办?</h2><p>怎么办？我们想依赖浏览器来交付不同的编译目标，但是一些旧浏览器并不能优雅地支持这种简洁的写法。</p>
+<p>首先，Safari 在10.1开始支持JS模块, 但不支持nomodule属性。值得庆幸的是，Sam找到了一种方法，可以通过Safari 10和11中非标准的beforeload事件来模拟 nomodule, 也就是可以认为Safari 10.1开始是可以支持<code>module/nomodule模式</code></p>
+<p><br></p>
+<h2 id="选项1-动态加载"><a href="#选项1-动态加载" class="headerlink" title="选项1: 动态加载"></a>选项1: 动态加载</h2><p>我们可以实现一个小型script加载器来规避这个问题，工作原理类似于<a href="https://github.com/filamentgroup/loadCSS" target="_blank" rel="noopener">LoadCSS</a>。只不过这里需要依靠浏览器的来实现ES模块和nomodule属性.</p>
+<p>我们首先尝试执行一个模块script进行’石蕊试验’(litmus test), 然后由这个试验的结果来决定加载现代代码还是传统代码:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 使用一个模块script来检测是否是现代浏览器 --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">module</span>&gt;</span><span class="undefined">  </span></span><br><span class="line"><span class="javascript">  self.modern = <span class="literal">true</span></span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 现在根据这个检测结果来决定加载现代代码还是传统代码: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined">  </span></span><br><span class="line"><span class="javascript">  addEventListener(<span class="string">'load'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> s = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>)</span></span><br><span class="line"><span class="javascript">    <span class="keyword">if</span> (self.modern) &#123;</span></span><br><span class="line"><span class="javascript">      s.src = <span class="string">'/modern.js'</span></span></span><br><span class="line"><span class="javascript">      s.type = <span class="string">'module'</span></span></span><br><span class="line"><span class="undefined">    &#125;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="javascript">      s.src = <span class="string">'/legacy.js'</span></span></span><br><span class="line"><span class="undefined">    &#125;</span></span><br><span class="line"><span class="javascript">    <span class="built_in">document</span>.head.appendChild(s)</span></span><br><span class="line"><span class="undefined">  &#125;)</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>然而，这个解决方案必须等待进行‘石蕊试验’模块script执行完成, 才能开始注入script。这是因为<code>&lt;script type=module&gt;</code>始终是异步的，所以别无它法(延迟到load事件后)。</p>
+<p>另一种实现方式是检查浏览器是否支持<code>nomodule</code>, 这是方式可以避免上述的延迟加载问题, 只不过这意味着像Safari 10.1这些支持模块, 却不支持nomodule的浏览器也会被当做传统浏览器，这也许<a href="https://github.com/web-padawan/polymer3-webpack-starter/issues/33#issuecomment-474993984" target="_blank" rel="noopener">可能</a>是<a href="https://jasonformat.com/modern-script-loading/" target="_blank" rel="noopener">好事</a>(相对于两个脚本都加载以及有一些bug)，代码如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> s = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>)  </span><br><span class="line"><span class="keyword">if</span> (<span class="string">'noModule'</span> <span class="keyword">in</span> s) &#123;  <span class="comment">// 注意这里的大小写</span></span><br><span class="line">  s.type = <span class="string">'module'</span></span><br><span class="line">  s.src = <span class="string">'/modern.js'</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span>  </span><br><span class="line">  s.src = <span class="string">'/legacy.js'</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">document</span>.head.appendChild(s)</span><br></pre></td></tr></table></figure>
+<p>现在把它们封装成函数，并确保两种方式都统一使用异步的方式加载(上文提到模块script是异步的，而传统script不是):</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined">  </span></span><br><span class="line"><span class="javascript">  $loadjs(<span class="string">"/modern.js"</span>,<span class="string">"/legacy.js"</span>)</span></span><br><span class="line"><span class="javascript">  <span class="function"><span class="keyword">function</span> <span class="title">$loadjs</span>(<span class="params">src,fallback,s</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    s = <span class="built_in">document</span>.createElement(<span class="string">'script'</span>)</span></span><br><span class="line"><span class="javascript">    <span class="keyword">if</span> (<span class="string">'noModule'</span> <span class="keyword">in</span> s) s.type = <span class="string">'module'</span>, s.src = src</span></span><br><span class="line"><span class="javascript">    <span class="keyword">else</span> s.async = <span class="literal">true</span>, s.src = fallback   <span class="comment">// 统一使用异步方式加载</span></span></span><br><span class="line"><span class="javascript">    <span class="built_in">document</span>.head.appendChild(s)</span></span><br><span class="line"><span class="undefined">  &#125;</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>看起来已经很完美了，还有什么问题呢？<strong>我们还没考虑预加载(preloading)</strong></p>
+<p>这个有点蛋疼， 因为一般浏览器只会静态地扫描HTML，然后查找它可以预加载的资源。 我们上面介绍的模块加载器是完全动态的，所以浏览器在没有运行我们的代码之前，是没办法发现我们要预加载现代还是传统的Javascript资源的。</p>
+<p>不过有一个解决办法，就是不完美：就是使用<code>&lt;link rel=modulepreload&gt;</code>来预加载现代版本的包, 旧浏览器会忽略这条规则，然而目前<a href="https://developers.google.com/web/updates/2017/12/modulepreload" target="_blank" rel="noopener">只有Chrome支持这么做</a>:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"modulepreload"</span> <span class="attr">href</span>=<span class="string">"/modern.js"</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">module</span>&gt;</span><span class="undefined">self.modern=1</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="comment">&lt;!-- etc --&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>其实预加载这种技术是否有效，取决于嵌入你的脚本的HTML文档的大小</strong>。</p>
+<p>如果你的HTML载荷很小, 比如只是一个启动屏或者只是简单启动客户端应用，那么放弃预加载扫描对你的应用性能影响很小。<br>如果你的应用使用服务器渲染大量有意义的HTML, 并以流(stream)的方式传输给浏览器，那么预加载扫描就是你的朋友，但这也未必是最佳方法。</p>
+<blockquote>
+<p>译注: 现代浏览器都支持分块编码传输，等服务端完全输出html可能有一段空闲时间，这时候可以通过预加载技术，让浏览器预先去请求资源</p>
+</blockquote>
+<p>大概代码如下:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"modulepreload"</span> <span class="attr">href</span>=<span class="string">"/modern.js"</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">module</span>&gt;</span><span class="undefined">self.modern=1</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="undefined">  </span></span><br><span class="line"><span class="javascript">  $loadjs(<span class="string">"/modern.js"</span>,<span class="string">"/legacy.js"</span>)</span></span><br><span class="line"><span class="javascript">  <span class="function"><span class="keyword">function</span> <span class="title">$loadjs</span>(<span class="params">e,d,c</span>)</span>&#123;c=<span class="built_in">document</span>.createElement(<span class="string">"script"</span>),self.modern?(c.src=e,c.type=<span class="string">"module"</span>):c.src=d,<span class="built_in">document</span>.head.appendChild(c)&#125;</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>还要指出的是，支持<a href="https://caniuse.com/#feat=es6-module" target="_blank" rel="noopener">JS模块的浏览器</a>一般也<a href="https://caniuse.com/#feat=link-rel-preload" target="_blank" rel="noopener">支持</a><code>&lt;link rel = preload&gt;</code>。对于某些网站，相比依靠<code>modulepreload</code>, 使用<code>&lt;link rel=preload as=script crossorigin&gt;</code>可能更有意义。不过性能上面可能欠点，因为传统的脚本预加载不会像<code>modulepreload</code>一样随着时间的推移而去展开解析工作(<code>rel=preload</code>只是下载，不会尝试去解析脚本)。</p>
+<p><br></p>
+<h2 id="选项2-用户代理嗅探"><a href="#选项2-用户代理嗅探" class="headerlink" title="选项2: 用户代理嗅探"></a>选项2: 用户代理嗅探</h2><p>我办法拿出一个简洁的代码示例，因为用户代理检测不在本文的范围之内，推荐阅读这篇<a href="https://www.smashingmagazine.com/2018/10/smart-bundling-legacy-code-browsers/" target="_blank" rel="noopener">Smashing Magazine文章</a></p>
+<p>本质上，<strong>这种技术在每个浏览器上都使用<code>&lt;script src=bundle.js&gt;</code>来加载代码，当<code>bundle.js</code>被请求时，服务器会解析浏览器的用户代理，并选择返回现代代码还是传统代码，取决于浏览器是否能被识别为现代浏览器</strong>.</p>
+<p>尽管这种方法比较通用，但它也有一些严重的缺点：</p>
+<ul>
+<li>因为依赖于服务端实现，所以前端资源不能被静态部署(例如静态网站生成器(如github page)，Netlify等等)</li>
+<li>很难进行有效的缓存. 现在这些JavaScript URL的缓存会因用户代理而异，这是非常不稳定的, 而很多缓存机制只是将URL作为缓存键，现在这些缓存中间件可能就没办法工作了。</li>
+<li>UA检测很难，容易出现误报</li>
+<li>用户代理字符串容易被篡改，而且每天都有新的UA出现</li>
+</ul>
+<p>解决这些限制的一种方法就是<strong>将<code>module/nomodule模式</code>与’用户代理区分’结合起来</strong>，首先这可以避免单纯的<code>module/nomodule模式</code>需要发送多个软件包问题，尽管这种方法仍然会降低页面(这时候指HTML，而不是Javascript包)的可缓存性，但是它可以有效地触发预加载，因为生成HTML的服务器根据用户代理知道应该使用<code>modulepreload</code>还是<code>preload</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">renderPage</span>(<span class="params">request, response</span>) </span>&#123;  </span><br><span class="line">  <span class="keyword">let</span> html = <span class="string">`&lt;html&gt;&lt;head&gt;...`</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> agent = request.headers.userAgent;</span><br><span class="line">  <span class="keyword">const</span> isModern = userAgent.isModern(agent);</span><br><span class="line">  <span class="keyword">if</span> (isModern) &#123;</span><br><span class="line">    html += <span class="string">`</span></span><br><span class="line"><span class="string">      &lt;link rel=modulepreload href=modern.mjs&gt;</span></span><br><span class="line"><span class="string">      &lt;script type=module src=modern.mjs&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    html += <span class="string">`</span></span><br><span class="line"><span class="string">      &lt;link rel=preload as=script href=legacy.js&gt;</span></span><br><span class="line"><span class="string">      &lt;script src=legacy.js&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">    `</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  response.end(html);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于那些已经在使用服务端渲染的网站来说，用户代理嗅探是一个比较有效的解决方案</p>
+<p><br></p>
+<h2 id="选项-3-不考虑旧版本浏览器"><a href="#选项-3-不考虑旧版本浏览器" class="headerlink" title="选项 3:不考虑旧版本浏览器"></a>选项 3:不考虑旧版本浏览器</h2><p><strong>注意这里的‘旧版本浏览器’特指那些出现双重加载的浏览器</strong>. 对于<code>module/nomodule模式</code>支持比较差(即双重加载)的主要是一些旧版本的Chrome、Firefox和Safari. 幸运的是这部分浏览器的市场范围通常是比较窄，因为用户会自动升级到最新的版本。Edge 16-18是例外, 但还有希望： 新版本的Edge会使用基于Chromium的渲染器，可以不受该问题的影响.</p>
+<p>对于某些应用程序来说，接受这一点妥协是完全合理的：你可以给90％的浏览器中提供现代代码，让他们获得更好的体验，而极少数旧浏览器不得不抛弃它们，它们只是付出的额外带宽(即双重加载)，并不影响功能。值得注意的是，占据移动端主要市场份额的用户代理不会有双重加载问题，所以这些流量不太可能来自于低速或者高昂流量费的手机。</p>
+<p>如果你的网站用户主要使用移动设备或较新版本的浏览器，那么最简单的<code>module/nomodule</code>模式将适用于你的绝大多数用户, 其他用户就不考虑了，反正也是可以跑起来的, 优先考虑大多数用户的体验。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 修复Safari 10.1 不支持 `nomodule` 问题: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">module</span>&gt;</span><span class="undefined">  </span></span><br><span class="line"><span class="javascript">!<span class="function"><span class="keyword">function</span>(<span class="params">e,t,n</span>)</span>&#123;!(<span class="string">"noModule"</span><span class="keyword">in</span>(t=e.createElement(<span class="string">"script"</span>)))&amp;&amp;<span class="string">"onbeforeload"</span><span class="keyword">in</span> t&amp;&amp;(n=!<span class="number">1</span>,e.addEventListener(<span class="string">"beforeload"</span>,<span class="function"><span class="keyword">function</span>(<span class="params">e</span>)</span>&#123;<span class="keyword">if</span>(e.target===t)n=!<span class="number">0</span>;<span class="keyword">else</span> <span class="keyword">if</span>(!e.target.hasAttribute(<span class="string">"nomodule"</span>)||!n)<span class="keyword">return</span>;e.preventDefault()&#125;,!<span class="number">0</span>),t.type=<span class="string">"module"</span>,t.src=<span class="string">"."</span>,e.head.appendChild(t),t.remove())&#125;(<span class="built_in">document</span>)</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 适用于90+% 的浏览器: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">modern.js</span> <span class="attr">type</span>=<span class="string">module</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 部分支持module但是不支持nomodule的浏览器，也会加载下面脚本，范围可能很小，我们可以选择忽略它们: --&gt;</span>  </span><br><span class="line"><span class="comment">&lt;!-- IE, Edge &lt;16, Safari &lt;10.1, old desktop: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">legacy.js</span> <span class="attr">nomodule</span> <span class="attr">async</span> <span class="attr">defer</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="选项-4-使用条件包"><a href="#选项-4-使用条件包" class="headerlink" title="选项 4: 使用条件包"></a>选项 4: 使用条件包</h2><p><strong><code>nomodule</code>可以巧妙地用来<em>条件加载</em>那些现代浏览器不需要的代码</strong>， 例如polyfills。通过这种方法，最坏的情况就是polyfill和bundle都会被加载(例如Safari 10.1)，但这毕竟是少数。鉴于目前通行的做法就是在所有浏览器中一致同仁地加载polyfills，相比而言, <em>条件polyfills</em>可以让大部分现代浏览器用户避免加载polyfill代码。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- newer browsers won't load this bundle: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">nomodule</span> <span class="attr">src</span>=<span class="string">"polyfills.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- all browsers load this one: --&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"/bundle.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Angular CLI支持配置这种方式来加载polyfill, 查看<a href="https://blog.mgechev.com/2019/02/06/5-angular-cli-features/#conditional-polyfill-serving" target="_blank" rel="noopener">Minko Gechev的代码示例</a>.<br>了解了这种方式之后，我决定在preact-cli中支持自动polyfill注入，你可以查看这个<a href="https://github.com/preactjs/preact-cli/pull/833/files" target="_blank" rel="noopener">PR</a></p>
+<p>如果你使用Webpack，这里有一个html-webpack-plugin<a href="https://github.com/swimmadude66/webpack-nomodule-plugin" target="_blank" rel="noopener">插件</a>可以方便地为polyfill包添加<code>nomodule</code>属性.</p>
+<p><br></p>
+<h2 id="你应该怎么做"><a href="#你应该怎么做" class="headerlink" title="你应该怎么做?"></a>你应该怎么做?</h2><p>答案取决于你的使用场景, 选择和你们的架构匹配的选项:<br>如果你的应用只是客户端渲染, 而且你的HTML不超过一个<code>&lt;script&gt;</code>，选项1比较合适；<br>如果你的应用使用服务端渲染，而且可以接受缓存问题，那么可以选择选项2；<br>如果你开发的是<a href="https://developers.google.com/web/updates/2019/02/rendering-on-the-web#rehydration" target="_blank" rel="noopener">同构应用</a>，预加载的功能可能对你很重要，这时你可以考虑选项3和4.</p>
+<p>就我个人而言，相比考虑桌面端浏览器资源下载成本，我更倾向于优化移动设备解析时间. 移动用户体验会受到数据解析、流量费用，电池消耗等因素的影响，而桌面用户往往不需要考虑这些因素。<br>另外这些优化适用于90%的用户，比如我工作面对的大部分用户都是使用现代或移动浏览器的。</p>
+<p><br></p>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><p>有兴趣继续深入？可以从下面的文章开始挖掘：</p>
+<ul>
+<li>Phil的<a href="https://github.com/philipwalton/webpack-esnext-boilerplate/issues/1" target="_blank" rel="noopener">webpack-esnext-boilerplate</a>的一些附加的背景.</li>
+<li>Ralph<a href="https://github.com/zeit/next.js/pull/7704" target="_blank" rel="noopener">在Next.js中实现了module/nomodule</a>, 并努力解决了上面的问题.</li>
+</ul>
+<p>感谢<a href="https://twitter.com/philwalton" target="_blank" rel="noopener">Phil</a>, <a href="https://twitter.com/shubhie" target="_blank" rel="noopener">Shubhie</a>, <a href="https://twitter.com/atcastle" target="_blank" rel="noopener">Alex</a>, <a href="https://twitter.com/hdjirdeh" target="_blank" rel="noopener">Houssein</a>, <a href="https://twitter.com/Janicklas" target="_blank" rel="noopener">Ralph</a> 以及 <a href="https://twitter.com/addyosmani" target="_blank" rel="noopener">Addy</a> 的反馈.</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#背景知识"><span class="toc-number">1.</span> <span class="toc-text">背景知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#怎么办"><span class="toc-number">2.</span> <span class="toc-text">怎么办?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项1-动态加载"><span class="toc-number">3.</span> <span class="toc-text">选项1: 动态加载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项2-用户代理嗅探"><span class="toc-number">4.</span> <span class="toc-text">选项2: 用户代理嗅探</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项-3-不考虑旧版本浏览器"><span class="toc-number">5.</span> <span class="toc-text">选项 3:不考虑旧版本浏览器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选项-4-使用条件包"><span class="toc-number">6.</span> <span class="toc-text">选项 4: 使用条件包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#你应该怎么做"><span class="toc-number">7.</span> <span class="toc-text">你应该怎么做?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">8.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/17/modern-module/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/17/modern-module/&text=现代脚本的加载"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/17/modern-module/&is_video=false&description=现代脚本的加载"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=现代脚本的加载&body=Check out this article: https://bobi.ink/2019/07/17/modern-module/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/17/modern-module/&title=现代脚本的加载"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/17/modern-module/&name=现代脚本的加载&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

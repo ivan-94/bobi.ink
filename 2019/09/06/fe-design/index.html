@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="if 我是前端团队 Leader，怎么制定前端协作规范?在掘金目前已经突破740个👍了, 谢谢大家的支持，这篇文章是前者延展。继续介绍我在前端团队管理方面的思考和探索。 软件工程中有一个软件设计阶段，通俗的讲就是在开工之前将能确定的确定下来，把该考虑的考虑了。这相比在开发阶段发现问题，解决的成本要低很多。 如果按照教科书上的定义，软件设计就是是一个将需求转变为软件陈述（表达）的过程。一般有概要设">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="if 我是前端团队 Leader，怎么做好概要设计">
+<meta property="og:url" content="https://bobi.ink/2019/09/06/fe-design/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="if 我是前端团队 Leader，怎么制定前端协作规范?在掘金目前已经突破740个👍了, 谢谢大家的支持，这篇文章是前者延展。继续介绍我在前端团队管理方面的思考和探索。 软件工程中有一个软件设计阶段，通俗的讲就是在开工之前将能确定的确定下来，把该考虑的考虑了。这相比在开发阶段发现问题，解决的成本要低很多。 如果按照教科书上的定义，软件设计就是是一个将需求转变为软件陈述（表达）的过程。一般有概要设">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/doc.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/scan-login.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/scan-login-state.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/module-tree-map.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/module.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/sample-pages.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/pages.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/sample-pages2.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/components.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/module-plan.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/module-tree.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/redux.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/uml-sample.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/redux-design.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/mobx-design.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/roadmap.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-design/zhihu.png">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="if 我是前端团队 Leader，怎么做好概要设计">
+<meta name="twitter:description" content="if 我是前端团队 Leader，怎么制定前端协作规范?在掘金目前已经突破740个👍了, 谢谢大家的支持，这篇文章是前者延展。继续介绍我在前端团队管理方面的思考和探索。 软件工程中有一个软件设计阶段，通俗的讲就是在开工之前将能确定的确定下来，把该考虑的考虑了。这相比在开发阶段发现问题，解决的成本要低很多。 如果按照教科书上的定义，软件设计就是是一个将需求转变为软件陈述（表达）的过程。一般有概要设">
+<meta name="twitter:image" content="https://bobi.ink/images/fe-design/doc.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>if 我是前端团队 Leader，怎么做好概要设计</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/09/07/react-cliff/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/08/29/js-bs/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/06/fe-design/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/06/fe-design/&text=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/06/fe-design/&is_video=false&description=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端团队 Leader，怎么做好概要设计&body=Check out this article: https://bobi.ink/2019/09/06/fe-design/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/06/fe-design/&name=if 我是前端团队 Leader，怎么做好概要设计&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关键业务流程的梳理"><span class="toc-number">1.</span> <span class="toc-text">关键业务流程的梳理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#关键技术点"><span class="toc-number">2.</span> <span class="toc-text">关键技术点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模块设计"><span class="toc-number">3.</span> <span class="toc-text">模块设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#入口层"><span class="toc-number">3.1.</span> <span class="toc-text">入口层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#页面层"><span class="toc-number">3.2.</span> <span class="toc-text">页面层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#组件层"><span class="toc-number">3.3.</span> <span class="toc-text">组件层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分工"><span class="toc-number">3.4.</span> <span class="toc-text">分工</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#状态设计"><span class="toc-number">4.</span> <span class="toc-text">状态设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#接口设计"><span class="toc-number">5.</span> <span class="toc-text">接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#版本规划"><span class="toc-number">6.</span> <span class="toc-text">版本规划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">7.</span> <span class="toc-text">验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#项目要求和目标"><span class="toc-number">8.</span> <span class="toc-text">项目要求和目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#文档索引"><span class="toc-number">9.</span> <span class="toc-text">文档索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建说明"><span class="toc-number">10.</span> <span class="toc-text">构建说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续迭代"><span class="toc-number">11.</span> <span class="toc-text">持续迭代</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模板"><span class="toc-number">12.</span> <span class="toc-text">模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">13.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        if 我是前端团队 Leader，怎么做好概要设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-09-05T16:00:00.000Z" itemprop="datePublished">2019-09-06</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><a href="https://juejin.im/post/5d3a7134f265da1b5d57f1ed" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么制定前端协作规范?</a>在掘金目前已经突破740个👍了, 谢谢大家的支持，这篇文章是前者延展。继续介绍我在前端团队管理方面的思考和探索。</p>
+<p>软件工程中有一个软件设计阶段，通俗的讲就是在开工之前将能确定的确定下来，把该考虑的考虑了。这相比在开发阶段发现问题，解决的成本要低很多。</p>
+<p>如果按照教科书上的定义，软件设计就是<strong>是一个将需求转变为软件陈述（表达）的过程</strong>。一般有<strong>概要设计(或者初步设计， Preliminary design)</strong>和<strong>详细设计(Detail design)</strong>. 概要设计将需求转换成数据和软件框架，而详细设计将框架逐步求精细化为具体的数据结构和软件的算法表达。本文讲述的是前端项目的概要设计。</p>
+<p>相比后端开发, 对于前端，’软件设计‘很少被提及，也有可能是一直以来前端的工作都比较’简单’，所以比较粗放。一般给了原型和接口文档就直接开干了。但是随着前端开发者的工作越来越复杂，或者项目/团队的规模变大，我们越来越需要在编码之前进行合理的设计。</p>
+<p>作为<strong>前端入门Leader</strong>, 最近面临了一些问题: 比如项目分工问题、项目维护缺乏文档问题, 让我开始重视软件设计阶段. 就目前看来，做好前端<strong>概要设计</strong>，至少有以下好处:</p>
+<ul>
+<li><strong>事前</strong>. 设计文档是开发的蓝图，后续开发可以按照这个文档逐步展开。良好的设计可以保证开发沿着正常轨道迈进。<ul>
+<li>我们在设计阶段会进一步梳理业务流程，加深对业务流程的理解，甚至可以找出业务流程中的不合理的东西。</li>
+<li>模块拆分。这个阶段我们会识别各个模块之间边界和重叠，将重叠的(共享的)部分抽离出来。另外模块是基本的开发工作单元，也是我们团队分工和时间评估的基础。</li>
+<li>考察关键的技术点。提出多种备选方案，充分考虑各种风险, 选择符合实际需求的方案</li>
+</ul>
+</li>
+<li><strong>事后</strong>. 设计文档对事后的软件维护、功能新增，有很大的帮助</li>
+</ul>
+<p><br></p>
+<p>下面开始介绍，前端在<strong>软件设计阶段</strong>应该考虑东西，或者说前端的<code>概要设计文档</code>里面应该包含哪些东西. 当然这些只是一些初步的想法，随着后面深入实践后，本文会持续更新迭代.</p>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#关键业务流程的梳理">关键业务流程的梳理</a></li>
+<li><a href="#关键技术点">关键技术点</a></li>
+<li><a href="#模块设计">模块设计</a><ul>
+<li><a href="#入口层">入口层</a></li>
+<li><a href="#页面层">页面层</a></li>
+<li><a href="#组件层">组件层</a></li>
+<li><a href="#分工">分工</a></li>
+</ul>
+</li>
+<li><a href="#状态设计">状态设计</a></li>
+<li><a href="#接口设计">接口设计</a></li>
+<li><a href="#版本规划">版本规划</a></li>
+<li><a href="#验证">验证</a></li>
+<li><a href="#项目要求和目标">项目要求和目标</a></li>
+<li><a href="#文档索引">文档索引</a></li>
+<li><a href="#构建说明">构建说明</a></li>
+<li><a href="#持续迭代">持续迭代</a></li>
+<li><a href="#模板">模板</a></li>
+<li><a href="#总结">总结</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<p><strong>系列文章</strong></p>
+<ul>
+<li><a href="https://juejin.im/post/5d3a7134f265da1b5d57f1ed" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么制定前端协作规范? 🔥</a></li>
+<li><a href="https://juejin.im/post/5d71cec6e51d4561b674c4d0" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么做好概要设计</a></li>
+<li><a href="https://juejin.im/post/5d8d4557e51d4577fe41b62d" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么用好看板进行任务管理?</a></li>
+</ul>
+<p><br></p>
+<blockquote>
+<p>这方面我的经验实践比较少, 也没有在大厂待过，所以本文只是我的一些思考和尝试, 可能不太现实。如果你或你的团队有这方面的更好的实践，欢迎分享给我。感激🙏</p>
+</blockquote>
+<p><br><br><br></p>
+<h2 id="关键业务流程的梳理"><a href="#关键业务流程的梳理" class="headerlink" title="关键业务流程的梳理"></a>关键业务流程的梳理</h2><p>开发任何一个产品之前，首先要确保的是对业务流程的理解，否则就会出现南辕北辙的情况。</p>
+<p>在现实项目中发生过多次这类情况：<em>项目到达测试阶段，测试人员才发现应用的业务实现和产品定义不一样，或者业务流程不合理</em>。<br>这其实是一种很低级的失误，改动的成本可能很高，甚至会让你的所有工作白干。</p>
+<p>管理比较成熟的公司会有很多手段来规避这种失误。</p>
+<p>比如定义明确需求文档，这方面可以模仿一些标准/规范(Spec)的写作方法，严格定义一些关键字，避免模棱两可的描述;</p>
+<p>另外可以通过各种宣贯会议，将相关人员聚集在一起，统一导入需求。在这些会议中可以进行头脑风暴，优化或细化需求的定义、发现缺陷和风险，分析可行性等等。通过不断沟通，成员之间可以分享交叉知识，确保对业务一致理解.</p>
+<p><img src="/images/fe-design/doc.png" alt></p>
+<p><br></p>
+<p>因此，我觉得<strong>前端在设计阶段也应该像后端一样，用流程图或者时序图这类工具，将关键业务流程描述清楚. 尤其是涉及到前后端, 跨系统/跨页面/跨终端之间的业务交互的场景</strong>.</p>
+<p>举个例子，比如我们在做一个’扫码登录‘功能。我们可以将跨终端的业务梳理出来：</p>
+<p><img src="/images/fe-design/scan-login.png" alt></p>
+<p><br></p>
+<p>从上面的业务梳理中我们可以识别出业务对象的基本行为和状态. 例如二维码的状态转换图:</p>
+<p><img src="/images/fe-design/scan-login-state.png" alt></p>
+<p><br></p>
+<p>当然, 简单的增删查改花篇幅去阐述没有意义。<strong>我们只关注应用关键的业务流程</strong>.</p>
+<p>总之，业务流程的梳理，可以加深我们对业务的理解，是后续设计步骤和开发的基础.</p>
+<p><br><br><br></p>
+<h2 id="关键技术点"><a href="#关键技术点" class="headerlink" title="关键技术点"></a>关键技术点</h2><p>描述应用采用的或者涉及到关键技术/算法, 也可以认为是<strong>技术选型</strong>.</p>
+<p>比如典型的有视频直播应用，涉及到的各种直播方案:</p>
+<ul>
+<li>RTMP 协议</li>
+<li>RTP协议</li>
+<li>HLS 协议</li>
+<li>flv.js</li>
+<li>WebRTC协议</li>
+<li>等等</li>
+</ul>
+<p><strong>在开启一个项目之前, 我们需要对项目涉及到的关键技术点进行调研和测试，最好多找几个替代方案，横向地比较它们的优势和劣势</strong>。选择符合项目或团队自己情况的方案. 如果时间充足, 可以写一些Demo，实地踩一下坑.</p>
+<p>如果有多个备选方案，最后要甄选出推荐方案，并说明选择的原因和考虑。</p>
+<p><strong>提前做好技术的调研和选型，确定可行性，不至于开发处于被动的境地</strong>.</p>
+<p>关于如何进行技术选型，我在<a href="https://juejin.im/post/5d3a7134f265da1b5d57f1ed#heading-10" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么制定前端协作规范?</a>进行了简单的讨论，可以参考一下.</p>
+<p><br><br><br></p>
+<h2 id="模块设计"><a href="#模块设计" class="headerlink" title="模块设计"></a>模块设计</h2><p>现代前端一般都使用<strong>组件化思维</strong>进行开发，<strong>这时候我们的应用其实就是一颗由不同粒度的组件复合起来的组件树</strong>，这颗组件树最终会体现到项目的目录结构上。 <strong>在设计阶段我们可以根据产品原型或UI设计稿，识别出各种页面和组件</strong>。</p>
+<p><img src="/images/fe-design/module-tree-map.png" alt></p>
+<p>正常的应用，我们可以分三个层级进行拆分:</p>
+<p><img src="/images/fe-design/module.png" alt></p>
+<h3 id="入口层"><a href="#入口层" class="headerlink" title="入口层"></a>入口层</h3><p>稍微复杂一点的应用可能有多个入口，这些入口呈现的页面可能差异很大. 下面是一个常见的划分方法:</p>
+<ul>
+<li>按子系统划分: 比如前台和后台。</li>
+<li>按角色划分：比如管理员、普通用户</li>
+<li>按入口划分：比如移动端、桌面端等等</li>
+</ul>
+<p><br></p>
+<h3 id="页面层"><a href="#页面层" class="headerlink" title="页面层"></a>页面层</h3><p>下一步就是识别各种页面，这些页面即对应到我们的前端路由配置规则. 以下面简单的应用为例:</p>
+<p><img src="/images/fe-design/sample-pages.png" alt></p>
+<p>关于模块的划分，我建议使用<strong>思维导图</strong>进行组织。<strong>模块划分这个环节，你可以召集团队的其他成员开个会议，一起进行头脑风暴。大家参照着产品原型，识别出各种模块或组件的边界和交集, 讨论怎么设计页面的数据流、组件的接口等等</strong>, 这样可以利用集体智慧，让模块拆分更加合理，另外可以促进团队成员提前熟悉项目的结构。</p>
+<p>所以说<strong>软件设计不是架构师或设计人员一个人的事，应该鼓励大家一起参与，设计文档是整个软件团队的产出, 是团队的知识沉淀</strong>。</p>
+<p>上面的应用通过页面层划分后，结果大概如下：</p>
+<p><img src="/images/fe-design/pages.png" alt></p>
+<p>在这个阶段我们会确定以下内容:</p>
+<ul>
+<li><strong>页面以及路由设计, 确定页面之间的层级关系</strong></li>
+<li><strong>页面之间交互流程、数据传递</strong></li>
+</ul>
+<p><strong>关于路由设计，可以遵循一些规范，笔者比较推荐<a href="http://www.ruanyifeng.com/blog/2018/10/restful-api-best-practices.html" target="_blank" rel="noopener">Restful URL规范</a></strong>, 这篇<a href="https://novoland.github.io/设计/2015/08/17/Restful%20API%20的设计规范.html" target="_blank" rel="noopener">文章</a>写得也不错.</p>
+<p>路由之间的数据传递一般有以下几种方式:</p>
+<ul>
+<li>少量数据：可以通过路由变量(例如<code>/posts/:id</code>)或者查询字符串形式传递. 还有如果你使用的是<a href="https://react-router.docschina.org/web/api/BrowserRouter" target="_blank" rel="noopener">基于History API的前端路由模式</a>，可以使用History的<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/History_API" target="_blank" rel="noopener">state</a>对象来存储一些状态(最大640k)</li>
+<li>大量数据：可以通过全局变量，或者状态管理器的机制进行存储, 不管这种存储在内存的方式，一旦页面刷新就会丢失。所以也可以考虑存储在本地缓存中, 例如LocalStorage</li>
+</ul>
+<p><br></p>
+<h3 id="组件层"><a href="#组件层" class="headerlink" title="组件层"></a>组件层</h3><p>Ok，再往下拆分，不过要量力而行。对于一个非常复杂的项目来说，可能有成千上百个组件，而且这些组件在未来可能会不断变化，在设计阶段考虑这些拆分可能需要花费很多时间，而且收益并不明显。</p>
+<p>那么需要怎么把握粒度呢？其实组件层设计阶段的主要目的是<strong>找出重复的、或者结构类似的组件，将它们抽取出来统一的设计，在多个页面进行复用. 并不是把所有的组件都列举出来</strong>。</p>
+<p>我在<a href="https://juejin.im/post/5cd8fb916fb9a03218556fc1" target="_blank" rel="noopener">React组件设计实践总结02 - 组件的组织</a>这篇文章中，专门介绍React组件如何进行组织和拆分。其中提出了以下集中模式:</p>
+<ul>
+<li>容器组件和展示组件分离。或者说分离视图和逻辑, 业务组件和傻瓜组件. 纯逻辑的东西放在Hooks中，使用起来会更加方便</li>
+<li>纯组件和非纯组件. 可以认为纯组件完全依赖外部输入</li>
+<li>有状态组件和无状态组件</li>
+<li>布局组件和内容组件</li>
+<li>统一设计同一类型组件的接口. 比如表单组件应该保持接口统一</li>
+</ul>
+<p><img src="/images/fe-design/sample-pages2.png" alt></p>
+<p>还是上面的示例应用，申报页面有非常多的表单项，而且经常变动，另外你会发现它和预览页面的结构是差不多的，而且后面可能会有桌面端页面。</p>
+<p>经过讨论，我们决定采用配置文件的方式来动态渲染表单页和预览页。实现一套配置控制移动端申请表单、桌面端申请表单、移动端预览、桌面端预览页面。</p>
+<p>类似上面这种应用场景，前期的组件层设计就很有必要了。</p>
+<p><br></p>
+<p><img src="/images/fe-design/components.png" alt></p>
+<p><br></p>
+<h3 id="分工"><a href="#分工" class="headerlink" title="分工"></a>分工</h3><p>将模块拆分清楚后，我们就可以针对这些模块进行合理的分工和时间评估。基本上有三个步骤：</p>
+<p><img src="/images/fe-design/module-plan.png" alt></p>
+<p>通过上面的步骤，我们识别出来了各种模块，接着我们要确定下来这些模块之间的依赖关系，这些依赖关系影响它们是否要作为一个整体进行实现。最后再根据业务的优先级或依赖关系决定这些<strong>模块簇</strong>的实现优先级。</p>
+<p>Ok, 现在可以将这些模块簇按照优先级排序, 加上评估时间(人天)，整理成一个清单。 如果你们使用看板来进行项目管理, 可以将它们作为一个任务单元，贴到看板中.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1. Foo 功能</span><br><span class="line">  - c 2d</span><br><span class="line">  - d 1d</span><br><span class="line">  - f 3d</span><br><span class="line">2. Bar 功能</span><br><span class="line">  - e 1d</span><br><span class="line">  - h 0.5d</span><br><span class="line">3. Baz 功能</span><br><span class="line">  - g 1d</span><br><span class="line">4. Fu 功能</span><br><span class="line">  - a 4d</span><br><span class="line">  - b 1d</span><br><span class="line"></span><br><span class="line">总计人天: 13.5</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>任务的分工有很多策略, 例如：</p>
+<ul>
+<li>横向划分<ul>
+<li>公共组件 vs 业务组件(对接业务)</li>
+<li>自上而下 vs 自下而上(指的是组件树)</li>
+</ul>
+</li>
+<li>垂直划分: 按照独立的垂直模块分工</li>
+</ul>
+<p><img src="/images/fe-design/module-tree.png" alt></p>
+<p><br><br><br></p>
+<h2 id="状态设计"><a href="#状态设计" class="headerlink" title="状态设计"></a>状态设计</h2><p><img src="/images/fe-design/redux.png" alt></p>
+<p>前端组件化伴随而来的是各种<code>数据驱动</code>或<code>数据流驱动</code>的开发模式。这种模式下，前端应用可以总结为这样一个等式:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">view = f(state)</span><br></pre></td></tr></table></figure>
+<p>也就是说<strong>视图是数据或者数据流的映射</strong>. 可见状态管理对现代前端开发的重要性。</p>
+<p>状态的设计和后端对象模型设计差不多。<strong>你需要根据业务和页面渲染要求抽象出各种对象模型，以及缕清对象模型之间的关系</strong>。这个阶段可能需要和后端紧密结合，才能确定出合理的对象结构。</p>
+<p>当然状态的设计还跟你选择的状态管理方案也有关系, 不同状态管理器方案体现的思想差异较大：<em>如果你选择Redux，那么应用的状态就是一颗对象树；如果你选择Mobx，应用的状态可能由多个模型对象组成，更接近传统的OOP模式</em>。</p>
+<p>如果采用OOP设计方法，可以绘制<code>UML</code>图，可视化表现对象的结构和关系:</p>
+<p><img src="/images/fe-design/uml-sample.png" alt><br><i>(图片来源: <a href="https://zongren.me/2016/12/30/uml-diagram-sample/" target="_blank" rel="noopener">https://zongren.me/2016/12/30/uml-diagram-sample/</a>)</i></p>
+<p><br></p>
+<p>我在<a href="https://juejin.im/post/5ce3ee436fb9a07f070e0220" target="_blank" rel="noopener">React组件设计实践总结05 - 状态管理</a>这篇文章花了很多篇幅来介绍各种状态管理器的思想和开发模式, 所以这里就不展开了:</p>
+<p><strong>Redux 状态设计</strong>:</p>
+<p><img src="/images/fe-design/redux-design.png" alt></p>
+<p><strong>Mobx 状态设计</strong>:</p>
+<p><img src="/images/fe-design/mobx-design.png" alt></p>
+<p><br><br><br></p>
+<h2 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h2><p>如果前端团队在接口设计方面有主导权, 或者使用<a href="https://www.phodal.com/blog/architecture-101-bff-for-legacy-system-migrate/" target="_blank" rel="noopener">BFF架构(服务于前端的后端)</a>，在设计阶段我们需要对各类接口进行设计。</p>
+<p>不过一般主导权都掌握在后端手里，因为前端对业务的关心程度较低，后端一般会综合考虑各端的接口需求、数据库存储效率、可维护性等多个方面来设计接口, 这时候前端就是接口的用户，我们有责任来验证后端接口是否符合需求.</p>
+<p>我在<a href="https://juejin.im/post/5d3a7134f265da1b5d57f1ed#heading-45" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么制定前端协作规范?</a>已经提及了各种接口规范. 这里不予赘述。</p>
+<p><br><br><br></p>
+<h2 id="版本规划"><a href="#版本规划" class="headerlink" title="版本规划"></a>版本规划</h2><p>通过上面的步骤，我们基本已经了解我们需要做什么、需要花多久。接下来，</p>
+<p>应该制定一个版本计划，对于一个大项目可以拆分为多个<strong>里程碑</strong>, 估计版本发布的时间. 加不加班就看你了，作为Leader要综合考虑各种影响因素，实事求是合理地安排版本发布计划。</p>
+<p>这个发布计划可能还需要经过PM和项目经理审核, 作为前端项目，开发计划通常还依赖于后端团队.</p>
+<p><img src="/images/fe-design/roadmap.png" alt></p>
+<p><br></p>
+<p>这个版本计划中会包含这些内容:</p>
+<ul>
+<li>版本号</li>
+<li>发布时间</li>
+<li>包含的主要模块</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>验证，或者称为’测试指导‘。 除了测试团队提供的测试用例，从开发(白盒)的角度还需要注意哪些东西?</p>
+<p>产品或者测试可能只会从业务的层次考虑应用的运行，我们需要从研发的角度，充分考虑各种<strong>异常情况</strong>、<strong>性能瓶颈</strong>、进行<strong>风险评估</strong>. 阐明风险的应对方案等待.</p>
+<p>这些情况也可以反馈给测试团队，以完善测试的用例.</p>
+<p><br></p>
+<h2 id="项目要求和目标"><a href="#项目要求和目标" class="headerlink" title="项目要求和目标"></a>项目要求和目标</h2><p>一些需求是要提前确定下来的，对于前端来说，比较典型的就是浏览器兼容性要求。你可不要等到项目上线后，才跟我提用户要求兼容IE6!</p>
+<p>这些项目要求可能会影响我们的开发成本、选型、测试和其他因素的评估。基本上，对于一个前端项目来说，这些要求是要提前问清楚的:</p>
+<ul>
+<li>浏览器兼容性</li>
+<li>运行环境. 例如操作系统、小程序等等</li>
+<li>时间点</li>
+<li>性能指标要求. 例如首屏指标、数据量指标</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="文档索引"><a href="#文档索引" class="headerlink" title="文档索引"></a>文档索引</h2><p>前端项目开发可能会关联很多文档，这些文档是分散的，在设计文档中最好把它们聚合起来，方便查阅和引用. 例如:</p>
+<ul>
+<li>需求文档</li>
+<li>DEMO, UI设计稿</li>
+<li>测试用例</li>
+<li>接口文档</li>
+<li>UI设计规范文档</li>
+<li>前端规范文档</li>
+<li>…</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="构建说明"><a href="#构建说明" class="headerlink" title="构建说明"></a>构建说明</h2><p>如果你的项目需要设计构建流程，也可以在设计文档中简单提及。</p>
+<p>例如<strong>如何编译和运行</strong>? <strong>如何测试和调试</strong>? <strong>如何部署或发布</strong>？ <strong>代码如何组织</strong>？<strong>开发工作流</strong>、<strong>编码约定</strong>等等</p>
+<p>新成员通过这些说明可以快速上手开发.</p>
+<p><br></p>
+<h2 id="持续迭代"><a href="#持续迭代" class="headerlink" title="持续迭代"></a>持续迭代</h2><p>设计文档不是一次性的，它应该跟随项目不断的迭代，不然就失去了文档的意义。</p>
+<p><br><br><br></p>
+<h2 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h2><p>最后，规范一些设计文档的格式和内容</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="section"># XXX 概要设计文档</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 背景</span></span><br><span class="line"></span><br><span class="line">填写项目的背景, 或者开发或重构的目的/出发点.</span><br><span class="line"></span><br><span class="line"><span class="section">## 关键业务流程</span></span><br><span class="line"></span><br><span class="line">可以放置关键的业务流程图、状态图、对象图等等. 梳理关键的业务流程</span><br><span class="line"></span><br><span class="line"><span class="section">## 关键技术描述</span></span><br><span class="line"></span><br><span class="line">可选, 描述项目中使用到的关键技术、算法、选型结论等等</span><br><span class="line"></span><br><span class="line"><span class="section">## 模块拆分</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">- </span>入口</span><br><span class="line"><span class="bullet">- </span>页面路由</span><br><span class="line"><span class="bullet">- </span>组件设计</span><br><span class="line"></span><br><span class="line">可以使用思维导图描述</span><br><span class="line"></span><br><span class="line"><span class="section">## 状态设计</span></span><br><span class="line"></span><br><span class="line">描述应用涉及的关键领域对象, 比如外形、行为和关系. 如果是OOP方式，可以使用UML描述</span><br><span class="line"></span><br><span class="line"><span class="section">## 接口设计</span></span><br><span class="line"></span><br><span class="line">可选，如题</span><br><span class="line"></span><br><span class="line"><span class="section">## 项目要求和目标</span></span><br><span class="line"></span><br><span class="line">项目目标、运行环境、兼容性要求、性能指标等等</span><br><span class="line"></span><br><span class="line"><span class="section">## 验证</span></span><br><span class="line"></span><br><span class="line">可选, 风险评估、异常情况考虑、特殊测试规则、测试指导等等</span><br><span class="line"></span><br><span class="line"><span class="section">## 分工和版本计划</span></span><br><span class="line"></span><br><span class="line">可选, 可以在单独文档或者看板中维护</span><br><span class="line"></span><br><span class="line"><span class="section">## 构建说明</span></span><br><span class="line"></span><br><span class="line">可选, 项目组织、构建、测试说明</span><br><span class="line"></span><br><span class="line"><span class="section">## 文档索引</span></span><br><span class="line"></span><br><span class="line">相关文档的索引和链接</span><br><span class="line"></span><br><span class="line"><span class="section">## 参考资料</span></span><br><span class="line"></span><br><span class="line">文档中索引页的外部参考资料</span><br><span class="line"></span><br><span class="line"><span class="section">## CHANGELOG</span></span><br><span class="line"></span><br><span class="line">列出本文档修改的历史纪录。必须指明修改的内容、日期以及修改人</span><br></pre></td></tr></table></figure>
+<p>很多开发人员都不喜欢写文档，包括我以前也是这样的。我们会找各种借口：’时间紧张，没时间做设计‘、’用来写设计文档的时间，我的开发早就做完了‘。</p>
+<p>这些想法显然是不正确的，给我的启示是<strong>我们要根据团队情况而定，不要求设计文档有多么详尽，在时间紧张的时候可以粗略一点。等时间充裕再回顾补充也是可以接受的; 或者如果项目划分为多个周期进行开发，我们也可以在每个周期开始时进行详细的设计</strong>。</p>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>文章差不多写完了，看到了知乎<a href="https://www.zhihu.com/people/zhang-ming-yun-88/activities" target="_blank" rel="noopener">@张明云</a><a href="https://www.zhihu.com/question/300407894" target="_blank" rel="noopener">现代软件开发中，详细设计这一步要如何来做？</a>下面的一个回答:</p>
+<p><br></p>
+<p><img src="/images/fe-design/zhihu.png" alt></p>
+<p><br></p>
+<p>和我上文所介绍基本吻合。一个软件’概要‘设计文档基本就包含这几大块。</p>
+<p>本文完。</p>
+<p><br></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://www.infoq.cn/article/how-to-write-a-good-software-design-document" target="_blank" rel="noopener">如何才能写出好的软件设计文档？</a></li>
+<li><a href="https://blog.csdn.net/lori2004/article/details/80011806" target="_blank" rel="noopener">软件设计文档编写概述</a></li>
+<li><a href="https://www.zhihu.com/question/300407894" target="_blank" rel="noopener">现代软件开发中，详细设计这一步要如何来做？</a></li>
+</ul>
+<p><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关键业务流程的梳理"><span class="toc-number">1.</span> <span class="toc-text">关键业务流程的梳理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#关键技术点"><span class="toc-number">2.</span> <span class="toc-text">关键技术点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模块设计"><span class="toc-number">3.</span> <span class="toc-text">模块设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#入口层"><span class="toc-number">3.1.</span> <span class="toc-text">入口层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#页面层"><span class="toc-number">3.2.</span> <span class="toc-text">页面层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#组件层"><span class="toc-number">3.3.</span> <span class="toc-text">组件层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分工"><span class="toc-number">3.4.</span> <span class="toc-text">分工</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#状态设计"><span class="toc-number">4.</span> <span class="toc-text">状态设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#接口设计"><span class="toc-number">5.</span> <span class="toc-text">接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#版本规划"><span class="toc-number">6.</span> <span class="toc-text">版本规划</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#验证"><span class="toc-number">7.</span> <span class="toc-text">验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#项目要求和目标"><span class="toc-number">8.</span> <span class="toc-text">项目要求和目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#文档索引"><span class="toc-number">9.</span> <span class="toc-text">文档索引</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建说明"><span class="toc-number">10.</span> <span class="toc-text">构建说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#持续迭代"><span class="toc-number">11.</span> <span class="toc-text">持续迭代</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#模板"><span class="toc-number">12.</span> <span class="toc-text">模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">13.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料"><span class="toc-number">14.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/06/fe-design/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/06/fe-design/&text=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/06/fe-design/&is_video=false&description=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端团队 Leader，怎么做好概要设计&body=Check out this article: https://bobi.ink/2019/09/06/fe-design/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/06/fe-design/&title=if 我是前端团队 Leader，怎么做好概要设计"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/06/fe-design/&name=if 我是前端团队 Leader，怎么做好概要设计&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

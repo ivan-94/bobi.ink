@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="2019 年最后一发，谈谈这半年 Electron 应用开发和优化心得。干货也挺多，希望能给你带来一点启发。 下半年可以拿出来说一说的项目，估计就是我们用 Electron 重构了一个桌面端应用。这个应用类似于钉钉或者企业微信，主要功能有即时通信、语音/视频、会议，基本功能和交互体验和 PC 端微信差不多(其实就是模仿)，具体细节就不展开了, 这些对本文不重要。如下图    文章大纲   为什么选">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分享这半年的 Electron 应用开发和优化经验">
+<meta property="og:url" content="https://bobi.ink/2019/12/16/electron/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="2019 年最后一发，谈谈这半年 Electron 应用开发和优化心得。干货也挺多，希望能给你带来一点启发。 下半年可以拿出来说一说的项目，估计就是我们用 Electron 重构了一个桌面端应用。这个应用类似于钉钉或者企业微信，主要功能有即时通信、语音/视频、会议，基本功能和交互体验和 PC 端微信差不多(其实就是模仿)，具体细节就不展开了, 这些对本文不重要。如下图    文章大纲   为什么选">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/electron/mygzb.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/electron/client-arch.png">
+<meta property="og:image" content="https://bobi.ink/images/electron/chrome-perf.png">
+<meta property="og:image" content="https://bobi.ink/images/electron/shell.png">
+<meta property="og:image" content="https://bobi.ink/images/electron/load-order.gif">
+<meta property="og:image" content="https://bobi.ink/images/group.jpeg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="分享这半年的 Electron 应用开发和优化经验">
+<meta name="twitter:description" content="2019 年最后一发，谈谈这半年 Electron 应用开发和优化心得。干货也挺多，希望能给你带来一点启发。 下半年可以拿出来说一说的项目，估计就是我们用 Electron 重构了一个桌面端应用。这个应用类似于钉钉或者企业微信，主要功能有即时通信、语音/视频、会议，基本功能和交互体验和 PC 端微信差不多(其实就是模仿)，具体细节就不展开了, 这些对本文不重要。如下图    文章大纲   为什么选">
+<meta name="twitter:image" content="https://bobi.ink/images/electron/mygzb.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>分享这半年的 Electron 应用开发和优化经验</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2020/04/05/video-stream/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/12/06/fe-framework/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/12/16/electron/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/12/16/electron/&text=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/12/16/electron/&is_video=false&description=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=分享这半年的 Electron 应用开发和优化经验&body=Check out this article: https://bobi.ink/2019/12/16/electron/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/12/16/electron/&name=分享这半年的 Electron 应用开发和优化经验&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么选择-electron"><span class="toc-number">1.</span> <span class="toc-text">为什么选择 Electron?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进程模型"><span class="toc-number">2.</span> <span class="toc-text">进程模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#技术选型与代码组织"><span class="toc-number">3.</span> <span class="toc-text">技术选型与代码组织</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#性能优化-硬货"><span class="toc-number">4.</span> <span class="toc-text">性能优化(硬货)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-性能分析"><span class="toc-number">4.1.</span> <span class="toc-text">1. 性能分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-优化策略"><span class="toc-number">4.2.</span> <span class="toc-text">2. 优化策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-继续和白屏作斗争"><span class="toc-number">4.2.1.</span> <span class="toc-text">2.1 继续和白屏作斗争</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-追赶原生的交互体验"><span class="toc-number">4.2.2.</span> <span class="toc-text">2.2 追赶原生的交互体验</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-优化进程通信"><span class="toc-number">4.2.3.</span> <span class="toc-text">2.3 优化进程通信</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#坑还是会有的"><span class="toc-number">5.</span> <span class="toc-text">坑还是会有的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">6.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        分享这半年的 Electron 应用开发和优化经验
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-12-15T16:00:00.000Z" itemprop="datePublished">2019-12-16</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>2019 年最后一发，谈谈这半年 Electron 应用开发和优化心得。干货也挺多，希望能给你带来一点启发。</p>
+<p>下半年可以拿出来说一说的项目，估计就是我们用 Electron 重构了一个桌面端应用。这个应用类似于<code>钉钉</code>或者<code>企业微信</code>，主要功能有即时通信、语音/视频、会议，基本功能和交互体验和 PC 端微信差不多(其实就是模仿)，具体细节就不展开了, 这些对本文不重要。如下图</p>
+<p><br></p>
+<p><img src="/images/electron/mygzb.jpeg" alt></p>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#为什么选择-electron">为什么选择 Electron?</a></li>
+<li><a href="#进程模型">进程模型</a></li>
+<li><a href="#技术选型与代码组织">技术选型与代码组织</a></li>
+<li><a href="#性能优化硬货">性能优化(硬货)</a><ul>
+<li><a href="#1-性能分析">1. 性能分析</a></li>
+<li><a href="#2-优化策略">2. 优化策略</a><ul>
+<li><a href="#21-继续和白屏作斗争">2.1 继续和白屏作斗争</a></li>
+<li><a href="#22-追赶原生的交互体验">2.2 追赶原生的交互体验</a></li>
+<li><a href="#23-优化进程通信">2.3 优化进程通信</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#坑还是会有的">坑还是会有的</a></li>
+<li><a href="#扩展资料">扩展资料</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<h2 id="为什么选择-electron"><a href="#为什么选择-electron" class="headerlink" title="为什么选择 Electron?"></a>为什么选择 Electron?</h2><p>原因也很简单: <strong>我们的应用要兼容多个平台，原生开发效率低，我们没有资源</strong>。</p>
+<p>说了跟白说一样，大部分选择 Electron 框架的动机都是差不多的，无非就是穷，尤其是在夹缝中生存的企业。</p>
+<p>为了优化客户端开发资源，<strong>‘混合化’成为了我们今年客户端重构的主题</strong>。</p>
+<p>先来看一下我们现在的客户端基本架构:</p>
+<p><img src="/images/electron/client-arch.png" alt></p>
+<p><br></p>
+<p>混合化对我们来说有两层意思:</p>
+<ol>
+<li>我们的应用架构’混合’了多种技术。通用底层 C/C++, 平台原生(iOS, Android, PC, MacOS)，Web 技术</li>
+<li>跨平台</li>
+</ol>
+<p><br></p>
+<p>基于我们原有的客户端基础和情况，混合化重构自然而然分化为了两个方向:</p>
+<ol>
+<li><strong>业务下沉</strong>。将通用的、核心的业务下沉。例如消息处理、语音/视频、会议、数据存储等核心模块, 核心协议是 XMPP、SIP。这些模块变动频率较低、对性能要求也比较高，而且有跨平台需求，因此适合用 C/C++ 来实现。</li>
+<li><strong>UI 混合</strong>。视图层混合化目前也有较多的解决方案，例如 Electron、React Native、Flutter、或者是 HTML Hybrid。我们选择先从 Electron 开始，因为它在桌面端开发中已经有非常成熟的表现，市场上也有很多大型的 Electron 应用，例如 VSCode、Atom、Slack。在移动端，我们对 React Native 和 Flutter 还比较保守，后续可能会进行尝试。</li>
+</ol>
+<p><br></p>
+<p>理解了我们的动机，现在再看上面的图, 应该就好理解多了, 这是典型的三层结构, 和 MVC 非常相似：</p>
+<ul>
+<li><strong>M – 通用混合层</strong>。 C/C++ 封装核心、通用的业务模块以及业务数据存储。</li>
+<li><strong>V – UI 层</strong>。视图层，使用跨平台视图解决方案，对于性能要求较高的部分使用原生实现。比如 Electron</li>
+<li><strong>C – 平台桥接层</strong>。介于 M 和 V 之间，桥接<code>通用混合层</code>接口，同时也为 UI 层暴露一些<strong>平台相关</strong>的特性。比如在桌面端，这里会通过 Node 原生模块桥接通用混合层, 同时也补充一些 Electron 缺失或不完美的功能。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="进程模型"><a href="#进程模型" class="headerlink" title="进程模型"></a>进程模型</h2><p>Electron 的主从进程模型是基本的常识。每个 Electron 应用有且只要一个主进程(Main Process)、以及一个或多个渲染进程(Renderer Process), 对应多个 Web 页面。除此之外还有 GPU 进程、扩展进程等等。可以通过 <a href="https://electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes" target="_blank" rel="noopener">Electron Application Architecture</a> 了解 Electron 的基本架构。</p>
+<p>主进程负责创建页面窗口、协调进程间通信、事件分发。为了安全考虑，原生 GUI 相关的 API 是无法在渲染进程直接访问的，它们必须通过 IPC 调用主进程。<strong>这种主从进程模型缺点也非常明显，即主进程单点故障。主进程崩溃或者阻塞，会影响整个应用的响应</strong>。比如主进程跑长时间的 CPU 任务，将阻塞渲染进程的用户交互事件。</p>
+<p><br></p>
+<p>对我们的应用来说，目前有以下进程, 以及它们的职责:</p>
+<p><strong>① 主进程</strong></p>
+<ul>
+<li>进程间通信、窗口管理</li>
+<li>全局通用服务。</li>
+<li>一些只能或适合在主进程做的事情。例如浏览器下载、全局快捷键处理、托盘、session。</li>
+<li>维护一些必要的全局状态</li>
+<li>上面说的<code>通用混合层</code>也跑在这个进程。通过 Node C++ 插件暴露接口。</li>
+</ul>
+<p><br></p>
+<p><strong>② 渲染进程</strong></p>
+<p>负责 Web 页面的渲染, 具体页面的业务处理。</p>
+<p><br></p>
+<p><strong>③ Service Worker</strong></p>
+<p>负责静态资源缓存。缓存一些网络图片、音频。保证静态资源的稳定加载。</p>
+<p><br><br><br></p>
+<h2 id="技术选型与代码组织"><a href="#技术选型与代码组织" class="headerlink" title="技术选型与代码组织"></a>技术选型与代码组织</h2><p>说说我们的技术选型。</p>
+<ul>
+<li>UI 框架 - <code>React</code></li>
+<li>状态管理 - <code>Mobx</code></li>
+<li>国际化 - <code>i18next</code></li>
+<li>打包 - <code>自研 CLI</code></li>
+</ul>
+<p><br></p>
+<p>源码组织</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bridge/                  # 桥接层代码</span><br><span class="line">resources/               # 构建资源，以及第三方DLL</span><br><span class="line">src/</span><br><span class="line"></span><br><span class="line">  main/                  # 🔴主进程代码</span><br><span class="line">    services/            # 📡**通过 RPC 暴露给渲染进程的全局服务**</span><br><span class="line">      tray.ts            # 托盘状态管理</span><br><span class="line">      shortcut.ts        # 全局快捷键分发</span><br><span class="line">      preferences.ts     # 用户配置管理</span><br><span class="line">      windows.ts         # 窗口管理</span><br><span class="line">      screen-capture.ts  # 截屏</span><br><span class="line">      bridge.ts          # 桥接层接口封装</span><br><span class="line">      context-menu.ts    # 右键菜单</span><br><span class="line">      state.ts           # 全局状态管理, 保存一些必要的全局状态，例如主题、当前语言、当前用户</span><br><span class="line">      ...</span><br><span class="line">    lib/                 # 封装库</span><br><span class="line">      bridge.ts          # 桥接层API 分装</span><br><span class="line">      logger.ts          # 日志</span><br><span class="line">      ...</span><br><span class="line">    bootstrap.ts         # 启动程序</span><br><span class="line">    index.ts             # 🔴入口文件</span><br><span class="line"></span><br><span class="line">  renderer/              # 🔴渲染进程</span><br><span class="line">    services/            # 📡主进程的全局服务的客户端</span><br><span class="line">      windows.ts         # 窗口管理客户端</span><br><span class="line">      tray.ts</span><br><span class="line">      ...</span><br><span class="line">    assets/              # 静态资源</span><br><span class="line">    hooks/               # React Hooks</span><br><span class="line">    components/          # 通用组件</span><br><span class="line">      Webview</span><br><span class="line">      Editor</span><br><span class="line">      toast</span><br><span class="line">      ...</span><br><span class="line">    pages/               # 🔴页面</span><br><span class="line">      Home</span><br><span class="line">        ui/              # 🔴视图代码，由前端团队维护</span><br><span class="line">        store/           # 🔴状态代码，由客户端团队维护，前端Store的公开状态</span><br><span class="line">        translation/     # 国际化翻译文件</span><br><span class="line">        index.tsx        # 页面入口</span><br><span class="line">      Settings</span><br><span class="line">      Login</span><br><span class="line">    page.json            # 🔴声明所有页面及页面配置。类似小程序</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>眼尖的读者会发现每个页面下有 <code>ui</code> 和 <code>store</code> 目录，分别对应视图和状态。为什么这么划分？</p>
+<p>首先这是因为这个项目由两个团队共同来开发的，即原有的原生客户端团队和我们的前端团队。分离视图和状态有两个好处:</p>
+<ul>
+<li>前端前期不需要关心客户端底层业务，而客户端也不需要关心前端的页面实现。职责明确，各自干好自己事情。</li>
+<li>降低学习成本。我们状态管理选用了 Mobx，对于客户端同学，只需要掌握少量的 Typescript 语言知识就可以马上上手。如果熟悉 Java、C# 那就更没什么问题了。每个 Store 只是一个简单的类：</li>
+</ul>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> CounterStore <span class="keyword">extends</span> MobxStore &#123;</span><br><span class="line">  <span class="meta">@observable</span></span><br><span class="line">  <span class="keyword">public</span> count: <span class="built_in">number</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="meta">@action</span></span><br><span class="line">  <span class="keyword">public</span> incr = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.count++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> pageReady() &#123;</span><br><span class="line">    <span class="comment">// 页面就绪，可以在这里做一些准备工作</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 事件监听</span></span><br><span class="line">    <span class="comment">// addDisposer 将释放函数添加到队列中，在页面退出时释放</span></span><br><span class="line">    <span class="keyword">this</span>.addDisposer(</span><br><span class="line">      addListener(<span class="string">'someevent'</span>, <span class="function"><span class="params">evt</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.dosomething(evt)</span><br><span class="line">      &#125;)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">this</span>.initial()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> pageWillClose() &#123;</span><br><span class="line">    <span class="comment">// 页面释放，可以在这里做一些资源释放</span></span><br><span class="line">    releaseSomeResource()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ....</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>使用 Mobx 作为状态管理，相比 Redux，面向对象思想对他们更好理解。在这种场景，简单才是真理；</p>
+<p>分离了状态和业务逻辑，前端页面实现也简化了，视图只是状态的映射，这让我们的页面和组件更好被维护和复用。</p>
+<p><br><br><br></p>
+<h2 id="性能优化-硬货"><a href="#性能优化-硬货" class="headerlink" title="性能优化(硬货)"></a>性能优化(硬货)</h2><p>前戏完了，关于 Electron 的一些性能优化才是本篇文章的重头戏。</p>
+<p>Electron 不是银弹，鱼和熊掌不可兼得。Electron 带来开发效率的提升，其本身也有很多硬伤，譬如常被人吐槽的内存占用高，和原生客户端性能差异等等。为了优化 Electron 应用，我们也做了很多工作。</p>
+<p>性能优化一般都分两步走：</p>
+<ul>
+<li>① 分析、找出问题。参考<a href="https://juejin.im/post/5d06bf0a51882528194a9736" target="_blank" rel="noopener">《React 性能测量和分析》</a></li>
+<li>② 针对问题解决问题。无外乎三个方向, 参考 <a href="https://juejin.im/post/5d045350f265da1b695d5bf2" target="_blank" rel="noopener">《浅谈 React 性能优化的方向》</a></li>
+</ul>
+<p><br></p>
+<h3 id="1-性能分析"><a href="#1-性能分析" class="headerlink" title="1. 性能分析"></a>1. 性能分析</h3><p>最好的分析工具是 Chrome 开发者工具的 <code>Performance</code>。通过火焰图, JavaScript 执行过程的任何蛛丝马迹都可以直观的看到。</p>
+<p><img src="/images/electron/chrome-perf.png" alt></p>
+<p><br></p>
+<p>对于主进程，开启调试后也可以通过 <code>Profile</code> 工具收集 JavaScript 执行信息。</p>
+<p>如果你要分析某段代码的执行过程，也可以通过下面命令生成分析文件，然后导入到 Chrome Performance 中分析:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span> 输出 cpu 和 堆分析文件</span><br><span class="line">node --cpu-prof --heap-prof -e "require('request’)”“</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="2-优化策略"><a href="#2-优化策略" class="headerlink" title="2. 优化策略"></a>2. 优化策略</h3><h4 id="2-1-继续和白屏作斗争"><a href="#2-1-继续和白屏作斗争" class="headerlink" title="2.1 继续和白屏作斗争"></a>2.1 继续和白屏作斗争</h4><p>即使 Electron 通常从本地文件系统加载 JavaScript 代码，没有网络加载延迟，我们还是需要继续和页面白屏做斗争，因为 JavaScript 等资源的加载、解析和执行还是有相当大的代价(参考<a href="https://v8.dev/blog/cost-of-javascript-2019" target="_blank" rel="noopener">The cost of JavaScript in 2019</a>)。作为一个桌面端应用，细微的白屏延迟用户都可以感觉的到。我们要尽量让用户感觉不到这是一个 Web 页面。</p>
+<p><strong>影响 Electron 白屏的主要因素有：页面窗口的创建、静态资源的加载、JavaScript 解析和执行</strong>。</p>
+<p>见招拆招，针对页面白屏我们做了这些优化:</p>
+<p><br></p>
+<p><strong>① 骨架屏</strong></p>
+<p>最简单的方式。在资源未加载完毕之前，先展示页面的骨架。避免用户看到白茫茫的屏幕。</p>
+<p>另外需要设置背景色或者延迟显示窗口，来避免闪烁。</p>
+<p><img src="/images/electron/shell.png" alt><br><em>VSCode骨架屏</em></p>
+<p><br></p>
+<p><strong>② 惰性加载</strong></p>
+<p>优先加载核心的功能，保证初次加载效率，让用户可以尽快进行交互。</p>
+<p><br></p>
+<p><img src="/images/electron/load-order.gif" alt></p>
+<p><br></p>
+<ul>
+<li><strong>代码分割 + 预加载</strong>： 代码分割是最常见优化方式。我们把隐藏的内容、或者次优先级的模块拆分出去，启动模块中只保留关键路径。我们也可以在浏览器空闲时预加载这些模块。</li>
+<li><p><strong>延后加载 Node 模块</strong>： Nodejs 模块的加载和执行需要花费较大的代价, 例如模块查找、模块文件读取、接着才是模块解析和执行。这些操作都是同步了，别忘了，node_modules 黑洞，某块模块可能会引用大量的依赖….</p>
+<p>Node 应用和 Electron 应用不太一样，通常 Node 服务器应用都会将模块放置在文件顶部, 然后同步加载进来。这个放到 Electron 用户界面上就无法忍受了。 用户界面的启动速度和交互阻塞, 用户是可以感知到的，而且忍耐程度会较低。</p>
+<p>所以要充分评估模块的大小和依赖。或者可以选择使用打包工具优化和合并 Node 模块。</p>
+</li>
+<li><p><strong>划分加载优先级</strong>：既然我们没办法一开始将所有东西都加载出来，那就按照优先级渐进式地将在它们。举个例子，当我们使用 VSCode 打开一个文件时，VScode 会先展示代码面板、接着是目录树、侧边栏、代码高亮、问题面板、初始化各种插件…</p>
+</li>
+</ul>
+<p><br></p>
+<p><strong>③ 使用现代的 JavaScript/CSS 代码</strong></p>
+<p>Electron 每个版本都会预装当时最新的 Chrome，对于前端来说，这是最爽的一件事情:</p>
+<ul>
+<li>没有负担地使用最新的 JavaScript 特性</li>
+<li>没有 Polyfill、没有 runtime-helper。相比老旧浏览器，代码量更少，性能也更好</li>
+<li>我们需要主动抛弃一些老旧的依赖。保持使用最新的库</li>
+</ul>
+<p><br></p>
+<p><strong>④ 打包优化</strong></p>
+<p>即使使用最新最牛逼的浏览器，打包工具还是很有用。</p>
+<ul>
+<li><strong>减少代码体积</strong>: 现代打包工具有非常多优化手段，例如 Webpack 支持作用域提升、摇树，还有代码压缩、预执行… 这可以合并代码、压缩代码体积，裁剪多余的代码, 减少运行时负担。</li>
+<li><strong>优化I/O</strong>: 我们将模块合并之后，可以减少模块查找和加载的I/O往返。</li>
+</ul>
+<p><br></p>
+<p><strong>⑤ <a href="https://v8project.blogspot.it/2015/09/custom-startup-snapshots.html" target="_blank" rel="noopener">v8 Snapshot</a> or <a href="https://v8.dev/blog/code-caching" target="_blank" rel="noopener">v8 Code Cache</a></strong></p>
+<p>Atom 有很多优质的文章，分享了他们优化Atom的经历。例如它们使用了 <a href="https://blog.atom.io/2017/04/18/improving-startup-time.html" target="_blank" rel="noopener">V8 的snapshot 来优化启动时间</a>。</p>
+<p>这是一种 <code>AOT</code> 优化策略，简单说 Snapshot 是堆快照，你可以认为它是 JavaScript 代码在V8中的内存表示形态。</p>
+<p>它有两个好处: 一是相比普通 JavaScript 加载更快，二是它是二进制的，如果你为了‘安全’考虑，可以将模块转换成snapshot，这样更难被‘破解’。</p>
+<p>不过它也有较多限制。对架构的影响比较大。比如要求在初始化的过程中不要有‘副作用’，例如DOM访问。因为在‘编译时‘这些东西不存在。</p>
+<p>这篇文章详细介绍了如何在 Electron 中应用 v8 snapshot: <a href="https://flight-manual.atom.io/behind-atom/sections/how-atom-uses-chromium-snapshots/" target="_blank" rel="noopener">How Atom Uses Chromium Snapshots</a></p>
+<p><br></p>
+<p>还有一个更加广泛使用的方案是 <a href="https://v8.dev/blog/code-caching" target="_blank" rel="noopener">v8 Code Cache</a>。NodeJS 12 <a href="https://www.yuque.com/egg/nodejs/nodejs-12#2e3ceb28" target="_blank" rel="noopener">开始</a>在构建时提前为内置库生成代码缓存，从而提升 30% 的启动耗时。</p>
+<p>通过这些文章，深入了解 Code Cache 扩展阅读:</p>
+<ul>
+<li><a href="https://v8.dev/blog/code-caching-for-devs" target="_blank" rel="noopener">Code caching for JavaScript developers</a></li>
+<li><a href="https://medium.com/reloading/javascript-start-up-performance-69200f43b201" target="_blank" rel="noopener">JavaScript Start-up Performance</a></li>
+<li><a href="https://v8.dev/blog/improved-code-caching" target="_blank" rel="noopener">Improved code caching</a></li>
+<li><a href="https://fed.taobao.org/blog/taofed/do71ct/speed-node-start-time/" target="_blank" rel="noopener">如何加快 Node.js 应用的启动速度</a></li>
+</ul>
+<p><br><br><br></p>
+<p><strong>⑥ 窗口预热 与 窗口池、窗口常驻</strong></p>
+<p>为了追赶原生窗口的打开和展示速度，我们运用了很多技巧，用空间来换取时间。</p>
+<p>例如我们的应用首页，用户在打开登录页面时，我们就会在<strong>后台预热</strong>，将该加载的资源都准备好，在登录成功后，就可以立即渲染显示。窗口打开的延时很短，基本接近原生的窗口体验。</p>
+<p>这里用到了一些 Hack 手段，我们将这些窗口放到了屏幕之外，并设置 <code>skipTaskBar</code> 来实现隐藏或者关闭的效果。</p>
+<p><br></p>
+<p>对于频繁开启/关闭的窗口，也可以使用<strong>窗口池</strong>来优化。比如 Webview 页面，打开的一个 Webview 页面时，会优先从窗口池中选取，当窗口池为空时才创建新的窗口, 后面页面关闭后会再放回窗口池中，方便后续复用。</p>
+<p>另外，对于业务无关的、通用的窗口，也可以采用<strong>常驻模式</strong>，例如通知，图片查看器。这些窗口一旦创建就不会释放，打开效果会更好。</p>
+<p><br></p>
+<p><strong>⑦ 跟进 Electron 最新版本</strong></p>
+<p>保持版本的更新。</p>
+<p><br></p>
+<h4 id="2-2-追赶原生的交互体验"><a href="#2-2-追赶原生的交互体验" class="headerlink" title="2.2 追赶原生的交互体验"></a>2.2 追赶原生的交互体验</h4><p>白屏时间的优化只是一个开始，应用使用过程中的交互体验也是一个非常重要的部分。下面讲讲我们的一些优化手段：</p>
+<p><br></p>
+<p><strong>① 静态资源缓存</strong></p>
+<p>对于一些网络资源，我们采取了一些缓存手段，保证它们展示的速度。我们目前采用的是 Service-Worker + Workbox 的方式，利用 Service-Worker 可以拦截多个页面的网络请求，从而实现跨页面的静态资源缓存，这种方式实现比较简单。</p>
+<p>除了 Service Worker，也可以通过协议拦截方式来实现。详见: <a href="https://electronjs.org/docs/api/protocol" target="_blank" rel="noopener">protocol</a>。后面有时间再尝试一下，看效果怎么样。</p>
+<p><br></p>
+<p><strong>② 预加载机制</strong></p>
+<p>如果你看过我的 <a href="https://juejin.im/post/5dadc6045188255a270a0f85" target="_blank" rel="noopener">《这可能是最通俗的 React Fiber(时间分片) 打开方式》</a>, 应该见识到 <code>requestIdleCallback</code> 的强大，React 利用它来调度一些渲染任务，保证浏览器响应用户的交互。</p>
+<p>这个 API 对于我们的应用优化也有重要的意义。通过它我们可以知道浏览器的资源利用情况，利用浏览器空闲时间来预执行一些低优先级的任务。比如：</p>
+<ul>
+<li>渲染隐藏的 Tab</li>
+<li>延后加载的模块代码</li>
+<li>惰性加载的图片</li>
+<li>未激活的会话</li>
+<li>执行低优先级的任务</li>
+<li>…</li>
+</ul>
+<p><br></p>
+<p>例如 React 代码分割：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">lazy</span>(<span class="params">factory, Fallback</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> Comp = l(factory)</span><br><span class="line">  <span class="comment">// 预加载调度</span></span><br><span class="line">  scheduleIdle(&#123;</span><br><span class="line">    name: <span class="string">'LazyComponent'</span>,</span><br><span class="line">    size: TaskSize.Heavy,</span><br><span class="line">    task: factory,</span><br><span class="line">    timeout: <span class="number">2000</span>,</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="title">LazyComponent</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;Suspense fallback=&#123;Fallback ? <span class="xml"><span class="tag">&lt;<span class="name">Fallback</span> /&gt;</span> : null&#125;&gt;</span></span><br><span class="line">        &lt;Comp &#123;...props&#125; /&gt;</span><br><span class="line"><span class="xml">      <span class="tag">&lt;/<span class="name">Suspense</span>&gt;</span></span></span><br><span class="line"><span class="xml">    )</span></span><br><span class="line"><span class="xml">  &#125; as typeof Comp</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>使用:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> List = lazy(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./List'</span>))</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>③ 避免同步操作</strong></p>
+<p>Electron 可以通过 NodeJS 进行 I/O 操作，但是我们一定要尽量避免同步 I/O。例如同步的文件操作、同步的进程间通信。它们会阻塞页面的渲染和事件交互。</p>
+<p><br></p>
+<p><strong>④ 减少主进程负荷</strong></p>
+<p>Electron 的主进程非常重要。它是所有窗口的父进程，它负责调度各种资源。如果主进程被阻塞，将影响整个应用响应性能。</p>
+<p>你可以做一个简单的实验，在主进程上打一个断点，你会发现所有的页面窗口都会失去响应，尽管它们在各自不同的进程。这是因为所有用户交互都是由主进程分发给渲染进程的，主进程阻塞了，渲染进程当然无法接收用户事件啦。</p>
+<p>所以不要让主进程干脏活累活，能在渲染进程做的，就在渲染进程做。<strong>千万避免在主进程中跑计算密集任务和同步I/O</strong>。</p>
+<p><br></p>
+<p><strong>⑤ 分离CPU密集型操作到单独进程或Worker, 避免阻塞UI</strong></p>
+<p><br></p>
+<p><strong>⑥ React 优化</strong></p>
+<p>见 <a href="https://juejin.im/post/5d045350f265da1b695d5bf2" target="_blank" rel="noopener">《React 性能优化的方向》</a></p>
+<p><br></p>
+<p><strong>⑦ 放弃CSS-in-js</strong></p>
+<p>我们为了压缩运行时性能，能在编译时做的就在编译时做，放弃了 CSS-in-js 方案，使用纯 CSS + BEM 来编写样式。主要有两个原因:</p>
+<ul>
+<li>Electron 使用较新的 Chrome，现代 CSS 已经很强大</li>
+<li>我们使用了窗口预热机制，可以率先解析这部分 CSS 代码。而 CSS-in-js 方案则是组件渲染时，动态生成的。</li>
+</ul>
+<p><br></p>
+<p><strong>⑧ 没有退路了，那就只能上 Node 原生模块了</strong></p>
+<p>真好，还有退路</p>
+<p><br><br><br></p>
+<h4 id="2-3-优化进程通信"><a href="#2-3-优化进程通信" class="headerlink" title="2.3 优化进程通信"></a>2.3 优化进程通信</h4><p>涉及到多页面/窗口的 Electron 应用，IPC 会非常频繁，搞不好会成为性能瓶颈。</p>
+<p><br></p>
+<p><strong>① 巨坑 remote</strong></p>
+<p><a href="https://electronjs.org/docs/api/remote" target="_blank" rel="noopener">remote</a> 提供了一种简便的、无侵入的形式来访问主进程的API和数据。<strong>其底层基于同步的 IPC</strong>。你可以通过我<a href="https://juejin.im/post/5d4b79a3e51d4561b072dcb0" target="_blank" rel="noopener">这篇文章</a>来了解它的原理。</p>
+<p>坑在哪里呢？</p>
+<p>① 它是同步的<br>② 属性动态获取。为了确保你能够获取到最新的值，remote底层并不会进行缓存，而是每次获取一个属性就动态到主进程中取。</p>
+<p>比如获取一个主进程中的对象:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 主进程</span></span><br><span class="line">global.foo = &#123;</span><br><span class="line">  foo: <span class="number">1</span>,</span><br><span class="line">  bar: &#123;</span><br><span class="line">    baz: <span class="number">2</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>渲染进程访问:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;remote&#125; <span class="keyword">from</span> <span class="string">'electron'</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">JSON</span>.stringify(remote.getGlobal(<span class="string">'foo'</span>))</span><br></pre></td></tr></table></figure>
+<p>这里会触发 4 次 同步 IPC: getGlobal、foo、bar、bar.baz。对于复杂的数据，这个消耗就很难忍受了。</p>
+<p>不要使用 remote，除非你知道你自己在干什么。</p>
+<p><br><br><br></p>
+<p><strong>② 封装IPC 库</strong></p>
+<p>为了优化 IPC 通信，我们自己基于Electron 的IPC接口, 封装了自己的一套 RPC 库。主要特征有:</p>
+<ul>
+<li>异步的。没有同步的选项。避免干蠢事</li>
+<li>消息合并。合并事件推送，批量传递</li>
+<li>序列化。直接传递 JSON 字符串，不让 Electron 干涉序列化。Electron 内部序列化稍微有点复杂，比如会处理 Buffer 等特殊类型。</li>
+<li>一致化的、简单易用的 API。使用一样在接口支持主进程与渲染进程，以及渲染进程与渲染进程之间双向通信。</li>
+</ul>
+<p>举个例子:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> rpc <span class="keyword">from</span> <span class="string">'myrpc'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册方法</span></span><br><span class="line">rpc.registerHandler(<span class="string">'echo'</span>, <span class="keyword">async</span> data =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> data</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 事件监听</span></span><br><span class="line">rpc.on(<span class="string">'some-event'</span>, (data, source) =&gt; &#123;</span><br><span class="line">  <span class="comment">// dosomething</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>客户端:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> rpc <span class="keyword">from</span> <span class="string">'myrpc'</span></span><br><span class="line"></span><br><span class="line">rpc.emit(target, <span class="string">'some-event'</span>) <span class="comment">// target 为接收的窗口或者主进程。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 方法调用</span></span><br><span class="line"><span class="keyword">const</span> res = <span class="keyword">await</span> rpc.callHandler(target, <span class="string">'echo'</span>, <span class="string">'hello-world'</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>还不够，我们还在优化，后续再分享给大家。</p>
+<p><br><br><br></p>
+<h2 id="坑还是会有的"><a href="#坑还是会有的" class="headerlink" title="坑还是会有的"></a>坑还是会有的</h2><p>一路走来也遇到很多坑。痛并快乐着。</p>
+<ul>
+<li>窗口阴影、圆角</li>
+<li>剪切板不够强大</li>
+<li>remote 巨坑</li>
+<li>一些兼容问题</li>
+<li>主进程崩溃，渲染进程不会退出，导致进程‘溢出’</li>
+<li>截屏。刚开始用 Electron 实现，效果不好，现在是原生实现</li>
+<li>…</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="扩展资料"><a href="#扩展资料" class="headerlink" title="扩展资料"></a>扩展资料</h2><ul>
+<li><a href="https://zhuanlan.zhihu.com/p/96041706" target="_blank" rel="noopener">从 VSCode 看大型 IDE 技术架构</a></li>
+<li><a href="https://electronjs.org/docs/tutorial/performance" target="_blank" rel="noopener">Electron Performance</a></li>
+<li><a href="https://www.youtube.com/watch?v=r0OeHRUCCb4" target="_blank" rel="noopener">CovalenceConf 2019: Visual Studio Code – The First Second</a></li>
+<li><a href="https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/" target="_blank" rel="noopener">Get Started With Analyzing Runtime Performance</a></li>
+<li><a href="https://github.com/atom/electron-link" target="_blank" rel="noopener">electron-link</a></li>
+<li><a href="http://peterforgacs.github.io/2018/09/12/How-to-create-a-V8-snapshot-of-your-javascript-file/" target="_blank" rel="noopener">How to Create a V8 Heap Snapshot of a Javascript File and Use It in Electron</a></li>
+<li><a href="https://blog.atom.io/2018/01/10/the-state-of-atoms-performance.html" target="_blank" rel="noopener">The State of Atom’s Performance</a></li>
+<li><a href="https://blog.atom.io/2017/04/18/improving-startup-time.html" target="_blank" rel="noopener">Improving Startup Time</a></li>
+</ul>
+<p><br><br><br></p>
+<p><img src="/images/group.jpeg" alt><br><em>回复: <code>ivan</code> 进群</em></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么选择-electron"><span class="toc-number">1.</span> <span class="toc-text">为什么选择 Electron?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进程模型"><span class="toc-number">2.</span> <span class="toc-text">进程模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#技术选型与代码组织"><span class="toc-number">3.</span> <span class="toc-text">技术选型与代码组织</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#性能优化-硬货"><span class="toc-number">4.</span> <span class="toc-text">性能优化(硬货)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-性能分析"><span class="toc-number">4.1.</span> <span class="toc-text">1. 性能分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-优化策略"><span class="toc-number">4.2.</span> <span class="toc-text">2. 优化策略</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-继续和白屏作斗争"><span class="toc-number">4.2.1.</span> <span class="toc-text">2.1 继续和白屏作斗争</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-追赶原生的交互体验"><span class="toc-number">4.2.2.</span> <span class="toc-text">2.2 追赶原生的交互体验</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-优化进程通信"><span class="toc-number">4.2.3.</span> <span class="toc-text">2.3 优化进程通信</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#坑还是会有的"><span class="toc-number">5.</span> <span class="toc-text">坑还是会有的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">6.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/12/16/electron/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/12/16/electron/&text=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/12/16/electron/&is_video=false&description=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=分享这半年的 Electron 应用开发和优化经验&body=Check out this article: https://bobi.ink/2019/12/16/electron/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/12/16/electron/&title=分享这半年的 Electron 应用开发和优化经验"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/12/16/electron/&name=分享这半年的 Electron 应用开发和优化经验&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

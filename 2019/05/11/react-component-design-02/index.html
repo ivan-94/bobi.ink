@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="一个复杂的应用都是由简单的应用发展而来的, 随着越来越多的功能加入项目, 代码就会变得越来越难以控制. 本文章主要探讨在大型项目中如何对组件进行组织, 让项目具备可维护性. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 组件设计的基本原则 基本原则 高质量组件的特征   2. 基本技巧 3. 组件的分类 1️⃣ 容器组件和展示">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React组件设计实践总结02 - 组件的组织">
+<meta property="og:url" content="https://bobi.ink/2019/05/11/react-component-design-02/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="一个复杂的应用都是由简单的应用发展而来的, 随着越来越多的功能加入项目, 代码就会变得越来越难以控制. 本文章主要探讨在大型项目中如何对组件进行组织, 让项目具备可维护性. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 组件设计的基本原则 基本原则 高质量组件的特征   2. 基本技巧 3. 组件的分类 1️⃣ 容器组件和展示">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/04/container.png">
+<meta property="og:image" content="https://bobi.ink/images/04/demo.png">
+<meta property="og:image" content="https://bobi.ink/images/04/input-output.png">
+<meta property="og:image" content="https://bobi.ink/images/04/cyclejs.png">
+<meta property="og:image" content="https://bobi.ink/images/04/redux.png">
+<meta property="og:image" content="https://bobi.ink/images/04/layout-vs-content.png">
+<meta property="og:image" content="https://bobi.ink/images/04/taro.png">
+<meta property="og:image" content="https://bobi.ink/images/04/imports.png">
+<meta property="og:image" content="https://bobi.ink/images/04/module-boundary.png">
+<meta property="og:image" content="https://bobi.ink/images/04/sub-render.png">
+<meta property="og:image" content="https://bobi.ink/images/04/demo-all.png">
+<meta property="og:image" content="https://bobi.ink/images/04/ListPage.png">
+<meta property="og:image" content="https://bobi.ink/images/04/CreatePage.png">
+<meta property="og:image" content="https://bobi.ink/images/04/PreviewPage.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React组件设计实践总结02 - 组件的组织">
+<meta name="twitter:description" content="一个复杂的应用都是由简单的应用发展而来的, 随着越来越多的功能加入项目, 代码就会变得越来越难以控制. 本文章主要探讨在大型项目中如何对组件进行组织, 让项目具备可维护性. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 组件设计的基本原则 基本原则 高质量组件的特征   2. 基本技巧 3. 组件的分类 1️⃣ 容器组件和展示">
+<meta name="twitter:image" content="https://bobi.ink/images/04/container.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>React组件设计实践总结02 - 组件的组织</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/05/14/react-component-design-03/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/05/10/react-component-design-01/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/11/react-component-design-02/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/11/react-component-design-02/&text=React组件设计实践总结02 - 组件的组织"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/11/react-component-design-02/&is_video=false&description=React组件设计实践总结02 - 组件的组织"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结02 - 组件的组织&body=Check out this article: https://bobi.ink/2019/05/11/react-component-design-02/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/11/react-component-design-02/&name=React组件设计实践总结02 - 组件的组织&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-组件设计的基本原则"><span class="toc-number">1.</span> <span class="toc-text">1. 组件设计的基本原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本原则"><span class="toc-number">1.1.</span> <span class="toc-text">基本原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高质量组件的特征"><span class="toc-number">1.2.</span> <span class="toc-text">高质量组件的特征</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-基本技巧"><span class="toc-number">2.</span> <span class="toc-text">2. 基本技巧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-组件的分类"><span class="toc-number">3.</span> <span class="toc-text">3. 组件的分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-容器组件和展示组件分离"><span class="toc-number">3.1.</span> <span class="toc-text">1️⃣ 容器组件和展示组件分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-分离逻辑和视图"><span class="toc-number">3.2.</span> <span class="toc-text">2️⃣ 分离逻辑和视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-有状态组件和无状态组件"><span class="toc-number">3.3.</span> <span class="toc-text">3️⃣ 有状态组件和无状态组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-纯组件和非纯组件"><span class="toc-number">3.4.</span> <span class="toc-text">4️⃣ 纯组件和非纯组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-按照-ui-划分为布局组件和内容组件"><span class="toc-number">3.5.</span> <span class="toc-text">5️⃣ 按照 UI 划分为布局组件和内容组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-接口一致的数据录入组件"><span class="toc-number">3.6.</span> <span class="toc-text">6️⃣ 接口一致的数据录入组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-目录划分"><span class="toc-number">4.</span> <span class="toc-text">4. 目录划分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-基本目录结构"><span class="toc-number">4.1.</span> <span class="toc-text">1️⃣ 基本目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-多页应用的目录划分"><span class="toc-number">4.2.</span> <span class="toc-text">2️⃣ 多页应用的目录划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-多页应用的目录划分-monorepo-模式"><span class="toc-number">4.3.</span> <span class="toc-text">3️⃣ 多页应用的目录划分: monorepo 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-跨平台应用"><span class="toc-number">4.4.</span> <span class="toc-text">4️⃣ 跨平台应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-跨平台的另外一种方式-taro"><span class="toc-number">4.5.</span> <span class="toc-text">5️⃣ 跨平台的另外一种方式: taro</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-模块"><span class="toc-number">5.</span> <span class="toc-text">5. 模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-创建严格的模块边界"><span class="toc-number">5.1.</span> <span class="toc-text">1️⃣ 创建严格的模块边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-named-export-vs-default-export"><span class="toc-number">5.2.</span> <span class="toc-text">2️⃣ Named export vs default export</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-避免循环依赖"><span class="toc-number">5.3.</span> <span class="toc-text">3️⃣ 避免循环依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-相对路径不要超过两级"><span class="toc-number">5.4.</span> <span class="toc-text">4️⃣ 相对路径不要超过两级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-拆分"><span class="toc-number">6.</span> <span class="toc-text">6. 拆分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-拆分-render-方法"><span class="toc-number">6.1.</span> <span class="toc-text">1️⃣ 拆分 render 方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-拆分为组件"><span class="toc-number">6.2.</span> <span class="toc-text">2️⃣ 拆分为组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-组件划分示例"><span class="toc-number">7.</span> <span class="toc-text">7. 组件划分示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-划分页面"><span class="toc-number">7.1.</span> <span class="toc-text">1️⃣ 划分页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-划分基础-ui-组件"><span class="toc-number">7.2.</span> <span class="toc-text">2️⃣ 划分基础 UI 组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-设计组件的状态"><span class="toc-number">7.3.</span> <span class="toc-text">3️⃣ 设计组件的状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-文档"><span class="toc-number">8.</span> <span class="toc-text">8. 文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">9.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        React组件设计实践总结02 - 组件的组织
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-05-10T16:00:00.000Z" itemprop="datePublished">2019-05-11</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>一个复杂的应用都是由简单的应用发展而来的, 随着越来越多的功能加入项目, 代码就会变得越来越难以控制. 本文章主要探讨在大型项目中如何对组件进行组织, 让项目具备可维护性.</p>
+<p><strong>系列目录</strong></p>
+<ul>
+<li><a href="/2019/05/10/react-component-design-01/">01 类型检查</a></li>
+<li><a href="/2019/05/11/react-component-design-02/">02 组件的组织</a></li>
+<li><a href="/2019/05/14/react-component-design-03/">03 样式的管理</a></li>
+<li><a href="/2019/05/15/react-component-design-04/">04 组件的思维</a></li>
+<li><a href="/2019/05/20/react-component-design-05/">05 状态管理</a></li>
+</ul>
+<p><br></p>
+<p><strong>目录</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#1-组件设计的基本原则">1. 组件设计的基本原则</a><ul>
+<li><a href="#基本原则"><strong>基本原则</strong></a></li>
+<li><a href="#高质量组件的特征"><strong>高质量组件的特征</strong></a></li>
+</ul>
+</li>
+<li><a href="#2-基本技巧">2. 基本技巧</a></li>
+<li><a href="#3-组件的分类">3. 组件的分类</a><ul>
+<li><a href="#1️⃣-容器组件和展示组件分离">1️⃣ <strong>容器组件</strong>和<strong>展示组件</strong>分离</a></li>
+<li><a href="#2️⃣-分离逻辑和视图">2️⃣ 分离逻辑和视图</a></li>
+<li><a href="#3️⃣-有状态组件和无状态组件">3️⃣ 有状态组件和无状态组件</a></li>
+<li><a href="#4️⃣-纯组件和非纯组件">4️⃣ 纯组件和非纯组件</a></li>
+<li><a href="#5️⃣-按照-ui-划分为布局组件和内容组件">5️⃣ 按照 UI 划分为<code>布局组件</code>和<code>内容组件</code></a></li>
+<li><a href="#6️⃣-接口一致的数据录入组件">6️⃣ 接口一致的数据录入组件</a></li>
+</ul>
+</li>
+<li><a href="#4-目录划分">4. 目录划分</a><ul>
+<li><a href="#1️⃣-基本目录结构">1️⃣ 基本目录结构</a></li>
+<li><a href="#2️⃣-多页应用的目录划分">2️⃣ 多页应用的目录划分</a></li>
+<li><a href="#3️⃣-多页应用的目录划分-monorepo-模式">3️⃣ 多页应用的目录划分: monorepo 模式</a></li>
+<li><a href="#4️⃣-跨平台应用">4️⃣ 跨平台应用</a></li>
+<li><a href="#5️⃣-跨平台的另外一种方式-taro">5️⃣ 跨平台的另外一种方式: taro</a></li>
+</ul>
+</li>
+<li><a href="#5-模块">5. 模块</a><ul>
+<li><a href="#1️⃣-创建严格的模块边界">1️⃣ 创建严格的模块边界</a></li>
+<li><a href="#2️⃣-named-export-vs-default-export">2️⃣ <code>Named export</code> vs <code>default export</code></a></li>
+<li><a href="#3️⃣-避免循环依赖">3️⃣ 避免循环依赖</a></li>
+<li><a href="#4️⃣-相对路径不要超过两级">4️⃣ 相对路径不要超过两级</a></li>
+</ul>
+</li>
+<li><a href="#6-拆分">6. 拆分</a><ul>
+<li><a href="#1️⃣-拆分-render-方法">1️⃣ 拆分 render 方法</a></li>
+<li><a href="#2️⃣-拆分为组件">2️⃣ 拆分为组件</a></li>
+</ul>
+</li>
+<li><a href="#7-组件划分示例">7. 组件划分示例</a><ul>
+<li><a href="#1️⃣-划分页面">1️⃣ 划分页面</a></li>
+<li><a href="#2️⃣-划分基础-ui-组件">2️⃣ 划分基础 UI 组件</a></li>
+<li><a href="#3️⃣-设计组件的状态">3️⃣ 设计组件的状态</a></li>
+</ul>
+</li>
+<li><a href="#8-文档">8. 文档</a></li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="1-组件设计的基本原则"><a href="#1-组件设计的基本原则" class="headerlink" title="1. 组件设计的基本原则"></a>1. 组件设计的基本原则</h2><h3 id="基本原则"><a href="#基本原则" class="headerlink" title="基本原则"></a><strong>基本原则</strong></h3><p><strong>单一职责(Single Responsibility Principle)</strong>. 这原本来源于面向对象编程, 规范定义是”一个类应该只有一个发生变化的原因”, 白话说”一个类只负责一件事情”. 不管是什么编程范式, 只要是模块化的程序设计都适用单一职责原则. 在 React 中, 组件就是模块.</p>
+<p>单一职责要求将组件限制在一个’合适’的粒度. 这个粒度是比较主观的概念, 换句话说’单一’是一个相对的概念. 我个人觉得单一职责并不是追求职责粒度的’最小’化, 粒度最小化是一个极端, 可能会导致大量模块, 模块离散化也会让项目变得难以管理. <strong>单一职责要求的是一个适合被复用的粒度</strong>.</p>
+<p>往往一开始我们设计的组件都可能复合多个职责, 后来出现了代码重复或者模块边界被打破(比如一个模块依赖另一个模块的’细节’), 我们才会惰性将可复用的代码抽离. 随着越来越多的重构和迭代, 模块职责可能会越来越趋于’单一’(😂 看谁, 也可能变成面条).</p>
+<p>当然有经验的开发者可以一开始就能考虑组件的各种应用场景, 可以观察到模块的重合边界. <strong>对于入门者来说<a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself" target="_blank" rel="noopener"><code>Don&#39;t repeat yourself</code></a>原则更有用, 不要偷懒/多思考/重构/消除重复代码, 你的能力就会慢慢提升</strong></p>
+<p>单一职责的收益:</p>
+<ul>
+<li>降低组件的复杂度. 职责单一组件代码量少, 容易被理解, 可读性高</li>
+<li>降低对其他组件的耦合. 当变更到来时可以降低对其他功能的影响, 不至于牵一发而动全身</li>
+<li>提高可复用性. 功能越单一可复用性越高, 就比如一些基础组件</li>
+</ul>
+<p><br></p>
+<h3 id="高质量组件的特征"><a href="#高质量组件的特征" class="headerlink" title="高质量组件的特征"></a><strong>高质量组件的特征</strong></h3><p><strong>一个高质量的组件一定是<code>高内聚, 低耦合</code>的</strong>, 这两个原则或者特征是组件独立性的一个判断标准.</p>
+<p><strong>高内聚</strong>, 要求一个组件有一个明确的组件边界, 将紧密相关的内容聚集在一个组件下, 实现”专一”的功能. 和传统的前端编程不一样, 一个组件是一个<strong>自包含</strong>的单元, 它包含了逻辑/样式/结构, 甚至是依赖的静态资源. 这也使得组件天然就是一个比较独立的个体. 当然这种独立性是相对的, 为了最大化这种独立性, 需要根据<strong>单一职责</strong>将组件拆分为更小粒度的组件, 这样可以被更灵活的组合和复用.</p>
+<p>虽然组件是独立的, 但是他需要和其他组件进行组合才能实现应用, 这就有了’关联’. <strong>低耦合</strong>要求最小化这种关联性, 比如明确模块边界不应该访问其他组件的内部细节, 组件的接口最小化, 单向数据流等等</p>
+<p>文章后续内容主要讨论实现<em>高内聚/低耦合</em>主要措施</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="2-基本技巧"><a href="#2-基本技巧" class="headerlink" title="2. 基本技巧"></a>2. 基本技巧</h2><p>这些技巧来源于<a href="https://vasanthk.gitbooks.io/react-bits/ux-variations/" target="_blank" rel="noopener">react-bits</a>:</p>
+<ul>
+<li>如果组件不需要状态, 则使用<strong>无状态组件</strong></li>
+<li>性能上比较: <strong>无状态函数 &gt; 有状态函数 &gt; class 组件</strong></li>
+<li>最小化 props(接口). 不要传递超过要求的 props</li>
+<li>如果组件内部存在较多条件控制流, 这通常意味着需要对组件进行抽取</li>
+<li>不要过早优化. 只要求组件在当前需求下可被复用, 然后’随机应变’</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="3-组件的分类"><a href="#3-组件的分类" class="headerlink" title="3. 组件的分类"></a>3. 组件的分类</h2><h3 id="1️⃣-容器组件和展示组件分离"><a href="#1️⃣-容器组件和展示组件分离" class="headerlink" title="1️⃣ 容器组件和展示组件分离"></a>1️⃣ <strong>容器组件</strong>和<strong>展示组件</strong>分离</h3><p><em>容器组件和展示组件分离</em>是 React 开发的重要思想, 它影响的 React 应用项目的组织和架构. 下面总结一下两者的区别:</p>
+<p><br></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>容器组件</th>
+<th>展示组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关注点</td>
+<td>业务</td>
+<td>UI</td>
+</tr>
+<tr>
+<td>数据源</td>
+<td>状态管理器/后端</td>
+<td>props</td>
+</tr>
+<tr>
+<td>组件形式</td>
+<td>高阶组件</td>
+<td>普通组件</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<ul>
+<li><p><strong>展示组件</strong>是一个只关注展示的’元件’, 为了可以在多个地方被复用, 它不应该耦合’业务/功能’, 或者说不应该过渡耦合. 像<code>antd</code>这类组件库提供通用组件显然就是’展示组件’</p>
+<p>下面是一个典型的应用目录结构, 我们可以看到<strong>展示组件与业务/功能是可能有不同的耦合程度的, 和业务的耦合程度越低, 通用性/可复用性越强</strong>:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">node_modules/antd/     🔴 通用的组件库, 不能和任何项目的业务耦合</span><br><span class="line">src/</span><br><span class="line">  components/          🔴 项目通用的组件库, 可以被多个容器/页面组件共享</span><br><span class="line">  containers/</span><br><span class="line">    Foo/</span><br><span class="line">      components/      🔴 容器/页面组件特有的组件库, 和一个业务/功能深度耦合. 以致于不能被其他容器组件共享</span><br><span class="line">      index.tsx</span><br><span class="line">    Bar/</span><br><span class="line">      components/</span><br><span class="line">      index.tsx</span><br></pre></td></tr></table></figure>
+<p>对于展示组件，我们要以一种’第三方组件库’的标准来考虑组件的设计, 减少与业务的耦合度, 考虑各种应用的场景, 设计好公开的接口.</p>
+<p><br></p>
+</li>
+<li><p><strong>容器组件</strong>主要关注业务处理. 容器组件一般以’高阶组件’形式存在, 它一般 ① 从外部数据源(redux 这些状态管理器或者直接请求服务端数据)获取数据, 然后 ② 组合<em>展示组件</em>来构建完整的视图.</p>
+<center><br>  <img src="/images/04/container.png" width="400"><br></center>
+
+<p><em>容器组件</em>通过组合<em>展示组件</em>来构建完整视图, 但两者未必是简单的包含与被包含的关系.</p>
+<p><br></p>
+</li>
+</ul>
+<p><code>容器组件和展示组件的分离</code>可以带来好处主要是<strong>可复用性</strong>和<strong>可维护性</strong>:</p>
+<ul>
+<li>可复用性: 展示组件可以用于多个不同的数据源(容器组件). 容器组件(业务逻辑)也可以被复用于不同’平台’的展示组件</li>
+<li>展示和容器组件更好的分离，有助于更好的理解应用和 UI, 两者可以被独立地维护</li>
+<li>展示组件变得轻量(无状态/或局部状态), 更容易被测试</li>
+</ul>
+<p><br></p>
+<p>了解更多<a href="https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0" target="_blank" rel="noopener">Presentational and Container Components</a></p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-分离逻辑和视图"><a href="#2️⃣-分离逻辑和视图" class="headerlink" title="2️⃣ 分离逻辑和视图"></a>2️⃣ 分离逻辑和视图</h3><p><code>容器组件和展示组件</code>的分离本质上是<code>逻辑和视图</code>的分离. 在<a href="https://reactjs.org/docs/hooks-intro.html" target="_blank" rel="noopener"><code>React Hooks</code></a>出现后, 容器组件可以被 Hooks 形式取代, Hooks 可以和视图层更自然的分离, 为视图层提供纯粹的数据来源.</p>
+<p>抽离的后业务逻辑可以复用于不同的’展示平台’, 例如 web 版和 native 版:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Login/</span><br><span class="line">  useLogin.ts   // 可复用的业务逻辑</span><br><span class="line">  index.web.tsx</span><br><span class="line">  index.tsx</span><br></pre></td></tr></table></figure>
+<p>上面使用了<code>useLogin.tsx</code>来单独维护业务逻辑. 可以被 web 平台和 native 平台的代码复用.</p>
+<p><br></p>
+<center><br>  <img src="/images/04/demo.png" width="300"><br></center>
+
+<p>不仅仅是<strong>业务逻辑</strong>, 展示<strong>组件逻辑</strong>也可以分离. 例如上图, <code>FilePicker</code>和<code>ImagePicker</code>两个组件的’文件上传’逻辑是共享的, 这部分逻辑可以抽取到高阶组件或者 hooks, 甚至是 Context 中(可以统一配置文件上传行为)</p>
+<p>分离逻辑和视图的主要方式有:</p>
+<ul>
+<li>hooks</li>
+<li>高阶组件</li>
+<li>Render Props</li>
+<li>Context</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="3️⃣-有状态组件和无状态组件"><a href="#3️⃣-有状态组件和无状态组件" class="headerlink" title="3️⃣ 有状态组件和无状态组件"></a>3️⃣ 有状态组件和无状态组件</h3><p><strong>无状态组件内部不存储状态, 完全由外部的 props 来映射</strong>. 这类组件以函数组件形式存在, 作为低级/高复用的底层展示型组件.<br>无状态组件天然就是’纯组件’, 如果无状态组件的映射需要一点成本, 可以使用 React.memo 包裹避免重复渲染</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="4️⃣-纯组件和非纯组件"><a href="#4️⃣-纯组件和非纯组件" class="headerlink" title="4️⃣ 纯组件和非纯组件"></a>4️⃣ 纯组件和非纯组件</h3><p>纯组件的’纯’来源于函数式编程. 指的是<strong>对于一个函数而言, 给定相同的输入, 它总是返回相同的输出, 过程没有副作用, 没有额外的状态依赖</strong>. 对应到 React 中, 纯组件指的是 props(严格上说还有 state 和 context, 它们也是组件的输入)没有变化, 组件的输出就不会变动.</p>
+<center><br>  <img src="/images/04/input-output.png" width="450"><br></center>
+
+<p>和 React 组件的输出输出模型相比, <a href="http://cyclejs.cn" target="_blank" rel="noopener">Cyclejs</a>对组件输入/输出的抽象则做的更加彻底，更加‘函数式’👇。它的组件就是一个普通的函数，只有’单向’的输入和输出:</p>
+<center><br>  <img src="/images/04/cyclejs.png" width="400"><br></center>
+
+<p>函数式编程和组件式编程思想某种意义上是一致的, 它们都是’组合’的艺术. 一个大的函数可以有多个职责单一函数组合而成. 组件也是如此. <strong>我们将一个大的组件拆分为子组件, 对组件做更细粒度的控制, 保持它们的纯净性, 让它们的职责更单一, 更独立. 这带来的好处就是可复用性, 可测试性和可预测性.</strong></p>
+<p><strong>纯组件对 React 的性能优化也有重要意义</strong>. 如果一个组件是一个纯组件, 如果’输入’没有变动, 那么这个组件就不需要重新渲染. 组件树越大, 纯组件带来的性能优化收益就越高.</p>
+<p>我们可以很容易地保证一个底层组件的纯净性, 因为它本来就很简单. 但是对于一个复杂的组件树, 则需要花点心思进行构建, 所以就有了’状态管理’的需求. <strong>这些状态管理器通常都在组件树的<em>外部</em>维护一个或多个状态库, 然后通过依赖注入形式, 将局部的状态注入到子树中. 通过视图和逻辑分离的原则, 来维持组件树的纯净性</strong>.</p>
+<p>Redux 就是一个典型的解决方案, 在 Redux 的世界里可以认为<strong>一个复杂的组件树就是一颗状态树的映射</strong>, 只要状态树(需要依靠不可变数据来保证状态的可预测性)不变, 组件树就不变. Redux 建议保持组件的纯净性, 将组件状态交给 Redux 和配套的异步处理工具来维护, 这样就将整个应用抽象成了一个”单向的数据流”, 这是一种简单的”输入/输出”关系</p>
+<center><br>  <img src="/images/04/redux.png" width="400"><br></center>
+
+<p>不管是 Cyclejs 还是 Redux，抽象是需要付出一点代价的，就比如 redux 代码可能会很罗嗦; 一个复杂的状态树, 如果缺乏良好的组织，整个应用会变得很难理解。实际上, 并不是所有场景都能够顺利/优雅通过’数据驱动’进行表达(可以看一下这篇文章<a href="https://zhuanlan.zhihu.com/p/54492049" target="_blank" rel="noopener">Modal.confirm 违反了 React 的模式吗？</a>), 例如文本框焦点, 或者模态框. 所以不必极端追求无副作用或者数据驱动</p>
+<p>后续会专门写篇文章来回顾总结状态管理.</p>
+<p>扩展:</p>
+<ul>
+<li><a href="https://hackernoon.com/redesigning-redux-b2baee8b8a38" target="_blank" rel="noopener">Redesigning Redux</a></li>
+<li><a href="http://cyclejs.cn/#-组件化" target="_blank" rel="noopener">Cyclejs</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="5️⃣-按照-ui-划分为布局组件和内容组件"><a href="#5️⃣-按照-ui-划分为布局组件和内容组件" class="headerlink" title="5️⃣ 按照 UI 划分为布局组件和内容组件"></a>5️⃣ 按照 UI 划分为<code>布局组件</code>和<code>内容组件</code></h3><ul>
+<li>布局组件用于控制页面的布局，为内容组件提供占位。通过 props 传入组件来进行填充. 比如<code>Grid</code>, <code>Layout</code>, <code>HorizontalSplit</code></li>
+<li>内容组件会包含一些内容，而不仅有布局。内容组件通常被布局组件约束在占位内. 比如<code>Button</code>, <code>Label</code>, <code>Input</code></li>
+</ul>
+<p>例如下图, List/List.Item 就是布局组件，而 Input，Address 则是内容组件</p>
+<center><br>  <img src="/images/04/layout-vs-content.png" lazyload width="500"><br></center>
+
+<p>将布局从内容组件中抽取出来，分离布局和内容，可以让两者更好维护，比如布局变动不会影响内容，内容组件可以被应用不同的布局; 另一方面组件是一个自包含内聚的隔离单元, 不应该影响其外部的状态, 例如一个按钮不应该修改外部的布局, 另外也要避免影响全局的样式</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="6️⃣-接口一致的数据录入组件"><a href="#6️⃣-接口一致的数据录入组件" class="headerlink" title="6️⃣ 接口一致的数据录入组件"></a>6️⃣ 接口一致的数据录入组件</h3><p>数据录入组件, 或者称为表单, 是客户端开发必不可少的元素. 对于自定义表单组件, 我认为应该保持一致的 API:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> Props&lt;T&gt; &#123;</span><br><span class="line">  value?: T;</span><br><span class="line">  onChange: <span class="function">(<span class="params">value?: T</span>) =&gt;</span> <span class="built_in">void</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样做的好处:</p>
+<ul>
+<li>接近原生表单元素原语. 自定义表单组件一般不需要封装到 event 对象中</li>
+<li>几乎所有组件库的自定义表单都使用这种 API. 这使得我们的自定义组件可以和第三方库兼容, 比如<a href="https://ant.design/components/form-cn/#components-form-demo-validate-other" target="_blank" rel="noopener">antd 的表单验证机制</a></li>
+<li>更容易被动态渲染. 因为接口一致, 可以方便地进行动态渲染或集中化处理, 减少代码重复</li>
+<li><p>回显问题. 状态回显是表单组件的功能之一, 我个人的最佳实践是<code>value</code>应该是自包含的:</p>
+<p>比如一个支持搜索的用户选择器, option 都是异步从后端加载, 如果 value 只保存用户 id, 那么回显的时候就无法显示用户名, 按照我的实践的 value 的结构应该为: <code>{id: string, name: string}</code>, 这样就解决了回显问题. 回显需要的数据都是由父节点传递进来, 而不是组件自己维护</p>
+</li>
+<li><p>组件都是受控的. 在实际的 React 开发中, 非受控组件的场景非常少, 我认为自定义组件都可以忽略这种需求, 只提供完全受控表单组件, 避免组件自己维护缓存状态</p>
+</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="4-目录划分"><a href="#4-目录划分" class="headerlink" title="4. 目录划分"></a>4. 目录划分</h2><h3 id="1️⃣-基本目录结构"><a href="#1️⃣-基本目录结构" class="headerlink" title="1️⃣ 基本目录结构"></a>1️⃣ 基本目录结构</h3><p>关于项目目录结构的划分有两种流行的模式:</p>
+<ul>
+<li><strong><a href="https://ruby-china.github.io/rails-guides/getting_started.html#say-hello-rails" target="_blank" rel="noopener">Rails-style</a>/by-type</strong>: 按照文件的类型划分为不同的目录，例如<code>components</code>、<code>constants</code>、 <code>typings</code>、<code>views</code></li>
+<li><strong>Domain-style/by-feature</strong>: 按照一个功能特性或业务创建单独的文件夹，包含多种类型的文件或目录</li>
+</ul>
+<p>实际的项目环境我们一般使用的是<strong>混合模式</strong>，下面是一个典型的 React 项目结构:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/</span><br><span class="line">  components/      # 🔴 项目通用的‘展示组件’</span><br><span class="line">    Button/</span><br><span class="line">      index.tsx    # 组件的入口, 导出组件</span><br><span class="line">      Groups.tsx   # 子组件</span><br><span class="line">      loading.svg  # 静态资源</span><br><span class="line">      style.css    # 组件样式</span><br><span class="line">    ...</span><br><span class="line">    index.ts       # 到处所有组件</span><br><span class="line">  containers/      # 🔴 包含'容器组件'和'页面组件'</span><br><span class="line">    LoginPage/     # 页面组件, 例如登录</span><br><span class="line">      components/  # 页面级别展示组件，这些组件不能复用与其他页面组件。</span><br><span class="line">        Button.tsx # 组件未必是一个目录形式，对于一个简单组件可以是一个单文件形式. 但还是推荐使用目录，方便扩展</span><br><span class="line">        Panel.tsx</span><br><span class="line">      reducer.ts   # redux reduces</span><br><span class="line">      useLogin.ts  # (可选)放置'逻辑', 按照👆分离逻辑和视图的原则，将逻辑、状态处理抽取到hook文件</span><br><span class="line">      types.ts     # typescript 类型声明</span><br><span class="line">      style.css</span><br><span class="line">      logo.png</span><br><span class="line">      message.ts</span><br><span class="line">      constants.ts</span><br><span class="line">      index.tsx</span><br><span class="line">    HomePage/</span><br><span class="line">    ...</span><br><span class="line">    index.tsx      # 🔴应用根组件</span><br><span class="line">  hooks/           # 🔴可复用的hook</span><br><span class="line">    useList.ts</span><br><span class="line">    usePromise.ts</span><br><span class="line">  ...</span><br><span class="line">  index.tsx        # 应用入口, 在这里使用ReactDOM对跟组件进行渲染</span><br><span class="line">  stores.ts        # redux stores</span><br><span class="line">  contants.ts      # 全局常量</span><br></pre></td></tr></table></figure>
+<p>上面使用<code>Domain-style</code>风格划分了<code>LoginPage</code>和<code>HomePage</code>目录, 将所有该业务或者页面相关的文件聚合在一起; 这里也使用<code>Rails-style</code>模式根据文件<strong>类型/职责</strong>划分不同的目录, 比如<code>components</code>, <code>hooks</code>, <code>containers</code>; 你会发现在<code>LoginPage</code>内部也有类似<code>Rails-Style</code>的结构, 如<code>components</code>, 只不过它的<strong>作用域</strong>不同, 它只归属于<code>LoginPage</code>, 不能被其他 Page 共享</p>
+<p>前端项目一般按照页面路由来拆分组件, 这些组件我们暂且称为‘页面组件’, 这些组件是和业务功能耦合的，而且每个页面之间具有一定的独立性.</p>
+<p>这里将页面组件放置在<code>containers</code>, 如其名，这个目录原本是用来放置容器组件的, 实际项目中通常是将‘容器组件’和‘页面组件’混合在了一起, 现阶段如果要实现纯粹的逻辑分离，我个人觉得还是应该抽取到 hook 中. 这个目录也可以命名为 views, pages…(whatever), 命名为 containers 只是一种习惯(来源于 Redux).</p>
+<p>扩展:</p>
+<ul>
+<li><a href="https://github.com/react-boilerplate/react-boilerplate" target="_blank" rel="noopener">react-boilerplate</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-多页应用的目录划分"><a href="#2️⃣-多页应用的目录划分" class="headerlink" title="2️⃣ 多页应用的目录划分"></a>2️⃣ 多页应用的目录划分</h3><p>对于大型应用可能有多个应用入口, 例如很多 electron 应用有多个 windows; 再比如很多应用除了 App 还有后台管理界面. 我一般会这样组织多页应用:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/</span><br><span class="line">  components/       # 共享组件</span><br><span class="line">  containers/</span><br><span class="line">    Admin/          # 后台管理页面</span><br><span class="line">      components/   # 后台特定的组件库</span><br><span class="line">      LoginPage/</span><br><span class="line">      index.tsx</span><br><span class="line">      ...</span><br><span class="line">    App/</span><br><span class="line">      components/  # App特定的组件库</span><br><span class="line">      LoginPage/   # App页面</span><br><span class="line">      index.tsx</span><br><span class="line">      stores.ts    # redux stores</span><br><span class="line">    AnotherApp/    # 另外一个App页面</span><br><span class="line">  hooks/</span><br><span class="line">  ...</span><br><span class="line">  app.tsx          # 应用入口</span><br><span class="line">  anotherApp.tsx   # 应用入口</span><br><span class="line">  admin.tsx        # 后台入口</span><br></pre></td></tr></table></figure>
+<p>webpack 支持多页应用的构建, 我一般会将应用入口文件命名为<code>*.page.tsx</code>, 然后在 src 自动扫描匹配的文件作为入口.</p>
+<p>利用 webpack 的<a href="https://webpack.docschina.org/plugins/split-chunks-plugin/" target="_blank" rel="noopener"><code>SplitChunksPlugin</code></a>可以自动为多页应用抽取共享的模块, 这个对于功能差不多和有较多共享代码的多页应用很有意义. 意味着资源被一起优化, 抽取共享模块, 有利于减少编译文件体积, 也便于共享浏览器缓存.</p>
+<blockquote>
+<p><a href="https://github.com/jantimon/html-webpack-plugin" target="_blank" rel="noopener"><code>html-webpack-plugin</code></a>4.0 开始支持注入共享 chunk. 在此之前需要通过 SplitChunksPlugin 显式定义共享的 chunk, 然后也要 html-webpack-plugin 显式注入该 chunk, 比较挫.</p>
+</blockquote>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="3️⃣-多页应用的目录划分-monorepo-模式"><a href="#3️⃣-多页应用的目录划分-monorepo-模式" class="headerlink" title="3️⃣ 多页应用的目录划分: monorepo 模式"></a>3️⃣ 多页应用的目录划分: monorepo 模式</h3><p>上面的方式, 所有页面都聚集在一个项目下面, 共享一样的依赖和 npm 模块. 这可能会带了一些问题:</p>
+<ol>
+<li>不能允许不同页面有不同版本的依赖</li>
+<li>对于毫无相关的应用, 这种组织方式会让代码变得混乱, 例如 App 和后台, 他们使用的技术栈/组件库/交互体验都可能相差较大, 而且容易造成命名冲突.</li>
+<li>构建性能. 你希望单独对某个页面进行构建和维护, 而不是所有页面混合在一起构建</li>
+</ol>
+<p>这种场景可以利用<a href="https://lernajs.io" target="_blank" rel="noopener">lerna</a>或者 <a href="https://yarnpkg.com/zh-Hans/docs/workspaces" target="_blank" rel="noopener">yarn workspace</a> 这里 monorepo 机制, 将多页应用隔离在不同的 npm 模块下, 以 yarn workspace 为例:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">package.json</span><br><span class="line">yarn.lock</span><br><span class="line">node_modules/      # 所有依赖都会安装在这里, 方便yarn对依赖进行优化</span><br><span class="line">share/             # 🔴 共享模块</span><br><span class="line">  hooks/</span><br><span class="line">  utils/</span><br><span class="line">admin/             # 🔴 后台管理应用</span><br><span class="line">  components/</span><br><span class="line">  containers/</span><br><span class="line">  index.tsx</span><br><span class="line">  package.json     # 声明自己的模块以及share模块的依赖</span><br><span class="line">app/               # 🔴 后台管理应用</span><br><span class="line">  components/</span><br><span class="line">  containers/</span><br><span class="line">  index.tsx</span><br><span class="line">  package.json     # 声明自己的模块以及share模块的依赖</span><br></pre></td></tr></table></figure>
+<p>扩展:</p>
+<ul>
+<li><a href="https://juejin.im/post/5cd8c1d6e51d456e55623bf2" target="_blank" rel="noopener">精读《Monorepo 的优势》</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="4️⃣-跨平台应用"><a href="#4️⃣-跨平台应用" class="headerlink" title="4️⃣ 跨平台应用"></a>4️⃣ 跨平台应用</h3><p>使用 ReactNative 可以将 React 衍生到原生应用的开发领域. 尽管也有<a href="https://github.com/necolas/react-native-web" target="_blank" rel="noopener"><code>react-native-web</code></a>这样的解决方案, Web 和 Native 的 API/功能/开发方式, 甚至产品需求上可能会相差很大, 久而久之就可能出现大量无法控制的适配代码; 另外 react-native-web 本身也可能成为风险点。 所以一些团队需要针对不同平台进行开发, 一般按照下面风格来组织跨平台应用:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/</span><br><span class="line">  components/</span><br><span class="line">    Button/</span><br><span class="line">      index.tsx     # 🔴 ReactNative 组件</span><br><span class="line">      index.web.tsx # 🔴 web组件, 以web.tsx为后缀</span><br><span class="line">      loading.svg   # 静态资源</span><br><span class="line">      style.css     # 组件样式</span><br><span class="line">    ...</span><br><span class="line">    index.ts</span><br><span class="line">    index.web.ts</span><br><span class="line">  containers/</span><br><span class="line">    LoginPage/</span><br><span class="line">      components/</span><br><span class="line">      ....</span><br><span class="line">      useLogin.ts   # 🔴 存放分离的逻辑，可以在React Native和Web组件中共享</span><br><span class="line">      index.web.tsx</span><br><span class="line">      index.tsx</span><br><span class="line">    HomePage/</span><br><span class="line">    ...</span><br><span class="line">    index.tsx</span><br><span class="line">  hooks/</span><br><span class="line">    useList.ts</span><br><span class="line">    usePromise.ts</span><br><span class="line">  ...</span><br><span class="line">  index.web.tsx        # web应用入口</span><br><span class="line">  index.tsx            # React Native 应用入口</span><br></pre></td></tr></table></figure>
+<p>可以通过 webpack 的<code>resolve.extensions</code>来配置扩展名补全的优先级. 早期的<a href="https://github.com/ant-design/ant-design-mobile" target="_blank" rel="noopener">antd-mobile</a>就是这样组织的.</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="5️⃣-跨平台的另外一种方式-taro"><a href="#5️⃣-跨平台的另外一种方式-taro" class="headerlink" title="5️⃣ 跨平台的另外一种方式: taro"></a>5️⃣ 跨平台的另外一种方式: taro</h3><p>对于国内的开发者来说，跨平台可不只 Native 那么简单，我们还有各种各样的小程序、小应用。终端的<strong>碎片化</strong>让前端的开发工作越来越有挑战性.</p>
+<p>Taro 就这样诞生了, Taro 基于 React 的标准语法(DSL), 结合编译原理的思想, 将一套代码转换为多种终端的目标代码, 并提供一套统一的内置组件库和 SDK 来抹平多端的差异</p>
+<center><br>  <img src="/images/04/taro.png" width="500"><br></center>
+
+<p>因为 Taro 使用 React 的标准语法和 API，这使得我们按照原有的 React 开发约定和习惯来开发多端应用，且只保持一套代码. 但是不要忘了抽象都是有代价的</p>
+<blockquote>
+<p>可以查看 Taro 官方文档<a href="https://github.com/NervJS/taro" target="_blank" rel="noopener">了解更多</a> <br></p>
+</blockquote>
+<blockquote>
+<p><a href="https://github.com/flutter/flutter" target="_blank" rel="noopener">Flutter</a>是近期比较或的跨平台方案，但是跟本文主题无关</p>
+</blockquote>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="5-模块"><a href="#5-模块" class="headerlink" title="5. 模块"></a>5. 模块</h2><h3 id="1️⃣-创建严格的模块边界"><a href="#1️⃣-创建严格的模块边界" class="headerlink" title="1️⃣ 创建严格的模块边界"></a>1️⃣ 创建严格的模块边界</h3><p>下图是一个某页面的模块导入，相当混乱，这还算可以接受，笔者还见过上千行的组件，其中模块导入语句就占一百多行. 这有一部分原因可能是 VsCode 自动导入功能导致(可以使用 tslint 规则对导入语句进行排序和分组规范)，更大的原因是这些模块缺乏组织。</p>
+<center><br>  <img src="/images/04/imports.png" width="600"><br></center>
+
+<p>我觉得应该创建严格的模块边界，<strong>一个模块只有一个统一的’出口’</strong>。例如一个复杂的组件:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ComplexPage/</span><br><span class="line">  components/</span><br><span class="line">    Foo.tsx</span><br><span class="line">    Bar.tsx</span><br><span class="line">  constants.ts</span><br><span class="line">  reducers.ts</span><br><span class="line">  style.css</span><br><span class="line">  types.ts</span><br><span class="line">  index.tsx # 出口</span><br></pre></td></tr></table></figure>
+<p>可以认为<strong>一个‘目录’就是一个模块边界</strong>. 你<em>不应该</em>这样子导入模块:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ComplexPage <span class="keyword">from</span> <span class="string">'../ComplexPage'</span>;</span><br><span class="line"><span class="keyword">import</span> Foo <span class="keyword">from</span> <span class="string">'../ComplexPage/components/Foo'</span>;</span><br><span class="line"><span class="keyword">import</span> Foo <span class="keyword">from</span> <span class="string">'../ComplexPage/components/Bar'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; XXX &#125; <span class="keyword">from</span> <span class="string">'../ComplexPage/components/constants'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; User, ComplexPageProps &#125; <span class="keyword">from</span> <span class="string">'../ComplexPage/components/type'</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>一个模块/目录应该由一个‘出口’文件来统一管理模块的导出，限定模块的可见性</strong>. 比如上面的模块，<code>components/Foo</code>、 <code>components/Bar</code>和<code>constants.ts</code>这些文件其实是 <code>ComplexPage</code> 组件的’实现细节’. 这些是外部模块不应该去耦合实现细节，但这个在语言层面并没有一个限定机制，只能依靠规范约定.</p>
+<blockquote>
+<p>当其他模块依赖某个模块的’细节’时, 可能是一种重构的信号: 比如依赖一个模块的一个工具函数或者是一个对象类型声明, 这时候可能应该将其抬升到父级模块, 让兄弟模块共享它.</p>
+</blockquote>
+<p>在前端项目中 <code>index</code> 文件最适合作为一个’出口’文件, 当导入一个目录时，模块查找器会查找该目录下是否存在的 index 文件. 开发者设计一个模块的 API 时, 需要考虑模块各种使用方式, 并使用 index 文件控制模块可见性:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 导入外部模块需要使用的类型</span></span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./type'</span>;</span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./constants'</span>;</span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./reducers'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不暴露外部不需要关心的实现细节</span></span><br><span class="line"><span class="comment">// export * from './components/Foo'</span></span><br><span class="line"><span class="comment">// export * from './components/Bar'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 模块的默认导出</span></span><br><span class="line"><span class="keyword">export</span> &#123; ComplexPage <span class="keyword">as</span> <span class="keyword">default</span> &#125; <span class="keyword">from</span> <span class="string">'./ComplexPage'</span>;</span><br></pre></td></tr></table></figure>
+<p>现在导入语句可以更加简洁:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ComplexPage, &#123; ComplexPageProps, User, XXX &#125; <span class="keyword">from</span> <span class="string">'../ComplexPage'</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这条规则也可以用于组件库. 在 webpack 的 Tree-shaking 特性还不成熟之前， 我们都使用了各种各样的技巧来实现<code>按需导入</code>. 例如<a href="https://github.com/ant-design/babel-plugin-import" target="_blank" rel="noopener"><code>babel-plugin-import</code></a>或直接子路径导入:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> TextField <span class="keyword">from</span> <span class="string">'~/components/TextField'</span>;</span><br><span class="line"><span class="keyword">import</span> SelectField <span class="keyword">from</span> <span class="string">'~/components/SelectField'</span>;</span><br><span class="line"><span class="keyword">import</span> RaisedButton <span class="keyword">from</span> <span class="string">'~/components/RaisedButton'</span>;</span><br></pre></td></tr></table></figure>
+<p>现在可以使用<code>Named import</code>直接导入，让 webpack 来帮你优化:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; TextField, SelectField, RaisedButton &#125; <span class="keyword">from</span> <span class="string">'~/components'</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>但不是所有目录都有出口文件, 这时候目录就不是模块的边界了</strong>. 典型的有<code>utils/</code>, <code>utils</code> 只是一个模块命名空间, <code>utils</code> 下面的文件都是一些互不相关或者不同类型的文件:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">utils/</span><br><span class="line">  common.ts</span><br><span class="line">  dom.ts</span><br><span class="line">  sdk.ts</span><br></pre></td></tr></table></figure>
+<p>我们习惯直接引用这些文件, 而不是通过一个入口文件, 这样可以更明确导入的是什么类型的:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; hide &#125; <span class="keyword">from</span> <span class="string">'./utils/dom'</span>; <span class="comment">// 通过文件名可以知道, 这可能是隐藏某个DOM元素</span></span><br><span class="line"><span class="keyword">import</span> &#123; hide &#125; <span class="keyword">from</span> <span class="string">'./utils/sdk'</span>; <span class="comment">// webview sdk 提供的的某个方法</span></span><br></pre></td></tr></table></figure>
+<p>最后再总结一下:</p>
+  <center><br>    <img src="/images/04/module-boundary.png" width="600"><br>  </center>
+
+<p>根据模块边界原则(如上图): <strong>一个模块可以访问兄弟(同个作用域下)、 祖先及祖先的兄弟模块</strong>. 例如:</p>
+<ul>
+<li>Bar 可以访问 Foo, 但不能再向下访问它的细节, 即不能访问<code>../Foo/types.ts</code>, 但可以访问它的出口文件<code>../Foo</code></li>
+<li>src/types.ts 不能访问 containers/HomePage</li>
+<li>LoginPage 和访问 HomePage</li>
+<li>LoginPage 可以访问 utils/sdk</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-named-export-vs-default-export"><a href="#2️⃣-named-export-vs-default-export" class="headerlink" title="2️⃣ Named export vs default export"></a>2️⃣ <code>Named export</code> vs <code>default export</code></h3><p>这两种导出方式都有各自的适用场景，这里不应该一棒子打死就不使用某种导出方式. 首先看一下<strong>named export 有什么优点</strong>:</p>
+<ul>
+<li><p>命名确定</p>
+<ul>
+<li>方便 Typescript 进行重构</li>
+<li>方便智能提醒和自动导入(auto-import)识别</li>
+<li><p>方便 reexport</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// named</span></span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./named-export'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// default</span></span><br><span class="line"><span class="keyword">export</span> &#123; <span class="keyword">default</span> <span class="keyword">as</span> Foo &#125; <span class="keyword">from</span> <span class="string">'./default-export'</span>;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>一个模块支持多个<code>named export</code></p>
+</li>
+</ul>
+<p><br></p>
+<p><strong>再看一下<code>default export</code>有什么优点?</strong>:</p>
+<ul>
+<li><p><code>default export</code>一般代表‘模块本身’, 当我们使用‘默认导入’导入一个模块时, 开发者是自然而然知道这个默认导入的是一个什么对象。</p>
+<p>例如 react 导出的是一个 React 对象; LoginPage 导出的是一个登录页面; somg.png 导入的是一张图片. 这类模块总有一个确定的’主体对象’. 所以默认导入的名称和模块的名称一般是保持一致的(Typescript 的 auto-import 就是基于文件名).</p>
+<p>当然’主体对象’是一种隐式的概念, 你只能通过规范去约束它</p>
+</li>
+<li><p><code>default export</code>的导入语句更加简洁。例如<code>lazy(import(&#39;./MyPage&#39;))</code></p>
+</li>
+</ul>
+<p><code>default export</code>也有一些缺点:</p>
+<ul>
+<li>和其他模块机制(commonjs)互操作时比较难以理解. 例如我们会这样子导入<code>default export</code>: <code>require(&#39;./xx&#39;).default</code></li>
+<li><code>named import</code> 优点就是<code>default export</code>的缺点</li>
+</ul>
+<p>所以总结一下:</p>
+<ol>
+<li>对于’主体对象’明确的模块需要有默认导出, 例如页面组件，类</li>
+<li>对于’主体对象’不明确的模块不应该使用默认导出，例如组件库、utils(放置各种工具方法)、contants 常量</li>
+</ol>
+<p>按照这个规则可以这样子组织 components 目录：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">components/</span><br><span class="line">  Foo/</span><br><span class="line">    Foo.tsx</span><br><span class="line">    types.ts</span><br><span class="line">    constants.ts</span><br><span class="line">    index.ts         # 导出Foo组件</span><br><span class="line">  Bar/</span><br><span class="line">    Bar.tsx</span><br><span class="line">    index.tsx</span><br><span class="line">  index.ts           # 导出所有组件</span><br></pre></td></tr></table></figure>
+<p>对于 Foo 模块来说， 存在一个主体对象即 Foo 组件, 所以这里使用<code>default export</code>导出的 Foo 组件， 代码为:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// index.tsx</span></span><br><span class="line"><span class="comment">// 这三个文件全部使用named export导出</span></span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./contants'</span>;</span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./types'</span>;</span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./Foo'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导入主体对象</span></span><br><span class="line"><span class="keyword">export</span> &#123; Foo <span class="keyword">as</span> <span class="keyword">default</span> &#125; <span class="keyword">from</span> <span class="string">'./Foo'</span>;</span><br></pre></td></tr></table></figure>
+<p>现在假设 Bar 组件依赖于 Foo:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// components/Bar/Bar.tsx</span></span><br><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导入Foo组件, 根据模块边界规则, 不能直接引用../Foo/Foo.tsx</span></span><br><span class="line"><span class="keyword">import</span> Foo <span class="keyword">from</span> <span class="string">'../Foo'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Bar = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;Foo /&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default Bar;</span></span><br></pre></td></tr></table></figure>
+<p>对于<code>components</code>模块来说，它的所有子模块都是平等的，所以不存在一个主体对象，<code>default export</code>在这里不适用。 <code>components/index.ts</code>代码:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// components/index.ts</span></span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./Foo'</span>;</span><br><span class="line"><span class="keyword">export</span> * <span class="keyword">from</span> <span class="string">'./Bar'</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="3️⃣-避免循环依赖"><a href="#3️⃣-避免循环依赖" class="headerlink" title="3️⃣ 避免循环依赖"></a>3️⃣ 避免循环依赖</h3><p><strong>循环依赖是模块糟糕设计的一个表现</strong>, 这时候你需要考虑拆分和设计模块文件, 例如</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// --- Foo.tsx ---</span></span><br><span class="line"><span class="keyword">import</span> Bar <span class="keyword">from</span> <span class="string">'./Bar'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> SomeType &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Foo = <span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;;</span><br><span class="line">Foo.Bar = Bar;</span><br><span class="line"></span><br><span class="line"><span class="comment">// --- Bar.tsx ----</span></span><br><span class="line"><span class="keyword">import</span> &#123; SomeType &#125; <span class="keyword">from</span> <span class="string">'./Foo'</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>上面 Foo 和 Bar 组件就形成了一个简单循环依赖, 尽管它不会造成什么运行时问题. 解决方案就是将 SomeType 抽取到单独的文件:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// --- types.ts ---</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> SomeType &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// --- Foo.tsx ---</span></span><br><span class="line"><span class="keyword">import</span> Bar <span class="keyword">from</span> <span class="string">'./Bar'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;SomeType&#125; <span class="keyword">from</span> <span class="string">'./types'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Foo = <span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;;</span><br><span class="line">...</span><br><span class="line">Foo.Bar = Bar;</span><br><span class="line"></span><br><span class="line"><span class="comment">// --- Bar.tsx ----</span></span><br><span class="line"><span class="keyword">import</span> &#123;SomeType&#125; <span class="keyword">from</span> <span class="string">'./types'</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="4️⃣-相对路径不要超过两级"><a href="#4️⃣-相对路径不要超过两级" class="headerlink" title="4️⃣ 相对路径不要超过两级"></a>4️⃣ 相对路径不要超过两级</h3><p>当项目越来越复杂, 目录可能会越来越深, 这时候会出现这样的导入路径:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; hide &#125; <span class="keyword">from</span> <span class="string">'../../../utils/dom'</span>;</span><br></pre></td></tr></table></figure>
+<p>首先这种导入语句非常不优雅, 而且可读性很差. 当你在不清楚当前文件的目录上下文时, 你不知道具体模块在哪; 即使你知道当前文件的位置, 你也需要跟随导入路径在目录树中向上追溯在能定位到具体模块. 所以这种相对路径是比较反人类的.</p>
+<p>另外这种导入路径不方便模块迁移(尽管 Vscode 支持移动文件时重构导入路径), 文件迁移需要重写这些相对导入路径.</p>
+<p><strong>所以一般推荐相对路径导入不应该超过两级, 即只能是<code>../</code>和<code>./</code></strong>. 可以尝试将<strong>相对路径转换成绝对路径形式</strong>, 例如<code>webpack</code>中可以配置<code>resolve.alias</code>属性来实现:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">resolve: &#123;</span><br><span class="line">  ...</span><br><span class="line">  alias: &#123;</span><br><span class="line">    <span class="comment">// 可以直接使用~访问相对于src目录的模块</span></span><br><span class="line">    <span class="comment">// 如 ~/components/Button</span></span><br><span class="line">    <span class="string">'~'</span>: context,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在我们可以这样子导入相对于<code>src</code>的模块:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; hide &#125; <span class="keyword">from</span> <span class="string">'~/utils/dom'</span>;</span><br></pre></td></tr></table></figure>
+<p>扩展</p>
+<ul>
+<li>对于 Typescript 可以配置<a href="https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping" target="_blank" rel="noopener">paths</a>选项;</li>
+<li>对于 babel 可以使用<a href="https://www.npmjs.com/package/babel-plugin-module-resolver" target="_blank" rel="noopener"><code>babel-plugin-module-resolver</code></a>插件来转换为相对路径</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="6-拆分"><a href="#6-拆分" class="headerlink" title="6. 拆分"></a>6. 拆分</h2><h3 id="1️⃣-拆分-render-方法"><a href="#1️⃣-拆分-render-方法" class="headerlink" title="1️⃣ 拆分 render 方法"></a>1️⃣ 拆分 render 方法</h3><p>当 render 方法的 JSX 结构非常复杂的时候, 首先应该尝试分离这些 JSX, 最简单的做法的就是拆分为多个子 render 方法:</p>
+  <center><br>    <img src="/images/04/sub-render.png" width="600"><br>  </center>
+
+<p>当然这种方式只是暂时让 render 方法看起来没有那么复杂, 它并没有拆分组件本身, 所有输入和状态依然聚集在一个组件下面. 所以通常拆分 render 方法只是重构的第一步: 随着组件越来越复杂, 表现为文件越来越长, 笔者一般将 300 行作为一个阈值, <strong>超过 300 行则说明需要对这个组件进进一步拆分</strong></p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-拆分为组件"><a href="#2️⃣-拆分为组件" class="headerlink" title="2️⃣ 拆分为组件"></a>2️⃣ 拆分为组件</h3><p>如果已经按照 👆 上述方法对组件的 render 拆分为多个子 render, 当一个组件变得臃肿时, 就可以方便地将这些子 render 方法拆分为组件. 一般组件抽离有以下几种方式:</p>
+<ol>
+<li>纯渲染拆分: 子 render 方法一般是纯渲染的, 他们可以很直接地抽离为<em>无状态组件</em></li>
+</ol>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> render() &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; visible &#125; = <span class="keyword">this</span>.state</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Modal</span><br><span class="line">      visible=&#123;visible&#125;</span><br><span class="line">      title=&#123;<span class="keyword">this</span>.getLocale(<span class="string">'title'</span>)&#125;</span><br><span class="line">      width=&#123;<span class="keyword">this</span>.width&#125;</span><br><span class="line">      maskClosable=&#123;<span class="literal">false</span>&#125;</span><br><span class="line">      onOk=&#123;<span class="keyword">this</span>.handleOk&#125;</span><br><span class="line">      onCancel=&#123;<span class="keyword">this</span>.handleCancel&#125;</span><br><span class="line">      footer=&#123;&lt;Footer &#123;...&#125;&gt;&lt;<span class="regexp">/Footer&gt;&#125;</span></span><br><span class="line"><span class="regexp">    &gt;</span></span><br><span class="line"><span class="regexp">    &lt;Body &#123;...&#125;&gt;&lt;/</span>Body&gt;</span><br><span class="line">  &lt;<span class="regexp">/Modal&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>纯逻辑拆分: 按照<code>逻辑和视图分离</code>的原则, 将逻辑控制部分抽离到 hooks 或高阶组件中</li>
+<li>逻辑和渲染拆分: 将相关的视图和逻辑抽取出去形成一个独立的组件, 这是更为彻底的拆分方式, 贯彻单一职责原则.</li>
+</ol>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="7-组件划分示例"><a href="#7-组件划分示例" class="headerlink" title="7. 组件划分示例"></a>7. 组件划分示例</h2><p>我们一般会从 UI 原型图中分析和划分组件, 在 React 官方的<a href="https://react.docschina.org/docs/thinking-in-react.html" target="_blank" rel="noopener">Thinking in react</a>也提到通过 UI 来划分组件层级: “<em>这是因为 UI 和数据模型往往遵循着相同的信息架构，这意味着将 UI 划分成组件的工作往往是很容易的。只要把它划分成能准确表示你数据模型的一部分的组件就可以</em>“. 组件划分除了需要遵循上文 👆 提到的一些原则, 他还依赖于你的开发经验.</p>
+<p>本节通过一个简单的应用讲述划分组件的过程. 这是某政府部门的服务申报系统, 一共由四个页面组成:</p>
+<center><br>  <img src="/images/04/demo-all.png" width="800"><br></center>
+
+<h3 id="1️⃣-划分页面"><a href="#1️⃣-划分页面" class="headerlink" title="1️⃣ 划分页面"></a>1️⃣ 划分页面</h3><p>页面通常是最顶层的组件单元, 划分页面非常简单, 我们根据原型图就可以划分四个页面: <code>ListPage</code>, <code>CreatePage</code>, <code>PreviewPage</code>, <code>DetailPage</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">src/</span><br><span class="line">  containers/</span><br><span class="line">    ListPage/</span><br><span class="line">    CreatePage/</span><br><span class="line">    PreviewPage/</span><br><span class="line">    DetailPage/</span><br><span class="line">    index.tsx     # 根组件, 一般在这里定义路由</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-划分基础-ui-组件"><a href="#2️⃣-划分基础-ui-组件" class="headerlink" title="2️⃣ 划分基础 UI 组件"></a>2️⃣ 划分基础 UI 组件</h3><p>首先看<code>ListPage</code></p>
+  <center><br>    <img src="/images/04/ListPage.png" width="400"><br>  </center>
+
+<p>ListPage 根据 UI 可以划分为下面这些组件:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ScrollView        # 滚动视图, 提供下拉刷新, 无限加载等功能</span><br><span class="line">  List            # 列表容器, 布局组件</span><br><span class="line">    Item          # 列表项, 布局组件, 提供header, body等占位符</span><br><span class="line">      props - header</span><br><span class="line">         Title       # 渲染标题</span><br><span class="line">      props - after</span><br><span class="line">         Time        # 渲染时间</span><br><span class="line">      props - body</span><br><span class="line">         Status      # 渲染列表项的状态</span><br></pre></td></tr></table></figure>
+<p>再看看<code>CreatePage</code></p>
+  <center><br>    <img src="/images/04/CreatePage.png" width="400"><br>  </center>
+
+<p>这是一个表单填写页面, 为了提高表单填写体验, 这里划分为多个步骤; 每个步骤里有还有多个表单分组; 每个表单的结构都差不多, 左边是 label 展示, 右边是实际表单组件, 所以根据 UI 可以对组件进行这样的划分:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">CreatePage</span><br><span class="line">  Steps            # 步骤容器, 提供了步骤布局和步骤切换等功能</span><br><span class="line">    Step           # 单一步骤容器</span><br><span class="line">      List         # 表单分组</span><br><span class="line">        List.Item  # 表单容器, 支持设置label</span><br><span class="line">          Input    # 具体表单类型</span><br><span class="line">          Address</span><br><span class="line">          NumberInput</span><br><span class="line">          Select</span><br><span class="line">          FileUpload</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>组件命名的建议: 对于集合型组件, 一般会使用单复数命名, 例如上面的 Steps/Step; List/Item 这种形式也比较常见, 例如 Form/Form.Item, 这种形式比较适合作为子组件形式. 可以学习一下第三方组件库是怎么给组件命名的.</p>
+</blockquote>
+<p>再看一下<code>PreviewPage</code>, PreviewPage 是创建后的数据预览页面, 数据结构和页面结构和 CreatePage 差不多. 将 Steps 对应到 Preview 组件, Step 对应到 Preview.Item. Input 对应到 Input.Preview:</p>
+  <center><br>    <img src="/images/04/PreviewPage.png" width="400"><br>  </center>
+
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="3️⃣-设计组件的状态"><a href="#3️⃣-设计组件的状态" class="headerlink" title="3️⃣ 设计组件的状态"></a>3️⃣ 设计组件的状态</h3><p>对于 ListPage 来说状态比较简单, 这里主要讨论 CreatePage 的状态. CreatePage 的特点:</p>
+<ul>
+<li>表单组件使用受控模式, 本身不会存储表单的状态. 另外表单之间的状态可能是联动的</li>
+<li>状态需要在 CreatePage 和 PreviewPage 之间共享</li>
+<li>需要对表单进行统一校验</li>
+<li>草稿保存</li>
+</ul>
+<p>由于需要在 CreatePage 和 PreviewPage 中共享数据, 表单的状态应该抽取和提升到父级. 在这个项目的实际开发中, 我的做法是创建一个 FormStore 的 Context 组件, 下级组件通过这个 context 来统一存储数据. 另外我决定使用配置的方式, 来渲染动态这些表单. 大概的结构如下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// CreatePage/index.tsx</span><br><span class="line">&lt;FormStore defaultValue=&#123;draft&#125; onChange=&#123;saveDraft&#125;&gt;</span><br><span class="line">  &lt;Switch&gt;</span><br><span class="line">    &lt;Route path=&quot;/create/preview&quot; component=&#123;Preview&#125; /&gt;</span><br><span class="line">    &lt;Route path=&quot;/create&quot; component=&#123;Create&#125; /&gt;</span><br><span class="line">  &lt;/Switch&gt;</span><br><span class="line">&lt;/FormStore&gt;</span><br><span class="line"></span><br><span class="line">// CreatePage/Create.tsx</span><br><span class="line">&lt;Steps&gt;</span><br><span class="line">  &#123;steps.map(i =&gt;</span><br><span class="line">    &lt;Step key=&#123;i.name&#125;&gt;</span><br><span class="line">      &lt;FormRenderer forms=&#123;i.forms&#125;  /&gt; &#123;/* forms为表单配置, 根据配置的表单类型渲染表单组件, 从FormStore的获取和存储值 */&#125;</span><br><span class="line">    &lt;/Step&gt;</span><br><span class="line">  )&#125;</span><br><span class="line">&lt;/Steps&gt;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="8-文档"><a href="#8-文档" class="headerlink" title="8. 文档"></a>8. 文档</h2><p>组件的文档化推荐使用<a href="https://storybook.js.org" target="_blank" rel="noopener">Storybook</a>, 这是一个组件 <code>Playground</code>, 有以下特性</p>
+<ul>
+<li>可交互的组件示例</li>
+<li>可以用于展示组件的文档. 支持 props 生成和 markdown</li>
+<li>可以用于组件测试. 支持组件结构测试, 交互测试, 可视化测试, 可访问性或者手动测试</li>
+<li>丰富的插件生态</li>
+</ul>
+<p><a href="https://storybooks-official.netlify.com" target="_blank" rel="noopener">React 示例</a>. 由于篇幅原因, Storybook 就不展开细节, 有兴趣的读者可以参考官方文档.</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://jaysoo.ca/2016/02/28/organizing-redux-application/#rule-2-create-strict-module-boundaries" target="_blank" rel="noopener">Three Rules For Structuring (Redux) Applications</a></li>
+<li><a href="https://www.smashingmagazine.com/2016/09/how-to-scale-react-applications/" target="_blank" rel="noopener">How To Scale React Applications</a></li>
+<li><a href="http://cn.redux.js.org/docs/faq/CodeStructure.html" target="_blank" rel="noopener">Redux 常见问题：代码结构</a></li>
+<li><a href="https://basarat.gitbooks.io/typescript/docs/tips/defaultIsBad.html" target="_blank" rel="noopener">export default considered harmful</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2015/11/circular-dependency.html" target="_blank" rel="noopener">JavaScript 模块的循环加载</a></li>
+<li><a href="https://react.docschina.org/docs/thinking-in-react.html" target="_blank" rel="noopener">thinking-in-react</a></li>
+<li><a href="https://speakerdeck.com/vasa/building-multitenant-ui-with-react-dot-js?slide=16" target="_blank" rel="noopener">Building Multitenant UI with React.js</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-组件设计的基本原则"><span class="toc-number">1.</span> <span class="toc-text">1. 组件设计的基本原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#基本原则"><span class="toc-number">1.1.</span> <span class="toc-text">基本原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高质量组件的特征"><span class="toc-number">1.2.</span> <span class="toc-text">高质量组件的特征</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-基本技巧"><span class="toc-number">2.</span> <span class="toc-text">2. 基本技巧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-组件的分类"><span class="toc-number">3.</span> <span class="toc-text">3. 组件的分类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-容器组件和展示组件分离"><span class="toc-number">3.1.</span> <span class="toc-text">1️⃣ 容器组件和展示组件分离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-分离逻辑和视图"><span class="toc-number">3.2.</span> <span class="toc-text">2️⃣ 分离逻辑和视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-有状态组件和无状态组件"><span class="toc-number">3.3.</span> <span class="toc-text">3️⃣ 有状态组件和无状态组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-纯组件和非纯组件"><span class="toc-number">3.4.</span> <span class="toc-text">4️⃣ 纯组件和非纯组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-按照-ui-划分为布局组件和内容组件"><span class="toc-number">3.5.</span> <span class="toc-text">5️⃣ 按照 UI 划分为布局组件和内容组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-接口一致的数据录入组件"><span class="toc-number">3.6.</span> <span class="toc-text">6️⃣ 接口一致的数据录入组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-目录划分"><span class="toc-number">4.</span> <span class="toc-text">4. 目录划分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-基本目录结构"><span class="toc-number">4.1.</span> <span class="toc-text">1️⃣ 基本目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-多页应用的目录划分"><span class="toc-number">4.2.</span> <span class="toc-text">2️⃣ 多页应用的目录划分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-多页应用的目录划分-monorepo-模式"><span class="toc-number">4.3.</span> <span class="toc-text">3️⃣ 多页应用的目录划分: monorepo 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-跨平台应用"><span class="toc-number">4.4.</span> <span class="toc-text">4️⃣ 跨平台应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-跨平台的另外一种方式-taro"><span class="toc-number">4.5.</span> <span class="toc-text">5️⃣ 跨平台的另外一种方式: taro</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-模块"><span class="toc-number">5.</span> <span class="toc-text">5. 模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-创建严格的模块边界"><span class="toc-number">5.1.</span> <span class="toc-text">1️⃣ 创建严格的模块边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-named-export-vs-default-export"><span class="toc-number">5.2.</span> <span class="toc-text">2️⃣ Named export vs default export</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-避免循环依赖"><span class="toc-number">5.3.</span> <span class="toc-text">3️⃣ 避免循环依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-相对路径不要超过两级"><span class="toc-number">5.4.</span> <span class="toc-text">4️⃣ 相对路径不要超过两级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-拆分"><span class="toc-number">6.</span> <span class="toc-text">6. 拆分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-拆分-render-方法"><span class="toc-number">6.1.</span> <span class="toc-text">1️⃣ 拆分 render 方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-拆分为组件"><span class="toc-number">6.2.</span> <span class="toc-text">2️⃣ 拆分为组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-组件划分示例"><span class="toc-number">7.</span> <span class="toc-text">7. 组件划分示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-划分页面"><span class="toc-number">7.1.</span> <span class="toc-text">1️⃣ 划分页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-划分基础-ui-组件"><span class="toc-number">7.2.</span> <span class="toc-text">2️⃣ 划分基础 UI 组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-设计组件的状态"><span class="toc-number">7.3.</span> <span class="toc-text">3️⃣ 设计组件的状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-文档"><span class="toc-number">8.</span> <span class="toc-text">8. 文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">9.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/11/react-component-design-02/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/11/react-component-design-02/&text=React组件设计实践总结02 - 组件的组织"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/11/react-component-design-02/&is_video=false&description=React组件设计实践总结02 - 组件的组织"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结02 - 组件的组织&body=Check out this article: https://bobi.ink/2019/05/11/react-component-design-02/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/11/react-component-design-02/&title=React组件设计实践总结02 - 组件的组织"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/11/react-component-design-02/&name=React组件设计实践总结02 - 组件的组织&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

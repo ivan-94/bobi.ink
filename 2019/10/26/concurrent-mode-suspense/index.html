@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="2019.10.24, 在 React Conf 2019 首日， React 官方正式发布了关于 Concurrent 模式的第一个早期社区预览文档, 正式和 React 的大众开发者见面, 令人兴奋。 跟去年的 React Hooks 一样, 尽管 Concurrent 还是实验性的, 相信这次不会等太久…  这个大招憋了四年多   如果 React Hooks 目的是提高开发体验，那么 Co">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React Concurrent 模式抢先预览上篇: Suspense the world">
+<meta property="og:url" content="https://bobi.ink/2019/10/26/concurrent-mode-suspense/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="2019.10.24, 在 React Conf 2019 首日， React 官方正式发布了关于 Concurrent 模式的第一个早期社区预览文档, 正式和 React 的大众开发者见面, 令人兴奋。 跟去年的 React Hooks 一样, 尽管 Concurrent 还是实验性的, 相信这次不会等太久…  这个大招憋了四年多   如果 React Hooks 目的是提高开发体验，那么 Co">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/release.png">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/cpu-vs-io.jpg">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/suspense.png">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/promise.png">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/usePromise.gif">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/twitter.png">
+<meta property="og:image" content="https://bobi.ink/images/concurrent-mode/suspense-list.gif">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React Concurrent 模式抢先预览上篇: Suspense the world">
+<meta name="twitter:description" content="2019.10.24, 在 React Conf 2019 首日， React 官方正式发布了关于 Concurrent 模式的第一个早期社区预览文档, 正式和 React 的大众开发者见面, 令人兴奋。 跟去年的 React Hooks 一样, 尽管 Concurrent 还是实验性的, 相信这次不会等太久…  这个大招憋了四年多   如果 React Hooks 目的是提高开发体验，那么 Co">
+<meta name="twitter:image" content="https://bobi.ink/images/concurrent-mode/release.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>React Concurrent 模式抢先预览上篇: Suspense the world</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/10/28/concurrent-mode-transition/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/10/18/react-fiber/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/10/26/concurrent-mode-suspense/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&text=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&is_video=false&description=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React Concurrent 模式抢先预览上篇: Suspense the world&body=Check out this article: https://bobi.ink/2019/10/26/concurrent-mode-suspense/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&name=React Concurrent 模式抢先预览上篇: Suspense the world&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是-concurrent-模式"><span class="toc-number">1.</span> <span class="toc-text">什么是 Concurrent 模式?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启用-concurrent-模式"><span class="toc-number">2.</span> <span class="toc-text">启用 Concurrent 模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是-suspense"><span class="toc-number">3.</span> <span class="toc-text">什么是 Suspense?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#suspense-的实现原理"><span class="toc-number">4.</span> <span class="toc-text">Suspense 的实现原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缓存-suspense-的异步操作状态"><span class="toc-number">5.</span> <span class="toc-text">缓存 Suspense 的异步操作状态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#使用-context-api"><span class="toc-number">5.1.</span> <span class="toc-text">使用 Context API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#将缓存状态提取到父级"><span class="toc-number">5.2.</span> <span class="toc-text">将缓存状态提取到父级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#并发发起请求"><span class="toc-number">6.</span> <span class="toc-text">并发发起请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理竞态"><span class="toc-number">7.</span> <span class="toc-text">处理竞态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#错误处理"><span class="toc-number">8.</span> <span class="toc-text">错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#suspense-编排"><span class="toc-number">9.</span> <span class="toc-text">Suspense 编排</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料"><span class="toc-number">11.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        React Concurrent 模式抢先预览上篇: Suspense the world
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-10-25T16:00:00.000Z" itemprop="datePublished">2019-10-26</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><strong>2019.10.24</strong>, 在 <a href="https://www.youtube.com/channel/UCz5vTaEhvh7dOHEyd1efcaQ" target="_blank" rel="noopener">React Conf 2019</a> 首日， React 官方正式发布了关于 <code>Concurrent</code> 模式的第一个早期社区<a href="https://reactjs.org/docs/concurrent-mode-intro.html" target="_blank" rel="noopener">预览文档</a>, 正式和 React 的大众开发者见面, 令人兴奋。</p>
+<p>跟去年的 React Hooks 一样, 尽管 Concurrent 还是<a href="https://reactjs.org/blog/2019/10/22/react-release-channels.html#experimental-channel" target="_blank" rel="noopener">实验性</a>的, 相信这次不会等太久…</p>
+<p><br></p>
+<p><strong>这个大招憋了四年多</strong></p>
+<p><img src="/images/concurrent-mode/release.png" alt></p>
+<p><br></p>
+<p><strong>如果 React Hooks 目的是提高开发体验，那么 Concurrent 模式则专注于提升用户体验</strong>，表面上它对我们的开发的可能影响不大，React 内部已经变了好几重天。</p>
+<p>这系列文章主要来源于官方的<a href="https://reactjs.org/docs/concurrent-mode-intro.html" target="_blank" rel="noopener">预览文档</a>, 专门给 React 尝鲜者准备。</p>
+<p>这个月 Vue 3.0 源码发布，掘金相关文章像井喷一样，没理由 React 这么’大新闻’(尽管这个新闻3年前大家就知道了)… 我来带个头吧。</p>
+<p><br></p>
+<p><strong>🎉下篇：<a href="https://juejin.im/post/5dbee8e7e51d4558040f0830" target="_blank" rel="noopener">React Concurrent 模式抢先预览下篇: useTransition 的平行世界</a></strong></p>
+<p><br></p>
+<p><strong>文章内容框架</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#什么是-concurrent-模式">什么是 Concurrent 模式?</a></li>
+<li><a href="#启用-concurrent-模式">启用 Concurrent 模式</a></li>
+<li><a href="#什么是-suspense">什么是 Suspense?</a></li>
+<li><a href="#suspense-的实现原理">Suspense 的实现原理</a></li>
+<li><a href="#缓存-suspense-的异步操作状态">缓存 Suspense 的异步操作状态</a><ul>
+<li><a href="#使用-context-api">使用 Context API</a></li>
+<li><a href="#将缓存状态提取到父级">将缓存状态提取到父级</a></li>
+</ul>
+</li>
+<li><a href="#并发发起请求">并发发起请求</a></li>
+<li><a href="#处理竞态">处理竞态</a></li>
+<li><a href="#错误处理">错误处理</a></li>
+<li><a href="#suspense-编排">Suspense 编排</a></li>
+<li><a href="#总结">总结</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+<!-- /TOC -->
+<p><br><br><br></p>
+<h2 id="什么是-concurrent-模式"><a href="#什么是-concurrent-模式" class="headerlink" title="什么是 Concurrent 模式?"></a>什么是 Concurrent 模式?</h2><p><img src="/images/concurrent-mode/cpu-vs-io.jpg" alt></p>
+<p><strong>这是一个特性集合，可以让你的React 应用保持响应，可以根据用户的设备能力和网络情况优雅地调整</strong>。 这个特性集合，它包含<strong>两个方向</strong>的优化:</p>
+<p><strong>1️⃣ CPU 密集型(CPU-bound)</strong></p>
+<p>CPU 密集型指是 Reconcilation(协调或者Diff) 的优化. 在Concurrent 模式下面，Reconcilation 可以被中断, 让位给高优先级的任务，让应用保持响应.</p>
+<p><strong>上一周，我抢在 React Conf 2019 之前发布了一篇文章<a href="https://juejin.im/post/5dadc6045188255a270a0f85" target="_blank" rel="noopener">《🔥这可能是最通俗的 React Fiber(时间分片) 打开方式》</a> 🤓，你想了解 Concurrent 模式, 强烈建议从这篇文章开始！</strong></p>
+<p>CPU 密集型的优化对现有的代码保持兼容，几乎没有暴露新的API，主要的影响是废弃了一些生命周期方法，这个是众所周知的。</p>
+<p><br></p>
+<p><strong>2️⃣ I/O 密集型(I/O-bound)</strong></p>
+<p>主要优化了 React 对异步的处理。主要的武器是 <code>Suspense</code> 以及 <a href="https://reactjs.org/docs/concurrent-mode-patterns.html" target="_blank" rel="noopener"><code>useTransition</code></a>:</p>
+<ul>
+<li><code>Suspense</code> - 新的异步数据处理方式。</li>
+<li><code>useTransition</code> - 提供了一种预渲染的机制，React 可以在’另一个分支’中<strong>预渲染</strong>，等待数据到达，然后一次性渲染出来，减少中间的加载状态的显示和页面抖动/闪烁。</li>
+</ul>
+<p><br></p>
+<p>这篇文章我就不再深入解释 Concurrent 模式是什么了，<strong>本文会介绍 Suspense，计划下一篇文章会介绍 useTranstion</strong>，敬请期待。</p>
+<p><br><br><br></p>
+<h2 id="启用-concurrent-模式"><a href="#启用-concurrent-模式" class="headerlink" title="启用 Concurrent 模式"></a>启用 Concurrent 模式</h2><p>Concurrent 模式目前还是实验性的，你可以通过以下命令来安装实验版本:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install react@experimental react-dom@experimental</span><br><span class="line"><span class="meta">#</span> or</span><br><span class="line">yarn add react@experimental react-dom@experimental</span><br></pre></td></tr></table></figure>
+<p>上文说了，这是为尝鲜者准备的，尽管 API 应该不会有太大的变动, 不要用于生产环境。</p>
+<p><br></p>
+<p>开始 Concurrent 模式:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ReactDOM <span class="keyword">from</span> <span class="string">'react-dom'</span>;</span><br><span class="line"></span><br><span class="line">ReactDOM.createRoot(</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">'root'</span>)</span><br><span class="line">).render(<span class="xml"><span class="tag">&lt;<span class="name">App</span> /&gt;</span>);</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>另外一个要注意的是，开启Concurrent 模式后，之前 deprecated 的生命周期方法就彻底不能用了，确保你的代码已经迁移。</p>
+<p><br><br><br></p>
+<h2 id="什么是-suspense"><a href="#什么是-suspense" class="headerlink" title="什么是 Suspense?"></a>什么是 Suspense?</h2><p>Suspense 这个大家应该都不陌生，在 v16.5 就已经有了这个 <code>Suspense</code> 这个API, 只不过通常利用它配合 <code>React.lazy</code> 实现代码分隔:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> OtherComponent = React.lazy(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./OtherComponent'</span>));</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyComponent</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;Suspense fallback=&#123;&lt;div&gt;Loading...&lt;<span class="regexp">/div&gt;&#125;&gt;</span></span><br><span class="line"><span class="regexp">        &lt;OtherComponent /</span>&gt;</span><br><span class="line">      &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>React.lazy 这是一次小小的尝试, Suspense 还有大用。 </p>
+<p>如果将Suspense 翻译为中文的话是<code>等待</code>、<code>悬垂</code>、<code>悬停</code>的意思。<strong>React给出了一个更规范的定义</strong>：</p>
+<p><strong>Suspense 不是一个‘数据获取库’, 而是一种提供给‘数据获取库’的<code>机制</code>，数据获取库通过这种机制告诉 React 数据还没有准备好，然后 React就会等待它完成后，才继续更新 UI</strong>。 简单总结一下 Suspense 是 React 提供的一种异步处理的机制, 它不是一个具体的数据请求库。<strong>它是React 提供的原生的组件异步调用原语</strong>。它是 Concurrent 模式特性集合中的重要角色。</p>
+<p><br></p>
+<p>现在, 我们可以更酷地使用 Suspense，相信我，马上它就会成为你手中的利剑。 有了它你可以这样请求远程数据:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Posts</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> posts = useQuery(GET_MY_POSTS)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"posts"</span>&gt;</span></span></span><br><span class="line">    &#123;posts.map(i =&gt; &lt;Post key=&#123;i.id&#125; value=&#123;i&#125;/&gt;)&#125;</span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">function App() &#123;</span></span><br><span class="line">  return (&lt;div className="app"&gt;</span><br><span class="line">    &lt;Suspense fallback=&#123;&lt;Loader&gt;Posts Loading...&lt;/Loader&gt;&#125;&gt;</span><br><span class="line">      &lt;Posts /&gt;</span><br><span class="line">    &lt;/Suspense&gt;</span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>加载依赖脚本:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyMap</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  useImportScripts(<span class="string">'//api.map.baidu.com/api?v=2.0&amp;ak=您的密钥'</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">BDMap</span> /&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">function App() &#123;</span></span><br><span class="line">  return (&lt;div className="app"&gt;</span><br><span class="line">    &lt;Suspense fallback=&#123;&lt;Loader&gt;地图加载中...&lt;/Loader&gt;&#125;&gt;</span><br><span class="line">      &lt;MyMap /&gt;</span><br><span class="line">    &lt;/Suspense&gt;</span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>仔细观察上面的代码，有两个特点：</p>
+<ul>
+<li>1️⃣ 我们需要 <code>Suspense</code> 来包裹这些包含异步操作的组件，并给它们提供<code>回退(fallback)</code>。在异步请求期间，会显示这个回退。</li>
+<li>2️⃣ 上面的代码获取异步资源就跟同步调用似的。没错，有了 Suspense,  我们可以和<code>async/await</code>或者<code>Generator</code> 一样，用’同步‘的代码风格来处理异步请求</li>
+</ul>
+<p><br></p>
+<p>很神奇对不对？React 是怎么做到的？</p>
+<p><br><br><br></p>
+<h2 id="suspense-的实现原理"><a href="#suspense-的实现原理" class="headerlink" title="Suspense 的实现原理"></a>Suspense 的实现原理</h2><p>早前就<a href="https://zhuanlan.zhihu.com/p/34210780" target="_blank" rel="noopener">有人剖析过 <code>Suspense</code> 的实现</a>，它利用了 React 的 <code>ErrorBoundary</code> 类似的机制来实现, 脑洞很大。</p>
+<p>🤔 嗯… 如果是用 <code>ErrorBoundary</code> 的话，ErrorBoundary 可以用来捕获下级组件的异常，我们在做异步操作时，可以抛出一个异常，中断渲染工作，当我们完成异步操作时，再告诉React，我们已经准备好了，请继续渲染…</p>
+<p>🤭这就能解释，为什么没有使用 async/await 和 Generator，却可以使用用同步的风格来处理异步操作, throw 是可以中断代码执行的…</p>
+<p>🤔 不过这个’异常‘应该跟普通的异常区分开来，同时它应该可以通知 ErrorBoundary 异步操作已经就绪了，让它继续渲染子节点…</p>
+<p><br></p>
+<p>我想流程应该是这样的:</p>
+<p><img src="/images/concurrent-mode/suspense.png" alt></p>
+<p><br></p>
+<p>其实，符合该场景的、现成的最好的’异常对象’是 Promise。 那就撸起袖子，实现一个:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> interface SuspenseProps &#123;</span><br><span class="line">  fallback: React.ReactNode</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">interface SuspenseState &#123;</span><br><span class="line">  pending: boolean</span><br><span class="line">  error?: any</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Suspense</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span>&lt;<span class="title">SuspenseProps</span>, <span class="title">SuspenseState</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">// ⚛️ 首先，记录是否处于挂载状态，因为我们不知道异步操作什么时候完成，可能在卸载之后</span></span><br><span class="line">  <span class="comment">// 组件卸载后就不能调用 setState 了</span></span><br><span class="line">  private mounted = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 组件状态</span></span><br><span class="line">  public state: SuspenseState = &#123;</span><br><span class="line">    <span class="comment">// ⚛️ 表示现在正阻塞在异步操作上</span></span><br><span class="line">    pending: <span class="literal">false</span>,</span><br><span class="line">    <span class="comment">// ⚛️ 表示异步操作出现了问题</span></span><br><span class="line">    error: <span class="literal">undefined</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public componentDidMount() &#123;</span><br><span class="line">    <span class="keyword">this</span>.mounted = <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public componentWillUnmount() &#123;</span><br><span class="line">    <span class="keyword">this</span>.mounted = <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️ 使用 Error Boundary 机制捕获下级异常</span></span><br><span class="line">  public componentDidCatch(err: any) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">this</span>.mounted) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚛️ 判断是否是 Promise, 如果不是则向上抛</span></span><br><span class="line">    <span class="keyword">if</span> (isPromise(err)) &#123;</span><br><span class="line">      <span class="comment">// 设置为 pending 状态</span></span><br><span class="line">      <span class="keyword">this</span>.setState(&#123; <span class="attr">pending</span>: <span class="literal">true</span> &#125;)</span><br><span class="line">      err.then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// ⚛️ 异步执行成功, 关闭pending 状态, 触发重新渲染</span></span><br><span class="line">        <span class="keyword">this</span>.setState(&#123; <span class="attr">pending</span>: <span class="literal">false</span> &#125;)</span><br><span class="line">      &#125;).catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// ⚛️ 异步执行失败, 我们需要妥善处理该异常，将它抛给 React</span></span><br><span class="line">        <span class="comment">// 因为处于异步回调中，在这里抛出异常无法被 React 捕获，所以我们这里先记录下来</span></span><br><span class="line">        <span class="keyword">this</span>.setState(&#123; <span class="attr">error</span>: err || <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'Suspense Error'</span>)&#125;)</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> err</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️ 在这里将 异常 抛给 React</span></span><br><span class="line">  public componentDidUpdate() &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.state.pending &amp;&amp; <span class="keyword">this</span>.state.error) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">this</span>.state.error</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public render() &#123;</span><br><span class="line">    <span class="comment">// ⚛️ 在pending 状态时渲染 fallback</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.state.pending ? <span class="keyword">this</span>.props.fallback : <span class="keyword">this</span>.props.children</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>实际上，Suspense不会去捕获异步操作的异常，也就是then和catch只是将pending设置为false。由下级组件自己选择如何去处理异常。这不过这里为了方便让大家理解 Suspense 的外在行为，将异常处理提到了这里。</p>
+</blockquote>
+<p><br></p>
+<p>⚠️ 注意，<strong>以上代码只在<code>v16.6(不包括)</code>之前有效</strong>. 16.6正式推出 Suspense 后，Suspense 就和普通的 ErrorBoundary 隔离开来了，所以无法在 <code>componentDidCatch</code> 中捕获到 Promise. <strong>当组件中抛出 Promise 异常时，React 会向上查找最近的 Suspense 来处理它，如果找不到，React 会抛出错误</strong>。</p>
+<p><br></p>
+<p>上面的代码还算好理解，对吧？ 我们先不管 React 真实的实现如何，其内部显然要复杂得多，这些复杂性并不是所有开发者都需要去关心的。通过上面简单的代码，至少我们知道 Suspense 的行为是怎样的了。现在来测试一下：</p>
+<p><br></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ComponentThatThrowError</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'error from component'</span>)</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>throw error<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">App</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div className=<span class="string">"App"</span>&gt;</span><br><span class="line">      &lt;ErrorBoundary&gt;</span><br><span class="line">        &lt;Suspense fallback=&#123;<span class="literal">null</span>&#125;&gt; &#123;<span class="comment">/* Suspense 不会捕获除Promise之外的异常，所以这里会被ErrorBoundary捕获 */</span>&#125;</span><br><span class="line">          &lt;ComponentThatThrowError /&gt;</span><br><span class="line">        &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>ErrorBoundary&gt;</span><br><span class="line">      &lt;ErrorBoundary&gt;                               &#123;<span class="comment">/* 如果异步操作失败，这个ErrorBoundary可以捕获异步操作的异常 */</span>&#125;</span><br><span class="line">        &lt;Suspense fallback=&#123;&lt;div&gt;loading...&lt;<span class="regexp">/div&gt;&#125;&gt; &#123;/</span>* 这里可以捕获ComponentThatThrowPromise 抛出的<span class="built_in">Promise</span>，并显示loading... *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">          &lt;ComponentThatThrowPromise /</span>&gt;</span><br><span class="line">        &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>ErrorBoundary&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上述代码展示了 Suspense 的基本用法以及异常处理。 你可以通过这个 <a href="https://codesandbox.io/s/react-custom-suspense-huff4?fontsize=14" target="_blank" rel="noopener">CodeSandbox</a> 实际运行一下这个实例.</p>
+<p><br></p>
+<p>现在来看下 <code>ComponentThatThrowResolvedPromise</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> throwed = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ComponentThatThrowResolvedPromise</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (!throwed) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">res, rej</span>) =&gt;</span> &#123;</span><br><span class="line">      setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        throwed = <span class="literal">true</span></span><br><span class="line">        res()</span><br><span class="line">      &#125;, <span class="number">3000</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>throw promise.<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码的要点是<code>throwed</code> 和 <code>throw new Promise</code>。在这个组件中，我们通过 <code>throw new Promise</code> 来中断组件渲染，Suspense会等待这个 Promise 就绪后，接着重新渲染。</p>
+<p><strong>为了避免重新渲染时, 又抛出 Promise，导致’死循环’。这里需要使用一个’缓存’来表示异步操作已经就绪了，避免再次抛出异常</strong>。</p>
+<p><strong>上面通过 throwed 全局变量来缓存异步操作的状态。但是对于组件来说全局状态是 Anti-Pattern，副作用会导致组件无法被复用。另外如果缓存脱离了组件的生命周期，它会变得难以控制, 我们怎么判断缓存是否有效? 这个缓存的生命周期是怎样控制？</strong>。</p>
+<p>当然你可以使用 Redux 或者其他状态管理器来维护这些缓存，但是有时候我们都不想用状态管理器.</p>
+<p><strong>能不能在组件内部缓存这些状态？答案是不行, 至少现在不可以</strong>, 由上面的自定义 Suspense 的实现可以解释: <strong>当 Suspense 切换到 pending 时，原有的组件树会被卸载，所有的组件状态都会丢失</strong>。</p>
+<p>听起来挺沮丧，看来将异步操作迁移到 Suspense 还得花点心思。</p>
+<p><br><br><br></p>
+<h2 id="缓存-suspense-的异步操作状态"><a href="#缓存-suspense-的异步操作状态" class="headerlink" title="缓存 Suspense 的异步操作状态"></a>缓存 Suspense 的异步操作状态</h2><p>上面说了，我们无法在组件内部缓存异步操作的状态，那么现在只能放在外部了，可以考虑这些方案:</p>
+<ul>
+<li>全局缓存。 例如全局变量、全局状态管理器(如Redux、Mobx)</li>
+<li>使用 Context API</li>
+<li>由父级组件来缓存状态</li>
+</ul>
+<p>下面会介绍后面两种</p>
+<p><br></p>
+<h3 id="使用-context-api"><a href="#使用-context-api" class="headerlink" title="使用 Context API"></a>使用 Context API</h3><p>我们先用 Context API 作为例子，简单介绍如何缓存 <code>Suspense</code> 异步操作的状态。</p>
+<p>首先定义一下异步操作的状态有哪些：</p>
+<p><img src="/images/concurrent-mode/promise.png" alt><br><i>其实就是Promise的状态</i></p>
+<p><br></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> enum PromiseState &#123;</span><br><span class="line">  Initial,  <span class="comment">// 初始化状态，即首次创建</span></span><br><span class="line">  Pending,  <span class="comment">// Promise 处于pending 状态</span></span><br><span class="line">  Resolved, <span class="comment">// 正常结束</span></span><br><span class="line">  Rejected, <span class="comment">// 异常</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 我们将保存在 Context 中的状态</span></span><br><span class="line"><span class="keyword">export</span> interface PromiseValue &#123;</span><br><span class="line">  state: PromiseState</span><br><span class="line">  value: any</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>现在创建一个 <code>React.Context</code> 专门来缓存异步状态, 为了行文简洁，我们这个Context很简单，就是一个 <code>key-value</code> 存储：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">interface ContextValues &#123;</span><br><span class="line">  getResult(key: string): PromiseValue</span><br><span class="line">  resetResult(key: string): <span class="keyword">void</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Context = React.createContext&lt;ContextValues&gt;(&#123;&#125; <span class="keyword">as</span> any)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> SimplePromiseCache: FC = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> cache = useRef&lt;<span class="built_in">Map</span>&lt;string, PromiseValue&gt; | <span class="literal">undefined</span>&gt;()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 根据key获取缓存</span></span><br><span class="line">  <span class="keyword">const</span> getResult = useCallback(<span class="function">(<span class="params">key: string</span>) =&gt;</span> &#123;</span><br><span class="line">    cache.current = cache.current || <span class="keyword">new</span> <span class="built_in">Map</span>()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (cache.current.has(key)) &#123;</span><br><span class="line">      <span class="keyword">return</span> cache.current.get(key)!</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> result = &#123; <span class="attr">state</span>: PromiseState.Initial, <span class="attr">value</span>: <span class="literal">undefined</span> &#125;</span><br><span class="line"></span><br><span class="line">    cache.current.set(key, result)</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 根据key c重置缓存</span></span><br><span class="line">  <span class="keyword">const</span> resetResult = useCallback(<span class="function">(<span class="params">key: string</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (cache.current != <span class="literal">null</span>)  cache.current.delete(key)</span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> value = useMemo(<span class="function"><span class="params">()</span> =&gt;</span> (&#123; getResult, resetResult, &#125;), [])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">Context.Provider</span> <span class="attr">value</span>=<span class="string">&#123;value&#125;</span>&gt;</span>&#123;props.children&#125;<span class="tag">&lt;/<span class="name">Context.Provider</span>&gt;</span></span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>后面是重头戏，我们创建一个 <code>usePromise</code> Hooks来封装异步操作, 简化繁琐的步骤:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @params prom 接收一个Promise，进行异步操作</span></span><br><span class="line"><span class="comment"> * @params key 缓存键</span></span><br><span class="line"><span class="comment"> * @return 返回一个包含请求结果的对象，以及一个reset方法, 用于重置缓存，并重新请求</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">usePromise</span>&lt;<span class="title">R</span>&gt;(<span class="params">prom: Promise&lt;R&gt;, key: string</span>): </span>&#123; data: R; reset: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">void</span> &#125; &#123;</span><br><span class="line">  <span class="comment">// 用于强制重新渲染组件</span></span><br><span class="line">  <span class="keyword">const</span> [, setCount] = useState(<span class="number">0</span>)</span><br><span class="line">  <span class="comment">// 获取context值</span></span><br><span class="line">  <span class="keyword">const</span> cache = useContext(Context)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️ 监听key变化，并重新发起请求</span></span><br><span class="line">  useEffect(</span><br><span class="line">    () =&gt; &#123;</span><br><span class="line">      setCount(<span class="function"><span class="params">c</span> =&gt;</span> c + <span class="number">1</span>)</span><br><span class="line">    &#125;,</span><br><span class="line">    [key],</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ️⚛️ 异步处理</span></span><br><span class="line">  <span class="comment">// 从 Context 中取出缓存</span></span><br><span class="line">  <span class="keyword">const</span> result = cache.getResult(key)</span><br><span class="line">  <span class="keyword">switch</span> (result.state) &#123;</span><br><span class="line">    <span class="keyword">case</span> PromiseState.Initial:</span><br><span class="line">      <span class="comment">// ⚛️初始状态</span></span><br><span class="line">      result.state = PromiseState.Pending</span><br><span class="line">      result.value = prom</span><br><span class="line">      prom.then(</span><br><span class="line">        value =&gt; &#123;</span><br><span class="line">          <span class="keyword">if</span> (result.state === PromiseState.Pending) &#123;</span><br><span class="line">            result.state = PromiseState.Resolved</span><br><span class="line">            result.value = value</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        err =&gt; &#123;</span><br><span class="line">          <span class="keyword">if</span> (result.state === PromiseState.Pending) &#123;</span><br><span class="line">            result.state = PromiseState.Rejected</span><br><span class="line">            result.value = err</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">      )</span><br><span class="line">      <span class="comment">// 抛出promise，并中断渲染</span></span><br><span class="line">      <span class="keyword">throw</span> prom</span><br><span class="line">    <span class="keyword">case</span> PromiseState.Pending:</span><br><span class="line">      <span class="comment">// ⚛️ 还处于请求状态，一个任务可能有多个组件触发，后面的渲染的组件可能会拿到Pending状态</span></span><br><span class="line">      <span class="keyword">throw</span> result.value</span><br><span class="line">    <span class="keyword">case</span> PromiseState.Resolved:</span><br><span class="line">      <span class="comment">// ⚛️ 已正常结束</span></span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        data: result.value,</span><br><span class="line">        reset: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">          cache.resetResult(key)</span><br><span class="line">          setCount(<span class="function"><span class="params">c</span> =&gt;</span> c + <span class="number">1</span>)</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="keyword">case</span> PromiseState.Rejected:</span><br><span class="line">      <span class="comment">// ⚛️ 异常结束，抛出错误</span></span><br><span class="line">      <span class="keyword">throw</span> result.value</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的代码也没有特别难的地方，就是根据当前的异常请求的状态决定要抛出 Promise 还是返回异步请求的结果。</p>
+<p>赶紧用起来, 首先用 <code>SimplePromiseCache</code> 包裹 <code>Suspense</code> 的上级组件，以便下级组件可以获取到缓存:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">App</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">SimplePromiseCache</span>&gt;</span></span></span><br><span class="line">    &lt;Suspense fallback="loading..."&gt;</span><br><span class="line">      &lt;DelayShow timeout=&#123;3000&#125;/&gt;</span><br><span class="line">    &lt;/Suspense&gt;</span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">SimplePromiseCache</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>小试牛刀:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">DelayShow</span>(<span class="params">&#123;timeout&#125;: &#123;timeout: number&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; data &#125; = usePromise(</span><br><span class="line">    <span class="keyword">new</span> <span class="built_in">Promise</span>&lt;number&gt;(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">      setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> res(timeout), timeout)</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="string">'delayShow'</span>, <span class="comment">// 缓存键</span></span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>DelayShow: &#123;data&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码的运行效果如下：</p>
+<p><img src="/images/concurrent-mode/usePromise.gif" alt></p>
+<p><br></p>
+<p>这一节展示了如何通过 Context API 来对异步操作进行缓存，这可能比你想象的要复杂的点，手动去管理这些缓存确实是一个棘手的问题(<strong>用什么作为缓存键，怎么判断缓存有效，怎么回收缓存</strong>)。包括 React 官方也没有给出一个完美的答案, 这个坑还是留给社区去探索吧。</p>
+<p>除非你是库的作者，对于普通 React 开发者来说不必过早关注这些细节，相信很快会有很多 React 数据请求相关的第三方库会跟进 Suspense。</p>
+<blockquote>
+<p>React 官方有一个实验性的库: <a href="https://github.com/facebook/react/tree/master/packages/react-cache" target="_blank" rel="noopener">react-cache</a>, 目前采用的是 LRU 全局缓存</p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="将缓存状态提取到父级"><a href="#将缓存状态提取到父级" class="headerlink" title="将缓存状态提取到父级"></a>将缓存状态提取到父级</h3><p><strong>既然无法在 Suspense 的子组件中缓存异步状态，那就提到父级组件呗，这样可以避免全局状态，不需要考虑缓存生命周期管理, 我们可以更灵活地管理这些状态，另外还可以简化下级组件逻辑</strong>。相比 Context API，我个人觉得这是一种更普适的方式。</p>
+<p><br></p>
+<p>So，怎么做？我们基于 <code>usePromise</code>, 再创建一个 <code>createResource</code> 函数, 它不再是一个Hooks，而是创建一个<strong>资源对象</strong>, 函数签名如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createResource</span>&lt;<span class="title">R</span>&gt;(<span class="params">prom: (</span>) =&gt; <span class="title">Promise</span>&lt;<span class="title">R</span>&gt;): <span class="title">Resource</span>&lt;<span class="title">R</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>createResource</code> 返回一个 <code>Resource</code> 对象:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">interface Resource&lt;R&gt; &#123;</span><br><span class="line">  <span class="comment">// 读取'资源', 在Suspense包裹的下级组件中调用, 和上文的usePromise一样的效果</span></span><br><span class="line">  read(): R</span><br><span class="line">  <span class="comment">// ⚛️外加的好处，预加载</span></span><br><span class="line">  preload(): <span class="keyword">void</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>⚛️Resource 对象在父级组件中创建, 然后通过Props传递给下级组件，下级组件调用 <code>read()</code> 方法来读取数据。<code>对于下级组件来说 Resource 和普通的对象没什么区别，它察觉不出来这是一个异步请求</code></strong>。这就是这种 Suspense 的精妙之处!</p>
+<p>另外由于 Resource 对象是在父级组件创建的，这有一个外加的好处: <strong>我们可以在显示下级组件之前，执行 <code>preload()</code> 预先执行异步操作</strong>。</p>
+<p><br></p>
+<p><code>createResource</code> 实现：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">createResource</span>&lt;<span class="title">R</span>&gt;(<span class="params">prom: (</span>) =&gt; <span class="title">Promise</span>&lt;<span class="title">R</span>&gt;): <span class="title">Resource</span>&lt;<span class="title">R</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">// 缓存</span></span><br><span class="line">  <span class="keyword">const</span> result: PromiseValue = &#123;</span><br><span class="line">    state: PromiseState.Initial,</span><br><span class="line">    value: prom,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">initial</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (result.state !== PromiseState.Initial) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    result.state = PromiseState.Pending</span><br><span class="line">    <span class="keyword">const</span> p = (result.value = result.value())</span><br><span class="line">    p.then(</span><br><span class="line">      (value: any) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (result.state === PromiseState.Pending) &#123;</span><br><span class="line">          result.state = PromiseState.Resolved</span><br><span class="line">          result.value = value</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      (err: any) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (result.state === PromiseState.Pending) &#123;</span><br><span class="line">          result.state = PromiseState.Rejected</span><br><span class="line">          result.value = err</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> p</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    read() &#123;</span><br><span class="line">      <span class="keyword">switch</span> (result.state) &#123;</span><br><span class="line">        <span class="keyword">case</span> PromiseState.Initial:</span><br><span class="line">          <span class="comment">// ⚛️初始状态</span></span><br><span class="line">          <span class="comment">// 抛出promise，并中断渲染</span></span><br><span class="line">          <span class="keyword">throw</span> initial()</span><br><span class="line">        <span class="keyword">case</span> PromiseState.Pending:</span><br><span class="line">          <span class="comment">// ⚛️ 还处于请求状态，一个任务可能有多个组件触发，后面的渲染的组件可能会拿到Pending状态</span></span><br><span class="line">          <span class="keyword">throw</span> result.value</span><br><span class="line">        <span class="keyword">case</span> PromiseState.Resolved:</span><br><span class="line">          <span class="comment">// ⚛️ 已正常结束</span></span><br><span class="line">          <span class="keyword">return</span> result.value</span><br><span class="line">        <span class="keyword">case</span> PromiseState.Rejected:</span><br><span class="line">          <span class="comment">// ⚛️ 异常结束，抛出错误</span></span><br><span class="line">          <span class="keyword">throw</span> result.value</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 预加载</span></span><br><span class="line">    preload: initial,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>createResource</code> 的用法也很简单, 在父组件创建 Resource，接着通过 Props 传递给子组件。 下面展示一个Tabs组件，渲染三个子Tab，因为同时只能显示一个Tab，我们可以选择预加载那些未显示的Tab, 来提升它们的打开速度:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> App = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> [active, setActive] = useState(<span class="string">'tab1'</span>)</span><br><span class="line">  <span class="comment">// 创建 Resource</span></span><br><span class="line">  <span class="keyword">const</span> [resources] = useState(<span class="function"><span class="params">()</span> =&gt;</span> (&#123;</span><br><span class="line">    tab1: createResource(<span class="function"><span class="params">()</span> =&gt;</span> fetchPosts()),</span><br><span class="line">    tab2: createResource(<span class="function"><span class="params">()</span> =&gt;</span> fetchOrders()),</span><br><span class="line">    tab3: createResource(<span class="function"><span class="params">()</span> =&gt;</span> fetchUsers()),</span><br><span class="line">  &#125;))</span><br><span class="line"></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 预加载未展示的Tab数据</span></span><br><span class="line">    <span class="built_in">Object</span>.keys(resources).forEach(<span class="function"><span class="params">name</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (name !== active) &#123;</span><br><span class="line">        resources[name].preload()</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"app"</span>&gt;</span></span></span><br><span class="line">    &lt;Suspense fallback="loading..."&gt;</span><br><span class="line">      &lt;Tabs active=&#123;active&#125; onChange=&#123;setActive&#125;&gt;</span><br><span class="line">        &lt;Tab key="tab1"&gt;&lt;Posts resource=&#123;resources.tab1&#125;&gt;&lt;/Posts&gt;&lt;/Tab&gt;</span><br><span class="line">        &lt;Tab key="tab2"&gt;&lt;Orders resource=&#123;resources.tab2&#125;&gt;&lt;/Orders&gt;&lt;/Tab&gt;</span><br><span class="line">        &lt;Tab key="tab3"&gt;&lt;Users resource=&#123;resources.tab3&#125;&gt;&lt;/Users&gt;&lt;/Tab&gt;</span><br><span class="line">      &lt;/Tabs&gt;</span><br><span class="line"><span class="xml">    <span class="tag">&lt;/<span class="name">Suspense</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们随便挑一个子组件, 看一下它的实现：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Posts: FC&lt;&#123;<span class="attr">resource</span>: Resource&lt;Post[]&gt;&#125;&gt; = <span class="function">(<span class="params">&#123;resource&#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> posts = resource.read()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"posts"</span>&gt;</span></span></span><br><span class="line">    &#123;posts.map(i =&gt; &lt;PostSummary key=&#123;i.id&#125; value=&#123;i&#125; /&gt;)&#125;</span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span>)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Ok, 这种方式相比 Context API 好很多了，我个人也偏向这种形式。这种模式下，因为 Resource 是由外部传入的，所以组件行为是确定的，容易被测试和复用。</p>
+<p><br></p>
+<p>不过两种各有应用场景:</p>
+<ul>
+<li>Context API 模式比较适合第三方数据请求库，比如Apollo、Relay。这种模式下，API会更加简洁、优雅。参考 <a href="https://relay.dev/docs/en/experimental/api-reference#uselazyloadquery" target="_blank" rel="noopener">Relay 的 API</a></li>
+<li>createResource 模式则更适合普通开发者封装自己的异步操作。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="并发发起请求"><a href="#并发发起请求" class="headerlink" title="并发发起请求"></a>并发发起请求</h2><p><img src="/images/concurrent-mode/twitter.png" alt></p>
+<p><br></p>
+<p>如上图，现实项目中经常会有这种场景，一个复杂的界面数据可能来源于多个接口，例如:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 用户信息页面</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfilePage</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [user, setUser] = useState(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 先拿到用户信息</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    fetchUser().then(<span class="function"><span class="params">u</span> =&gt;</span> setUser(u));</span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (user === <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Loading profile...<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;&gt;</span><br><span class="line">      &lt;h1&gt;&#123;user.name&#125;&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">      &lt;ProfileTimeline /</span>&gt;</span><br><span class="line">    &lt;<span class="regexp">/&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span>**</span><br><span class="line"> * 用户时间线</span><br><span class="line"> *<span class="regexp">/ </span></span><br><span class="line"><span class="regexp">function ProfileTimeline() &#123;</span></span><br><span class="line"><span class="regexp">  const [posts, setPosts] = useState(null);</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">  useEffect(() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    fetchPosts().then(p =&gt; setPosts(p));</span></span><br><span class="line"><span class="regexp">  &#125;, []);</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">  if (posts === null) &#123;</span></span><br><span class="line"><span class="regexp">    return &lt;h2&gt;Loading posts...&lt;/</span>h2&gt;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;ul&gt;</span><br><span class="line">      &#123;posts.map(<span class="function"><span class="params">post</span> =&gt;</span> (</span><br><span class="line">        &lt;li key=&#123;post.id&#125;&gt;&#123;post.text&#125;&lt;<span class="regexp">/li&gt;</span></span><br><span class="line"><span class="regexp">      ))&#125;</span></span><br><span class="line"><span class="regexp">    &lt;/u</span>l&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的代码示例来源于官方文档。上面代码 <code>fetchUser</code> 和 <code>fetchPosts</code> 是串行加载的，我们想让页面尽快的加载出来, 解决这个问题有两个方案：</p>
+<ul>
+<li>1️⃣ 将 fetchPosts 提到上级, 使用 <code>Promise.all</code> 并发加载</li>
+<li>2️⃣ 将两者抽取成独立的组件，变成兄弟关系而不是父子关系. 这样可以被并发渲染，从而并发发起请求</li>
+</ul>
+<p><br></p>
+<p>首先来看一下 1️⃣:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fetchProfileData</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 使用 promise all 并发加载</span></span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Promise</span>.all([</span><br><span class="line">    fetchUser(),</span><br><span class="line">    fetchPosts()</span><br><span class="line">  ]).then(<span class="function">(<span class="params">[user, posts]</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;user, posts&#125;;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> promise = fetchProfileData();</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfilePage</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [user, setUser] = useState(<span class="literal">null</span>);</span><br><span class="line">  <span class="keyword">const</span> [posts, setPosts] = useState(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    promise.then(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">      setUser(data.user);</span><br><span class="line">      setPosts(data.posts);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (user === <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Loading profile...<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;&gt;</span><br><span class="line">      &lt;h1&gt;&#123;user.name&#125;&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">      &#123;/</span>* ProfileTimeline 变成了纯组件，不包含业务请求 *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">      &lt;ProfileTimeline posts=&#123;posts&#125; /</span>&gt;</span><br><span class="line">    &lt;<span class="regexp">/&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>看起来不错，然后这个方式也存在硬伤:</p>
+<ul>
+<li>① 异步请求都要上提，然后使用 <code>Promise.all</code> 包裹，我觉得好麻烦, 复杂页面怎么办？</li>
+<li>② 现在加载时间取决于 Promise.all 中执行最长的操作，说好的尽快渲染出来呢？fetchPosts 可能会加载很长，而 fetchUser 应该很快完成了，如果 fetchUser 先执行完，至少应该让用户先看到用户信息。</li>
+</ul>
+<p><br></p>
+<p>1️⃣方案不是特别好，来看一下2️⃣方案:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfilePage</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"profile-page"</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">ProfileDetails</span> /&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">ProfileTimeline</span> /&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>2️⃣方案是没有 Suspense 之前最好的方式，ProfileDetails 负责加载用户信息，ProfileTimeline 负责加载时间线，两者并发执行，互不干扰。</p>
+<p>但是它也是有缺点：页面加载是会有两个<code>加载指示符</code>, 能不能合并？有可能 ProfileTimeline 先完成了，这时候 ProfileDetails 还在转圈，页面会很怪…</p>
+<p><br></p>
+<p>现在有请方案 3️⃣: <code>Suspense</code> 🎉</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> resource = fetchProfileData();</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfilePage</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Suspense fallback=&#123;&lt;h1&gt;Loading profile...&lt;<span class="regexp">/h1&gt;&#125;&gt;</span></span><br><span class="line"><span class="regexp">      &lt;ProfileDetails /</span>&gt;</span><br><span class="line">      &lt;Suspense fallback=&#123;&lt;h1&gt;Loading posts...&lt;<span class="regexp">/h1&gt;&#125;&gt;</span></span><br><span class="line"><span class="regexp">        &lt;ProfileTimeline /</span>&gt;</span><br><span class="line">      &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Suspense&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfileDetails</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> user = resource.user.read();</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;user.name&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ProfileTimeline</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> posts = resource.posts.read();</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;ul&gt;</span><br><span class="line">      &#123;posts.map(<span class="function"><span class="params">post</span> =&gt;</span> (</span><br><span class="line">        &lt;li key=&#123;post.id&#125;&gt;&#123;post.text&#125;&lt;<span class="regexp">/li&gt;</span></span><br><span class="line"><span class="regexp">      ))&#125;</span></span><br><span class="line"><span class="regexp">    &lt;/u</span>l&gt;</span><br><span class="line">  );</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>当 React 渲染 ProfilePage 时, 它会返回 ProfileDetails 和 ProfileTimeline。</p>
+<p>首先渲染 ProfileDetails 这时候资源未加载完毕，抛出 promise 异常，中断 ProfileDetails 的渲染。</p>
+<p>接着 React 尝试渲染 ProfileTimeline, 同样抛出promise异常。</p>
+<p>最后 React 找到 ProfileDetails 最近的Suspense，显示 Loading Profile…</p>
+<p>和方案2️⃣一样，Suspense 支持并发发起请求，另外它解决了方案 2️⃣ 的一些缺陷: 加载指示符只有一个，而且如果 ProfileTimeline 率先完成，也不会显示出来。</p>
+<p>不止于此，下文会介绍更为灵活的 Suspense 加载状态的显示策略。</p>
+<p><br><br><br></p>
+<h2 id="处理竞态"><a href="#处理竞态" class="headerlink" title="处理竞态"></a>处理竞态</h2><p><strong>就算 Javascript 是单线程的, 也可能需要处理竞争状态，主要是因为异步操作的时序是无法被保证的</strong>。</p>
+<p>少卖关子，讲个实例。有这样一个组件，它依赖外部传递进来的 id 来异步获取数据:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UserInfo</span>(<span class="params">&#123;id&#125;: &#123;id: string&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [user, setUser] = useState&lt;User|<span class="literal">undefined</span>&gt;()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * ⚛️ 监听id变化并发起请求</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    fetchUserInfo().then(<span class="function"><span class="params">user</span> =&gt;</span> setUser(user))</span><br><span class="line">  &#125;, [id])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> user == <span class="literal">null</span> ? <span class="xml"><span class="tag">&lt;<span class="name">Loading</span> /&gt;</span> : renderUser(user)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的代码有什么问题呢？假设id变化了多次，这里会发起多个请求，但是这些请求完成的顺序没办法保证，这就会导致竞态，先发起的请求可能最后才完成，这就导致页面呈现错误的数据。</p>
+<p><br></p>
+<p>怎么解决？也比较好解决，利用类似<strong>乐观锁</strong>的机制。我们可以保存本次请求的id，如果请求结束时 id 不一致，就说明已经有新的请求发起了:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UserInfo</span>(<span class="params">&#123;id&#125;: &#123;id: string&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [user, setUser] = setState&lt;User|<span class="literal">undefined</span>&gt;()</span><br><span class="line">  <span class="keyword">const</span> currentId = useRef&lt;string&gt;()</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * ⚛️ 监听id变化并发起请求</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    currentId.current = id</span><br><span class="line">    fetchUserInfo().then(<span class="function"><span class="params">user</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// id 不一致，说明已经有新的请求发起了, 放弃</span></span><br><span class="line">      <span class="keyword">if</span> (id !== currentId.current) &#123;</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      setUser(user)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;, [id])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> user == <span class="literal">null</span> ? <span class="xml"><span class="tag">&lt;<span class="name">Loading</span> /&gt;</span> : renderUser(user)</span></span><br><span class="line"><span class="xml">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Suspense 下面不存在竞态问题，上面的代码用 Suspense 实现如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UserInfo</span>(<span class="params">&#123;resource&#125;: &#123;resource: Resource&lt;User&gt;&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> user = resource.read()</span><br><span class="line">  <span class="keyword">return</span> renderUser(user)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我靠, 这么简洁！传递给 UserInfo 的就是一个简单的对象, 没有竞态. </p>
+<p>那它的上级组件呢?</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createUserResource</span>(<span class="params">id: string</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    info: createResource(<span class="function"><span class="params">()</span> =&gt;</span> fecthUserInfo(id)),</span><br><span class="line">    timeline: createResource(<span class="function"><span class="params">()</span> =&gt;</span> fecthTimeline(id)),</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UserPage</span>(<span class="params">&#123;id&#125;: &#123;id: string&#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> [resource, setResource] = useState(<span class="function"><span class="params">()</span> =&gt;</span> createUserResource(id))</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ⚛️ 将id的监听迁移到了这里</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 重新设置resource</span></span><br><span class="line">    setResource(createUserResource(id))</span><br><span class="line">  &#125;, [id])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">"user-page"</span>&gt;</span></span></span><br><span class="line">    &lt;Suspense loading="Loading User..."&gt;</span><br><span class="line">      &lt;UserInfo resource=&#123;resource.info&#125; /&gt;</span><br><span class="line">      &lt;Timeline resource=&#123;resource.timeline&#125; /&gt;</span><br><span class="line">    &lt;/Suspense&gt;</span><br><span class="line">  &lt;/div&gt;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>异步请求被转换成了’资源对象’，在这里只不过是一个普通的对象, 通过 Props 传递, 完美解决了异步请求的竞态问题…</p>
+<p><br></p>
+<blockquote>
+<p><strong>另外 Suspense 还解决一个问题</strong>：在执行完异步操作后，我们的页面可能已经切换了，这时候通过 setState 设置组件状态，React就会抛出异常: <code>Can&#39;t perform a React state update on an unmounted component.</code>, 现在这个问题自然也解决了</p>
+</blockquote>
+<p><br><br><br></p>
+<h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><p>如果异步请求异常了怎么解决？ 我们在上文 Suspense 实现原理一节已经说了，如果异步请求失败，React 会抛出异常，我们可以通过 ErrorBoundary 机制将其捕获。</p>
+<p>我们写一个高阶组件来简化 Suspense 和 异常处理的过程:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">sup</span>&lt;<span class="title">P</span>&gt;(<span class="params"></span></span></span><br><span class="line"><span class="function"><span class="params">  fallback: NonNullable&lt;React.ReactNode&gt;,</span></span></span><br><span class="line"><span class="function"><span class="params">  catcher: (err: any</span>) =&gt; <span class="title">NonNullable</span>&lt;<span class="title">React</span>.<span class="title">ReactNode</span>&gt;,</span></span><br><span class="line"><span class="function">) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function">(<span class="params">Comp: React.ComponentType&lt;P&gt;</span>) =&gt;</span> &#123;</span><br><span class="line">    interface State &#123;</span><br><span class="line">      error?: any</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Sup</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span>&lt;<span class="title">P</span>, <span class="title">State</span>&gt; </span>&#123;</span><br><span class="line">      state: State = &#123;&#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 捕获异常</span></span><br><span class="line">      <span class="keyword">static</span> getDerivedStateFromError(error: any) &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123; error &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      render() &#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">          &lt;Suspense fallback=&#123;fallback&#125;&gt;</span><br><span class="line">            &#123;<span class="keyword">this</span>.state.error ? catcher(<span class="keyword">this</span>.state.error) : <span class="xml"><span class="tag">&lt;<span class="name">Comp</span> &#123;<span class="attr">...this.props</span>&#125; /&gt;</span>&#125;</span></span><br><span class="line"><span class="xml">          <span class="tag">&lt;/<span class="name">Suspense</span>&gt;</span></span></span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> Sup</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>用起来:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// UserInfo.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> UserInfo: FC&lt;UserInfoProps&gt; = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;<span class="comment">/* ... */</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> sup(</span><br><span class="line">  &lt;Loading text=<span class="string">"用户加载中..."</span>/&gt;,</span><br><span class="line">  (err) =&gt; <span class="xml"><span class="tag">&lt;<span class="name">ErrorMessage</span> <span class="attr">error</span>=<span class="string">&#123;err&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="xml">)(UserInfo)</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>减少了一些样板代码，还算比较简洁吧?。</p>
+<p><br><br><br></p>
+<h2 id="suspense-编排"><a href="#suspense-编排" class="headerlink" title="Suspense 编排"></a>Suspense 编排</h2><p>如果页面上有很多 Suspense, 那么多个圈在转，用户体验并不好。</p>
+<p>但是我们又不好直接将它们合并，因为每一块加载优先级、生命周期都不一样，强行绑到一个 Suspense 也不好。例如:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">UserPage</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">Suspense</span> <span class="attr">fallback</span>=<span class="string">"loading..."</span>&gt;</span></span></span><br><span class="line">    &lt;UserInfo resource=&#123;infoResource&#125; /&gt;</span><br><span class="line">    &lt;UserPost resource=&#123;postResource&#125; /&gt;</span><br><span class="line">  &lt;/Suspense&gt;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假设 UserPost 需要进行分页，每次点击下一页都会导致整个 <code>UserPage</code> loading… 这肯定无法接受…</p>
+<p><br></p>
+<p><strong>因此 Concurrent 模式引入了一个新的API <code>SuspenseList</code>, 用来对多个 Suspense 的加载状态进行编排。我们可以根据实际的场景选择加载状态的显示策略</strong>。例如</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Page</span>(<span class="params">&#123; resource &#125;</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;SuspenseList revealOrder=<span class="string">"forwards"</span>&gt;</span><br><span class="line">      &lt;Suspense fallback=&#123;&lt;h2&gt;Loading Foo...&lt;<span class="regexp">/h2&gt;&#125;&gt;</span></span><br><span class="line"><span class="regexp">        &lt;Foo resource=&#123;resource&#125; /</span>&gt;</span><br><span class="line">      &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">      &lt;Suspense fallback=&#123;&lt;h2&gt;Loading Bar...&lt;/</span>h2&gt;&#125;&gt;</span><br><span class="line">        &lt;Bar resource=&#123;resource&#125; /&gt;</span><br><span class="line">      &lt;<span class="regexp">/Suspense&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>SuspenseList&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>假设 <code>Foo</code> 加载时间是 <code>5s</code>，而 <code>Bar</code> 加载完成时间是 <code>2s</code>。SuspenseList 的各种编排组合的效果如下:</p>
+<p><img src="/images/concurrent-mode/suspense-list.gif" alt><br><i>可以通过这个 <a href="https://codesandbox.io/s/react-suspenselist-sk3rj?fontsize=14" target="_blank" rel="noopener">CodeSandbox 示例</a> 体验 </i></p>
+<p><br></p>
+<p><code>revealOrder</code> 表示显示的顺序，它目前有三个可选值: <code>forwards</code>, <code>backwards</code>, <code>together</code></p>
+<ul>
+<li><code>forwards</code> - 由前到后显示。也就说前面的没有加载完成，后面的也不会显示. 即使后面的 Suspense 提前完成异步操作，也需要等待前面的执行完成</li>
+<li><code>backwards</code> - 和forwards相反, 由后到前依次显示.</li>
+<li><code>together</code> - 等所有Suspense 加载完成后一起显示</li>
+</ul>
+<p><br></p>
+<p>除此之外 <code>SuspenseList</code> 还有另外一个属性 <code>tail</code>, 用来控制是否要折叠这些 Suspense，它有三个值 <code>默认值</code>, <code>collapsed</code>, <code>hidden</code></p>
+<ul>
+<li>默认值 - 全部显示</li>
+<li><code>collapsed</code> - 折叠，只显示第一个正在加载的Suspense</li>
+<li><code>hidden</code> - 不显示任何加载状态</li>
+</ul>
+<p><br></p>
+<p>另外 SuspenseList 是可组合的，SuspenseList 下级可以包含其他 SuspenseList.</p>
+<p><br><br><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文的主角是 <code>Suspense</code>, 如果说 <code>React Hooks</code> 是React提供的逻辑复用原语，ErrorBoundary 是异常捕获原语，那么 Suspense 将是 React 的异步操作原语。通过Suspense + ErrorBoundary，简化了手动去处理加载状态和异常状态。</p>
+<p>Suspense 可以理解为中断渲染、或者暂停渲染的意思。我们简单探讨了 Suspense 的实现原理，它不过是利用了 ErrorBoundary 的异常抛出机制来中断渲染，配合 Suspense 组件在异步操作完结后恢复组件的渲染。</p>
+<p>不过组件在重新渲染(重入)时，所有状态都丢失了，无法在组件本地保存异步处理的状态，所以得向外求，将异步处理的状态缓存在全局或者上级组件。</p>
+<p>有人会说 React 已经不纯了、不够函数式了。我不敢擅作评论，我不是虔诚的函数式编程爱好者，我觉得只要能更好的解决问题，哪种编程范式无所谓。自从 React Hooks 出来后，就没有所谓的纯函数式组件了。对于 Suspense 来说，createResource 模式也可以让一个组件的行为变得可被预测和测试。关于其他的痛点，还是要进一步实践和验证。</p>
+<p>Suspense 让人非常兴奋，它不仅解决了一些以往异步处理的问题，还带来了新的开发方式。心急的同学可以在自己的实验项目中尝试它。</p>
+<p><br><br><br></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://reactjs.org/docs/concurrent-mode-suspense.html" target="_blank" rel="noopener">Suspense for Data Fetching (Experimental)</a></li>
+<li><a href="https://www.youtube.com/watch?v=ByBPyMBTzM0" target="_blank" rel="noopener">Concurrent Rendering in React - Andrew Clark and Brian Vaughn - React Conf 2018</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/34210780" target="_blank" rel="noopener">React：Suspense的实现与探讨</a></li>
+<li><a href="https://github.com/facebook/react/blob/master/packages/react-cache/src/ReactCache.js" target="_blank" rel="noopener">react-cache</a></li>
+</ul>
+<p><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是-concurrent-模式"><span class="toc-number">1.</span> <span class="toc-text">什么是 Concurrent 模式?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启用-concurrent-模式"><span class="toc-number">2.</span> <span class="toc-text">启用 Concurrent 模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是-suspense"><span class="toc-number">3.</span> <span class="toc-text">什么是 Suspense?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#suspense-的实现原理"><span class="toc-number">4.</span> <span class="toc-text">Suspense 的实现原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缓存-suspense-的异步操作状态"><span class="toc-number">5.</span> <span class="toc-text">缓存 Suspense 的异步操作状态</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#使用-context-api"><span class="toc-number">5.1.</span> <span class="toc-text">使用 Context API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#将缓存状态提取到父级"><span class="toc-number">5.2.</span> <span class="toc-text">将缓存状态提取到父级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#并发发起请求"><span class="toc-number">6.</span> <span class="toc-text">并发发起请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理竞态"><span class="toc-number">7.</span> <span class="toc-text">处理竞态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#错误处理"><span class="toc-number">8.</span> <span class="toc-text">错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#suspense-编排"><span class="toc-number">9.</span> <span class="toc-text">Suspense 编排</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料"><span class="toc-number">11.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/10/26/concurrent-mode-suspense/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&text=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&is_video=false&description=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React Concurrent 模式抢先预览上篇: Suspense the world&body=Check out this article: https://bobi.ink/2019/10/26/concurrent-mode-suspense/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&title=React Concurrent 模式抢先预览上篇: Suspense the world"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/10/26/concurrent-mode-suspense/&name=React Concurrent 模式抢先预览上篇: Suspense the world&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

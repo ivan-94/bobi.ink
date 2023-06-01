@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="原文地址: How JavaScript works in browser and node? 有非常多满怀激情的开发者，他们搞前端或者搞后端，为JavaScript奉献自己青春和血汗。JavaScript是一种非常容易理解语言，毫无疑问它是前端开发中一个非常关键的部分。但是和其他语言不同的是， 它是单线程的，这就意味着，同一时间只能有一个代码片段在执行。因为代码执行是线性的，如果当中有任何代码执">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器和Node中的JavaScript是如何工作的? 可视化解释">
+<meta property="og:url" content="https://bobi.ink/2019/08/29/js-bs/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="原文地址: How JavaScript works in browser and node? 有非常多满怀激情的开发者，他们搞前端或者搞后端，为JavaScript奉献自己青春和血汗。JavaScript是一种非常容易理解语言，毫无疑问它是前端开发中一个非常关键的部分。但是和其他语言不同的是， 它是单线程的，这就意味着，同一时间只能有一个代码片段在执行。因为代码执行是线性的，如果当中有任何代码执">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/crashed.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/crashed2.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/vis1.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/stack-vs-heap.jpg">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/vis1.gif">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/err-msg.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/overstack.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/underhood.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/webapi-call.png">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/vis2.gif">
+<meta property="og:image" content="https://bobi.ink/images/js-bs/node.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浏览器和Node中的JavaScript是如何工作的? 可视化解释">
+<meta name="twitter:description" content="原文地址: How JavaScript works in browser and node? 有非常多满怀激情的开发者，他们搞前端或者搞后端，为JavaScript奉献自己青春和血汗。JavaScript是一种非常容易理解语言，毫无疑问它是前端开发中一个非常关键的部分。但是和其他语言不同的是， 它是单线程的，这就意味着，同一时间只能有一个代码片段在执行。因为代码执行是线性的，如果当中有任何代码执">
+<meta name="twitter:image" content="https://bobi.ink/images/js-bs/crashed.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>浏览器和Node中的JavaScript是如何工作的? 可视化解释</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/09/06/fe-design/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/08/22/ts-fam/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/29/js-bs/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/29/js-bs/&text=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/29/js-bs/&is_video=false&description=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器和Node中的JavaScript是如何工作的? 可视化解释&body=Check out this article: https://bobi.ink/2019/08/29/js-bs/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/29/js-bs/&name=浏览器和Node中的JavaScript是如何工作的? 可视化解释&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#调用栈-call-stack"><span class="toc-number">1.</span> <span class="toc-text">调用栈(Call Stack)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事件循环与web-api"><span class="toc-number">2.</span> <span class="toc-text">事件循环与Web API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#node-js"><span class="toc-number">3.</span> <span class="toc-text">Node.js</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        浏览器和Node中的JavaScript是如何工作的? 可视化解释
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-08-28T16:00:00.000Z" itemprop="datePublished">2019-08-29</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>原文地址: <a href="https://itnext.io/how-javascript-works-in-browser-and-node-ab7d0d09ac2f" target="_blank" rel="noopener">How JavaScript works in browser and node?</a></p>
+<p>有非常多满怀激情的开发者，他们搞前端或者搞后端，为JavaScript奉献自己青春和血汗。JavaScript是一种非常容易理解语言，毫无疑问它是前端开发中一个非常关键的部分。但是和其他语言不同的是， 它是单线程的，这就意味着，同一时间只能有一个代码片段在执行。因为代码执行是线性的，如果当中有任何代码执行很长时间，将会阻塞后面需要被执行的代码。因此有时候你会在Google Chrome中看到这样的界面:</p>
+<p><br></p>
+<p><img src="/images/js-bs/crashed.png" alt></p>
+<p><br></p>
+<p>当你在浏览器打开一个网站时，它会使用一个JavaScript执行线程。这个线程负责响应一切操作，比如页面滚动、页面渲染、监听DOM事件(比如用户点击按钮)等等。但是如果JavaScript执行被阻塞了，那浏览器就什么事情也做不了，即意味着浏览器会呈现为卡死，无法响应的现象。</p>
+<p>不信你就在控制台输入试试:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;&#125;</span><br><span class="line"><span class="comment">// ...</span></span><br></pre></td></tr></table></figure>
+<p>你会上面语句之后的任何代码都不会被执行，这个‘死循环’会霸占着系统资源, 让浏览器无法响应用户操作. 无限递归调用也会出现这种情况, 不过下文会介绍，Javascript引擎对调用栈长度进行限制，无限递归会抛出RangeError异常, 而不会无休止地运行。</p>
+<p><br></p>
+<p><img src="/images/js-bs/crashed2.png" alt></p>
+<p><br></p>
+<p>感谢现代浏览器，现在不是所有打开的标签页都依赖于一个JavaScript线程。而是每个标签页或者域名都会有独立的JavaScript线程。这样每个标签页之间不会互相阻塞。比如你可以在Chrome中打开多个标签页，在某个标签页下执行上面的死循环，你会发现只有执行了上面语句的标签卡死，其他不受影响。</p>
+<p><br><br><br></p>
+<h2 id="调用栈-call-stack"><a href="#调用栈-call-stack" class="headerlink" title="调用栈(Call Stack)"></a>调用栈(Call Stack)</h2><p>为了可视化JavaScript 如何执行程序，我们首先要理解JavaScript运行时。</p>
+<p><img src="/images/js-bs/vis1.png" alt></p>
+<p><br></p>
+<p>和其他编程语言一样，JavaScript运行时有一个栈(Stack)和一个堆(Heap)存储器。</p>
+<p><img src="/images/js-bs/stack-vs-heap.jpg" alt></p>
+<p>上图来源于<a href="Confused about Stack and Heap?">Fhinkel</a>文章，关于栈和堆之间的差异讲得比较清晰. 举个例子:</p>
+<p><em>在Java或者C#中， 值类型(primitives原始类型)存储在栈中，而引用类型(reference)则存储在堆中。C++规范没有规定栈和堆的内存分配，而是使用<code>自动存储(automatic)期</code>和<code>动态存储(dynamic)期</code>来作区分，局部变量是自动存储期，编译器会将它们存储在栈中。而动态分配的对象则通常保存在堆中。放在栈中的数据会在函数执行完毕后自动回收，而放在堆中的对象，如果没有释放就会造成<strong>内存泄露</strong></em></p>
+<p><br></p>
+<p>本文不会深入解释Heap，你可以看<a href="https://hashnode.com/post/does-javascript-use-stack-or-heap-for-memory-allocation-or-both-cj5jl90xl01nh1twuv8ug0bjk" target="_blank" rel="noopener">这里</a>. 在本文我们感兴趣的是栈，<strong>栈是一个LIFO(后进先出)的数据结构，用来保存程序当前的函数执行上下文, 换句话说，它表示的是当前程序执行的位置. 每次开始执行一个函数，就会将该函数推入栈中，当函数返回时从栈中弹出。 当栈为空时表示没有程序正在执行。所以栈常常也称为‘调用栈’</strong>。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">baz</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">   <span class="built_in">console</span>.log(<span class="string">'Hello from baz'</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   baz();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   bar();</span><br><span class="line">&#125;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+<p>因此, 当上面的程序加载进内存时，会开始执行第一个函数，即<code>foo</code>。 因此第一个栈元素就是<code>foo()</code>, 因为<code>foo</code>函数会调用<code>bar</code>函数，第二个栈元素就是<code>bar()</code>; 同理<code>bar</code>函数会调用<code>baz</code>，第三个栈元素就是<code>baz()</code>. 最后，<code>baz</code>调用<code>console.log</code>，最后一个栈元素就是<code>console.log(&#39;Hello from baz&#39;)</code></p>
+<p>栈会在函数执行完毕时(到达函数底部或者调用return)弹出。然后继续执行函数调用后续的语句:</p>
+<p><img src="/images/js-bs/vis1.gif" alt></p>
+<p><br></p>
+<p>每个栈元素中，元素的状态也被称为栈帧(Stack Frame). 如果在函数调用抛出错误，JavaScript会输出栈跟踪记录(Stack trace)，表示代码执行时的栈帧的快照。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">baz</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">   <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'Something went wrong.'</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   baz();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">   bar();</span><br><span class="line">&#125;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+<p>上面的程序，我们在<code>baz</code>中抛出错误，JavaScript会打印出栈跟中记录，指出错误发生的地方和错误信息。</p>
+<p><img src="/images/js-bs/err-msg.png" alt></p>
+<p><br></p>
+<p><strong>栈的大小不是无限的。例如Chrome就会限定栈的最大为16,000帧。所以无限递归会导致Chrome抛出<code>Maximum Call Stack size exceeded</code></strong>:</p>
+<p><img src="/images/js-bs/overstack.png" alt></p>
+<p><br><br><br></p>
+<h2 id="事件循环与web-api"><a href="#事件循环与web-api" class="headerlink" title="事件循环与Web API"></a>事件循环与Web API</h2><p><strong>因为JavaScript是单线程的，所以它只有一个栈和堆</strong>。因此，如果其他程序想要执行一些东西，需要等待上一个程序执行完毕</p>
+<p>对比其他语言，这可能是一个糟糕的设计，但是JavaScript的定位就是通用编程语言，而不是用于非常复杂的场景</p>
+<p>考虑这样一个场景。假设浏览器发送一个HTTP请求到服务器，加载图片并展示到页面。浏览器会卡死等待请求完成吗？显然不会，这样用户体验太差了</p>
+<p>浏览器通过JavaScript引擎来提供JavaScript运行环境。比如Chrome使用V8 引擎。但是浏览器内部可不只有JavaScript引擎。下面是浏览器的底层结构：</p>
+<p><br></p>
+<p><img src="/images/js-bs/underhood.png" alt></p>
+<p><br></p>
+<p>看起来很复杂，但是它也很好理解。JavaScript引擎需要和其他2个组件协作，即<strong>事件循环(EventLoop)</strong>和<strong>回调队列(CallbackQueue)</strong>，回调队列也被称为消息队列或任务队列。</p>
+<p>除了JavaScript引擎，浏览器还包含了许多不同的应用来做各种各样的事情，比如HTTP请求、DOM事件监听、通过setTimeout、setInterval延迟执行、缓存、数据存储等等。这些特性可以帮助我们创建丰富的Web应用。</p>
+<p>想一下，如果浏览器只使用同一个JavaScript线程来处理上面这些特性，用户体验会有多糟糕。因为用户即使只是简单的滚动页面，背后是需要处理很多事情的, 单个Javascript线程压根忙不过来。因此浏览器会使用低级的语言，比如C++，来执行这些操作，并暴露简洁的JavaScript API给开发者。这些API统称为<strong>Web API</strong>。</p>
+<p><strong>这些Web API通常是异步的</strong>。这意味着，你可以命令这些API在’后台’(独立线程)去做一些事情，完成任务之后再通知Javascript运行时. 在此同时，Javascript引擎会继续执行剩下的JavaScript代码. 在命令这些API在后台做事情时，我们通常需要给它们提供一个回调。这个回调的职责就是在Web API完成任务后执行JavaScript代码。让我们将上述的所有东西整合起来理解一下:</p>
+<p><img src="/images/js-bs/webapi-call.png" alt></p>
+<p>当你调用一个函数时，它会被推进栈中。如果这个函数中包含了Web API调用，JavaScript会代理Web API的调用, 通知Web API执行任务，接着继续执行下一行代码直到函数返回。一旦函数到达return语句或者函数底部，这个函数就会从调用栈中弹出来。</p>
+<p>与此同时，如果Web API在后台完成了它的工作，且有一个回调和这个工作绑定，Web API会将消息结果和回调进行绑定，并推入到消息队列中(或者称为回调队列).</p>
+<p><strong>事件循环, 就像一个无限循环，它的唯一工作是检查回调队列，一旦回调队列中有待处理的任务，就将该回调推送到调用栈</strong>。不过因为Javascript是单线程的, 事件循环一次只能推送一个回调到调用栈，栈将会执行回调函数，<strong>一旦调用栈为空，事件循环才会将下一个回调函数推送到调用堆</strong>。</p>
+<p>事件循环的伪代码大概如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">   <span class="keyword">let</span> task</span><br><span class="line">   <span class="keyword">while</span>(task = popCallbackQueue()) &#123;<span class="comment">// 弹出回调队列任务</span></span><br><span class="line">      executeTask(task) <span class="comment">// 执行任务, 这里面可能会触发新的Web API调用</span></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (hasAnyPendingTask()) &#123;</span><br><span class="line">      sleep() <span class="comment">// 睡一觉，有新任务推送到回调队列时时再唤醒我哦</span></span><br><span class="line">   &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">break</span> <span class="comment">// 终止程序, 没什么好干的拜拜了</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们通过setTimeout Web API这个例子一步一步看看上述的一切是怎么运作的。setTimeout Web API主要用于延时执行一些操作，但是回调真正被执行, 需要等待当前程序执行完毕(即栈为空), 也就是说，<strong>setTimeout函数回调执行时间未必等于你指定的延时时间</strong>。setTimeout的语法如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">setTimeout(callbackFunction, timeInMilliseconds);</span><br></pre></td></tr></table></figure>
+<p>callbackFunction是一个回调函数，它将会在timeInMilliseconds之后执行. 我们修改上面的代码来调用setTimeout:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">printHello</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Hello from baz'</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">baz</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    setTimeout(printHello, <span class="number">3000</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">bar</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    baz();</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    bar();</span><br><span class="line">&#125;</span><br><span class="line">foo();</span><br></pre></td></tr></table></figure>
+<p>上面的代码延时调用了console.log. 栈还是会像之前一样，如<code>foo() =&gt; bar() =&gt; baz()</code>, 当baz开始执行并到达setTimeout时，Javascript会将回调函数传递给Web API，并且继续执行下一行。 因为这里没有下一行了，栈会弹出baz，接着弹出bar和foo。</p>
+<p>在这期间，Web API正在进行3s等待，当时间到达时，它会将回调推进回调队列中。 因为这时候调用栈为空，事件循环会将这个回调推进栈中，并执行这个回调。</p>
+<p><br></p>
+<p><strong>🎉🎉<a href="http://latentflip.com/" target="_blank" rel="noopener">Philip Robers</a>创建了一个神奇的在线工具<a href="http://latentflip.com/loupe/" target="_blank" rel="noopener">Loupe</a>，来可视化Javascript的底层运行。上面的实例可以查看这个<a href="http://latentflip.com/loupe/?code=ZnVuY3Rpb24gcHJpbnRIZWxsbygpIHsNCiAgICBjb25zb2xlLmxvZygnSGVsbG8gZnJvbSBiYXonKTsNCn0NCg0KZnVuY3Rpb24gYmF6KCkgew0KICAgIHNldFRpbWVvdXQocHJpbnRIZWxsbywgMzAwMCk7DQp9DQoNCmZ1bmN0aW9uIGJhcigpIHsNCiAgICBiYXooKTsNCn0NCg0KZnVuY3Rpb24gZm9vKCkgew0KICAgIGJhcigpOw0KfQ0KDQpmb28oKTs%3D!!!PGJ1dHRvbj5DbGljayBtZSE8L2J1dHRvbj4%3D" target="_blank" rel="noopener">链接</a>🎉🎉</strong></p>
+<p><img src="/images/js-bs/vis2.gif" alt></p>
+<p><strong>所以说我们Javascript是单线程的，但是很多Web API的执行是多线程的。也就是说Javascript的单线程指的是‘Javascript代码’的执行是单线程</strong>.</p>
+<p><br></p>
+<h2 id="node-js"><a href="#node-js" class="headerlink" title="Node.js"></a>Node.js</h2><p>通过Node.js我们可以做更多的事情, 而不仅限于浏览器的端。那么它是怎么运作的？</p>
+<p>Node.js 和Chrome一样，同样使用Google的V8引擎来提供Javascript运行时. 它使用<a href="https://github.com/libuv/libuv" target="_blank" rel="noopener">libuv</a>(C++编写)来和V8的事件循环配合，扩展更多可以在后台执行的东西, 比如文件系统I/O, 网络I/O。Node的标准库API遵循了浏览器Web API的类似回调风格。</p>
+<p><img src="/images/js-bs/node.jpg" alt></p>
+<p>如果你比较了浏览器和node的结构图，你会发现两者非常相似。右侧的部分类似于Web API，同样包含事件队列(或者称为回调队列/消息队列)和事件循环。</p>
+<p>V8、事件循环、事件队列都在单线程中运行，最右侧还有工作线程(Worker Thread)负责提供异步的I/O操作。这就是为什么说Node.js拥有非阻塞的、事件驱动的异步I/O架构。</p>
+<p>上面的内容都来源于<a href="http://latentflip.com/" target="_blank" rel="noopener">Philip Roberts</a>30min的高光<a href="https://youtu.be/8aGhZQkoFbQ" target="_blank" rel="noopener">演讲</a>(五年前)</p>
+<p>本文完</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#调用栈-call-stack"><span class="toc-number">1.</span> <span class="toc-text">调用栈(Call Stack)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事件循环与web-api"><span class="toc-number">2.</span> <span class="toc-text">事件循环与Web API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#node-js"><span class="toc-number">3.</span> <span class="toc-text">Node.js</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/29/js-bs/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/29/js-bs/&text=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/29/js-bs/&is_video=false&description=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=浏览器和Node中的JavaScript是如何工作的? 可视化解释&body=Check out this article: https://bobi.ink/2019/08/29/js-bs/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/29/js-bs/&title=浏览器和Node中的JavaScript是如何工作的? 可视化解释"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/29/js-bs/&name=浏览器和Node中的JavaScript是如何工作的? 可视化解释&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

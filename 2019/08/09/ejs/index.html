@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="一张图说明Ejs模板引擎的原理   上面一张图，已经大概把一个简单模板引擎(这里以EJS为例)的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？包含实现的关键步骤、以及其背后的思想。 基本上模板引擎的套路也就这样了，但这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.  基本API设计我们将实现一个简化版的EJS, 这个模板引擎支持这些标签:  &amp;lt;">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="100来行代码, 自己动手写一个模板引擎">
+<meta property="og:url" content="https://bobi.ink/2019/08/09/ejs/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="一张图说明Ejs模板引擎的原理   上面一张图，已经大概把一个简单模板引擎(这里以EJS为例)的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？包含实现的关键步骤、以及其背后的思想。 基本上模板引擎的套路也就这样了，但这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.  基本API设计我们将实现一个简化版的EJS, 这个模板引擎支持这些标签:  &amp;lt;">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/ejs/ejs.png">
+<meta property="og:image" content="https://bobi.ink/images/ejs/state.png">
+<meta property="og:image" content="https://codesandbox.io/static/img/play-codesandbox.svg">
+<meta property="og:image" content="https://bobi.ink/images/ejs/ast.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="100来行代码, 自己动手写一个模板引擎">
+<meta name="twitter:description" content="一张图说明Ejs模板引擎的原理   上面一张图，已经大概把一个简单模板引擎(这里以EJS为例)的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？包含实现的关键步骤、以及其背后的思想。 基本上模板引擎的套路也就这样了，但这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.  基本API设计我们将实现一个简化版的EJS, 这个模板引擎支持这些标签:  &amp;lt;">
+<meta name="twitter:image" content="https://bobi.ink/images/ejs/ejs.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>100来行代码, 自己动手写一个模板引擎</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/08/10/react-hooks/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/08/04/electron-remote/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/09/ejs/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/09/ejs/&text=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/09/ejs/&is_video=false&description=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=100来行代码, 自己动手写一个模板引擎&body=Check out this article: https://bobi.ink/2019/08/09/ejs/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/09/ejs/&name=100来行代码, 自己动手写一个模板引擎&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#基本api设计"><span class="toc-number">1.</span> <span class="toc-text">基本API设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#token解析"><span class="toc-number">2.</span> <span class="toc-text">token解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#简单的语法检查"><span class="toc-number">3.</span> <span class="toc-text">简单的语法检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#转换"><span class="toc-number">4.</span> <span class="toc-text">转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最后一步，生成函数"><span class="toc-number">5.</span> <span class="toc-text">最后一步，生成函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跑起来"><span class="toc-number">6.</span> <span class="toc-text">跑起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">8.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        100来行代码, 自己动手写一个模板引擎
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-08-08T16:00:00.000Z" itemprop="datePublished">2019-08-09</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>一张图说明Ejs模板引擎的原理</p>
+<p><img src="/images/ejs/ejs.png" alt></p>
+<p><br></p>
+<p>上面一张图，已经大概把一个简单模板引擎(这里以<a href="https://ejs.co/" target="_blank" rel="noopener">EJS</a>为例)的原理解释得七七八八了。本文将描述一个简单的模板引擎是怎么运作的？包含实现的关键步骤、以及其背后的思想。</p>
+<p>基本上模板引擎的套路也就这样了，但这些思想是通用的，比如你在看vue的模板编译器源码、也可以套用这些思想和方法.</p>
+<p><br></p>
+<h2 id="基本api设计"><a href="#基本api设计" class="headerlink" title="基本API设计"></a>基本API设计</h2><p>我们将实现一个简化版的EJS, 这个模板引擎支持这些标签:</p>
+<ul>
+<li><p><code>&lt;% script %&gt;</code> - 脚本执行. 一般用于控制语句，不会输出值 例如</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">%</span> <span class="attr">if</span> (<span class="attr">user</span>) &#123; %&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span>&gt;</span>some thing<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%</span> &#125; %&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>&lt;%= expression %&gt;</code> - 输出表达式的值，但是会转义HTML:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>&#123;%= title %&#125;<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>&lt;%- expression %&gt;</code> -  和<code>&lt;%= expr %&gt;</code>一样，只不过不会对HTML进行转义</p>
+</li>
+<li><code>&lt;%%</code> 和<code>%%&gt;</code> - 表示标签转义, 比如<code>&lt;%%</code>会输出为<code>&lt;%</code></li>
+<li><code>&lt;%# 注释 %&gt;</code> - 不会有内容输出</li>
+</ul>
+<p><br></p>
+<p>下面是一个完整的模板示例，下文会基于这个模板进行讲解:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span><span class="tag">&lt;<span class="name">%=</span> <span class="attr">title</span> %&gt;</span><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">%%</span> 转义 %%&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">%#</span> 这里是注释 %&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">%-</span> <span class="attr">before</span> %&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">%</span> <span class="attr">if</span> (<span class="attr">show</span>) &#123; %&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">div</span>&gt;</span>root<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">%</span> &#125; %&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>基本API设计</strong></p>
+<p>我们将模板解析和渲染相关的逻辑放到一个Template类中，它的基本接口如下:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> Template &#123;</span><br><span class="line">  <span class="keyword">public</span> template: <span class="built_in">string</span>;</span><br><span class="line">  <span class="keyword">private</span> tokens: <span class="built_in">string</span>[] = [];</span><br><span class="line">  <span class="keyword">private</span> source: <span class="built_in">string</span> = <span class="string">""</span>;</span><br><span class="line">  <span class="keyword">private</span> state?: State;</span><br><span class="line">  <span class="keyword">private</span> fn?: <span class="built_in">Function</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">constructor</span>(<span class="params">template: <span class="built_in">string</span></span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.template = template;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 模板编译</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> compile() &#123;</span><br><span class="line">    <span class="keyword">this</span>.parseTemplateText();</span><br><span class="line">    <span class="keyword">this</span>.transformTokens();</span><br><span class="line">    <span class="keyword">this</span>.wrapit();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 渲染方法，由用户指定一个对象来渲染字符串</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">public</span> render(local: object) &#123; &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * token解析</span></span><br><span class="line"><span class="comment">   * 将&lt;% if (codintion) &#123; %&gt;</span></span><br><span class="line"><span class="comment">   * 解析为token数组，例如['&lt;%', ' if (condition) &#123; ', '%&gt;']</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> parseTemplateText() &#123;&#125;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 将Token转换为Javascript语句</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> transformTokens() &#123;&#125;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 将上一个步骤转换出来的Javascript语句，封装成一个渲染方法</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">private</span> wrapit() &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="token解析"><a href="#token解析" class="headerlink" title="token解析"></a>token解析</h2><p>第一步我们需要将所有的开始标签(start tag)和结束标签(end tag)都解析出来，我们期望的解析结果是这样的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  <span class="string">"\n&lt;html&gt;\n  &lt;head&gt;"</span>,</span><br><span class="line">  <span class="string">"&lt;%="</span>,</span><br><span class="line">  <span class="string">" title "</span>,</span><br><span class="line">  <span class="string">"%&gt;"</span>,</span><br><span class="line">  <span class="string">"&lt;/head&gt;\n  &lt;body&gt;\n    "</span>,</span><br><span class="line">  <span class="string">"&lt;%%"</span>,</span><br><span class="line">  <span class="string">" 转义 "</span>,</span><br><span class="line">  <span class="string">"%%&gt;"</span>,</span><br><span class="line">  <span class="string">"\n    "</span>,</span><br><span class="line">  <span class="string">"&lt;%#"</span>,</span><br><span class="line">  <span class="string">" 这里是注释 "</span>,</span><br><span class="line">  <span class="string">"%&gt;"</span>,</span><br><span class="line">  <span class="string">"\n    "</span>,</span><br><span class="line">  <span class="string">"&lt;%-"</span>,</span><br><span class="line">  <span class="string">" before "</span>,</span><br><span class="line">  <span class="string">"%&gt;"</span>,</span><br><span class="line">  <span class="string">"\n    "</span>,</span><br><span class="line">  <span class="string">"&lt;%"</span>,</span><br><span class="line">  <span class="string">" if (show) &#123; "</span>,</span><br><span class="line">  <span class="string">"%&gt;"</span>,</span><br><span class="line">  <span class="string">"\n      &lt;div&gt;root&lt;/div&gt;\n    "</span>,</span><br><span class="line">  <span class="string">"&lt;%"</span>,</span><br><span class="line">  <span class="string">" &#125; "</span>,</span><br><span class="line">  <span class="string">"%&gt;"</span>,</span><br><span class="line">  <span class="string">"\n  &lt;/body&gt;\n&lt;/html&gt;\n"</span></span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>因为我们的模板引擎语法非常简单, 压根就不需要解析成什么抽象语法树(AST)(即省去了语法解析, 只进行词法解析). 直接通过<code>正则表达式</code>就可以实现将标签抽取出来。</p>
+<p>先定义正则表达式, 用来匹配我们所有支持的标签：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &lt;%% %%&gt; 用于转义</span></span><br><span class="line"><span class="comment">// &lt;% 脚本</span></span><br><span class="line"><span class="comment">// &lt;%= 输出脚本值</span></span><br><span class="line"><span class="comment">// &lt;%- 输出脚本值，unescape</span></span><br><span class="line"><span class="comment">// &lt;%# 注释</span></span><br><span class="line"><span class="comment">// %&gt; 结束标签</span></span><br><span class="line"><span class="keyword">const</span> REGEXP = <span class="regexp">/(&lt;%%|%%&gt;|&lt;%=|&lt;%-|&lt;%#|&lt;%|%&gt;)/</span>;</span><br></pre></td></tr></table></figure>
+<p>使用正则表达式逐个进行匹配，将字符串拆分出来. 代码也很简单:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">parseTemplateText() &#123;</span><br><span class="line">  <span class="keyword">let</span> str = <span class="keyword">this</span>.template;</span><br><span class="line">  <span class="keyword">const</span> arr = <span class="keyword">this</span>.tokens;</span><br><span class="line">  <span class="comment">// 通过exec方法可以获取匹配的位置, 如果匹配失败则返回null</span></span><br><span class="line">  <span class="keyword">let</span> res = REGEXP.exec(str);</span><br><span class="line">  <span class="keyword">let</span> index;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">while</span> (res) &#123;</span><br><span class="line">    index = res.index;</span><br><span class="line">    <span class="comment">// 前置字符串</span></span><br><span class="line">    <span class="keyword">if</span> (index !== <span class="number">0</span>) &#123;</span><br><span class="line">      arr.push(str.substring(<span class="number">0</span>, index));</span><br><span class="line">      str = str.slice(index);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    arr.push(res[<span class="number">0</span>]);</span><br><span class="line">    <span class="comment">// 截断字符串，继续匹配</span></span><br><span class="line">    str = str.slice(res[<span class="number">0</span>].length);</span><br><span class="line">    res = REGEXP.exec(str);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (str) &#123;</span><br><span class="line">    arr.push(str);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="简单的语法检查"><a href="#简单的语法检查" class="headerlink" title="简单的语法检查"></a>简单的语法检查</h2><p>Ok，将标签解析出来后，就可以开始准备将它们转换称为‘渲染’函数了.</p>
+<p>首先进行一下<strong>简单的语法检查</strong>，检查标签是否<strong>闭合</strong>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> start = <span class="string">"&lt;%"</span>;           <span class="comment">// 开始标签</span></span><br><span class="line"><span class="keyword">const</span> end = <span class="string">"%&gt;"</span>;             <span class="comment">// 结束标签</span></span><br><span class="line"><span class="keyword">const</span> escpStart = <span class="string">"&lt;%%"</span>;      <span class="comment">// 开始标签转义</span></span><br><span class="line"><span class="keyword">const</span> escpEnd = <span class="string">"%%&gt;"</span>;        <span class="comment">// 结束标签转义</span></span><br><span class="line"><span class="keyword">const</span> escpoutStart = <span class="string">"&lt;%="</span>;   <span class="comment">// 转义的表达式输出</span></span><br><span class="line"><span class="keyword">const</span> unescpoutStart = <span class="string">"&lt;%-"</span>; <span class="comment">// 不转义的表达式输出</span></span><br><span class="line"><span class="keyword">const</span> comtStart = <span class="string">"&lt;%#"</span>;      <span class="comment">// 注释</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (tok.includes(start) &amp;&amp; !tok.includes(escpStart)) &#123;</span><br><span class="line">  closing = <span class="keyword">this</span>.tokens[idx + <span class="number">2</span>];</span><br><span class="line">  <span class="keyword">if</span> (closing == <span class="literal">null</span> || !closing.includes(end)) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">`<span class="subst">$&#123;tok&#125;</span> 未找到对应的闭合标签`</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="转换"><a href="#转换" class="headerlink" title="转换"></a>转换</h2><p>现在开始遍历token。我们可以使用一个有限的状态机(Finite-state machine, FSM)来描述转换的逻辑.</p>
+<p><code>状态机</code>是表示<strong>有限个状态以及在这些状态之间的转移和动作等行为的数学模型</strong>。简单而言，有限状态机由一组状态、一个初始状态、输入和根据输入及现有状态转换为下一个状态的转换函数组成。它有三个特征:</p>
+<ul>
+<li>状态总数是有限的。</li>
+<li>任一时刻，只处在一种状态之中。</li>
+<li>某种条件下，会从一种状态转变到另一种状态</li>
+</ul>
+<p><br></p>
+<p>稍微分析一下，我们模板引擎的状态转换图如下:</p>
+<p><img src="/images/ejs/state.png" alt></p>
+<p><br></p>
+<p>通过上图可以抽取出以下状态:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">enum State &#123;</span><br><span class="line">  EVAL,    <span class="comment">// 脚本执行</span></span><br><span class="line">  ESCAPED, <span class="comment">// 表达式输出</span></span><br><span class="line">  RAW,     <span class="comment">// 表达式输出不转义</span></span><br><span class="line">  COMMENT, <span class="comment">// 注释</span></span><br><span class="line">  LITERAL  <span class="comment">// 字面量，直接输出</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Ok, 现在开始遍历token:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">this</span>.tokens.forEach(<span class="function">(<span class="params">tok, idx</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="keyword">switch</span> (tok) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 标签识别</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> start:</span><br><span class="line">      <span class="comment">// 脚本开始</span></span><br><span class="line">      <span class="keyword">this</span>.state = State.EVAL;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> escpoutStart:</span><br><span class="line">      <span class="comment">// 转义输出</span></span><br><span class="line">      <span class="keyword">this</span>.state = State.ESCAPED;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> unescpoutStart:</span><br><span class="line">      <span class="comment">// 非转义输出</span></span><br><span class="line">      <span class="keyword">this</span>.state = State.RAW;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> comtStart:</span><br><span class="line">      <span class="comment">// 注释</span></span><br><span class="line">      <span class="keyword">this</span>.state = State.COMMENT;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> escpStart:</span><br><span class="line">      <span class="comment">// 标签转义</span></span><br><span class="line">      <span class="keyword">this</span>.state = State.LITERAL;</span><br><span class="line">      <span class="keyword">this</span>.source += <span class="string">`;__append('&lt;%');\n`</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> escpEnd:</span><br><span class="line">      <span class="keyword">this</span>.state = State.LITERAL;</span><br><span class="line">      <span class="keyword">this</span>.source += <span class="string">`;__append('%&gt;');\n`</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> end:</span><br><span class="line">      <span class="comment">// 恢复初始状态</span></span><br><span class="line">      <span class="keyword">this</span>.state = <span class="literal">undefined</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line"></span><br><span class="line">      <span class="comment">/**</span></span><br><span class="line"><span class="comment">       * 转换输出</span></span><br><span class="line"><span class="comment">       */</span></span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.state != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (<span class="keyword">this</span>.state) &#123;</span><br><span class="line">          <span class="keyword">case</span> State.EVAL:</span><br><span class="line">            <span class="comment">// 代码</span></span><br><span class="line">            <span class="keyword">this</span>.source += <span class="string">`;<span class="subst">$&#123;tok&#125;</span>\n`</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">case</span> State.ESCAPED:</span><br><span class="line">            <span class="comment">// stripSemi 将多余的分号移除</span></span><br><span class="line">            <span class="keyword">this</span>.source += <span class="string">`;__append(escapeFn(<span class="subst">$&#123;stripSemi(tok)&#125;</span>));\n`</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">case</span> State.RAW:</span><br><span class="line">            <span class="keyword">this</span>.source += <span class="string">`;__append(<span class="subst">$&#123;stripSemi(tok)&#125;</span>);\n`</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">case</span> State.LITERAL:</span><br><span class="line">            <span class="comment">// 因为我们把字符串放到单引号中，所以transformString将tok中的单引号、换行符、转义符进行转移</span></span><br><span class="line">            <span class="keyword">this</span>.source += <span class="string">`;__append('<span class="subst">$&#123;transformString(tok)&#125;</span>');\n`</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">          <span class="keyword">case</span> State.COMMENT:</span><br><span class="line">            <span class="comment">// 什么都不做</span></span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 字面量</span></span><br><span class="line">        <span class="keyword">this</span>.source += <span class="string">`;__append('<span class="subst">$&#123;transformString(tok)&#125;</span>');\n`</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>经过上面的转换，我们可以得到这样的结果:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">;__append(<span class="string">'\n&lt;html&gt;\n  &lt;head&gt;'</span>);</span><br><span class="line">;__append(escapeFn( title ));</span><br><span class="line">;__append(<span class="string">'&lt;/head&gt;\n  &lt;body&gt;\n    '</span>);</span><br><span class="line">;__append(<span class="string">'&lt;%'</span>);</span><br><span class="line">;__append(<span class="string">' 转义 '</span>);</span><br><span class="line">;__append(<span class="string">'%&gt;'</span>);</span><br><span class="line">;__append(<span class="string">'\n    '</span>);</span><br><span class="line">;__append(<span class="string">'\n    '</span>);</span><br><span class="line">;__append( before );</span><br><span class="line">;__append(<span class="string">'\n    '</span>);</span><br><span class="line">; <span class="keyword">if</span> (show) &#123;</span><br><span class="line">;__append(<span class="string">'\n      &lt;div&gt;root&lt;/div&gt;\n    '</span>);</span><br><span class="line">; &#125;</span><br><span class="line">;__append(<span class="string">'\n  &lt;/body&gt;\n&lt;/html&gt;\n'</span>);</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="最后一步，生成函数"><a href="#最后一步，生成函数" class="headerlink" title="最后一步，生成函数"></a>最后一步，生成函数</h2><p>现在我们把转换结果包裹成函数:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wrapit() &#123;</span><br><span class="line">    <span class="keyword">this</span>.source = <span class="string">`\</span></span><br><span class="line"><span class="string">const __out = [];</span></span><br><span class="line"><span class="string">const __append = __out.push.bind(__out);</span></span><br><span class="line"><span class="string">with(local||&#123;&#125;) &#123;</span></span><br><span class="line"><span class="string"><span class="subst">$&#123;<span class="keyword">this</span>.source&#125;</span></span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">return __out.join('');\</span></span><br><span class="line"><span class="string">`</span>;</span><br><span class="line">    <span class="keyword">this</span>.fn = <span class="keyword">new</span> <span class="built_in">Function</span>(<span class="string">"local"</span>, <span class="string">"escapeFn"</span>, <span class="keyword">this</span>.source);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>这里使用到了<code>with</code>语句，来包裹上面转换的代码，这样可以免去local对象访问限定前缀。</p>
+<p>渲染方法就很简单了，直接调用上面包裹的函数:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">render(local: object) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">this</span>.fn.call(<span class="literal">null</span>, local, <span class="built_in">escape</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="跑起来"><a href="#跑起来" class="headerlink" title="跑起来"></a>跑起来</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> temp = <span class="keyword">new</span> Template(<span class="string">`</span></span><br><span class="line"><span class="string">&lt;html&gt;</span></span><br><span class="line"><span class="string">  &lt;head&gt;&lt;%= title %&gt;&lt;/head&gt;</span></span><br><span class="line"><span class="string">  &lt;body&gt;</span></span><br><span class="line"><span class="string">    &lt;%% 转义 %%&gt;</span></span><br><span class="line"><span class="string">    &lt;%# 这里是注释 %&gt;</span></span><br><span class="line"><span class="string">    &lt;%- before %&gt;</span></span><br><span class="line"><span class="string">    &lt;% if (show) &#123; %&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;root&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;% &#125; %&gt;</span></span><br><span class="line"><span class="string">  &lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;</span></span><br><span class="line"><span class="string">`</span>);</span><br><span class="line"></span><br><span class="line">temp.compile();</span><br><span class="line">temp.render(&#123; <span class="attr">show</span>: <span class="literal">true</span>, <span class="attr">title</span>: <span class="string">"hello"</span>, <span class="attr">before</span>: <span class="string">"&lt;div&gt;xx&lt;/div&gt;"</span> &#125;)</span><br><span class="line"><span class="comment">// &lt;html&gt;</span></span><br><span class="line"><span class="comment">//   &lt;head&gt;hello&lt;/head&gt;</span></span><br><span class="line"><span class="comment">//   &lt;body&gt;</span></span><br><span class="line"><span class="comment">//     &lt;% 转义 %&gt;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//     &lt;div&gt;xx&lt;/div&gt;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//       &lt;div&gt;root&lt;/div&gt;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//   &lt;/body&gt;</span></span><br><span class="line"><span class="comment">// &lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+<p>你可以在CodeSandbox运行完整的代码:</p>
+<p><a href="https://codesandbox.io/s/ejs-wp11m?fontsize=14" target="_blank" rel="noopener"><img src="https://codesandbox.io/static/img/play-codesandbox.svg" alt="Edit ejs"></a></p>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文其实受到了<a href="https://github.com/jamiebuilds/the-super-tiny-compiler" target="_blank" rel="noopener">the-super-tiny-compiler</a>启发，实现了一个极简的模板引擎，其实模板引擎本质上也是一个Compiler，通过上文可以了解到一个模板引擎编译有三个步骤：</p>
+<ol>
+<li><p><strong>解析</strong> 将模板代码解析成抽象的表示形式。复杂的编译器会有<code>词法解析(Lexical Analysis)</code>和<code>语法解析(Syntactic Analysis)</code></p>
+<p> <strong>词法解析</strong>, 上文我们将模板内容解析成token的过程就可以认为是‘词法解析’，它会将源代码拆分称为token数组，token是一个小单元，表示独立的‘语法片段’。</p>
+<p> <strong>语法解析</strong>，语法解析器接收token数组，将它们重新格式化称为抽象语法树(Abstract Syntax Tree, AST), 抽象语法树可以用于描述语法单元, 以及单元之间的关系。 语法解析阶段可以发现语法问题。</p>
+<p> <img src="/images/ejs/ast.png" alt></p>
+<p> (图片来源: <a href="https://ruslanspivak.com/lsbasi-part7" target="_blank" rel="noopener">https://ruslanspivak.com/lsbasi-part7</a>)</p>
+<p> 本文介绍的模板引擎，因为语法太简单了，所以不需要AST这个中间表示形式。直接在tokens上进行转换</p>
+</li>
+<li><p><strong>转换</strong> 将上个步骤抽象的表示形式，转换成为编译器想要的。比如上文模板引擎会转换为对应语言的语句。复杂的编译器会基于AST进行‘转换’，也就是对AST进行‘增删查改’. 通常会配合Visitors模式来遍历/访问AST的节点</p>
+</li>
+<li><strong>代码生成</strong> 将转换后的抽象表示转换为新的代码。 比如模板引擎最后一步会封装成为一个渲染函数. 复杂的编译器会将AST转换为目标代码</li>
+</ol>
+<p>编译器相关的东西确实很有趣，后续有机会可以讲讲怎么编写babel插件。</p>
+<p><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://github.com/mde/ejs/tree/master/lib" target="_blank" rel="noopener">Ejs源代码</a></li>
+<li><a href="https://github.com/jamiebuilds/the-super-tiny-compiler" target="_blank" rel="noopener">the-super-tiny-compiler</a></li>
+<li><a href="https://ruslanspivak.com/lsbasi-part7/" target="_blank" rel="noopener">Let’s Build A Simple Interpreter. Part 7: Abstract Syntax Trees</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#基本api设计"><span class="toc-number">1.</span> <span class="toc-text">基本API设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#token解析"><span class="toc-number">2.</span> <span class="toc-text">token解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#简单的语法检查"><span class="toc-number">3.</span> <span class="toc-text">简单的语法检查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#转换"><span class="toc-number">4.</span> <span class="toc-text">转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最后一步，生成函数"><span class="toc-number">5.</span> <span class="toc-text">最后一步，生成函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#跑起来"><span class="toc-number">6.</span> <span class="toc-text">跑起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">8.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/09/ejs/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/09/ejs/&text=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/09/ejs/&is_video=false&description=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=100来行代码, 自己动手写一个模板引擎&body=Check out this article: https://bobi.ink/2019/08/09/ejs/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/09/ejs/&title=100来行代码, 自己动手写一个模板引擎"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/09/ejs/&name=100来行代码, 自己动手写一个模板引擎&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

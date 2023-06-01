@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="接着上篇文章: 《深入浅出 Babel 上篇：架构和原理 + 实战 🔥》  这篇文章干货不少于上篇文章，这篇我们深入讨论一下宏这个玩意 —— 我想我们对宏并不陌生，因为很多程序员第一门语言就是 C/C++; 一些 Lisp 方言也支持宏(如 Clojure、Scheme), 听说它们的宏写起来很优雅；一些现代的编程语言对宏也有一定的支持，如 Rust、Nim、Julia、Elixir，它们是如何">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出 Babel 下篇：既生 Plugin 何生 Macros">
+<meta property="og:url" content="https://bobi.ink/2019/10/10/babel-macro/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="接着上篇文章: 《深入浅出 Babel 上篇：架构和原理 + 实战 🔥》  这篇文章干货不少于上篇文章，这篇我们深入讨论一下宏这个玩意 —— 我想我们对宏并不陌生，因为很多程序员第一门语言就是 C/C++; 一些 Lisp 方言也支持宏(如 Clojure、Scheme), 听说它们的宏写起来很优雅；一些现代的编程语言对宏也有一定的支持，如 Rust、Nim、Julia、Elixir，它们是如何">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/babel/c-compile.gif">
+<meta property="og:image" content="https://bobi.ink/images/babel/lisp.png">
+<meta property="og:image" content="https://bobi.ink/images/babel/lisp-macro.png">
+<meta property="og:image" content="https://bobi.ink/images/babel/sicp.png">
+<meta property="og:image" content="https://bobi.ink/images/babel/syntaxobject.png">
+<meta property="og:image" content="https://bobi.ink/images/babel/tag-template.png">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入浅出 Babel 下篇：既生 Plugin 何生 Macros">
+<meta name="twitter:description" content="接着上篇文章: 《深入浅出 Babel 上篇：架构和原理 + 实战 🔥》  这篇文章干货不少于上篇文章，这篇我们深入讨论一下宏这个玩意 —— 我想我们对宏并不陌生，因为很多程序员第一门语言就是 C/C++; 一些 Lisp 方言也支持宏(如 Clojure、Scheme), 听说它们的宏写起来很优雅；一些现代的编程语言对宏也有一定的支持，如 Rust、Nim、Julia、Elixir，它们是如何">
+<meta name="twitter:image" content="https://bobi.ink/images/babel/c-compile.gif">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>深入浅出 Babel 下篇：既生 Plugin 何生 Macros</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/10/18/react-fiber/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/10/01/babel/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/10/10/babel-macro/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/10/10/babel-macro/&text=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/10/10/babel-macro/&is_video=false&description=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入浅出 Babel 下篇：既生 Plugin 何生 Macros&body=Check out this article: https://bobi.ink/2019/10/10/babel-macro/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/10/10/babel-macro/&name=深入浅出 Babel 下篇：既生 Plugin 何生 Macros&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关于宏"><span class="toc-number">1.</span> <span class="toc-text">关于宏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#文本替换式"><span class="toc-number">1.1.</span> <span class="toc-text">文本替换式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#语法扩展式"><span class="toc-number">1.2.</span> <span class="toc-text">语法扩展式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sweet-js"><span class="toc-number">1.3.</span> <span class="toc-text">Sweet.js</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#小结"><span class="toc-number">1.4.</span> <span class="toc-text">小结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#既生-plugin-何生-macro"><span class="toc-number">2.</span> <span class="toc-text">既生 Plugin 何生 Macro</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何写一个-babel-macro"><span class="toc-number">3.</span> <span class="toc-text">如何写一个 Babel Macro</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#实战"><span class="toc-number">3.1.</span> <span class="toc-text">实战</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">4.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        深入浅出 Babel 下篇：既生 Plugin 何生 Macros
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-10-09T16:00:00.000Z" itemprop="datePublished">2019-10-10</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>接着上篇文章: <a href="https://juejin.im/post/5d94bfbf5188256db95589be" target="_blank" rel="noopener">《深入浅出 Babel 上篇：架构和原理 + 实战 🔥》</a></p>
+<p><br></p>
+<p><strong>这篇文章干货不少于上篇文章，这篇我们深入讨论一下宏这个玩意</strong> —— <em>我想我们对宏并不陌生，因为很多程序员第一门语言就是 <code>C/C++</code>; 一些 <code>Lisp</code> 方言也支持宏(如 <code>Clojure</code>、<code>Scheme</code>), 听说它们的宏写起来很优雅；一些现代的编程语言对宏也有一定的支持，如 <code>Rust</code>、<code>Nim</code>、<code>Julia</code>、<code>Elixir</code>，它们是如何解决技术问题, 实现类Lisp的宏系统的？宏在这些语言中扮演这什么角色…</em></p>
+<blockquote>
+<p>如果没读过上篇文章，请先阅读一下，避免影响对本篇文章内容的理解。</p>
+</blockquote>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#关于宏">关于宏</a><ul>
+<li><a href="#文本替换式">文本替换式</a></li>
+<li><a href="#语法扩展式">语法扩展式</a></li>
+<li><a href="#sweetjs">Sweet.js</a></li>
+<li><a href="#小结">小结</a></li>
+</ul>
+</li>
+<li><a href="#既生-plugin-何生-macro">既生 Plugin 何生 Macro</a></li>
+<li><a href="#如何写一个-babel-macro">如何写一个 Babel Macro</a><ul>
+<li><a href="#实战">实战</a></li>
+</ul>
+</li>
+<li><a href="#扩展资料">扩展资料</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<h2 id="关于宏"><a href="#关于宏" class="headerlink" title="关于宏"></a>关于宏</h2><p><a href="https://zh.wikipedia.org/wiki/巨集" target="_blank" rel="noopener"><code>Wiki</code></a> 上面对‘宏’的定义是：<strong>宏(Macro), 是一种批处理的称谓，它根据一系列的预定义规则转换一定的文本模式。<code>解释器</code>或<code>编译器</code>在遇到宏时会自动进行这一模式转换，这个转换过程被称为“宏展开(Macro Expansion)”。对于编译语言，宏展开在编译时发生，进行宏展开的工具常被称为宏展开器。</strong></p>
+<p>你可以认为，<strong>宏就是用来生成代码的代码，它有能力进行一些句法解析和代码转换</strong>。宏大致可以分为两种: <strong>文本替换</strong>和<strong>语法扩展</strong></p>
+<p><br></p>
+<h3 id="文本替换式"><a href="#文本替换式" class="headerlink" title="文本替换式"></a>文本替换式</h3><p>大家或多或少有接触过宏，很多程序员第一门语言是<code>C/C++</code>(包括C的衍生语言<code>Objective-C</code>),  在<code>C</code>中就有宏的概念。使用<code>#define</code>指令定义一个宏:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MIN(X, Y) ((X) &lt; (Y) ? (X) : (Y))</span></span><br></pre></td></tr></table></figure>
+<p>如果我们的程序使用了这个宏，就会在编译阶段被展开，例如：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">MIN(a + b, c + d)</span><br></pre></td></tr></table></figure>
+<p>会被展开为:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">((a + b) &lt; (c + d) ? (a + b) : (c + d))</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>除了<code>函数宏</code>, <code>C</code> 中还有<code>对象宏</code>, 我们通常使用它来声明’常量’:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PI 3.1214</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><img src="/images/babel/c-compile.gif" alt></p>
+<p>如上图，<strong>宏本质上不是<code>C</code>语言的一部分</strong>, 它由<code>C预处理器</code>提供，预处理器在编译之前对源代码进行<strong>文本替换</strong>，生成‘真正’的 <code>C</code> 代码，再传递给编译器。</p>
+<blockquote>
+<p>当然 C 预处理器不仅仅会处理宏，它还包含了头文件引入、条件编译、行控制等操作</p>
+</blockquote>
+<p>除此之外，<a href="https://segmentfault.com/a/1190000004104696" target="_blank" rel="noopener"><code>GNU m4</code></a>是一个更专业/更强大/更通用的预处理器(宏展开器)。这是一个通用的宏展开器，不仅可以用于 C，也可以用于其他语言和文本文件的处理(<em>参考这篇有趣的文章：<a href="https://segmentfault.com/a/1190000004342956" target="_blank" rel="noopener">《使用 GNU m4 为 Markdown 添加目录支持》</a></em>)， 关于<code>m4</code>可以看<a href="https://segmentfault.com/a/1190000004104696" target="_blank" rel="noopener">让这世界再多一份 GNU m4 教程</a> 系列文章.</p>
+<p>文本替换式宏很容易理解、实现也简单，因为它们只是纯文本替换, 换句话说它就像‘文本编辑器’。所以相对而言，<strong>这种形式的宏能力有限，比如它不会检验语法是否合法, 使用它经常会出现问题</strong>。</p>
+<p>所以<strong>随着现代编程语言表达能力越来越强，很多语言都不再推荐使用宏/不提供宏，而是使用语言本身的机制(例如函数)来解决问题，这样更安全、更容易理解和调试。没用宏机制，现代语言可以通过提供强大的反射机制或者动态编程特性(如Javascript的Proxy、Python的装饰器)来弥补缺失宏导致的元编程短板。 所以反过来推导，之所以<code>C</code>语言需要宏，正是因为<code>C</code>语言的表达能力太弱了</strong>。</p>
+<p><br><br><br></p>
+<h3 id="语法扩展式"><a href="#语法扩展式" class="headerlink" title="语法扩展式"></a>语法扩展式</h3><p>‘真正’的宏起源于<a href="https://zh.wikipedia.org/wiki/LISP" target="_blank" rel="noopener"><code>Lisp</code></a>. 这个得益于Lisp语言本身的一些特性：</p>
+<p><img src="/images/babel/lisp.png" alt></p>
+<p><br></p>
+<ul>
+<li><strong>它的语法非常简单</strong>。只有<a href="https://zh.wikipedia.org/wiki/S-表达式" target="_blank" rel="noopener">S-表达式(s-expression)</a>(<em>特征为括号化的前缀表示法, 可以认为S-表达式就是近似的 Lisp 的抽象语法树(AST)</em>)</li>
+<li><strong>数据即代码</strong>。S-表达式本身就是树形数据结构。另外 Lisp 支持数据和代码之间的转换</li>
+</ul>
+<p><br></p>
+<p>由于 Lisp 这种简单的语法结构，使得数据和程序之间只有一线之隔(<strong>quote修饰就是数据， 没有quote就是程序</strong>), 换句话说就是程序和数据之间可以灵活地转换。这种<code>数据即程序、程序即数据</code>的概念，使得Lisp可以轻松地自定义宏. 不妨来看一下Lisp定义宏的示例：</p>
+<figure class="highlight clj"><table><tr><td class="code"><pre><span class="line"><span class="comment">; 使用defmacro定义一个nonsense宏, 接收一个function-name参数. 宏需要返回一个quoted</span></span><br><span class="line"><span class="comment">; ` 这是quote函数的简写，表示quote，即这段‘程序’是一段‘数据’, 或者说将‘程序’转换为‘数据’. quote不会被‘求值’</span></span><br><span class="line"><span class="comment">; defun 定义一个函数</span></span><br><span class="line"><span class="comment">; , 这是unquote函数的简写， 表示unquote，即将‘数据’转换为‘程序’. unquote会进行求值</span></span><br><span class="line"><span class="comment">; intern 将字符串转换为symbol，即标识符</span></span><br><span class="line"></span><br><span class="line">(<span class="name"><span class="builtin-name">defmacro</span></span> nonsense (<span class="name">function-name</span>)</span><br><span class="line">  `(<span class="name">defun</span> ,(<span class="name"><span class="builtin-name">intern</span></span> (<span class="name"><span class="builtin-name">concat</span></span> <span class="string">"nonsense-"</span> function-name)) (<span class="name">input</span>) <span class="comment">; 定义一个nonsense-$&#123;function-name&#125; 方法</span></span><br><span class="line">     (<span class="name">print</span> (<span class="name"><span class="builtin-name">concat</span></span> ,function-name input))))                   <span class="comment">; 输入`$&#123;function-name&#125;$&#123;input&#125;`</span></span><br></pre></td></tr></table></figure>
+<details><br>  <summary>如果你不理解上面程序的含义，这里有一个Javascript的实现</summary><br><br>  注意：‘宏’一般在编译阶段被展开, 下面代码只是为了协作你理解上述的Lisp代码<br>  <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">function</span> <span class="title">nonsense</span>(<span class="params">name</span>) </span>&#123;</span><br><span class="line">   <span class="keyword">let</span> rtn</span><br><span class="line">   <span class="built_in">eval</span>(<span class="string">`rtn = function nonsense<span class="subst">$&#123;name&#125;</span>(input) &#123;</span></span><br><span class="line"><span class="string">     console.log('<span class="subst">$&#123;name&#125;</span>', input)</span></span><br><span class="line"><span class="string">   &#125;`</span>)</span><br><span class="line">   <span class="keyword">return</span> rtn</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><br></details>
+
+<p><br></p>
+<p>应用宏展开：</p>
+<figure class="highlight clj"><table><tr><td class="code"><pre><span class="line">(<span class="name">nonsense</span> <span class="string">"apple"</span>)           <span class="comment">; 展开宏，这里会创建一个nonsense-apple函数</span></span><br><span class="line">(<span class="name">nonsense-apple</span> <span class="string">" is good"</span>)  <span class="comment">; 调用刚刚创建的宏</span></span><br><span class="line">                             <span class="comment">; =&gt; "apple is good"</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>对于Lisp而言，宏有点像一个函数, 只不过这个函数必须返回一个<code>quoted数据</code>; 当调用这个宏时，Lisp会使用<code>unquote</code>函数将宏返回的<code>quoted数据</code>转换为<code>程序</code></strong>。</p>
+<p><img src="/images/babel/lisp-macro.png" alt></p>
+<p><br></p>
+<p>通过上面的示例，你会感叹Lisp的宏实现竟然如此清奇，如此简单。 搞得我想跟着<a href="http://tiye.me" target="_blank" rel="noopener">题叶</a>学一波<a href="https://clojure.org" target="_blank" rel="noopener">Clojure</a>，但是后来我学了<a href="https://elixir-lang.org" target="_blank" rel="noopener">Elixir</a> 😂.</p>
+<p><img src="/images/babel/sicp.png" alt></p>
+<p><br></p>
+<p>Lisp宏的灵活性得益于简单的语法(S-表达式可以等价于它的AST)，对于复杂语法的语言(例如Javascript)，要实现类似Lisp的宏就难得多. 因此很少有现代语言提供宏机制可能也是这个原因。</p>
+<p>尽管如此，现在很多技术难点慢慢被解决，很多现代语言也引入’类’ Lisp的宏机制，如<a href="https://doc.rust-lang.org/book/ch19-06-macros.html" target="_blank" rel="noopener">Rust</a>、<a href="https://julialang.org" target="_blank" rel="noopener">Julia</a>, 还有Javascript的 <a href="https://www.sweetjs.org/doc/tutorial" target="_blank" rel="noopener">Sweet.js</a></p>
+<p><br><br><br></p>
+<h3 id="sweet-js"><a href="#sweet-js" class="headerlink" title="Sweet.js"></a>Sweet.js</h3><p>Sweet.js 和 Rust 师出同门，所以两个的宏语法和非常接近(初期)。 不过需要注意的是: <strong>官方认为 Sweet.js 目前仍处于实验阶段</strong>，而且Github最后提交时间停留在2年前，社区上也未见大规模的使用。所以不要在生产环境中使用它，但是不妨碍我们去学习一个现代编程语言的宏机制。</p>
+<p>我们先使用 <code>Sweet.js</code> 来实现上面我们通过 <code>Lisp</code> 实现的<code>nosense</code>宏, 对比起来更容易理解:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; unwrap, fromIdentifier, fromStringLiteral &#125; <span class="keyword">from</span> <span class="string">'@sweet-js/helpers'</span> <span class="keyword">for</span> syntax;</span><br><span class="line"></span><br><span class="line">syntax nosense = <span class="function"><span class="keyword">function</span> (<span class="params">ctx</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> name = ctx.next().value;</span><br><span class="line">  <span class="keyword">let</span> funcName = <span class="string">'nonsense'</span> + unwrap(name).value</span><br><span class="line"></span><br><span class="line">  return #`function $&#123;fromIdentifier(name, funcName)&#125; () &#123;</span><br><span class="line">    <span class="built_in">console</span>.log($&#123;fromStringLiteral(name, unwrap(name).value)&#125; + input)</span><br><span class="line">  &#125;<span class="string">`;</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">nosense Apple</span></span><br><span class="line"><span class="string">nosenseApple(" is Good") // Apple is Good</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>首先，Sweet.js使用<code>syntax</code>关键字来定义一个宏，其语法类似于<code>const</code>或者<code>let</code>。</p>
+<p><strong>本质上一个宏就是一个函数, 只不过在编译阶段被执行</strong>. 这个函数接收一个 <a href="https://www.sweetjs.org/doc/reference#syntax-transformer" target="_blank" rel="noopener"><code>TransformerContext</code></a> 对象，你也通过这个对象获取宏应用传入的<strong>语法对象(Syntax Object)数组</strong>，最终这个宏也要返回<strong>语法对象数组</strong>。</p>
+<p>什么是语法对象？语法对象是 Sweet.js 关于语法的内部表示, 你可以类比上文Lisp的 quoted 数据。<strong>在复杂语法的语言中，没办法使用 quoted 这么简单的序列来表示语法，而使用 AST 则更复杂，开发者更难以驾驭。所以大部分宏实现会参考 Lisp 的<code>S-表达式</code>，取折中方案，将传入的程序转换为Tokens，再组装成类似quoted的数据结构</strong>。</p>
+<p>举个例子，Sweet.js 会将 <code>foo,bar(&#39;baz&#39;, 1)</code>转换成这样的数据结构:</p>
+<p><img src="/images/babel/syntaxobject.png" alt></p>
+<p>从上图可知，Sweet.js 会将传入的程序解析成<strong>嵌套的Token序列</strong>，这个结构和Lisp的<code>S-表达式</code>非常相似。也就是, 说对于闭合的词法单元会被嵌套存储，例如上例的<code>(&#39;baz&#39;, 1)</code>.</p>
+<blockquote>
+<p>Elixir 也采用了<a href="https://elixir-lang.org/getting-started/meta/quote-and-unquote.html" target="_blank" rel="noopener">类似的quote/unquote机制</a>，可以结合着一起理解</p>
+</blockquote>
+<p><br></p>
+<p><code>TransformerContext</code>实现了迭代器方法，所以我们通过调用它的<code>next()</code>来遍历获取语法对象。最后宏必须返回一个语法对象数组，Sweet.js 使用了类似<code>字符串模板</code>的<a href="https://www.sweetjs.org/doc/reference#syntax-templates" target="_blank" rel="noopener">语法</a>(称为<code>语法模板</code>)来简化开发，这个模板最终转换为语法对象数组。</p>
+<blockquote>
+<p>需要注意的是<code>语法模板</code>的内嵌值只能是语法对象、语法对象序列或者TransformerContext.</p>
+</blockquote>
+<details><br><summary>旧版本使用了<a href="https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead" target="_blank" rel="noopener">模式匹配</a>，和Rust语法类似，我个人更喜欢这个，不知为何废弃了</summary><br><br><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">macro define &#123;</span><br><span class="line">    rule &#123; $x &#125; =&gt; &#123;</span><br><span class="line">        <span class="keyword">var</span> $x</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    rule &#123; $x = $expr &#125; =&gt; &#123;</span><br><span class="line">        <span class="keyword">var</span> $x = $expr</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">define y;</span><br><span class="line">define y = <span class="number">5</span>;</span><br></pre></td></tr></table></figure><br><br></details>
+
+<p><br></p>
+<p>说了这么多，类似Sweet.js <code>语法对象</code> 的设计是现代编程语言为了贴近 Lisp 宏的一个关键技术点。我发现<code>Elixir</code>、<code>Rust</code>等语言也使用了类似的设计。 除了数据结构的设计，现代编程语言的宏机制还包含以下特性：</p>
+<p><br></p>
+<p><strong>1️⃣ 卫生宏(Hygiene)</strong></p>
+<p>卫生宏指的是在宏内生成的变量不会污染外部作用域，也就是说，在宏展开时，Sweet.js 会避免宏内定义的变量和外部冲突.</p>
+<p>举个例子，我们创建一个swap宏，交换变量的值:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">syntax swap = <span class="function">(<span class="params">ctx</span>) =&gt;</span> &#123;</span><br><span class="line"> <span class="keyword">const</span> a = ctx.next().value</span><br><span class="line"> ctx.next() <span class="comment">// 吃掉','</span></span><br><span class="line"> <span class="keyword">const</span> b = ctx.next().value</span><br><span class="line"> return #`</span><br><span class="line"> <span class="keyword">let</span> temp = $&#123;a&#125;</span><br><span class="line"> $&#123;a&#125; = $&#123;b&#125;</span><br><span class="line"> $&#123;b&#125; = temp</span><br><span class="line"> <span class="string">`;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">swap foo,bar</span></span><br></pre></td></tr></table></figure>
+<p>展开会输出为</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> temp_10 = foo; <span class="comment">// temp变量被重命名为temp_10</span></span><br><span class="line">foo = bar;</span><br><span class="line">bar = temp_10;</span><br></pre></td></tr></table></figure>
+<p>如果你想引用外部的变量，也可以。不过不建议这么做，<strong>宏不应该假定其被展开的上下文</strong>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">syntax swap = <span class="function">(<span class="params">ctx</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  return #`</span><br><span class="line">  temp = $&#123;a&#125; <span class="comment">// 不使用 let 声明</span></span><br><span class="line">  $&#123;a&#125; = $&#123;b&#125;</span><br><span class="line">  $&#123;b&#125; = temp</span><br><span class="line">  <span class="string">`;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>2️⃣ 模块化</strong></p>
+<p>Sweet.js 的宏是模块化的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">'lang sweet.js'</span>;</span><br><span class="line"><span class="comment">// 导出宏</span></span><br><span class="line"><span class="keyword">export</span> syntax <span class="class"><span class="keyword">class</span> </span>= <span class="function"><span class="keyword">function</span> (<span class="params">ctx</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>导入：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="class"><span class="keyword">class</span> &#125; <span class="title">from</span> './<span class="title">es2015</span>-<span class="title">macros</span>'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Droid</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(name, color) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.color = color;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  rollWithIt(it) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.name + <span class="string">" is rolling with "</span> + it;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>相对Babel(编译器)来说，Sweet.js的宏是模块化/显式的。Babel你需要在配置文件中配置各种插件和选项，尤其是团队项目构建有统一规范和环境时，项目构建脚本修改可能有限制。而模块化的宏是源代码的一部分，而不是构建脚本的一部分，这使得它们可以被灵活地使用、重构以及废弃</strong>。</p>
+<p>下文介绍的 <code>babel-plugin-macros</code> 最大的优势就在这里, 通常<strong>我们希望构建环境是统一的、稳定的、开发人员应该专注于代码的开发，而不是如何去构建程序，正是因为代码多变性，才催生出了这些方案</strong>。</p>
+<p><br></p>
+<p>需要注意的是<strong>宏是在编译阶段展开</strong>的，所以无法运行用户代码，例如:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> log = <span class="function"><span class="params">msg</span> =&gt;</span> <span class="built_in">console</span>.log(msg); <span class="comment">// 用户代码, 运行时被求值，所以无法被访问</span></span><br><span class="line"></span><br><span class="line">syntax m = <span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 宏函数在编译阶段被执行</span></span><br><span class="line">  log(<span class="string">'doing some Sweet things'</span>); <span class="comment">// ERROR: 未找到变量log</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Sweet.js 和其他语言的宏一样，有了它你可以:</p>
+<ul>
+<li>新增语法糖(和Sweet.js 一样甜), 实现复合自己口味的语法或者某些实验性的语言特性</li>
+<li>自定义<a href="https://www.sweetjs.org/doc/tutorial#sweet-operators" target="_blank" rel="noopener">操作符</a>, 很强大</li>
+<li>消灭重复的代码，提升语言的表达能力。</li>
+<li>…</li>
+<li>别炫技</li>
+</ul>
+<p><br></p>
+<p>🤕很遗憾！Sweet.js 基本死了。所以现在当个玩具玩玩尚可，切勿用于生产环境。即使没有死，Sweet.js 这种非标准的语法, 和现有的Javascript工具链生态格格不入，开发和调试都会比较麻烦(比如Typescript).</p>
+<p>归根到底，Sweet.js 的失败，是社区抛弃了它。Javascript语言表达能力越来越强，版本迭代快速，加上有了Babel和Typescript这些解决方案，实在拿不出什么理由来使用 Sweet.js</p>
+<blockquote>
+<p>Sweet.js 相关论文可以看<a href="https://github.com/sweet-js/sweet-core/wiki/Macro-resources" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p><br></p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>这一节扯得有点多，将宏的历史和分类讲了个遍。 最后的总结是Elixir官方教程里面的一句话：<strong>显式好于隐式，清晰的代码优于简洁的代码(Clear code is better than concise code)</strong></p>
+<p>能力越大、责任越大。宏强大，比正常程序要更难以驾驭，你可能需要一定的成本去学习和理解它, 所以能不用宏就不用宏，<strong>宏是应该最后的法宝</strong>.</p>
+<p><br><br><br></p>
+<h2 id="既生-plugin-何生-macro"><a href="#既生-plugin-何生-macro" class="headerlink" title="既生 Plugin 何生 Macro"></a>既生 Plugin 何生 Macro</h2><p>🤓还没完， 一下子扯了好远，掰回正题。既然 Babel 有了 Plugin 为什么又冒出了个 <a href="https://github.com/kentcdodds/babel-plugin-macros" target="_blank" rel="noopener"><code>babel-plugin-macros</code></a>?</p>
+<blockquote>
+<p>如果你尚不了解Babel Macro，可以先读一下<a href="https://github.com/kentcdodds/babel-plugin-macros" target="_blank" rel="noopener">官方文档</a>, 另外<a href="https://create-react-app.dev" target="_blank" rel="noopener">Creact-React-APP</a> 已经内置</p>
+</blockquote>
+<p>这个得从 <a href="https://github.com/facebook/create-react-app" target="_blank" rel="noopener">Create-React-App(CRA)</a> 说起，CRA 将所有的项目构建逻辑都封装在<a href="https://github.com/facebook/create-react-app/tree/master/packages/react-scripts" target="_blank" rel="noopener"><code>react-scripts</code></a> 服务中。<strong>这样的好处是，开发者不需要再关心构建的细节, 另外构建工具的升级也变得非常方便, 直接升级 <code>react-scripts</code>即可</strong>。</p>
+<p>如果自己维护构建脚本的话，升一次级你需要升级一大堆的依赖，如果你要维护跨项目的构建脚本，那就更蛋疼了。</p>
+<blockquote>
+<p>我在<a href="https://juejin.im/post/5d2fcaacf265da1b95708f63" target="_blank" rel="noopener">《为什么要用vue-cli3?》</a> 里阐述了 CRA 以及 Vue-cli这类的工具对团队项目维护的重要性。</p>
+</blockquote>
+<p>CRA 是<strong>强约定</strong>的，它是按照React社区的最佳实践给你准备的，为了保护封装带来的红利，它不推荐你去手动配置Webpack、Babel… 所以才催生除了 babel-plugin-macros, 大家可以看这个 <a href="https://github.com/facebook/create-react-app/issues/2730" target="_blank" rel="noopener">Issue: RFC - babel-macros</a></p>
+<p><strong>所以为 Babel 寻求一个’零配置’的机制是 <code>babel-plugin-macros</code> 诞生的主要动机</strong>。</p>
+<p>这篇文章正好证实了这个动机：<a href="https://babeljs.io/blog/2017/09/11/zero-config-with-babel-macros" target="_blank" rel="noopener">《Zero-config code transformation with babel-plugin-macros》</a>, 这篇文章引述了一个重要的观点：”<strong>Compilers are the New Frameworks</strong>“</p>
+<p>的确，<strong>Babel 在现代的前端开发中扮演着一个很重要的角色，越来越多的框架或库会创建自己的 Babel 插件，它们会在编译阶段做一些优化，来提高用户体验、开发体验以及运行时的性能</strong>。比如:</p>
+<ul>
+<li><a href="https://github.com/lodash/babel-plugin-lodash" target="_blank" rel="noopener">babel-plugin-lodash</a> 将lodash导入转换为按需导入</li>
+<li><a href="https://github.com/ant-design/babel-plugin-import" target="_blank" rel="noopener">babel-plugin-import</a> 上篇文章提过的这个插件，也是实现按需导入</li>
+<li><a href="https://github.com/jamiebuilds/babel-react-optimize" target="_blank" rel="noopener">babel-react-optimize</a> 静态分析React代码，利用一定的措施优化运行效率。比如将静态的props或组件抽离为常量</li>
+<li><a href="https://github.com/entwicklerstube/babel-plugin-root-import" target="_blank" rel="noopener">root-import</a> 将基于根目录的导入路径重写为相对路径</li>
+<li><a href="https://www.styled-components.com/docs/tooling#babel-macro" target="_blank" rel="noopener">styled-components</a> 典型的CSS-in-js方案，利用Babel 插件来支持服务端渲染、预编译模板、样式压缩、清除死代码、提升调试体验。</li>
+<li><a href="https://github.com/kentcdodds/babel-plugin-preval" target="_blank" rel="noopener">preval</a> 在编译时预执行代码</li>
+<li><a href="https://www.apollographql.com/docs/react/v2.5/recipes/babel/#using-babel-plugin-graphql-tag" target="_blank" rel="noopener">babel-plugin-graphql-tag</a> 预编译GraphQL查询</li>
+<li>…</li>
+</ul>
+<p><br></p>
+<p>上面列举的插件场景中，<strong>并不是所有插件都是通用的，它们要么是跟某一特定的框架绑定、要么用于处理特定的文件类型或数据。这些非通用的插件是最适合使用macro取代的</strong>。</p>
+<p>用 <code>preval</code> 举个例子. 使用插件形式, 你首先要配置插件:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"plugins"</span>: [<span class="string">"preval"</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 传递给preval的字符串会在编译阶段被执行</span></span><br><span class="line"><span class="comment">// preval插件会查找preval标识符，将字符串提取出来执行，在将执行的结果赋值给greeting</span></span><br><span class="line"><span class="keyword">const</span> greeting = preval<span class="string">`</span></span><br><span class="line"><span class="string">  const fs = require('fs')</span></span><br><span class="line"><span class="string">  module.exports = fs.readFileSync(require.resolve('./greeting.txt'), 'utf8')</span></span><br><span class="line"><span class="string">`</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>使用Macro方式:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 首先你要显式导入</span></span><br><span class="line"><span class="keyword">import</span> preval <span class="keyword">from</span> <span class="string">'preval.macro'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 和上面一样</span></span><br><span class="line"><span class="keyword">const</span> greeting = preval<span class="string">`</span></span><br><span class="line"><span class="string">  const fs = require('fs')</span></span><br><span class="line"><span class="string">  module.exports = fs.readFileSync(require.resolve('./greeting.txt'), 'utf8')</span></span><br><span class="line"><span class="string">`</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这两者达到的效果是一样的，但意义却不太一样。有哪些区别？</p>
+<ul>
+<li><p>1️⃣ <strong>很显然，Macro不需要配置<code>.babelrc</code></strong>(<em>当然babel-plugin-macros这个基座需要装好</em>). 这个对于CRA这种不推荐配置构建脚本的工具来说很有帮助</p>
+</li>
+<li><p>2️⃣ <strong>由隐式转换为了显式</strong>。上一节就说了“显式好于隐式”。你必须在源代码中通过<code>导入语句</code>声明你使用了 Macro； 而基于插件的方式，你可能不知道<code>preval</code>这个标识符哪里来的? 如何被应用？何时被应用？而且通常你还需要和其他工具链的配合，例如ESlint、Typescript声明等等。</p>
+<p>  Macro 由代码显式地应用，我们更明确它被应用的目的和时机，对源代码的侵入性最小。因为中间多了 <code>babel-plugin-macro</code> 这一层，我们降低了对构建环境的耦合，让我们的代码更方便被迁移。</p>
+</li>
+<li><p>3️⃣ <strong>Macro相比Plugin 更容易被实现</strong>。因为它专注于具体的 AST 节点，见下文</p>
+</li>
+<li><p>4️⃣ 另外，当配置出错时，Macro可以得到更好的错误提示</p>
+</li>
+</ul>
+<p>有利有弊，Babel Macro 肯定也有些缺陷，例如相对于插件来说只能<em>显式转换</em>，这样代码可能会比较啰嗦，不过个人觉得在某些场景利大于弊, 能显式的就显式。</p>
+<p><br></p>
+<p>那么Babel Macro也是宏？<strong>相对于 Sweet.js 这些’正统’的宏机制有哪些不足</strong>？</p>
+<ul>
+<li><p><strong>首先 Babel Macro 必须是合法的 Javascript 语法</strong>。不支持自定义语法，也要分两面讨论，合法的Javascript语法不至于打破现有的工具协作链，如果允许用户毫无限制地创建新的语法，将来指不定会和标准的语法发生歧义。 反过来不能自定义语法的‘宏’，是否显得不太地道，不够’强大’?</p>
+</li>
+<li><p><strong>因为必须是合法的Javascript语法，Babel Macro 实现DSL(Domain-specific languages)能力就弱化了</strong></p>
+</li>
+<li><p><strong>再者，Babel Macro 和 Babel Plugin没有本质的区别</strong>，相比Sweet.js提供了显式定义和应用宏的语法，Babel Macro直接操作 AST 则要复杂得多，你还是需要了解一些编译原理，这把一般的开发者挡在了门外。</p>
+</li>
+</ul>
+<blockquote>
+<p>Babel 可以实现自定义语法，只不过你需要Fork <code>@babel/parser</code>, 对它进行改造(可以看这篇文章<a href="https://juejin.im/post/5d9be731f265da5bbc3e879b" target="_blank" rel="noopener">《精读《用 Babel 创造自定义 JS 语法》》</a>)。这个有点折腾，不太推荐</p>
+</blockquote>
+<p><br></p>
+<p><strong>总之，Babel Macro 本质上和Babel Plugin没有什么区别，它只是在Plugin 之上封装了一层(<a href="https://juejin.im/post/5d7ffad551882545ff173083" target="_blank" rel="noopener">分层架构模式的强大</a>)，创建了一个新的平台，让开发者可以在源代码层面显式地应用代码转换</strong>。所以，<strong>任何适合显式去转换的场景都适合用Babel Macro来做</strong>：</p>
+<ul>
+<li>特定框架、库的代码转换。如 <code>styled-components</code></li>
+<li>动态生成代码。<code>preval</code></li>
+<li>特定文件、语言的处理。例如<code>graphql-tag.macro</code>、<code>yaml.macro</code>、<code>svgr.macro</code></li>
+<li>… (查看<a href="https://github.com/jgierer12/awesome-babel-macros#graphql" target="_blank" rel="noopener">awesome-babel-macros</a>)</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="如何写一个-babel-macro"><a href="#如何写一个-babel-macro" class="headerlink" title="如何写一个 Babel Macro"></a>如何写一个 Babel Macro</h2><p>所以，Babel Macro是如何运作的呢？ <code>babel-plugin-macros</code> 要求开发者必须显式地导入 Macro，它会遍历匹配所有导入语句，<strong>如果导入源匹配<code>/[./]macro(\.js)?$/</code>正则，就会认为你在启用Macro</strong>。例如下面这些导入语句都匹配正则：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> foo <span class="keyword">from</span> <span class="string">'my.macro'</span></span><br><span class="line"><span class="keyword">import</span> &#123; bar &#125; <span class="keyword">from</span> <span class="string">'./bar/macro'</span></span><br><span class="line"><span class="keyword">import</span> &#123; baz <span class="keyword">as</span> _baz&#125; <span class="keyword">from</span> <span class="string">'baz/macro.js'</span></span><br><span class="line"><span class="comment">// 不支持命名空间导入</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Ok, 当匹配到导入语句后，<code>babel-plugin-macros</code>就会去导入你指定的 <code>macro</code> <strong>模块或者npm包</strong>(Macro 即可以是本地文件，也可以是公开的 npm 包， 或者是npm包中的子路径)。</p>
+<p>那么 <code>macro</code> 文件里面要包含什么内容呢？如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; createMacro &#125; = <span class="built_in">require</span>(<span class="string">'babel-plugin-macros'</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = createMacro(<span class="function">(<span class="params">&#123;references, state, babel&#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// ... macro 逻辑</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>macro</code> 文件必须默认导出一个由 <code>ceateMacro</code> 创建的实例, 在其回调中可以获取到一些关键对象：</p>
+<ul>
+<li><code>babel</code> 和普通的Babel插件一样，Macro 可以获取到一个 <code>babel-core</code> 对象</li>
+<li><code>state</code> 这个我们也比较熟悉，Babel 插件的 visitor 方法的第二个参数就是它, 我们可以通过它获取一些配置信息以及保存一些自定义状态</li>
+<li><code>references</code> 获取 Macro 导出标识符的所有引用。上一篇文章介绍了作用域，你应该还没忘记绑定和引用的概念。如下</li>
+</ul>
+<p>假设用户这样子使用你的 Macro:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> foo, &#123;bar, baz <span class="keyword">as</span> Baz&#125; <span class="keyword">from</span> <span class="string">'./my.macro'</span> <span class="comment">// 创建三个绑定</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面开始引用这些绑定</span></span><br><span class="line">foo(<span class="number">1</span>)</span><br><span class="line">foo(<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">bar<span class="string">`by tagged Template`</span></span><br><span class="line">;<span class="xml"><span class="tag">&lt;<span class="name">Baz</span>&gt;</span>by JSX<span class="tag">&lt;/<span class="name">Baz</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>那么你将拿到<code>references</code>结构是这样的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="comment">// key 为'绑定', value 为'引用数组'</span></span><br><span class="line">  <span class="keyword">default</span>: [NodePath<span class="comment">/*Identifier(foo)*/</span>, NodePath<span class="comment">/*Identifier(foo)*/</span>], <span class="comment">// 默认导出，即foo</span></span><br><span class="line">  bar: [NodePath<span class="comment">/*Identifier(bar)*/</span>],</span><br><span class="line">  baz: [NodePath<span class="comment">/*JSXIdentifier(Baz)*/</span>], <span class="comment">// 注意key为baz，不是Baz</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>查看<a href="https://github.com/kentcdodds/babel-plugin-macros/blob/master/other/docs/author.md" target="_blank" rel="noopener">详细开发指南</a> <br><br><a href="https://astexplorer.net" target="_blank" rel="noopener">AST Explorer</a> 也支持 babel-plugin-macros，可以玩一下. 下面的实战实例，也建议在这里探索一下</p>
+</blockquote>
+<p>接下来你就可以遍历<code>references</code>, 对这些节点进行转换，实现你想要的宏功能。开始实战!</p>
+<p><br><br><br></p>
+<h3 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h3><p>这一次我们模范<a href="https://github.com/kentcdodds/babel-plugin-preval/blob/master/src/object-to-ast.js" target="_blank" rel="noopener"><code>preval</code></a> 创建一个<code>eval.macro</code> Macro, 利用它在编译阶段执行(eval)一些代码。例如:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> evalm <span class="keyword">from</span> <span class="string">'eval.macro'</span></span><br><span class="line"><span class="keyword">const</span> x = evalm<span class="string">`</span></span><br><span class="line"><span class="string">function fib(n) &#123;</span></span><br><span class="line"><span class="string">  const SQRT_FIVE = Math.sqrt(5);</span></span><br><span class="line"><span class="string">  return Math.round(1/SQRT_FIVE * (Math.pow(0.5 + SQRT_FIVE/2, n) - Math.pow(0.5 - SQRT_FIVE/2, n)));</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">fib(20)</span></span><br><span class="line"><span class="string">`</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//      ↓ ↓ ↓ ↓ ↓ ↓</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> x = <span class="number">6765</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>创建 Macro 文件. 按照上一节的介绍，① 我们使用<code>createMacro</code>来创建一个 <code>Macro</code>实例, ② 并从<code>references</code> 中拿出所有<code>导出标识符</code>的引用路径, ③接着就是对这些引用路径进行AST转换:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; createMacro, MacroError &#125; = <span class="built_in">require</span>(<span class="string">'babel-plugin-macros'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myMacro</span>(<span class="params">&#123; references, state, babel &#125;</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 获取默认导出的所有引用</span></span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">default</span>: defaultImport = [] &#125; = references;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 遍历引用并进行求值</span></span><br><span class="line">  defaultImport.forEach(<span class="function"><span class="params">referencePath</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (referencePath.parentPath.type === <span class="string">"TaggedTemplateExpression"</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> val = referencePath.parentPath.get(<span class="string">"quasi"</span>).evaluate().value</span><br><span class="line">      <span class="keyword">const</span> res = <span class="built_in">eval</span>(val)</span><br><span class="line">      <span class="keyword">const</span> ast = objToAst(res)</span><br><span class="line">      referencePath.parentPath.replaceWith(ast)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 输出友好的报错信息</span></span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> MacroError(<span class="string">'只支持标签模板字符串, 例如：evalm`1`'</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = createMacro(myMacro);</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>为了行文简洁，本案例中只支持<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/template_strings" target="_blank" rel="noopener"><code>标签模板字符串</code></a> 形式调用，但是标签模板字符串中可能包含内插的字符串，例如:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">hello<span class="string">`</span></span><br><span class="line"><span class="string">hello world <span class="subst">$&#123;foo&#125;</span> + <span class="subst">$&#123;bar + baz&#125;</span></span></span><br><span class="line"><span class="string">`</span></span><br></pre></td></tr></table></figure>
+<p>其 AST 结构如下:</p>
+<p><img src="/images/babel/tag-template.png" alt></p>
+<p><br></p>
+<p>我们需要将 <code>TaggedTemplateExpression</code> 节点转换为字符串。手动去拼接会很麻烦，好在每个 AST 节点的 Path 对象都有一个<code>evaluate</code> 方法，这个方法可以对节点进行‘静态求值’：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">t.evaluate(parse(<span class="string">"5 + 5"</span>)) <span class="comment">// &#123; confident: true, value: 10 &#125;</span></span><br><span class="line">t.evaluate(parse(<span class="string">"!true"</span>)) <span class="comment">// &#123; confident: true, value: false &#125;</span></span><br><span class="line"><span class="comment">// ❌两个变量相加无法求值，因为变量值在运行时才存在，这里confident为false：  </span></span><br><span class="line">t.evaluate(parse(<span class="string">"foo + foo"</span>)) <span class="comment">// &#123; confident: false, value: undefined &#125;</span></span><br></pre></td></tr></table></figure>
+<p>因此这样子的标签模板字符串是无法求值的:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">evalm<span class="string">`1 + <span class="subst">$&#123;foo&#125;</span>`</span> <span class="comment">// 包含变量</span></span><br><span class="line">evalm<span class="string">`1 + <span class="subst">$&#123;bar(<span class="number">1</span>)&#125;</span>`</span> <span class="comment">// 包含函数调用</span></span><br></pre></td></tr></table></figure>
+<p><strong>这个和 <code>Typescript</code> 的 <a href="https://www.typescriptlang.org/docs/handbook/enums.html" target="_blank" rel="noopener"><code>enum</code></a>， 还有一些编译语言的常量是一样的，它们在编译阶段被求值，只有一些原始值以及一些原始值的表达式才支持在编译阶段被求值</strong>.</p>
+<p><br></p>
+<p>So，上面的代码还不够健壮，我们再优化一下，在求值失败时给用户更好的提示:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">defaultImport.forEach(<span class="function"><span class="params">referencePath</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (referencePath.parentPath.type === <span class="string">"TaggedTemplateExpression"</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> evaluated = referencePath.parentPath.get(<span class="string">"quasi"</span>).evaluate();</span><br><span class="line">    <span class="comment">// 转换标签模板字符串失败</span></span><br><span class="line">    <span class="keyword">if</span> (!evaluated.confident) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> MacroError(<span class="string">"标签模板字符串内插值只支持原始值和原始值表达式"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> res = <span class="built_in">eval</span>(evaluated.value);</span><br><span class="line">      <span class="keyword">const</span> ast = objToAst(res);</span><br><span class="line">      <span class="comment">// 替换掉调用节点</span></span><br><span class="line">      referencePath.parentPath.replaceWith(ast);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> MacroError(<span class="string">`求值失败: <span class="subst">$&#123;err.message&#125;</span>`</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> MacroError(<span class="string">"只支持标签模板字符串, 例如：evalm`1 + 1`"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>接下来将执行后的值转换为 AST，然后替换掉<code>TaggedTemplateExpression</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">objToAst</span>(<span class="params">res</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> str = <span class="built_in">JSON</span>.stringify(res);</span><br><span class="line">  <span class="keyword">if</span> (str == <span class="literal">null</span>) &#123;</span><br><span class="line">    str = <span class="string">"undefined"</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> variableDeclarationNode = babel.template(<span class="string">`var x = <span class="subst">$&#123;str&#125;</span>`</span>, &#123;&#125;)();</span><br><span class="line">  <span class="comment">// 取出初始化表达式的 AST</span></span><br><span class="line">  <span class="keyword">return</span> variableDeclarationNode.declarations[<span class="number">0</span>].init;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里<code>@babel/template</code> 就派上用场了，它可以将字符串代码解析成 AST，当然直接使用<code>parse</code>方法解析也是可以的。</p>
+<p><br></p>
+<p>Ok, 文章到这里基本结束了。本文对‘宏’进行了深入的讨论，从 <code>C</code> 语言的文本替换宏到濒死的<code>Sweet.js</code>, 最后介绍了<code>babel-plugin-macros</code>.</p>
+<p>Babel Macro 本质上还是Babel 插件，只不过它是模块化的，你要使用它必须显式地导入。和‘正统’宏相比， Babel Macro 直接操作 AST，需要你掌握编译原理， ‘正统’宏可以实现的东西, Babel Macro也可以实现(例如卫生宏). 虽然相比Babel插件略有简化，还是比较啰嗦。另外Babel Macro 不能创建新的语法，这使得它可以和现有的工具生态保持兼容。</p>
+<p>最后！打开脑洞 🧠，Babel Macro 可以做很多有意思的东西，查看<a href="https://github.com/jgierer12/awesome-babel-macros" target="_blank" rel="noopener">《Awesome babel macros》</a>。不过要<strong>谨记：‘显式好于隐式，清晰的代码优于简洁的代码’</strong></p>
+<p><br></p>
+<p><strong>截止 2019.10.10 掘金粉丝数已经突破 ✨2000✨，继续关注我，点赞给我支持</strong>。</p>
+<p><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+<p><br></p>
+<h2 id="扩展资料"><a href="#扩展资料" class="headerlink" title="扩展资料"></a>扩展资料</h2><ul>
+<li><a href="https://babeljs.io/blog/2017/09/11/zero-config-with-babel-macros" target="_blank" rel="noopener">Zero-config code transformation with babel-plugin-macros</a></li>
+<li><a href="https://github.com/facebook/create-react-app/issues/2730" target="_blank" rel="noopener">RFC - babel-macros</a></li>
+<li><a href="https://jlongster.com/Stop-Writing-JavaScript-Compilers--Make-Macros-Instead" target="_blank" rel="noopener">STOP WRITING JAVASCRIPT COMPILERS! MAKE MACROS INSTEAD</a></li>
+<li><a href="https://blog.oyanglul.us/javascript/clojure-essence-in-javascript-macro" target="_blank" rel="noopener">JavaScript玩转Clojure大法之 - Macro (1)</a></li>
+<li><a href="https://elixir-lang.org/getting-started/meta/macros.html" target="_blank" rel="noopener">Elixir Macro</a></li>
+<li><a href="https://kaisery.gitbooks.io/rust-book-chinese/content/content/Macros%20宏.html" target="_blank" rel="noopener">Rust 的宏</a></li>
+<li><a href="https://juejin.im/post/5cebce946fb9a07ece67aec4" target="_blank" rel="noopener">iOS深思篇 | 宏定义</a></li>
+<li><a href="https://medium.com/@fxn/how-does-elixir-compile-execute-code-c1b36c9ec8cf" target="_blank" rel="noopener">How does Elixir compile/execute code?</a></li>
+<li><a href="https://segmentfault.com/a/1190000004104696" target="_blank" rel="noopener">让这世界再多一份 GNU m4 教程 (1)</a></li>
+<li><a href="https://segmentfault.com/a/1190000004050807" target="_blank" rel="noopener">宏语言为何不受欢迎</a></li>
+<li><a href="https://github.com/babel/awesome-babel" target="_blank" rel="noopener">awesome-babel</a></li>
+<li><a href="https://www.zhihu.com/question/19875500" target="_blank" rel="noopener">各编程语言对「宏」的支持是怎样的？</a></li>
+<li><a href="https://github.com/sweet-js/sweet-core/wiki/Macro-resources" target="_blank" rel="noopener">Sweetjs 相关论文</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关于宏"><span class="toc-number">1.</span> <span class="toc-text">关于宏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#文本替换式"><span class="toc-number">1.1.</span> <span class="toc-text">文本替换式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#语法扩展式"><span class="toc-number">1.2.</span> <span class="toc-text">语法扩展式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sweet-js"><span class="toc-number">1.3.</span> <span class="toc-text">Sweet.js</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#小结"><span class="toc-number">1.4.</span> <span class="toc-text">小结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#既生-plugin-何生-macro"><span class="toc-number">2.</span> <span class="toc-text">既生 Plugin 何生 Macro</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何写一个-babel-macro"><span class="toc-number">3.</span> <span class="toc-text">如何写一个 Babel Macro</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#实战"><span class="toc-number">3.1.</span> <span class="toc-text">实战</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">4.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/10/10/babel-macro/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/10/10/babel-macro/&text=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/10/10/babel-macro/&is_video=false&description=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=深入浅出 Babel 下篇：既生 Plugin 何生 Macros&body=Check out this article: https://bobi.ink/2019/10/10/babel-macro/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/10/10/babel-macro/&title=深入浅出 Babel 下篇：既生 Plugin 何生 Macros"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/10/10/babel-macro/&name=深入浅出 Babel 下篇：既生 Plugin 何生 Macros&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

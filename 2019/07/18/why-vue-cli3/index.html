@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="[问答]系列主要整理SegmentFault上面比较有价值的问题，以及我的回答  原问题其实这个问题主要是想了解vue-cli3与vue-cli2相比是否存在一些不得不升级的好处和优点？ 产生这个问题的原因是在试用完vue-cli3之后并没有觉得好用，反而觉得束手束脚，我cli2时，webpack想怎么配怎么配为什么到了cli3我要在vue.config.js中配置众所周知vue-cli的通用配">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[问答] 为什么要用vue-cli3?">
+<meta property="og:url" content="https://bobi.ink/2019/07/18/why-vue-cli3/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="[问答]系列主要整理SegmentFault上面比较有价值的问题，以及我的回答  原问题其实这个问题主要是想了解vue-cli3与vue-cli2相比是否存在一些不得不升级的好处和优点？ 产生这个问题的原因是在试用完vue-cli3之后并没有觉得好用，反而觉得束手束脚，我cli2时，webpack想怎么配怎么配为什么到了cli3我要在vue.config.js中配置众所周知vue-cli的通用配">
+<meta property="og:locale" content="zh">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="[问答] 为什么要用vue-cli3?">
+<meta name="twitter:description" content="[问答]系列主要整理SegmentFault上面比较有价值的问题，以及我的回答  原问题其实这个问题主要是想了解vue-cli3与vue-cli2相比是否存在一些不得不升级的好处和优点？ 产生这个问题的原因是在试用完vue-cli3之后并没有觉得好用，反而觉得束手束脚，我cli2时，webpack想怎么配怎么配为什么到了cli3我要在vue.config.js中配置众所周知vue-cli的通用配">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>[问答] 为什么要用vue-cli3?</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/07/19/frontend-standard/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/07/17/modern-module/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/18/why-vue-cli3/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/18/why-vue-cli3/&text=[问答] 为什么要用vue-cli3?"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/18/why-vue-cli3/&is_video=false&description=[问答] 为什么要用vue-cli3?"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=[问答] 为什么要用vue-cli3?&body=Check out this article: https://bobi.ink/2019/07/18/why-vue-cli3/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/18/why-vue-cli3/&name=[问答] 为什么要用vue-cli3?&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#原问题"><span class="toc-number">1.</span> <span class="toc-text">原问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#我的回答"><span class="toc-number">2.</span> <span class="toc-text">我的回答</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        [问答] 为什么要用vue-cli3?
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-07-17T16:00:00.000Z" itemprop="datePublished">2019-07-18</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p><code>[问答]</code>系列主要整理<a href="https://segmentfault.com/q/1010000019785471" target="_blank" rel="noopener">SegmentFault</a>上面比较有价值的问题，以及我的回答</p>
+</blockquote>
+<h2 id="原问题"><a href="#原问题" class="headerlink" title="原问题"></a><a href="https://segmentfault.com/q/1010000019785471/a-1020000019793827" target="_blank" rel="noopener">原问题</a></h2><p>其实这个问题主要是想了解vue-cli3与vue-cli2相比是否存在一些不得不升级的好处和优点？</p>
+<p>产生这个问题的原因是在试用完vue-cli3之后并没有觉得好用，反而觉得束手束脚，我cli2时，webpack想怎么配怎么配为什么到了cli3我要在vue.config.js中配置<br>众所周知vue-cli的通用配置并不适合每种情况, 而在vue.config.js只能做增添和覆盖，所以一直没有用vue-cli3构建项目</p>
+<p>所以想请教下 这个版本有没有值得升级的优点</p>
+<p><br></p>
+<h2 id="我的回答"><a href="#我的回答" class="headerlink" title="我的回答"></a>我的回答</h2><p>好问题，vue-cli3相对vue-cli有很多重要的更新。</p>
+<p>首先说一些vue-cli这些工具的<strong>初衷</strong>吧: 这些工具就是为了让开发者能够<strong>开箱即用</strong>快速地进行应用开发而开发的，<strong>它们秉承的是“约定大于配置”思想，简单说就是”能不配置的就不配置，你就按照我的方式来，也不要去争论这个好不好，快速进行业务开发才是正经事”. 它们不建议你去配置，但也不会拦着你去配置</strong>。</p>
+<p>另外Webpack对初学者并不是十分友好，‘又长又臭’的配置，普通开发者很难写入定义良好，性能优化的配置。不然就不会各种cli工具冒出来了，比如parcel，create-react-app。这些工具都宣称零配置，目的就是让开发者能够愉快的进行代码开发。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>现在来看看Vue-cli v3的改进，以及思考这些有什么意义呢？</p>
+<p><br></p>
+<p><strong>1. 抽离cli service层</strong></p>
+<p>Create-React-App是第一个做这种事情的。vue-cli3库现在包含以下两个模块：</p>
+<ul>
+<li><p>CLI: 即vue全局命令，主要用于项目创建和管理，包含了<code>vue create</code>、<code>vue ui</code>这些命令。CLI命令的做的事情比较少，所以更新不会太频繁(开发者也很少会去更新这些命令)</p>
+</li>
+<li><p>Service层: 负责项目的实际构建，也就是webpack项目构建。这一块是频繁更新的，一般作为项目的局部依赖。</p>
+</li>
+</ul>
+<p><br></p>
+<p>OK，这么做有什么意义呢？考虑这样一个场景，这也是答主之前遇到的一个痛点：</p>
+<p><strong>vue-cli3之前不算是一个构建CLI, 它顶多就是一个模板拷贝器, 做的事情非常少</strong>, 所有webpack配置和构建命令都是耦合在具体的项目里面，package.json会包含一大堆开发依赖。</p>
+<p>如果去跟进webpack或相关工具更新的朋友会有这种体会，升级不是一件容易的事情。比如你升级了babel-loader, 可能要连带webpack都升级，webpack升级后可能其他工具又不兼容了。</p>
+<p>升级方面的痛点是其一。如果你的团队需要维护很多项目，你怎么对这些项目进行维护升级？每个项目都拷贝一下？如果某个项目做了特殊配置呢？</p>
+<p><strong>对于团队而言，项目构建这一块是应该尽量做到的统一和傻瓜化的，没有必要在这方面投入太多的精力，应该把事情外包给擅长这种事情的人去做</strong>。</p>
+<p><strong>另外不要排斥更新，更新可以获得更好的开发体验和构建速度、运行性能, 别人在这方面比你了解的更多</strong>。</p>
+<p><strong>分离了vue-cli-service之后，项目构建更新只是一个命令的事情，除非做了很多特殊化操作</strong>。<strong>特殊化操作应该封装到vue-cli的插件中</strong>。这就引出了vue-cli3的另外一个特色：插件</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>2. 插件化</strong></p>
+<p>相比create-react-app, vue-cli是在太仁慈了。vue-cli的插件机制很灵活，通过<code>webpack-chain</code>和<code>webpack-merge</code>可以实现webpack完全定制化。</p>
+<p>可以对比一下市面上流行的cli工具的可扩展性：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Vue CLI</th>
+<th>create-react-app</th>
+<th>parcel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>快速原型开发</td>
+<td>支持</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>全局模式</td>
+<td>零配置原型开发就是全局的</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>插件</td>
+<td>支持</td>
+<td>-</td>
+<td>支持，扩展文件类型和文件输出</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>强，通过插件扩展 wepack 配置</td>
+<td>弱, 强约定, 无法配置 webpack，可以 eject, 然后手工配置；支持 babel-macro;(严格说可以通过<a href="https://github.com/timarney/react-app-rewired" target="_blank" rel="noopener">react-app-rewired</a>进行扩展)</td>
+<td>中(可以配置 babel，postcss，Typescript); 提供了 Node API; 支持插件扩展文件类型</td>
+</tr>
+<tr>
+<td>多页面</td>
+<td>支持</td>
+<td>-</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>适用范围</td>
+<td>Vue 组件的第一公民。通过扩展可以支持任意前端框架</td>
+<td>针对 React 开发，不支持其他框架</td>
+<td>parcel 是一个通用的打包工具，它的竞争对手是 webpack</td>
+</tr>
+<tr>
+<td>编译速度</td>
+<td>cache-loader,thread-loader 来加速 JS 和 TS 编译</td>
+<td>babel-loader 开启了 cache</td>
+<td>编译速度号称是 webpack 的两倍</td>
+</tr>
+<tr>
+<td>可升级性</td>
+<td>支持升级 cli-service, 插件需要单独升级, 插件需要遵循语义化版本. 太多插件存在升级风险</td>
+<td>支持升级 react-script, 官方维护，且强约定基本可以保障向下兼容</td>
+<td>支持升级 parcel-bundler</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>图形化管理是 CLI 的特色之一</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>对于vue-cli的插件实现机制可以看这篇<a href="https://juejin.im/post/5cedb26451882566477b7235" target="_blank" rel="noopener">文章</a>。</p>
+<p>因为vue-cli灵活的扩展性，所以它不仅限于vue本身，可以扩展支持react、anything…</p>
+<p>按照上文说的，<strong>如果你要做深度的vue-cli定制化，不建议直接写在vue.config.js中，而是封装在插件中，独立的维护这个插件，然后项目再依赖这个插件。这样就可以简化升级的成本和复杂度</strong>。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>3. GUI界面</strong></p>
+<p>虽然大部分人都觉得作用不大，因为确实对开发效率并实际的提升效果。就是看着舒服直观，这就够了。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>4. 快速原型开发</strong></p>
+<p>vue-cli3也支持直接将一个vue文件跑起来，快速原型开发或验证某些想法时，挺不错。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>5. <a href="https://cli.vuejs.org/guide/browser-compatibility.html#modern-mode" target="_blank" rel="noopener">现代模式</a></strong></p>
+<p>给先进的浏览器配合先进的代码(ES6之后),同时兼容旧版本的浏览器，先进的代码不管从文件体积还是脚本解析效率、运行效率都有较高的提升。</p>
+<p>体积对比:</p>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Size (minified)</th>
+<th>Size (minified + gzipped)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ES2015+ (main.mjs)</td>
+<td>80K</td>
+<td>21K</td>
+</tr>
+<tr>
+<td>ES5 (main.es5.js)</td>
+<td>175K</td>
+<td>43K</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>解析效率:</p>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Parse/eval time (individual runs)</th>
+<th>Parse/eval time (avg)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ES2015+ (main.mjs)</td>
+<td>184ms, 164ms, 166ms</td>
+<td>172ms</td>
+</tr>
+<tr>
+<td>ES5 (main.es5.js)</td>
+<td>389ms, 351ms, 360ms</td>
+<td>367ms</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>6. Standard Tooling for Vue.js Development</strong></p>
+<p>这是vue-cli的官方介绍，vue标准开发工具. 跟进vue-cli就是跟进官方的最佳实践和前沿技术，vue团队已经为你考虑很多应用场景, why not?</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>总结一下</strong>：</p>
+<ul>
+<li><p>如果我们喜欢折腾，肯定会觉得vue-cli3束手束脚，这时候我们不是vue-cli3的目标用户；</p>
+<p>就比如我们团队就自己搞了一一个CLI构建工具: <a href="https://github.com/GDJiaMi/jm-cli" target="_blank" rel="noopener">jm-cli</a>, 根据自己的团队需求进行深度定制，不过我们这个工具是强约定的，包括目录结构、编码规范等等. 因为我们不推荐团队成员去搞特殊化定制，而且为了方便进行更新，所以干脆就不让扩展了，<strong>统一和规范对团队来说才是最重要的</strong>.</p>
+<p><strong>如果你有类似的开发经验，你会觉得vue-cli可能是所有构建CLI的最终归宿或者典范</strong>。</p>
+</li>
+<li><p>如果不想折腾，只想写代码, 而且想跟进vue官方最新实践，那就直接拿来用吧；</p>
+</li>
+<li>如果想折腾，又要考虑团队协作和构建工具链的维护成本，vue-cli是很适合的。当然你也可以造轮子</li>
+<li>如果想学webpack的构建项目，也不推荐你使用vue-cli</li>
+</ul>
+<p><br></p>
+<p>最后给vue团队点个赞👍</p>
+<p>欢迎关注我，和我交流</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#原问题"><span class="toc-number">1.</span> <span class="toc-text">原问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#我的回答"><span class="toc-number">2.</span> <span class="toc-text">我的回答</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/07/18/why-vue-cli3/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/07/18/why-vue-cli3/&text=[问答] 为什么要用vue-cli3?"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/07/18/why-vue-cli3/&is_video=false&description=[问答] 为什么要用vue-cli3?"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=[问答] 为什么要用vue-cli3?&body=Check out this article: https://bobi.ink/2019/07/18/why-vue-cli3/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/07/18/why-vue-cli3/&title=[问答] 为什么要用vue-cli3?"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/07/18/why-vue-cli3/&name=[问答] 为什么要用vue-cli3?&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

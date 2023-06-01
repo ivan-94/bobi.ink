@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="本文是经典的Functors, Applicatives, And Monads In Pictures的Typescript翻译版本。 Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。 后来拜读了">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Typescript版图解Functor , Applicative 和 Monad">
+<meta property="og:url" content="https://bobi.ink/2019/08/22/ts-fam/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="本文是经典的Functors, Applicatives, And Monads In Pictures的Typescript翻译版本。 Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。 后来拜读了">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/value.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/value_apply.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/value_and_context.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/context.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/no_fmap_ouch.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_apply.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/functor_def.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_def.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_just.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_nothing.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/bill.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_list.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/function_with_value.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap_function.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/value_and_context.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/function_and_context.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/applicative_just.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/applicative_list.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/fmap.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/applicative.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/context.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/half.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/half_ouch.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/plunger.jpg">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/bind_def.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/monad_just.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/monad_nothing.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/monad_chain.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/whoa.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/io.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/getLine.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/readFile.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/putStrLn.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/monad_io.png">
+<meta property="og:image" content="https://bobi.ink/images/ts-fam/recap.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.331Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Typescript版图解Functor , Applicative 和 Monad">
+<meta name="twitter:description" content="本文是经典的Functors, Applicatives, And Monads In Pictures的Typescript翻译版本。 Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。 后来拜读了">
+<meta name="twitter:image" content="https://bobi.ink/images/ts-fam/value.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Typescript版图解Functor , Applicative 和 Monad</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/08/29/js-bs/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/08/10/react-hooks/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/22/ts-fam/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/22/ts-fam/&text=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/22/ts-fam/&is_video=false&description=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Typescript版图解Functor , Applicative 和 Monad&body=Check out this article: https://bobi.ink/2019/08/22/ts-fam/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/22/ts-fam/&name=Typescript版图解Functor , Applicative 和 Monad&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#functors"><span class="toc-number">1.</span> <span class="toc-text">Functors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#究竟什么是-functor-呢？"><span class="toc-number">2.</span> <span class="toc-text">究竟什么是 Functor 呢？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#functor总结"><span class="toc-number">2.1.</span> <span class="toc-text">Functor总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#applicative"><span class="toc-number">3.</span> <span class="toc-text">Applicative</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#applicative总结"><span class="toc-number">3.1.</span> <span class="toc-text">Applicative总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#monad"><span class="toc-number">4.</span> <span class="toc-text">Monad</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">6.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Typescript版图解Functor , Applicative 和 Monad
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-08-21T16:00:00.000Z" itemprop="datePublished">2019-08-22</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>本文是经典的<a href="http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html" target="_blank" rel="noopener">Functors, Applicatives, And Monads In Pictures</a>的Typescript翻译版本。</p>
+<p>Functor/Applicative/Monad是函数式编程中的一些比较‘基础’的概念，反正我是不认同‘基础’这个说法的，笔者也阅读过很多类似介绍Monad的文章，最后都不了了之，这些概念是比较难以理解的，而且平时编程实践中也很难会接触到这些东西。</p>
+<p>后来拜读了<a href="http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html" target="_blank" rel="noopener">Functors, Applicatives, And Monads In Pictures</a>, 不错，好像懂了。于是自己想通过翻译，再深入消化消化这篇文章，这里使用<code>Typescript</code>作为描述语言，对于前端来说会更好理解。</p>
+<p>有理解不正确的地方，敬请指正. 开始吧！</p>
+<p><br></p>
+<p>这是一个简单的值:</p>
+<p><img src="/images/ts-fam/value.png" alt></p>
+<p>例如这些</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>        <span class="comment">// number</span></span><br><span class="line"><span class="string">'string'</span> <span class="comment">// string</span></span><br></pre></td></tr></table></figure>
+<p>大家都知道怎么将一个函数应用到这个值上面:</p>
+<p><img src="/images/ts-fam/value_apply.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// So easy</span></span><br><span class="line"><span class="keyword">const</span> add3 = <span class="function">(<span class="params">val: <span class="built_in">number</span></span>) =&gt;</span> val + <span class="number">3</span></span><br><span class="line"><span class="built_in">console</span>.log(add3(<span class="number">2</span>)) <span class="comment">// 5</span></span><br></pre></td></tr></table></figure>
+<p>很简单了. 我们来扩展一下, 让任意的值是可以包装在一个<strong>上下文(context)</strong>当中. 现在的情况你可以想象一个可以把值放进去的盒子:</p>
+<p><img src="/images/ts-fam/value_and_context.png" alt></p>
+<p>现在你<strong>把一个函数应用到这个包装值的时候, 根据其上下文类型你会得到不同的结果</strong>. 这就是 <code>Functor</code>, <code>Applicative</code>, <code>Monad</code>, <code>Arrow</code> 之类概念的基础. </p>
+<p><code>Maybe</code> 就是一个典型的数据类型, 它定义了两种相关的‘<strong>上下文</strong>’, Maybe本身也是一个‘上下文’(除了值，其他类型都可以是一个上下文？):</p>
+<p><img src="/images/ts-fam/context.png" alt></p>
+<p>原文基于Haskell，它的Maybe类型有两个上下文Just(蓝色盒子)和None(红色空盒子)。仿造Haskell在Typescript中我们可以使用<code>可选类型(Maybe)</code>来表示:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> Maybe&lt;T&gt; = Just&lt;T&gt; | Nothing <span class="comment">// Just 表示值‘存在’，Nothing表示空值，类似于null、undefined的概念</span></span><br></pre></td></tr></table></figure>
+<p>Just和Nothing的基本结构:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 我们只用None来取代null, 这里我们将None作为一个值，而不是一个类</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> None &#123;&#125;</span><br><span class="line"><span class="comment">// 对应None的类型</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">type</span> Nothing = <span class="keyword">typeof</span> None</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断是否是Nothing，这里使用Typescript的 `Type Guards`</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> isNothing = (val: <span class="built_in">any</span>): val is Nothing =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> val === None</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Just类型</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> Just&lt;T&gt; &#123;</span><br><span class="line">  <span class="keyword">static</span> of&lt;T&gt;(val: T) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Just(val)</span><br><span class="line">  &#125;</span><br><span class="line">  value: T</span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params">value: T</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.value = value</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用示例:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a: Maybe&lt;<span class="built_in">number</span>&gt;;</span><br><span class="line">a = None;</span><br><span class="line">a = Just.of(<span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>说实在这个实现有点挫, 但是为了更加贴近原文描述，暂且使用这个实现。之前考虑过的一个版本是下面这样的, 因为无法给它们扩展方法，就放弃了这个方案:<br>  <figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> Optional&lt;T&gt; = NonNullable&lt;T&gt; | nul</span><br><span class="line"><span class="keyword">let</span> a: Optional&lt;<span class="built_in">number</span>&gt; = <span class="number">1</span>;</span><br><span class="line">a = <span class="literal">null</span>;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p><br></p>
+<p>很快我们会看到对一个 <code>Just&lt;a&gt;</code> 和一个 Nothing 来说, 函数应用有何不同. 首先我们来看看 Functor!</p>
+<p><br><br><br></p>
+<h2 id="functors"><a href="#functors" class="headerlink" title="Functors"></a>Functors</h2><p>当一个值被包装在一个上下文中时, 你就不能拿普通函数来应用了:</p>
+<p><img src="/images/ts-fam/no_fmap_ouch.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="keyword">let</span> a: Just&lt;<span class="built_in">number</span>&gt;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> add3 = <span class="function">(<span class="params">v: <span class="built_in">number</span></span>) =&gt;</span> v + <span class="number">3</span></span><br><span class="line">add3(a) <span class="comment">// ❌ 类型“Just&lt;number&gt;”的参数不能赋给类型“number”的参</span></span><br></pre></td></tr></table></figure>
+<p>这时候, 该 <code>fmap</code> 出场了. fmap 翩翩而来，从容应对上下文(fmap is from the street, fmap is hip to contexts). 还有谁? fmap 知道怎样将一个函数应用到一个包装在上下文的值上. <strong>你可以对任何一个类型为 Functor 的类型使用 fmap</strong>， 换句话说，Functor都定义了fmap.</p>
+<p>比如说, 想一下你想把 add3 应用到 Just 2. 用 fmap:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">2</span>).fmap(add3) <span class="comment">// Just 5</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/ts-fam/fmap_apply.png" alt></p>
+<p><strong>💥嘭！</strong> fmap 向我们展示了它的成果。 但是 fmap 怎么知道如何应用该函数的呢？</p>
+<p><br></p>
+<h2 id="究竟什么是-functor-呢？"><a href="#究竟什么是-functor-呢？" class="headerlink" title="究竟什么是 Functor 呢？"></a>究竟什么是 Functor 呢？</h2><p>在 Haskell 中 <code>Functor</code> 是一个<a href="http://learnyouahaskell.com/types-and-typeclasses#typeclasses-101" target="_blank" rel="noopener">类型类(typeclass)</a>。 其定义如下：</p>
+<p><img src="/images/ts-fam/functor_def.png" alt></p>
+<p>在Typescript中， 一个Functor认为是<strong>定义了fmap的任意类型</strong>. 看看<code>fmap</code>是如何工作的:</p>
+<p><img src="/images/ts-fam/fmap_def.png" alt></p>
+<ol>
+<li>一个Functor类型的 fa, 例如Just 2</li>
+<li>fa 定义了一个fmap, fmap 接受一个函数fn，例如add3</li>
+<li>fmap 直到如何将fa应用到fn中， 返回一个Functor类型的 fb. <strong>fa和fb的包装上下文类型一样</strong>, 例如fa是Just, 那么fb也是Just; 反之fa是Nothing，fb也是Nothing;</li>
+</ol>
+<p>用Typescript的函数签名描述一下：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">&lt;Functor T&gt;.fmap&lt;U&gt;<span class="function">(<span class="params">fn: (<span class="params">val: T</span>) =&gt; U</span>): &lt;<span class="params">Functor</span> <span class="params">U</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>所以我们可以这么做：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">2</span>).fmap(add3) <span class="comment">// Just 5</span></span><br></pre></td></tr></table></figure>
+<p>而 fmap 神奇地应用了这个函数，因为 Maybe 是一个 Functor, 它指定了 fmap 如何应用到 Just 上与 Nothing 上:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> Just&lt;T&gt; &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 实现fmap</span></span><br><span class="line">  fmap&lt;U&gt;<span class="function">(<span class="params">fn: (<span class="params">val: T</span>) =&gt; U</span>) &#123;</span></span><br><span class="line"><span class="function">    <span class="params">return</span> <span class="params">Just</span>.<span class="params">of</span>(<span class="params">fn(<span class="params"><span class="keyword">this</span>.value</span>)</span>)</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="params">class</span> <span class="params">None</span> &#123;</span></span><br><span class="line"><span class="function">  // <span class="params">None</span> 接受任何函数都返回<span class="params">None</span></span></span><br><span class="line"><span class="function">  <span class="params">static</span> <span class="params">fmap</span>(<span class="params">fn: <span class="built_in">any</span></span>) &#123;</span></span><br><span class="line"><span class="function">    <span class="params">return</span> <span class="params">None</span></span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>当我们写 <code>Just.of(2).fmap(add3)</code> 时，这是幕后发生的事情：</p>
+<p><img src="/images/ts-fam/fmap_just.png" alt></p>
+<p>那么然后，就像这样，fmap，请将 add3 应用到 Nothing 上如何？</p>
+<p><img src="/images/ts-fam/fmap_nothing.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">None.fmap(add3) <span class="comment">// Nothing</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/ts-fam/bill.png" alt></p>
+<p>就像《黑客帝国》中的 Morpheus，fmap 知道都要做什么；如果你从 Nothing 开始，那么你会以 Nothing 结束！ fmap 是禅。</p>
+<p>现在它告诉我们了 Maybe 数据类型存在的意义。 例如，这是在一个没有 Maybe 的语言中处理一个数据库记录的方式, 比如Javascript:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> post = Post.findByID(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">if</span> (post != <span class="literal">null</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> post.title</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有了fmap后:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 假设findPost返回Maybe&lt;Article&gt;</span></span><br><span class="line">findPost(<span class="number">1</span>).fmap(getPostTitle)</span><br></pre></td></tr></table></figure>
+<p>如果 findPost 返回一篇文章，我们就会通过 getPostTitle 获取其标题。 如果它返回 Nothing，我们就也返回 Nothing！ 较之前简洁了很多对吧?</p>
+<blockquote>
+<p>Typescript有了Optional Chaining后，处理null也可以很简洁:<br> <figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">findPost(<span class="number">1</span>)?.title <span class="comment">// 异曲同工</span></span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<blockquote>
+<p>原文还有定义了一个fmap的重载操作符版本，因为JavaScript不支持操作符重载，所以这里简单带过<br> <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">getPostTitle &lt;$&gt; findPost(1) // 使用操作符重载&lt;$&gt; 来简化fmap. 等价于上面的代码</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p><br></p>
+<p>再看一个示例：如果将一个函数应用到一个 Array（Haksell 中是 List）上会发生什么？</p>
+<p><img src="/images/ts-fam/fmap_list.png" alt></p>
+<p>Array 也是 functor！</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>].map(add3) <span class="comment">// [4, 5, 6]. fa是Array，输出fb也是Array，符合Functor的定义吧，所以Javascript的map就是fmap，Array就是Functor</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>好了，好了，最后一个示例：如果将一个函数应用到另一个函数上会发生什么？</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> multiply3 = <span class="function">(<span class="params">v: <span class="built_in">number</span></span>) =&gt;</span> v * <span class="number">3</span></span><br><span class="line"><span class="keyword">const</span> add3 = <span class="function">(<span class="params">v: <span class="built_in">number</span></span>) =&gt;</span> v + <span class="number">3</span></span><br><span class="line"></span><br><span class="line">add3.fmap(multiply3) <span class="comment">// ❓</span></span><br></pre></td></tr></table></figure>
+<p>这是一个函数：</p>
+<p><img src="/images/ts-fam/function_with_value.png" alt></p>
+<p>这是一个应用到另一个函数上的函数：</p>
+<p><img src="/images/ts-fam/fmap_function.png" alt></p>
+<p>其结果是又一个函数！</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 仅作示例，不要模仿</span></span><br><span class="line"><span class="keyword">interface</span> Function &#123;</span><br><span class="line">  fmap&lt;V, T, U&gt;<span class="function">(<span class="params"><span class="keyword">this</span>: (<span class="params">val: V</span>) =&gt; T, fn: (<span class="params">val: T</span>) =&gt; U</span>): (<span class="params">val: V</span>) =&gt;</span> U</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">Function</span>.prototype.fmap = <span class="function"><span class="keyword">function</span>(<span class="params">fn</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">v</span> =&gt;</span> fn(<span class="keyword">this</span>(v))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>所以函数也是 Functor！ 对一个函数使用 fmap，其实就是函数组合(compose)！ 也就是说: <code>f.fmap(g)</code> 等价于 <code>compose(f, g)</code></p>
+<p><br></p>
+<h3 id="functor总结"><a href="#functor总结" class="headerlink" title="Functor总结"></a>Functor总结</h3><p>通过上面的例子，可以知道Functor其实并没有那么难以理解, 一个Functor就是：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;Functor T&gt;.fmap(fn: (v: T) =&gt; U): &lt;Functor U&gt;</span><br></pre></td></tr></table></figure>
+<p>Functor会定义一个‘fmap’操作，这个fmap接受一个函数fn，fn接收的是具体的值，返回另一个具体的值，例如上面的add3. <strong>fmap决定如何来应用fn到源Functor(a)</strong>， 返回一个新的Functor(b)。 也就是fmap的源和输出的值‘上下文’类型是一样的。比如</p>
+<ul>
+<li><code>Just -&gt; fmap -&gt; Just</code></li>
+<li><code>Nothing -&gt; fmap -&gt; Nothing</code></li>
+<li><code>Maybe -&gt; fmap -&gt; Maybe</code></li>
+<li><code>Array -&gt; fmap -&gt; Array</code></li>
+</ul>
+<p><br><br><br></p>
+<h2 id="applicative"><a href="#applicative" class="headerlink" title="Applicative"></a>Applicative</h2><p>现在练到二重天了。 Applicative 又提升了一个层次。</p>
+<p>对于 Applicative，我们的值依然和 Functor 一样包装在一个上下文中</p>
+<p><img src="/images/ts-fam/value_and_context.png" alt></p>
+<p>不一样的是，我们<strong>将Functor中的函数(例如add3)也包装在一个上下文中</strong>！</p>
+<p><img src="/images/ts-fam/function_and_context.png" alt></p>
+<p>嗯。 我们继续深入。 Applicative 并没有开玩笑。不像Haskell，Typescript并没有内置方式来处理Applicative。我们可以给需要支持Applicative的类型定义一个apply函数。<strong>apply函数知道怎么将<code>包装在上下文的函数</code>应用到一个<code>包装在上下文的值</code></strong>：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> None &#123;</span><br><span class="line">  <span class="keyword">static</span> apply(fn: <span class="built_in">any</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> None;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Just&lt;T&gt; &#123;</span><br><span class="line">  <span class="comment">// 使用方法重载，让Typescript更好推断</span></span><br><span class="line">  <span class="comment">// 如果值和函数都是Just类型，结果也是Just类型</span></span><br><span class="line">  apply&lt;U&gt;<span class="function">(<span class="params">fn: Just&lt;(<span class="params">a: T</span>) =&gt; U&gt;</span>): <span class="params">Just</span>&lt;<span class="params">U</span>&gt;;</span></span><br><span class="line"><span class="function">  // 如果函数是<span class="params">Nothing</span>类型，结果是<span class="params">Nothing</span>.</span></span><br><span class="line"><span class="function">  // 严格上<span class="params">apply</span>只应该接收同一个上下文类型的函数，即<span class="params">Just</span>,</span></span><br><span class="line"><span class="function">  // 因为<span class="params">Maybe</span>是<span class="params">Typescript</span>的<span class="params">Union</span>类型，没办法给它扩展方法，这里将<span class="params">Maybe</span>和<span class="params">Just</span>混在一起了</span></span><br><span class="line"><span class="function">  <span class="params">apply</span>&lt;<span class="params">U</span>&gt;(<span class="params">fn: Nothing</span>): <span class="params">Nothing</span>;</span></span><br><span class="line"><span class="function">  // 如果值和函数都是<span class="params">Maybe</span>类型, 返回一个<span class="params">Maybe</span>类型</span></span><br><span class="line"><span class="function">  <span class="params">apply</span>&lt;<span class="params">U</span>&gt;(<span class="params">fn: Maybe&lt;(<span class="params">a: T</span>) =&gt; U&gt;</span>): <span class="params">Maybe</span>&lt;<span class="params">U</span>&gt; &#123;</span></span><br><span class="line"><span class="function">    <span class="params">if</span> (<span class="params">!isNothing(<span class="params">fn</span>)</span>) &#123;</span></span><br><span class="line"><span class="function">      <span class="params">return</span> <span class="params">Just</span>.<span class="params">of</span>(<span class="params">fn.value(<span class="params"><span class="keyword">this</span>.value</span>)</span>);</span></span><br><span class="line"><span class="function">    &#125;</span></span><br><span class="line"><span class="function">    <span class="params">return</span> <span class="params">None</span>.<span class="params">apply</span>(<span class="params">fn</span>);</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>再来看看数组:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 仅作示例</span></span><br><span class="line"><span class="keyword">interface</span> Array&lt;T&gt; &#123;</span><br><span class="line">  apply&lt;U&gt;<span class="function">(<span class="params">fns: <span class="built_in">Array</span>&lt;(<span class="params">e: T</span>) =&gt; U&gt;</span>): <span class="params">U</span>[]</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">// 接收一个函数‘数组(<span class="params">上下文</span>)’，返回一个应用了‘函数’的新的数组</span></span><br><span class="line"><span class="function"><span class="params">Array</span>.<span class="params">prototype</span>.<span class="params">apply</span> = <span class="params">function</span>&lt;<span class="params">T</span>, <span class="params">U</span>&gt;(<span class="params">fns: <span class="built_in">Array</span>&lt;(<span class="params">e: T</span>) =&gt; U&gt;</span>) &#123;</span></span><br><span class="line"><span class="function">  <span class="params">const</span> <span class="params">res</span>: <span class="params">U</span>[] = []</span></span><br><span class="line"><span class="function">  <span class="params">for</span> (<span class="params"><span class="keyword">const</span> fn of fns</span>) &#123;</span></span><br><span class="line"><span class="function">    <span class="params">this</span>.<span class="params">forEach</span>(<span class="params">el =&gt; res.push(<span class="params">fn(<span class="params">el</span>)</span>)</span>)</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">  <span class="params">return</span> <span class="params">res</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>在Haskell中，使用<code>&lt;*&gt;</code>来表示apply操作: <code>Just (+3) &lt;*&gt; Just 2 == Just 5</code>. Typescript不支持操作符重载，所以忽略.</p>
+<p>Just类型的Applicative应用图解：</p>
+<p><img src="/images/ts-fam/applicative_just.png" alt></p>
+<p>数组类型的Applicative应用图解：</p>
+<p><img src="/images/ts-fam/applicative_list.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> num: <span class="built_in">number</span>[] = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line"><span class="built_in">console</span>.log(num.apply([multiply2, add3]))</span><br><span class="line"><span class="comment">// [2, 4, 6, 4, 5, 6]</span></span><br></pre></td></tr></table></figure>
+<p><strong>这里有 Applicative 能做到而 Functor 不能做到的事情</strong>。 如何将一个接受两个参数的函数应用到两个已包装的值上？</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一个支持两个参数的Curry型加法函数</span></span><br><span class="line"><span class="keyword">const</span> curriedAddition = <span class="function">(<span class="params">a: <span class="built_in">number</span></span>) =&gt;</span> (b: <span class="built_in">number</span>) =&gt; a + b</span><br><span class="line"></span><br><span class="line">Just.of(<span class="number">5</span>).fmap(curriedAddition) <span class="comment">// 返回 `Just.of((b: number) =&gt; 5 + b)`</span></span><br><span class="line"><span class="comment">// Ok 继续</span></span><br><span class="line">Just.of(<span class="number">4</span>).fmap(Just.of(<span class="function">(<span class="params">b: <span class="built_in">number</span></span>) =&gt;</span> <span class="number">5</span> + b))  <span class="comment">// ❌不行了，报错了，Functor没办法处理包装在上下文的fn</span></span><br></pre></td></tr></table></figure>
+<p>但是Applicative可以：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">5</span>).fmap(curriedAddition) <span class="comment">// 返回 `Just.of((b: number) =&gt; 5 + b)`</span></span><br><span class="line"><span class="comment">// ✅当当当</span></span><br><span class="line">Just.of(<span class="number">3</span>).apply(Just.of(<span class="function">(<span class="params">b: <span class="built_in">number</span></span>) =&gt;</span> <span class="number">5</span> + b)) <span class="comment">// Just.of(8)</span></span><br></pre></td></tr></table></figure>
+<p>这时候Applicative 把 Functor 推到一边。 “大人物可以使用具有任意数量参数的函数，”它说。 “装备了 &lt;$&gt;(fmap) 与 &lt;*&gt;(apply) 之后，我可以接受具有任意个数未包装值参数的任意函数。 然后我传给它所有已包装的值，而我会得到一个已包装的值出来！ 啊啊啊啊啊！”</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">3</span>).apply(Just.of(<span class="number">5</span>).fmap(curriedAddition)) <span class="comment">// 返回 `Just.of(8)`</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h3 id="applicative总结"><a href="#applicative总结" class="headerlink" title="Applicative总结"></a>Applicative总结</h3><p>我们重申一个Applicative的定义, <strong>如果Functor要求实现fmap的话，Applicative就是要求实现apply</strong>，apply符合以下定义:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 这是Functor的fmap定义</span><br><span class="line">&lt;Functor T&gt;.fmap(fn: (v: T) =&gt; U): &lt;Functor U&gt;</span><br><span class="line"></span><br><span class="line">// 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数</span><br><span class="line">&lt;Applicative T&gt;.apply(fn: &lt;Applicative (v: T) =&gt; U&gt;): &lt;Applicative U&gt;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="monad"><a href="#monad" class="headerlink" title="Monad"></a>Monad</h2><p>终于练到三重天了！继续⛽加油️</p>
+<p>如何学习 Monad 呢：</p>
+<ol>
+<li>你要取得计算机科学博士学位。</li>
+<li>然后把它扔掉，因为在本文你并不需要它！</li>
+</ol>
+<p>Monad 增加了一个新的转变。</p>
+<p><code>Functor</code> 将一个<code>函数</code>应用到一个<code>已包装的值</code>上：</p>
+<p><img src="/images/ts-fam/fmap.png" alt></p>
+<p><code>Applicative</code> 将一个<code>已包装的函数</code>应用到一个<code>已包装的值</code>上：</p>
+<p><img src="/images/ts-fam/applicative.png" alt></p>
+<p>Monad 将一个<code>返回已包装值的函数</code>应用到一个<code>已包装的值</code>上。 Monad 定义一个函数<code>flatMap</code>（在 Haskell 中是使用操作符 <code>&gt;&gt;=</code> 来应用Monad，读作“bind”）来做这个。</p>
+<p>让我们来看个示例。 老搭档 Maybe 是一个 Monad：</p>
+<p><img src="/images/ts-fam/context.png" alt></p>
+<p>假设 <code>half</code> 是一个只适用于偶数的函数：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这就是一个典型的: "返回已包装值"的函数</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">half</span>(<span class="params">value: <span class="built_in">number</span></span>): <span class="title">Maybe</span>&lt;<span class="title">number</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (value % <span class="number">2</span> === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> Just.of(value / <span class="number">2</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> None</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/ts-fam/half.png" alt></p>
+<p>如果我们喂给它一个<code>已包装的值</code>会怎样？</p>
+<p><img src="/images/ts-fam/half_ouch.png" alt></p>
+<p>我们需要使用flatMap(Haskell 中的&gt;&gt;=)来将我们已包装的值塞进该函数。 这是 &gt;&gt;= 的照片：</p>
+<p><img src="/images/ts-fam/plunger.jpg" alt></p>
+<p>以下是它的工作方式：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">3</span>).flatMap(half) <span class="comment">// =&gt; Nothing, Haskell中使用操作符这样操作: Just 3 &gt;&gt;= half</span></span><br><span class="line">Just.of(<span class="number">4</span>).flatMap(half) <span class="comment">// =&gt; Just 2</span></span><br><span class="line">None.flatMap(half)       <span class="comment">// =&gt; Nothing</span></span><br></pre></td></tr></table></figure>
+<p>内部发生了什么？我们再看看flatMap的方法签名:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Maybe</span></span><br><span class="line">Maybe&lt;T&gt;.flatMap&lt;U&gt;<span class="function">(<span class="params">fn: (<span class="params">val: T</span>) =&gt; Maybe&lt;U&gt;</span>): <span class="params">Maybe</span>&lt;<span class="params">U</span>&gt;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">// <span class="params">Array</span></span></span><br><span class="line"><span class="function"><span class="params">Array</span>&lt;<span class="params">T</span>&gt;.<span class="params">flatMap</span>&lt;<span class="params">U</span>&gt;(<span class="params">fn: (<span class="params">val: T</span>) =&gt; U[]</span>): <span class="params">U</span>[]</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/ts-fam/bind_def.png" alt></p>
+<p><strong>Array是一个Monad</strong>, Javascript的Array的flatMap已经正式成为标准， 看看它的使用示例:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> arr1 = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];</span><br><span class="line">arr1.map(<span class="function"><span class="params">x</span> =&gt;</span> [x * <span class="number">2</span>]); </span><br><span class="line"><span class="comment">// [[2], [4], [6], [8]]</span></span><br><span class="line"></span><br><span class="line">arr1.flatMap(<span class="function"><span class="params">x</span> =&gt;</span> [x * <span class="number">2</span>]);</span><br><span class="line"><span class="comment">// [2, 4, 6, 8]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// only one level is flattened</span></span><br><span class="line">arr1.flatMap(<span class="function"><span class="params">x</span> =&gt;</span> [[x * <span class="number">2</span>]]);</span><br><span class="line"><span class="comment">// [[2], [4], [6], [8]]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Maybe 也是一个 Monad：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> None &#123;</span><br><span class="line">  <span class="keyword">static</span> flatMap(fn: <span class="built_in">any</span>): Nothing &#123;</span><br><span class="line">    <span class="keyword">return</span> None;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> Just&lt;T&gt; &#123;</span><br><span class="line">  <span class="comment">// 和上面的apply差不多</span></span><br><span class="line">  <span class="comment">// 使用方法重载，让Typescript更好推断</span></span><br><span class="line">  <span class="comment">// 如果函数返回Just类型，结果也是Just类型</span></span><br><span class="line">  flatMap&lt;U&gt;<span class="function">(<span class="params">fn: (<span class="params">a: T</span>) =&gt; Just&lt;U&gt;</span>): <span class="params">Just</span>&lt;<span class="params">U</span>&gt;;</span></span><br><span class="line"><span class="function">  // 如果函数返回值是<span class="params">Nothing</span>类型，结果是<span class="params">Nothing</span>.</span></span><br><span class="line"><span class="function">  <span class="params">flatMap</span>&lt;<span class="params">U</span>&gt;(<span class="params">fn: (<span class="params">a: T</span>) =&gt; Nothing</span>): <span class="params">Nothing</span>;</span></span><br><span class="line"><span class="function">  // 如果函数返回值是<span class="params">Maybe</span>类型, 返回一个<span class="params">Maybe</span>类型</span></span><br><span class="line"><span class="function">  <span class="params">flatMap</span>&lt;<span class="params">U</span>&gt;(<span class="params">fn: (<span class="params">a: T</span>) =&gt; Maybe&lt;U&gt;</span>): <span class="params">Maybe</span>&lt;<span class="params">U</span>&gt; &#123;</span></span><br><span class="line"><span class="function">    <span class="params">return</span> <span class="params">fn</span>(<span class="params"><span class="keyword">this</span>.value</span>)</span></span><br><span class="line"><span class="function">  &#125;</span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">// 示例</span></span><br><span class="line"><span class="function"><span class="params">Just</span>.<span class="params">of</span>(<span class="params">3</span>).<span class="params">flatMap</span>(<span class="params">half</span>) // <span class="params">Nothing</span></span></span><br><span class="line"><span class="function"><span class="params">Just</span>.<span class="params">of</span>(<span class="params">4</span>).<span class="params">flatMap</span>(<span class="params">half</span>) // <span class="params">Just</span>.<span class="params">of</span>(<span class="params">4</span>)</span></span><br></pre></td></tr></table></figure>
+<p>这是与 Just 3 运作的情况！</p>
+<p><img src="/images/ts-fam/monad_just.png" alt></p>
+<p>如果传入一个 Nothing 就更简单了：</p>
+<p><img src="/images/ts-fam/monad_nothing.png" alt></p>
+<p>你还可以将这些调用串联起来：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">Just.of(<span class="number">20</span>).flatMap(half).flatMap(half).flatMap(falf) <span class="comment">// =&gt; Nothing</span></span><br></pre></td></tr></table></figure>
+<p><img src="/images/ts-fam/monad_chain.png" alt><br><img src="/images/ts-fam/whoa.png" alt></p>
+<p><br></p>
+<p>很炫酷哈！所以我们现在知道Maybe既是一个Functor、Applicative，还是一个Monad。</p>
+<p>原文还示范了另一个例子: <code>IO</code> Monad, 我们这里就简单了解一下</p>
+<p><img src="/images/ts-fam/io.png" alt></p>
+<p>IO的签名大概如下:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> IO&lt;T&gt; &#123;</span><br><span class="line">  val: T</span><br><span class="line">  <span class="comment">// 具体实现我们暂不关心</span></span><br><span class="line">  flatMap(fn: <span class="function">(<span class="params">val: T</span>) =&gt;</span> IO&lt;U&gt;): IO&lt;U&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>具体来看三个函数。 getLine 没有参数, 用来获取用户输入：</p>
+<p><img src="/images/ts-fam/getLine.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getLine</span>(<span class="params"></span>): <span class="title">IO</span>&lt;<span class="title">string</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>readFile 接受一个字符串（文件名）并返回该文件的内容：</p>
+<p><img src="/images/ts-fam/readFile.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">readFile</span>(<span class="params">filename: <span class="built_in">string</span></span>): <span class="title">IO</span>&lt;<span class="title">string</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>putStrLn 输出字符串到控制台：</p>
+<p><img src="/images/ts-fam/putStrLn.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">putStrLn</span>(<span class="params">str: <span class="built_in">string</span></span>): <span class="title">IO</span>&lt;<span class="title">void</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>所有这三个函数都接受普通值（或无值）并返回一个已包装的值，即IO。 我们可以使用 flatMap 将它们串联起来！</p>
+<p><img src="/images/ts-fam/monad_io.png" alt></p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line">getLine().flatMap(readFile).flatMap(putStrLn)</span><br></pre></td></tr></table></figure>
+<p>太棒了！ 前排占座来看 monad 展示！我们不需要在取消包装和重新包装 IO monad 的值上浪费时间. flatMap 为我们做了那些工作!</p>
+<p>Haskell 还为 monad 提供了语法糖, 叫做 do 表达式:</p>
+<figure class="highlight haskell"><table><tr><td class="code"><pre><span class="line"><span class="title">foo</span> = <span class="keyword">do</span></span><br><span class="line">    filename &lt;- getLine</span><br><span class="line">    contents &lt;- readFile filename</span><br><span class="line">    putStrLn contents</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ol>
+<li>functor 是实现了 <code>fmap</code> 的数据类型。</li>
+<li>applicative 是实现了 <code>apply</code> 的数据类型。</li>
+<li>monad 是实现了 <code>flatMap</code> 的数据类型。</li>
+<li>Maybe 实现了这三者，所以它是 functor、 applicative、 以及 monad。</li>
+</ol>
+<p>这三者有什么区别呢？</p>
+<p><img src="/images/ts-fam/recap.png" alt></p>
+<ol>
+<li><strong>functor</strong>: 可通过 fmap 将一个<code>函数</code>应用到一个<code>已包装的值</code>上。</li>
+<li><strong>applicative</strong>: 可通过 apply 将一个<code>已包装的函数</code>应用到<code>已包装的值</code>上。</li>
+<li><strong>monad</strong>: 可通过 flatMap 将一个<code>返回已包装值的函数</code>应用到<code>已包装的值</code>上。</li>
+</ol>
+<p>综合起来看看它们的签名：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 这是Functor的fmap定义</span><br><span class="line">&lt;Functor T&gt;.fmap(fn: (v: T) =&gt; U): &lt;Functor U&gt;</span><br><span class="line"></span><br><span class="line">// 这是Applicative的apply定义，和上面对比，fn变成了一个包装在上下文的函数</span><br><span class="line">&lt;Applicative T&gt;.apply(fn: &lt;Applicative (v: T) =&gt; U&gt;): &lt;Applicative U&gt;</span><br><span class="line"></span><br><span class="line">// Monad的定义, 而接受一个函数， 这个函数返回一个包装在上下文的值</span><br><span class="line">&lt;Monad T&gt;.flatmap(fn: (v: T) =&gt; &lt;Monad U&gt;): &lt;Monad U&gt;</span><br></pre></td></tr></table></figure>
+<p>所以，亲爱的朋友（我觉得我们现在是朋友了），我想我们都同意 monad 是一个简单且高明的主意（SMART IDEA(tm)）。 现在你已经通过这篇指南润湿了你的口哨，为什么不拉上 Mel Gibson 并抓住整个瓶子呢。 参阅《Haskell 趣学指南》的《来看看几种 Monad》。 很多东西我其实掩饰了因为 Miran 深入这方面做得很棒.</p>
+<p><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><p>本文在<a href="http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html" target="_blank" rel="noopener">原文</a>的基础上, 参考了下列这些翻译版本，再次感谢这些作者:</p>
+<ul>
+<li><a href="http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html#translations" target="_blank" rel="noopener">Functors, Applicatives, And Monads In Pictures</a> - 原文</li>
+<li><a href="http://www.mokacoding.com/blog/functor-applicative-monads-in-pictures/" target="_blank" rel="noopener">Swift Functors, Applicatives, and Monads in Pictures</a> - Swift版本, 本文主要参考这篇文章</li>
+<li><a href="https://hltj.me/kotlin/2017/08/25/kotlin-functor-applicative-monad-cn.html" target="_blank" rel="noopener">Kotlin 版图解 Functor、Applicative 与 Monad</a> - Kotlin版本，翻译非常棒</li>
+<li><a href="http://jiyinyiyong.github.io/monads-in-pictures/" target="_blank" rel="noopener">Functor, Applicative, 以及 Monad 的图片阐释</a> - 中文版本，<strong>题叶</strong>翻译</li>
+<li><a href="https://medium.com/@lettier/your-easy-guide-to-monads-applicatives-functors-862048d61610" target="_blank" rel="noopener">Your easy guide to Monads, Applicatives, &amp; Functors</a> - Medium上一篇动图图解Monad的文章，写得也不错. 读完本文可以再读这篇文章</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#functors"><span class="toc-number">1.</span> <span class="toc-text">Functors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#究竟什么是-functor-呢？"><span class="toc-number">2.</span> <span class="toc-text">究竟什么是 Functor 呢？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#functor总结"><span class="toc-number">2.1.</span> <span class="toc-text">Functor总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#applicative"><span class="toc-number">3.</span> <span class="toc-text">Applicative</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#applicative总结"><span class="toc-number">3.1.</span> <span class="toc-text">Applicative总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#monad"><span class="toc-number">4.</span> <span class="toc-text">Monad</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">6.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/08/22/ts-fam/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/08/22/ts-fam/&text=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/08/22/ts-fam/&is_video=false&description=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Typescript版图解Functor , Applicative 和 Monad&body=Check out this article: https://bobi.ink/2019/08/22/ts-fam/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/08/22/ts-fam/&title=Typescript版图解Functor , Applicative 和 Monad"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/08/22/ts-fam/&name=Typescript版图解Functor , Applicative 和 Monad&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

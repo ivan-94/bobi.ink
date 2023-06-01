@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="世界上没有一种可以各个领域通吃的语言，为了应对不同的场景和需求，我们摆脱不了要学习一门新的语言。最近准备入坑 Flutter(技术储备)，学了点 Dart, 一点心得分享给大家。  大纲   介绍 1. 假定前提 2. 基本原则 3. 基本姿势   已有的语言认知 建立标签云 刻意学习，以 Dart 为例 ① 2018 最坑人语言? ② 针对客户端优化 ③ 面向对象 ④ 操作符 ⑤ const/f">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何学一门新语言，以 Dart 为例">
+<meta property="og:url" content="https://bobi.ink/2019/11/23/learn-lang/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="世界上没有一种可以各个领域通吃的语言，为了应对不同的场景和需求，我们摆脱不了要学习一门新的语言。最近准备入坑 Flutter(技术储备)，学了点 Dart, 一点心得分享给大家。  大纲   介绍 1. 假定前提 2. 基本原则 3. 基本姿势   已有的语言认知 建立标签云 刻意学习，以 Dart 为例 ① 2018 最坑人语言? ② 针对客户端优化 ③ 面向对象 ④ 操作符 ⑤ const/f">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/langmind.png">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/dart.png">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/go.png">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/javascript.png">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/elixir.png">
+<meta property="og:image" content="https://bobi.ink/images/learn-lang/flutter-code.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何学一门新语言，以 Dart 为例">
+<meta name="twitter:description" content="世界上没有一种可以各个领域通吃的语言，为了应对不同的场景和需求，我们摆脱不了要学习一门新的语言。最近准备入坑 Flutter(技术储备)，学了点 Dart, 一点心得分享给大家。  大纲   介绍 1. 假定前提 2. 基本原则 3. 基本姿势   已有的语言认知 建立标签云 刻意学习，以 Dart 为例 ① 2018 最坑人语言? ② 针对客户端优化 ③ 面向对象 ④ 操作符 ⑤ const/f">
+<meta name="twitter:image" content="https://bobi.ink/images/learn-lang/langmind.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>如何学一门新语言，以 Dart 为例</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/11/29/jsx-as-dsl/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/11/17/fe-load/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/11/23/learn-lang/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/11/23/learn-lang/&text=如何学一门新语言，以 Dart 为例"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/11/23/learn-lang/&is_video=false&description=如何学一门新语言，以 Dart 为例"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何学一门新语言，以 Dart 为例&body=Check out this article: https://bobi.ink/2019/11/23/learn-lang/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/11/23/learn-lang/&name=如何学一门新语言，以 Dart 为例&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-number">1.</span> <span class="toc-text">介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-假定前提"><span class="toc-number">1.1.</span> <span class="toc-text">1. 假定前提</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-基本原则"><span class="toc-number">1.2.</span> <span class="toc-text">2. 基本原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-基本姿势"><span class="toc-number">1.3.</span> <span class="toc-text">3. 基本姿势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#已有的语言认知"><span class="toc-number">2.</span> <span class="toc-text">已有的语言认知</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#建立标签云"><span class="toc-number">3.</span> <span class="toc-text">建立标签云</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#刻意学习，以-dart-为例"><span class="toc-number">4.</span> <span class="toc-text">刻意学习，以 Dart 为例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#①-2018-最坑人语言"><span class="toc-number">4.1.</span> <span class="toc-text">① 2018 最坑人语言?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#②-针对客户端优化"><span class="toc-number">4.2.</span> <span class="toc-text">② 针对客户端优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#③-面向对象"><span class="toc-number">4.3.</span> <span class="toc-text">③ 面向对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#④-操作符"><span class="toc-number">4.4.</span> <span class="toc-text">④ 操作符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑤-const-final-与静态数据"><span class="toc-number">4.5.</span> <span class="toc-text">⑤ const/final 与静态数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑥-类型系统"><span class="toc-number">4.6.</span> <span class="toc-text">⑥ 类型系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑦-异步异步"><span class="toc-number">4.7.</span> <span class="toc-text">⑦ 异步异步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑧-元编程"><span class="toc-number">4.8.</span> <span class="toc-text">⑧ 元编程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实践"><span class="toc-number">5.</span> <span class="toc-text">实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#深入了解这门语言"><span class="toc-number">6.</span> <span class="toc-text">深入了解这门语言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">8.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        如何学一门新语言，以 Dart 为例
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-11-22T16:00:00.000Z" itemprop="datePublished">2019-11-23</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>世界上没有一种可以各个领域通吃的语言，为了应对不同的场景和需求，我们摆脱不了要学习一门新的语言。最近准备入坑 <code>Flutter</code>(技术储备)，学了点 Dart, 一点心得分享给大家。</p>
+<p><br></p>
+<p><strong>大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#介绍">介绍</a><ul>
+<li><a href="#1-假定前提">1. 假定前提</a></li>
+<li><a href="#2-基本原则">2. 基本原则</a></li>
+<li><a href="#3-基本姿势">3. 基本姿势</a></li>
+</ul>
+</li>
+<li><a href="#已有的语言认知">已有的语言认知</a></li>
+<li><a href="#建立标签云">建立标签云</a></li>
+<li><a href="#刻意学习以-dart-为例">刻意学习，以 Dart 为例</a><ul>
+<li><a href="#①-2018-最坑人语言">① 2018 最坑人语言?</a></li>
+<li><a href="#②-针对客户端优化">② 针对客户端优化</a></li>
+<li><a href="#③-面向对象">③ 面向对象</a></li>
+<li><a href="#④-操作符">④ 操作符</a></li>
+<li><a href="#⑤-constfinal-与静态数据">⑤ const/final 与静态数据</a></li>
+<li><a href="#⑥-类型系统">⑥ 类型系统</a></li>
+<li><a href="#⑦-异步异步">⑦ 异步异步</a></li>
+<li><a href="#⑧-元编程">⑧ 元编程</a></li>
+</ul>
+</li>
+<li><a href="#实践">实践</a></li>
+<li><a href="#深入了解这门语言">深入了解这门语言</a></li>
+<li><a href="#总结">总结</a></li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><h3 id="1-假定前提"><a href="#1-假定前提" class="headerlink" title="1. 假定前提"></a>1. 假定前提</h3><p>我想看这篇文章的应该都是程序员了吧？都有自己熟悉的语言，这就好办了，我们可以复用已有的认知去快速学习一门新语言。如果你是小白，这篇文章可能不适合你</p>
+<p><br></p>
+<h3 id="2-基本原则"><a href="#2-基本原则" class="headerlink" title="2. 基本原则"></a>2. 基本原则</h3><ul>
+<li><p><strong>确定语言的定位和场景</strong>。别再说 PHP 是最好的语言了，大家都知道。每一门语言都有自己定位和适用场景，为了解决不同的问题。<strong>所以学习一门语言的时候，首先要了解语言的定位和领域，这样你才能明白为什么语言设计者设计某个特性的动机</strong>。例如:</p>
+<ul>
+<li><code>JavaScript</code>：浏览器脚本语言霸主, 写前端肯定绕不开 JavaScript 啦。一门十几天搞出来的语言，就不要问 <code>[] == ![] // true</code> 是什么动机了, 不要学这些糟粕。</li>
+<li><code>Dart</code>： 针对客户端(‘Flutter’)优化语言, 当初号称要取代 JavaScript, 官方自己的定位就是客户端</li>
+<li><code>Go</code>： 据说是 <code>C++</code> 编译速度慢倒逼出来的语言。所以你可以站在 C++ 的对立面去思考它的设计：例如 简单的语法、高速编译、垃圾回收、高性能、高并发。半数是为了解决 C++ 的问题。适用于服务器编程、分布式、网络编程、云平台。</li>
+<li><code>Rust</code>： 系统编程语言，<code>C/C++</code> 最有力的挑战者</li>
+</ul>
+<p><br></p>
+<p>当然，也有一些语言只有在特定平台或场景才能使用，这种没办法，这属于<strong>商业壁垒</strong>。例如</p>
+<ul>
+<li><code>Swift/Objective-C</code> 基本只能用于 Apple 平台，尽管 Swift 开源，也可以跑在 Linux 上，但除了 Apple 应用开发，很少看到 Swift 的身影</li>
+<li><code>C#</code> 和 Swift 类似</li>
+</ul>
+<p><br></p>
+</li>
+<li><p><strong>不要陷入语言的语法细节，剥离掉语法糖</strong>。学习新语言，可以暂时忽略掉语法的细节, 切换到上帝视角</p>
+</li>
+<li><p><strong>基于原有的认知，横向进行比较</strong>。正常来说编程语言 80% 概念或范式是通用的，这就是为什么你熟悉一门语言，可以快速入门其他语言。</p>
+</li>
+<li><p><strong>打破认知</strong>。另外 20% 包含该门语言独有的特性和思想, 这才是我们需要关注的核心。</p>
+</li>
+</ul>
+<p><br></p>
+<h3 id="3-基本姿势"><a href="#3-基本姿势" class="headerlink" title="3. 基本姿势"></a>3. 基本姿势</h3><ul>
+<li><strong>确定自己要解决的问题/场景</strong>。 我们学一门语言一般不是为了学习语言而学习。首先你应该有需要解决场景和问题，接着带着这些问题对编程语言进行选型，确定多个语言候选者。</li>
+<li><strong>思考这些语言是怎么解决你的问题的？</strong> 这就是’打破认知’的过程, 分析一下这些候选者优缺点</li>
+<li><strong>确定要学习这门语言了？</strong> 下文会按照这个步骤展开<ul>
+<li><strong>建立标签云</strong>。收集这门语言的 20% 独有特性/思想, 例如 Killer Feature、槽点、吹点，针对性刻意进行学习。</li>
+<li><strong>粗略过一下官方文档</strong>。 也就是那80%，对基本语法有个基本的印象，类比自己熟悉的语言，可以快速理解。</li>
+<li><strong>开始实践</strong>。现在你这门语言建立初步的印象了。趁热开始实践，比如可以跟着官方入门教程。一边实践一边查阅文档，很快就能熟练起来</li>
+<li><strong>深入了解这门语言</strong></li>
+</ul>
+</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="已有的语言认知"><a href="#已有的语言认知" class="headerlink" title="已有的语言认知"></a>已有的语言认知</h2><p>下面是常见编程语言的构成图谱，对照一下，这些概念是否都知道? 是否真的了解你用来吃饭的家伙?</p>
+<p><br></p>
+<p><img src="/images/learn-lang/langmind.png" alt></p>
+<p><br></p>
+<p>没看懂？看来你没学过一门真正(复杂)的语言，如 <code>Scala</code>、<code>C嘎嘎</code>，<code>Rust</code>。😺 翻过这些大山，其他的就是一览众山小了。太难了</p>
+<p>小孩子才做选择，牛逼(有精力)的人是全都要。你也可以学几门比较有代表性语言。参考<a href="https://book.douban.com/subject/10555435/" target="_blank" rel="noopener">《七天七语言》</a>开始点技能树:</p>
+<ul>
+<li><p><strong>按市场划分</strong>:</p>
+<ul>
+<li>通用类型语言(用来吃饭的)。 例如 Java、JavaScript、Python、C/C++、Go、PHP、Objective-C/Swift(iOS开发者, 严格说不算‘通用’)</li>
+<li>符合自己口味的小众语言。Rust、Elixir、Ruby、Kotlin、Clojure、OCaml…</li>
+</ul>
+</li>
+<li><p><strong>按范式划分</strong>:</p>
+<ul>
+<li>面向对象: 例如 Ruby、Java、Python…</li>
+<li>多范式: 例如 JavaScript、Scala、Rust…</li>
+<li>函数式: 例如 Lisp(例如Clojure)、Erlang、Haskell…</li>
+<li>过程式: 例如 C、Go(可以算是面向对象、Whatever)</li>
+<li>原型语言: Io，好小众</li>
+</ul>
+</li>
+<li><p><strong>其他划分方式</strong>:</p>
+<ul>
+<li>类型: 强类型、弱类型; 静态类型、动态类型</li>
+<li>执行方式: 静态语言、脚本语言</li>
+<li>系统层次: 系统编程语言、应用语言</li>
+</ul>
+</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="建立标签云"><a href="#建立标签云" class="headerlink" title="建立标签云"></a>建立标签云</h2><p>上文说了，80% 的知识是可以复用的，我们要针对另外 20% 该语言独有的特性和思想进行刻意学习。我这里介绍一个方法是建立一个标签云。<strong>这个标签云是对这门语言的一些关键描述</strong>。 例如它的主要特性、优点、吐槽点。</p>
+<p>这些关键描述对我们快速了解一门语言有很大的帮助, <strong>这个标签云其实代表的就是你对这门语言的基本印象</strong>。 换句话说，你学了一门语言，但没怎么用，过一段时间就忘光了所有语法细节，但是这门语言的基本印象会长久停留在你脑海中。我想这些印象就是这门语言的精髓所在吧！</p>
+<p>那么怎么收集这个标签云?</p>
+<ul>
+<li>打开官网。看官方怎么描述自己的语言、有哪些主要特性、定位是什么。</li>
+<li>也可以通过 Wiki 看看这门语言的系统的描述和定义</li>
+<li>知乎。看别人怎么吹或者吐槽这门语言的</li>
+<li>道听途说</li>
+<li>快速预览官方指南。找亮点</li>
+</ul>
+<p>随便举几个例子。 Dart 语言:</p>
+<p><img src="/images/learn-lang/dart.png" alt></p>
+<blockquote>
+<p>标签云使用 <a href="https://www.wordclouds.com" target="_blank" rel="noopener">WordClouds</a> 生成</p>
+</blockquote>
+<p><br></p>
+<p>Go 语言：</p>
+<p><img src="/images/learn-lang/go.png" alt></p>
+<p><br></p>
+<p>Javascript:</p>
+<p><img src="/images/learn-lang/javascript.png" alt></p>
+<p><br></p>
+<p>Elixir:</p>
+<p><img src="/images/learn-lang/elixir.png" alt></p>
+<p><br><br><br></p>
+<h2 id="刻意学习，以-dart-为例"><a href="#刻意学习，以-dart-为例" class="headerlink" title="刻意学习，以 Dart 为例"></a>刻意学习，以 Dart 为例</h2><p>接着带着这些问题针对性地去学习这门语言, 这里以Dart 为例，因为这两天正好在学 Dart，准备入坑 Flutter，我自己对 Dart 没什么好感。</p>
+<p>学习方法, 永远是 <strong>What / Why / How</strong>: 是什么，为什么这么设计，具体怎么做?</p>
+<h3 id="①-2018-最坑人语言"><a href="#①-2018-最坑人语言" class="headerlink" title="① 2018 最坑人语言?"></a>① 2018 最坑人语言?</h3><p>没有 Flutter 这门语言确实要挂了。编程语言也要看爹</p>
+<p><br></p>
+<h3 id="②-针对客户端优化"><a href="#②-针对客户端优化" class="headerlink" title="② 针对客户端优化"></a>② 针对客户端优化</h3><p>这是官方自己的定位。</p>
+<p>针对客户端优化主要体现在<code>开发体验</code>和<code>运行性能</code>上面</p>
+<ul>
+<li><code>JIT</code>(Just in Time) 快速编译生效，这是 Hot reload 基础。<strong>Hot reload 可以让 Flutter 接近 Web 的开发体验</strong></li>
+<li><code>AOT</code>(Ahead of Time) 生成高效原生代码。可以得到更快的运行速度和启动速度</li>
+<li>另外一层意思是，Dart 这门语言和 JavaScript 非常相似。比如语法、单线程/事件循环、事件驱动、async/await、Isolate、Generator、Future/Stream、collection if/for 可以媲美JSX</li>
+<li>支持编译到JavaScript。浏览器是重要的客户端，不支持 JavaScript 还敢说客户端优化？</li>
+</ul>
+<p><br></p>
+<h3 id="③-面向对象"><a href="#③-面向对象" class="headerlink" title="③ 面向对象"></a>③ 面向对象</h3><p>语法和 Java 很像，有一些语法糖挺甜的。</p>
+<ul>
+<li><p>没有关键字区分 class 和 interface，可以说 class 就是 interface</p>
+</li>
+<li><p><code>Mixins</code>。前端对 Mixin 的概念应该都不陌生，毕竟这么多人用 Vue?</p>
+</li>
+<li><p>操作符重载。Javascript 不支持操作符重载。所以对前端来说算是一个新东西。 不过个人不推荐，JavaScript 没有操作符重载不也用得挺爽？ 而且操作符的语义不明确，会徒增心智负担，这时候还不如使用定义良好的方法。<strong>有意义的名称比符号要好记忆</strong>。</p>
+</li>
+<li><p><code>new</code> 可选。在某些场景让代码更简洁，比如 Flutter 组件声明。算是弥补没有 JSX 之痛吧。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> main() &#123;</span><br><span class="line">  runApp(</span><br><span class="line">    Center(</span><br><span class="line">      child: Text(</span><br><span class="line">        <span class="string">'Hello, world!'</span>,</span><br><span class="line">        textDirection: TextDirection.ltr,</span><br><span class="line">      ),</span><br><span class="line">    ),</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>Callable Classes</code>。语法糖，没想到有什么应用场景。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WannabeFunction</span> </span>&#123;</span><br><span class="line">  call(<span class="built_in">String</span> a, <span class="built_in">String</span> b, <span class="built_in">String</span> c) =&gt; <span class="string">'<span class="subst">$a</span> <span class="subst">$b</span> <span class="subst">$c</span>!'</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> wf = <span class="keyword">new</span> WannabeFunction();</span><br><span class="line"><span class="keyword">var</span> out = wf(<span class="string">"Hi"</span>,<span class="string">"there,"</span>,<span class="string">"gang"</span>); <span class="comment">// 🍬</span></span><br></pre></td></tr></table></figure>
+<p>我直接 <code>wf.call</code> 也不麻烦吧? 灵感来自JavaScript？ JavaScript 的函数也是一个对象，可以有自己属性</p>
+</li>
+</ul>
+<p><br></p>
+<h3 id="④-操作符"><a href="#④-操作符" class="headerlink" title="④ 操作符"></a>④ 操作符</h3><p>Dart 也有一些有趣的操作符/表达式，来看看有多甜：</p>
+<ul>
+<li><p><strong>级联操作符(Cascade Notation)</strong>。级联操作符是一个很甜的语法糖。不说废话，看代码:</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="built_in">querySelector</span>(<span class="string">'#confirm'</span>) <span class="comment">// Get an object.</span></span><br><span class="line">..text = <span class="string">'Confirm'</span> <span class="comment">// 🍬 甜点，这是类 jQuery 的串行调用的增强版</span></span><br><span class="line">..classes.add(<span class="string">'important'</span>)</span><br><span class="line">..onClick.listen((e) =&gt; <span class="built_in">window</span>.alert(<span class="string">'Confirmed!'</span>));</span><br></pre></td></tr></table></figure>
+<p>等价于:</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> button = <span class="built_in">querySelector</span>(<span class="string">'#confirm'</span>);</span><br><span class="line">button.text = <span class="string">'Confirm'</span>;</span><br><span class="line">button.classes.add(<span class="string">'important'</span>);</span><br><span class="line">button.onClick.listen((e) =&gt; <span class="built_in">window</span>.alert(<span class="string">'Confirmed!'</span>));</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li><p><strong>容器操作符(Collection Operators)</strong>。这个语法糖也会比较甜，前期用 Dart 来描述 Flutter 的视图是一件很痛苦的事情。Dart 陆续添加了一些甜点，如<code>展开操作符</code>、<code>Collection if/for</code>, 再加上<code>命名函数参数</code>和 <code>new可选</code>，表达力已经很接近 JSX 了</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">[<span class="number">0</span>, ...list];</span><br><span class="line">[<span class="number">0</span>, ...?list]; <span class="comment">// 支持识别null的展开操作符</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// collection if</span></span><br><span class="line"><span class="keyword">var</span> nav = [</span><br><span class="line">  <span class="string">'Home'</span>,</span><br><span class="line">  <span class="string">'Furniture'</span>,</span><br><span class="line">  <span class="string">'Plants'</span>,</span><br><span class="line">  <span class="keyword">if</span> (promoActive) <span class="string">'Outlet'</span></span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="comment">// collection for</span></span><br><span class="line"><span class="keyword">var</span> listOfStrings = [</span><br><span class="line">  <span class="string">'#0'</span>,</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i <span class="keyword">in</span> listOfInts) <span class="string">'#<span class="subst">$i</span>'</span></span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><img src="/images/learn-lang/flutter-code.png" alt></p>
+</li>
+</ul>
+<p><br></p>
+<h3 id="⑤-const-final-与静态数据"><a href="#⑤-const-final-与静态数据" class="headerlink" title="⑤ const/final 与静态数据"></a>⑤ const/final 与静态数据</h3><p>在 dart 中 const/final 使用的地方非常多，可以用于修饰变量、实例变量、对象创建。</p>
+<blockquote>
+<p>注意：静态数据和不可变数据是不同的概念</p>
+</blockquote>
+<ul>
+<li>变量修饰</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> name = <span class="string">'Bob'</span>;</span><br><span class="line"><span class="keyword">const</span> bar = <span class="number">100000</span>;</span><br><span class="line"><span class="keyword">const</span> foo = [];</span><br><span class="line"><span class="keyword">const</span> baz = [];</span><br><span class="line"></span><br><span class="line">console.log(foo == baz); <span class="comment">// true 编译时常量</span></span><br></pre></td></tr></table></figure>
+<p>const 将被视为’编译时’常量。相对final 有所优化</p>
+<p><br></p>
+<ul>
+<li>修饰对象创建</li>
+</ul>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = <span class="keyword">const</span> [];</span><br></pre></td></tr></table></figure>
+<p>const 修饰变量创建，Dart 会默认以 const 的上下文来实例化对象:</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> primaryColors = [</span><br><span class="line">  Color(<span class="string">"red"</span>, [<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>]),</span><br><span class="line">  Color(<span class="string">"green"</span>, [<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>]),</span><br><span class="line">  Color(<span class="string">"blue"</span>, [<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>]),</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+<p>primaryColor被修饰 const 修饰，那么其下的对象创建都隐式使用 const 修饰。上面的代码等价于:</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> primaryColors = <span class="keyword">const</span> [</span><br><span class="line">  <span class="keyword">const</span> Color(<span class="string">"red"</span>, <span class="keyword">const</span> [<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>]),</span><br><span class="line">  <span class="keyword">const</span> Color(<span class="string">"green"</span>, <span class="keyword">const</span> [<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>]),</span><br><span class="line">  <span class="keyword">const</span> Color(<span class="string">"blue"</span>, <span class="keyword">const</span> [<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>]),</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+<p><strong>Dart 内置的容器对象默认支持const</strong>。 对于自定义类，需要类提供<strong>const构造方法</strong>, 而且所有实例都必须使用final修饰。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ImmutablePoint</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">final</span> ImmutablePoint origin =</span><br><span class="line">      <span class="keyword">const</span> ImmutablePoint(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">  <span class="comment">// 所有实例变量都必须用final修饰</span></span><br><span class="line">  <span class="keyword">final</span> <span class="built_in">num</span> x, y;</span><br><span class="line">  <span class="comment">// const 构造方法</span></span><br><span class="line">  <span class="keyword">const</span> ImmutablePoint(<span class="keyword">this</span>.x, <span class="keyword">this</span>.y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h3 id="⑥-类型系统"><a href="#⑥-类型系统" class="headerlink" title="⑥ 类型系统"></a>⑥ 类型系统</h3><ul>
+<li><p>名义类型。没有Duck Duck Duck 🦆🦆🦆</p>
+</li>
+<li><p>Sound Type System(soundness，严格类型系统)。即<strong>静态类型+运行时检查</strong>, 比如一个变量静态类型为 String，如果将int赋值给它，编译器会报错。但是通过某些手段，我们可以绕过编译器检查，例如强制类型转换。Sound Type System 可以在运行时进行类型检查，不会放过这些错误。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">main(<span class="built_in">List</span>&lt;<span class="built_in">String</span>&gt; args) &#123;</span><br><span class="line">  <span class="built_in">int</span> a;</span><br><span class="line">  a = <span class="string">"1"</span> <span class="keyword">as</span> <span class="built_in">int</span>; <span class="comment">// 绕过了静态类型检查, 但是运行会报错</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好处:</p>
+<ul>
+<li>代码更健壮</li>
+<li>有利于AOT</li>
+<li>尽可能消灭bug，编译阶段的漏网之鱼，也会被检测出来，不要抱着侥幸心理。</li>
+</ul>
+</li>
+<li><p>dynamic：可以视作是any类型吧？尽量避免使用</p>
+</li>
+</ul>
+<p><br></p>
+<h3 id="⑦-异步异步"><a href="#⑦-异步异步" class="headerlink" title="⑦ 异步异步"></a>⑦ 异步异步</h3><p>Future/Stream、async/await、Generator。不必多说，熟悉 JavaScript 一看就懂</p>
+<p><br></p>
+<h3 id="⑧-元编程"><a href="#⑧-元编程" class="headerlink" title="⑧ 元编程"></a>⑧ 元编程</h3><ul>
+<li><p>MetaData。和Java的注解差不多。顾名思义，MetaData就是给你的代码提供更多的信息。可以用于提示编译器，在运行时通过反射库也可以获取到MetaData信息。</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SmartTelevision</span> <span class="keyword">extends</span> <span class="title">Television</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> turnOn() &#123;...&#125;</span><br><span class="line">  <span class="comment">// ···</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>noSuchMethod()</code>。类似于 Ruby 的 method_missing。 当未找到属性或者方法时被调用，可以实现一些动态属性或方法。元编程神器。在 JavaScript 中可以通过Proxy 实现相同的效果。</p>
+</li>
+</ul>
+<p><br><br><br></p>
+<p>说实话，Dart 没有什么多少让人眼前一亮的特性。在它身上你可以看到许多其他语言的影子、例如Java、JavaScript、Swift… 这也无可厚非，现代编程语言确实长得越来越像。</p>
+<p>好处是它特别容易上手，坏处是除了 Flutter 绑定之外，我找不到其他可以用它的理由。</p>
+<p><br><br><br></p>
+<h2 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h2><p>借助已有的经验，很快就可以入门，这时候能马上上手去写是最好的。</p>
+<p>可以从Hello World 开始, 或者也可以从官方的入门教程开始。Dart 的话。</p>
+<p>hello world !</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> main(<span class="built_in">List</span>&lt;<span class="built_in">String</span>&gt; args) &#123;</span><br><span class="line">  <span class="built_in">print</span>(<span class="string">'Hello, World!'</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过最简单的 hello world 也可以获知一些关键信息:</p>
+<ul>
+<li>类似 C 的前缀式类型声明。</li>
+<li>main 程序入口</li>
+<li>分号不能省略</li>
+<li>标准库。print 来源于 <code>dart:core</code> 这个包是全局的</li>
+<li>List 数组</li>
+<li>泛型</li>
+<li>…</li>
+</ul>
+<p><br></p>
+<p>Flutter 搞起来！</p>
+<p><br><br><br></p>
+<h2 id="深入了解这门语言"><a href="#深入了解这门语言" class="headerlink" title="深入了解这门语言"></a>深入了解这门语言</h2><p>如果你喜欢这门语言，想要让你们的关系进一步发展，你就要深入了解它：</p>
+<ul>
+<li>了解它的最佳实践</li>
+<li>阅读它的语言规范</li>
+<li>造轮子。比如写个静态网页生成器; 如果是面向对象语言，可以实现几个常见的设计模式</li>
+<li>学习标准库</li>
+<li>了解实现原理</li>
+<li>了解性能分析和优化</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>编程语言也有三重境界:</p>
+<p><strong>看山是山，看山不是山，看山还是山</strong></p>
+<ul>
+<li>① 我用的语言就是最好的语言，如 PHP，很牛逼</li>
+<li>② 所有语言都差不多，本质都是一样</li>
+<li>③ 回归到语言，语言不过是个工具。就像画家的画笔，不过是实现自己想法的一个工具。这个阶段，我们不再争执什么是最好的语言，而且为了不同的绘制效果选择不同的画笔。</li>
+</ul>
+<p>只要能解决我们需要解决的问题，编程语言从来不是门槛，或者说它是最容易被克服的问题。就像别人吐槽 Flutter 用 Dart 而不用JavaScript一样。</p>
+<p><br><br><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://book.douban.com/subject/10555435/" target="_blank" rel="noopener">七周七语言</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Comparison_of_programming_languages" target="_blank" rel="noopener">Wiki: Comparison of programming languages</a></li>
+<li><a href="https://dart.dev/guides/language/language-tour#libraries-and-visibility" target="_blank" rel="noopener">Dart 官方文档</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#介绍"><span class="toc-number">1.</span> <span class="toc-text">介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-假定前提"><span class="toc-number">1.1.</span> <span class="toc-text">1. 假定前提</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-基本原则"><span class="toc-number">1.2.</span> <span class="toc-text">2. 基本原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-基本姿势"><span class="toc-number">1.3.</span> <span class="toc-text">3. 基本姿势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#已有的语言认知"><span class="toc-number">2.</span> <span class="toc-text">已有的语言认知</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#建立标签云"><span class="toc-number">3.</span> <span class="toc-text">建立标签云</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#刻意学习，以-dart-为例"><span class="toc-number">4.</span> <span class="toc-text">刻意学习，以 Dart 为例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#①-2018-最坑人语言"><span class="toc-number">4.1.</span> <span class="toc-text">① 2018 最坑人语言?</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#②-针对客户端优化"><span class="toc-number">4.2.</span> <span class="toc-text">② 针对客户端优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#③-面向对象"><span class="toc-number">4.3.</span> <span class="toc-text">③ 面向对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#④-操作符"><span class="toc-number">4.4.</span> <span class="toc-text">④ 操作符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑤-const-final-与静态数据"><span class="toc-number">4.5.</span> <span class="toc-text">⑤ const/final 与静态数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑥-类型系统"><span class="toc-number">4.6.</span> <span class="toc-text">⑥ 类型系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑦-异步异步"><span class="toc-number">4.7.</span> <span class="toc-text">⑦ 异步异步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#⑧-元编程"><span class="toc-number">4.8.</span> <span class="toc-text">⑧ 元编程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实践"><span class="toc-number">5.</span> <span class="toc-text">实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#深入了解这门语言"><span class="toc-number">6.</span> <span class="toc-text">深入了解这门语言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">8.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/11/23/learn-lang/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/11/23/learn-lang/&text=如何学一门新语言，以 Dart 为例"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/11/23/learn-lang/&is_video=false&description=如何学一门新语言，以 Dart 为例"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=如何学一门新语言，以 Dart 为例&body=Check out this article: https://bobi.ink/2019/11/23/learn-lang/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/11/23/learn-lang/&title=如何学一门新语言，以 Dart 为例"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/11/23/learn-lang/&name=如何学一门新语言，以 Dart 为例&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

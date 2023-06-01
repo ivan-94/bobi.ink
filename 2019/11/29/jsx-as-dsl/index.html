@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="这几天打算写一个简单的 API Mock 服务器，老生常谈哈？其实我是想讲 JSX, Mock 服务器只是一个幌子。我在寻找一种更简洁、方便、同时又可以灵活扩展的、和别人不太一样的方式，来定义各种 Mock API。后来我发现了 JSX 在领域问题描述的优势和潜力，当然这可不是空谈，我们会实际写一个项目来证实这个判断。  文章大纲   1. 领域问题的描述 1.1 配置文件形式 1.2 编程语言与">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JSX AS DSL? 写个 Mock API 服务器看看">
+<meta property="og:url" content="https://bobi.ink/2019/11/29/jsx-as-dsl/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="这几天打算写一个简单的 API Mock 服务器，老生常谈哈？其实我是想讲 JSX, Mock 服务器只是一个幌子。我在寻找一种更简洁、方便、同时又可以灵活扩展的、和别人不太一样的方式，来定义各种 Mock API。后来我发现了 JSX 在领域问题描述的优势和潜力，当然这可不是空谈，我们会实际写一个项目来证实这个判断。  文章大纲   1. 领域问题的描述 1.1 配置文件形式 1.2 编程语言与">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/jsx-as-dsl/dq-fe.png">
+<meta property="og:image" content="https://bobi.ink/images/jsx-as-dsl/koa.png">
+<meta property="og:image" content="https://bobi.ink/images/jsx-as-dsl/koa-2.png">
+<meta property="og:image" content="https://bobi.ink/images/jsx-as-dsl/koa-3.png">
+<meta property="og:image" content="https://bobi.ink/images/group.png">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JSX AS DSL? 写个 Mock API 服务器看看">
+<meta name="twitter:description" content="这几天打算写一个简单的 API Mock 服务器，老生常谈哈？其实我是想讲 JSX, Mock 服务器只是一个幌子。我在寻找一种更简洁、方便、同时又可以灵活扩展的、和别人不太一样的方式，来定义各种 Mock API。后来我发现了 JSX 在领域问题描述的优势和潜力，当然这可不是空谈，我们会实际写一个项目来证实这个判断。  文章大纲   1. 领域问题的描述 1.1 配置文件形式 1.2 编程语言与">
+<meta name="twitter:image" content="https://bobi.ink/images/jsx-as-dsl/dq-fe.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>JSX AS DSL? 写个 Mock API 服务器看看</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/12/06/fe-framework/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/11/23/learn-lang/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/11/29/jsx-as-dsl/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&text=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&is_video=false&description=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JSX AS DSL? 写个 Mock API 服务器看看&body=Check out this article: https://bobi.ink/2019/11/29/jsx-as-dsl/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&name=JSX AS DSL? 写个 Mock API 服务器看看&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-领域问题的描述"><span class="toc-number">1.</span> <span class="toc-text">1. 领域问题的描述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-配置文件形式"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 配置文件形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-编程语言与内部-dsl"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 编程语言与内部 DSL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-javascript-内部-dsl"><span class="toc-number">2.</span> <span class="toc-text">2. JavaScript 内部 DSL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-对象形式"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 对象形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-链式调用形式"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 链式调用形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-es2015-template-tag"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 ES2015 Template Tag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-要不试试-jsx？"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 要不试试 JSX？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-jsx-入门"><span class="toc-number">3.</span> <span class="toc-text">3. JSX 入门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-自定义工厂"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 自定义工厂</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-host-component-vs-custom-component"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Host Component vs Custom Component</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-简单实现-createelement-工厂方法"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 简单实现 createElement 工厂方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-基础组件的设计"><span class="toc-number">4.</span> <span class="toc-text">4. 基础组件的设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-来源于-koa-的灵感"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 来源于 Koa 的灵感</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-use-基础组件"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 use 基础组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-高层组件的封装"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 高层组件的封装</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-浅谈实现原理"><span class="toc-number">5.</span> <span class="toc-text">5. 浅谈实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-‘渲染’"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 ‘渲染’</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-运行"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 运行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-总结，终于完事了"><span class="toc-number">6.</span> <span class="toc-text">6. 总结，终于完事了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-扩展"><span class="toc-number">7.</span> <span class="toc-text">7. 扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        JSX AS DSL? 写个 Mock API 服务器看看
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-11-28T16:00:00.000Z" itemprop="datePublished">2019-11-29</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这几天打算写一个简单的 API Mock 服务器，老生常谈哈？其实我是想讲 JSX, Mock 服务器只是一个幌子。我在寻找一种更简洁、方便、同时又可以灵活扩展的、和别人不太一样的方式，来定义各种 Mock API。后来我发现了 JSX 在领域问题描述的优势和潜力，当然这可不是空谈，我们会实际写一个项目来证实这个判断。</p>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#1-领域问题的描述">1. 领域问题的描述</a><ul>
+<li><a href="#11-配置文件形式">1.1 配置文件形式</a></li>
+<li><a href="#12-编程语言与内部-dsl">1.2 编程语言与内部 DSL</a></li>
+</ul>
+</li>
+<li><a href="#2-javascript-内部-dsl">2. JavaScript 内部 DSL</a><ul>
+<li><a href="#21-对象形式">2.1 对象形式</a></li>
+<li><a href="#22-链式调用形式">2.2 链式调用形式</a></li>
+<li><a href="#23-es2015-template-tag">2.3 ES2015 Template Tag</a></li>
+<li><a href="#24-要不试试-jsx">2.4 要不试试 JSX？</a></li>
+</ul>
+</li>
+<li><a href="#3-jsx-入门">3. JSX 入门</a><ul>
+<li><a href="#31-自定义工厂">3.1 自定义工厂</a></li>
+<li><a href="#32-host-component-vs-custom-component">3.2 Host Component vs Custom Component</a></li>
+<li><a href="#33-简单实现-createelement-工厂方法">3.3 简单实现 createElement 工厂方法</a></li>
+</ul>
+</li>
+<li><a href="#4-基础组件的设计">4. 基础组件的设计</a><ul>
+<li><a href="#41-来源于-koa-的灵感">4.1 来源于 Koa 的灵感</a></li>
+<li><a href="#42-use-基础组件">4.2 use 基础组件</a></li>
+<li><a href="#43-高层组件的封装">4.3 高层组件的封装</a></li>
+</ul>
+</li>
+<li><a href="#5-浅谈实现原理">5. 浅谈实现原理</a><ul>
+<li><a href="#51-渲染">5.1 ‘渲染’</a></li>
+<li><a href="#52-运行">5.2 运行</a></li>
+</ul>
+</li>
+<li><a href="#6-总结终于完事了">6. 总结，终于完事了</a></li>
+<li><a href="#7-扩展">7. 扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<h2 id="1-领域问题的描述"><a href="#1-领域问题的描述" class="headerlink" title="1. 领域问题的描述"></a>1. 领域问题的描述</h2><p>一上来就说这么抽象的名词，’领域问题’ 是什么鬼？什么是领域，Wiki 上解释的非常好，<strong>领域就是指某一专业或事物方面范围的涵盖</strong>。那么所谓领域问题就可以理解为，我们需要通过程序或者其他方式去解决的需求。</p>
+<p>比如提到 API Mock 服务器，我们需要解决的就是请求匹配和数据模拟这些问题；Nginx 解决的资源伺服和代理问题；HTML + CSS 解决的是页面 UI 展示问题…</p>
+<p>我们这里重点关注’<strong>描述</strong>‘。<strong>这些描述是提供给领域专家的‘前端‘ 或者 用户界面(UI)</strong>。举个例子：</p>
+<p><br></p>
+<p><img src="/images/jsx-as-dsl/dq-fe.png" alt></p>
+<p><br></p>
+<p>描述的形式有很多，例如配置文件、编程语言、图形界面。 先来看看现在常见的工具是怎么做的：</p>
+<p><br></p>
+<h3 id="1-1-配置文件形式"><a href="#1-1-配置文件形式" class="headerlink" title="1.1 配置文件形式"></a>1.1 配置文件形式</h3><p><strong>JSON?</strong></p>
+<p>JSON 是一种非常简单的数据表述, 没有任何学习成本，解析也非常方便。但是它有非常多致命的缺陷，比如不支持注释、冗余、数据结构单一。</p>
+<p><strong>YAML?</strong></p>
+<p>相比 JSON 语法要简洁很多、可读性也比较强。作为一个配置文件形式非常优秀</p>
+<p><strong>还是其他配置文件形式…</strong></p>
+<p>通常这些配置文件都是语言无关的，因此不会包含特定语言的元素。换句话说配置文件形式数据是相对静态的, 所以灵活性、扩展性比较差。只适合简单的配置场景。</p>
+<p>举个例子，这些配置文件不支持函数。我们的 Mock 服务器可能需要通过一个函数来动态处理请求，所以配置文件在这里并不适用。</p>
+<blockquote>
+<p>当然你可以通过其他方式来取代‘函数’，例如模板、或者脚本支持</p>
+</blockquote>
+<p><br><br><br></p>
+<h3 id="1-2-编程语言与内部-dsl"><a href="#1-2-编程语言与内部-dsl" class="headerlink" title="1.2 编程语言与内部 DSL"></a>1.2 编程语言与内部 DSL</h3><p>我们需要回到编程语言本身，利用它的编程能力，实现配置文件无法实现的更强大的功能。</p>
+<p>不过单纯使用通用类型编程语言，命令式的过程描述可能过于繁琐。<strong>我们最好针对具体领域问题进行简化和抽象，给用户提供一个友好的用户界面，让他们声明式地描述他们的领域问题。我们要尽可能减少用户对底层细节的依赖，与此同时最好能保持灵活的扩展能力</strong>。</p>
+<p>我说的可能就是<a href="https://zh.wikipedia.org/wiki/领域特定语言" target="_blank" rel="noopener"><strong>DSL(Domain-specific languages)</strong></a>:</p>
+<blockquote>
+<p>DSL 是一种用于描述特定应用领域的计算机语言。DSL 在计算机领域有非常广泛的应用，例如描述 Web 页面的 HTML、数据库查询语言 SQL、正则表达式。<br>相对应的是<strong>通用类型语言</strong>(GPL, General-Purpose Language)，例如 Java、C++、JavaScript。它们可以用于描述任意的领域逻辑，它们通常是<a href="https://en.wikipedia.org/wiki/Turing_completeness" target="_blank" rel="noopener">图灵完备</a>的。<br>可以这么认为，虽然不严谨：除了通用类型语言、其他语言都算是 DSL。</p>
+</blockquote>
+<p><br></p>
+<p><strong>怎么创建 DSL？</strong></p>
+<p>从头开发一门新语言？No! 成本太高了</p>
+<p>一种更优雅的方式是在通用编程语言的基础上进行减法或者封装抽象。当然不是所有类型语言都有这个’能力’, 比如 Java、C/C++ 就不行，它们的语法太 Verbose 或者工具链太重了。但是 Groovy、Ruby、Scala、还有 Elixir 这些语言就可以方便地创建出‘DSL’, 而且它们大部分是动态语言。</p>
+<p>它们有的借助宏、有的天生语法就非常适合作为 DSL、有的具备非常强的动态编程能力… 这些因素促就了它们适合作为 DSL 的母体(宿主)。</p>
+<p><strong>我们通常也将这种 DSL 称为 <code>Embedded DSL(嵌入式 DSL)</code> 或者 <code>内部 DSL</code>，因为它们寄生在通用类型编程语言中。而独立的 DSL，如 JSON、HTML，称为<code>外部DSL</code></strong>。</p>
+<p>内部 DSL 好处是省去了实现一门语言的复杂性(Parse-&gt;Transform-&gt;Generate)。</p>
+<p><br></p>
+<p>举两个非常典型的例子:</p>
+<p>Java 开发者常用的 <a href="https://gradle.org" target="_blank" rel="noopener">Gradle</a>，基于 Groovy:</p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">    id <span class="string">'java-library'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">repositories &#123;</span><br><span class="line">    jcenter()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">    api <span class="string">'org.apache.commons:commons-math3:3.6.1'</span></span><br><span class="line"></span><br><span class="line">    implementation <span class="string">'com.google.guava:guava:27.0.1-jre'</span></span><br><span class="line"></span><br><span class="line">    testImplementation <span class="string">'junit:junit:4.12'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>还有 CocoaPods, 基于 Ruby:</p>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line">source <span class="string">'http://source.git'</span></span><br><span class="line">platform <span class="symbol">:ios</span>, <span class="string">'8.0'</span></span><br><span class="line"></span><br><span class="line">target <span class="string">'Demo'</span> <span class="keyword">do</span></span><br><span class="line">    pod <span class="string">'AFNetworking'</span></span><br><span class="line">    pod <span class="string">'SDWebImage'</span></span><br><span class="line">    pod <span class="string">'Masonry'</span></span><br><span class="line">    pod <span class="string">"Typeset"</span></span><br><span class="line">    pod <span class="string">'BlocksKit'</span></span><br><span class="line">    pod <span class="string">'Mantle'</span></span><br><span class="line">    pod <span class="string">'IQKeyboardManager'</span></span><br><span class="line">    pod <span class="string">'IQDropDownTextField'</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>具体的实现细节不在本文的范围之内，还是聊回 JavaScript。</p>
+<p><br></p>
+<p><strong>我个人要求 DSL 应该具备这些特性</strong>：</p>
+<ul>
+<li><strong>专注于特定领域</strong>。也就是说它的目的非常明确，因此比通用类型语言要简单很多，但是它的边界有时候并不好把握。</li>
+<li><strong>组织性</strong>。它应该方便组织和描述领域问题, <strong>或者说这是一种约束能力</strong>。配置文件组织性就非常好，比如 JSON，它可以很容易地描述数据结构，没有什么心智负担。另一个典型的例子是单元测试框架(例如 jest)，它们使用 describe、it、expect 这些元件，让单元测试更好的组织起来。</li>
+<li><strong>可读性</strong>。它必须是人类可读的、容易理解的。</li>
+<li><strong>声明式</strong>。声明式优于过程式、描述 What 而不是 How。</li>
+<li><strong>扩展性</strong>。很多 DSL 一开始并不关注这一点，因为一开始问题可能并不复杂。<strong>问题的领域不是静态不变的，它可能会变大，这时候 DSL 的扩展能力就很关键了</strong>。 就比如 HTML，随着前端开发越来越复杂，原有的元素和功能集合已经无法满足需求，所以衍生除了很多组件或者自定义元素方案。如果原本的 DSL 无法扩展，可以在这个基础之上再套一层 DSL，CSS vs SASS、HTML vs React 就是这样的例子。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="2-javascript-内部-dsl"><a href="#2-javascript-内部-dsl" class="headerlink" title="2. JavaScript 内部 DSL"></a>2. JavaScript 内部 DSL</h2><p>上节提到了 Groovy、Ruby ‘适合‘ 用作 DSL 母体，并不代表一定要用它们实现，这只是说明它们天生具备的一些语言特性让实现更加便捷，或者说外观更加简洁。</p>
+<p>Google 一把 ‘JavaScript DSL‘ 匹配的有效资料很少。 如果你觉得困惑那就应该回到问题本身, 最重要的是解决领域问题，至于怎么组织和描述则是相对次要的。所以不要去纠结 JavaScript 适不适合。</p>
+<p><br></p>
+<p>那我们就针对 Mock Server 这个具体领域，聊一聊 JavaScript 内部 DSL 的典型组织方式:</p>
+<p><br></p>
+<h3 id="2-1-对象形式"><a href="#2-1-对象形式" class="headerlink" title="2.1 对象形式"></a>2.1 对象形式</h3><p>最简单的方式是直接基于对象或者数组进行声明，实现简单又保持组织性。例如 <a href="https://umijs.org/zh/guide/mock-data.html#使用-umi-的-mock-功能" target="_blank" rel="noopener">Umi Mock</a> 还有 <a href="https://ice.work" target="_blank" rel="noopener">飞冰</a> Mock, 就是基于对象组织的:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="comment">// 支持值为 Object 和 Array</span></span><br><span class="line">  <span class="string">'GET /api/users'</span>: &#123; <span class="attr">users</span>: [<span class="number">1</span>, <span class="number">2</span>] &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// GET POST 可省略</span></span><br><span class="line">  <span class="string">'/api/users/1'</span>: &#123; <span class="attr">id</span>: <span class="number">1</span> &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 支持自定义函数，API 参考 express@4</span></span><br><span class="line">  <span class="string">'POST /api/users/create'</span>: <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    res.end(<span class="string">'OK'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 使用 mockjs 等三方库</span></span><br><span class="line">  <span class="string">'GET /api/tags'</span>: mockjs.mock(&#123;</span><br><span class="line">    <span class="string">'list|100'</span>: [&#123; <span class="attr">name</span>: <span class="string">'@city'</span>, <span class="string">'value|1-100'</span>: <span class="number">50</span>, <span class="string">'type|0-2'</span>: <span class="number">1</span> &#125;],</span><br><span class="line">  &#125;),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>和配置文件差不多, 实现和使用都非常简单 ，简单的 API Mock 场景开箱即用，对于复杂的用法和 API 协议，也可以通过自定义函数进一步封装。<strong>但是有时候我们希望库可以承担多一点事情</strong>。</p>
+<p><br><br><br></p>
+<h3 id="2-2-链式调用形式"><a href="#2-2-链式调用形式" class="headerlink" title="2.2 链式调用形式"></a>2.2 链式调用形式</h3><p>JavaScript 作为内部 DSL 的另外一种典型的形式是链式调用。</p>
+<p>其中最出名的是 JQuery, 它让链式调用这种模式广为人知。相比啰嗦的原生 DOM 操作代码，JQuery 确实让人眼前一亮, 它暴露精简的 API, 帮我们屏蔽了许多底层 DOM 操作细节，抚平平台差异，同时还能保持灵活性和扩展性。这才是它真正流行的原因，大众喜闻乐见的都是简单的东西。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$(<span class="string">'.awesome'</span>)</span><br><span class="line">  .addClass(<span class="string">'flash'</span>)</span><br><span class="line">  .draggable()</span><br><span class="line">  .css(<span class="string">'color'</span>, <span class="string">'red'</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>JQuery 这种 API 模式也影响到了其他领域，比如 Iot 领域的 <a href="https://ruff.io/zh-cn/docs/getting-started.html" target="_blank" rel="noopener"><code>Ruff</code></a>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$.ready(<span class="function"><span class="keyword">function</span>(<span class="params">error</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (error) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(error)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 点亮灯</span></span><br><span class="line">  $(<span class="string">'#led-r'</span>).turnOn()</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>jest</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">expect(z).not.toBeNull()</span><br><span class="line">expect(z).toBeDefined()</span><br><span class="line">expect(value).toBeGreaterThan(<span class="number">3</span>)</span><br><span class="line">expect(value).toBeGreaterThanOrEqual(<span class="number">3.5</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>API Mock 服务器领域也有两个这样的例子:</p>
+<p><a href="https://github.com/nock/nock" target="_blank" rel="noopener">Nock</a>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> scope = nock(<span class="string">'http://myapp.iriscouch.com'</span>)</span><br><span class="line">  .get(<span class="string">'/users/1'</span>)</span><br><span class="line">  .reply(<span class="number">404</span>)</span><br><span class="line">  .post(<span class="string">'/users'</span>, &#123;</span><br><span class="line">    username: <span class="string">'pgte'</span>,</span><br><span class="line">    email: <span class="string">'pedro.teixeira@gmail.com'</span>,</span><br><span class="line">  &#125;)</span><br><span class="line">  .reply(<span class="number">201</span>, &#123;</span><br><span class="line">    ok: <span class="literal">true</span>,</span><br><span class="line">    id: <span class="string">'123ABC'</span>,</span><br><span class="line">    rev: <span class="string">'946B7D1C'</span>,</span><br><span class="line">  &#125;)</span><br><span class="line">  .get(<span class="string">'/users/123ABC'</span>)</span><br><span class="line">  .reply(<span class="number">200</span>, &#123;</span><br><span class="line">    _id: <span class="string">'123ABC'</span>,</span><br><span class="line">    _rev: <span class="string">'946B7D1C'</span>,</span><br><span class="line">    username: <span class="string">'pgte'</span>,</span><br><span class="line">    email: <span class="string">'pedro.teixeira@gmail.com'</span>,</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>还有网易云团队的 <a href="https://docs.svrx.io/zh/guide/route.html" target="_blank" rel="noopener">Srvx</a></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">get</span>('/handle(.*)').to.handle(ctx =&gt; &#123;</span><br><span class="line">  ctx.body = <span class="string">'handle'</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">get</span>('/blog(.*)').to.json(&#123; code: <span class="number">200</span> &#125;)</span><br><span class="line"><span class="keyword">get</span>('/code(.*)').to.send('code', 201)</span><br><span class="line"><span class="keyword">get</span>('/json(.*)').to.send(&#123; json: <span class="literal">true</span> &#125;)</span><br><span class="line"><span class="keyword">get</span>('/text(.*)').to.send('haha')</span><br><span class="line"><span class="keyword">get</span>('/html(.*)').to.send('&lt;html&gt;haha&lt;/html&gt;')</span><br><span class="line"><span class="keyword">get</span>('/rewrite:path(.*)').to.rewrite('/query&#123;path&#125;<span class="string">')</span></span><br><span class="line"><span class="string">get('</span>/redirect:path(.*)<span class="string">').to.redirect('</span>localhost:<span class="number">9002</span>/proxy&#123;path&#125;<span class="string">')</span></span><br><span class="line"><span class="string">get('</span>/api(.*)<span class="string">').to.proxy('</span>http:<span class="comment">//mock.server.com/')</span></span><br><span class="line"><span class="keyword">get</span>('/test(.*)').to.proxy('http://mock.server.com/', &#123;</span><br><span class="line">  secure: <span class="literal">false</span>,</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">get</span>('/test/:id').to.proxy('http://&#123;id&#125;.dynamic.server.com/<span class="string">')</span></span><br><span class="line"><span class="string">get('</span>/query(.*)<span class="string">').to.handle(ctx =&gt; &#123;</span></span><br><span class="line"><span class="string">  ctx.body = ctx.query</span></span><br><span class="line"><span class="string">&#125;)</span></span><br><span class="line"><span class="string">get('</span>/header(.*)<span class="string">')</span></span><br><span class="line"><span class="string">  .to.header(&#123; '</span>X-From<span class="string">': '</span>svrx<span class="string">' &#125;)</span></span><br><span class="line"><span class="string">  .json(&#123; user: '</span>svrx<span class="string">' &#125;)</span></span><br><span class="line"><span class="string">get('</span>/user<span class="string">').to.json(&#123; user: '</span>svrx<span class="string">' &#125;)</span></span><br><span class="line"><span class="string">get('</span>/sendFile/:path(.*)<span class="string">').to.sendFile('</span>./&#123;path&#125;<span class="string">')</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>链式调用模式目前是主流的 JavaScript 内部 DSL 形式。而且实现也比较简单，<strong>更重要的是它接近自然语言</strong>。</p>
+<p><br><br><br></p>
+<h3 id="2-3-es2015-template-tag"><a href="#2-3-es2015-template-tag" class="headerlink" title="2.3 ES2015 Template Tag"></a>2.3 ES2015 Template Tag</h3><p>近年基于 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/template_strings" target="_blank" rel="noopener">ES6 Template Tag</a> 特性引入‘新语言‘到 JavaScript 的库层出不穷。</p>
+<p><strong>不过因为 ES6 Template Tag 本质上是字符串，所以需要解析和转换，因此更像是外部 DSL。别忘了 Compiler as Framework! 通常我们可以利用 Babel 插件在编译时提前将它们转换为 JavaScript 代码。</strong></p>
+<p><br></p>
+<p>举几个流行的例子:</p>
+<p><a href="https://github.com/modernserf/zebu" target="_blank" rel="noopener">Zebu</a>: 这是一个专门用于解析 Template Tag 的小型编译器, 看看它的一些内置例子:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 范围</span></span><br><span class="line">range<span class="string">`1,3 ... (10)`</span> <span class="comment">// [1, 3, 5, 7, 9]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 状态机, 牛逼</span></span><br><span class="line"><span class="keyword">const</span> traffic = machine<span class="string">`</span></span><br><span class="line"><span class="string">  initState: #green</span></span><br><span class="line"><span class="string">  states: #green | #yellow | #red</span></span><br><span class="line"><span class="string">  events: #timer</span></span><br><span class="line"><span class="string">  onTransition: <span class="subst">$&#123;state =&gt; <span class="built_in">console</span>.log(state)&#125;</span></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  #green  @ #timer -&gt; #yellow</span></span><br><span class="line"><span class="string">  #yellow @ #timer -&gt; #red</span></span><br><span class="line"><span class="string">  #red    @ #timer -&gt; #green</span></span><br><span class="line"><span class="string">`</span></span><br><span class="line">traffic.start() <span class="comment">// log &#123; type: "green" &#125;</span></span><br><span class="line">traffic.send(&#123; <span class="attr">type</span>: <span class="string">'timer'</span> &#125;) <span class="comment">// log &#123; type: "yellow" &#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Jest 表格测试:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">describe.each<span class="string">`</span></span><br><span class="line"><span class="string">  a    | b    | expected</span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;<span class="number">1</span>&#125;</span> | <span class="subst">$&#123;<span class="number">1</span>&#125;</span> | <span class="subst">$&#123;<span class="number">2</span>&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;<span class="number">1</span>&#125;</span> | <span class="subst">$&#123;<span class="number">2</span>&#125;</span> | <span class="subst">$&#123;<span class="number">3</span>&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;<span class="number">2</span>&#125;</span> | <span class="subst">$&#123;<span class="number">1</span>&#125;</span> | <span class="subst">$&#123;<span class="number">3</span>&#125;</span></span></span><br><span class="line"><span class="string">`</span>(<span class="string">'$a + $b'</span>, (&#123; a, b, expected &#125;) =&gt; &#123;</span><br><span class="line">  test(<span class="string">`returns <span class="subst">$&#123;expected&#125;</span>`</span>, () =&gt; &#123;</span><br><span class="line">    expect(a + b).toBe(expected)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  test(<span class="string">`returned value not be greater than <span class="subst">$&#123;expected&#125;</span>`</span>, () =&gt; &#123;</span><br><span class="line">    expect(a + b).not.toBeGreaterThan(expected)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  test(<span class="string">`returned value not be less than <span class="subst">$&#123;expected&#125;</span>`</span>, () =&gt; &#123;</span><br><span class="line">    expect(a + b).not.toBeLessThan(expected)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>除此之外还有:</p>
+<ul>
+<li><a href="https://github.com/developit/htm" target="_blank" rel="noopener">htm</a></li>
+<li><a href="https://github.com/apollographql/graphql-tag" target="_blank" rel="noopener">graphql-tag</a></li>
+<li><a href="http://styled-components.com" target="_blank" rel="noopener">styled-components</a></li>
+</ul>
+<p><br></p>
+<p>Template Tag 这些方案给我们开了很多脑洞。尽管如此，它也带来了一些复杂性，就像开头说的，它们是字符串，需要解析、语法检查和转换，且 JavaScript 本身的语言机制并没有给它们带来多少便利(如语法高亮、类型检查)。</p>
+<p><br><br><br></p>
+<h3 id="2-4-要不试试-jsx？"><a href="#2-4-要不试试-jsx？" class="headerlink" title="2.4 要不试试 JSX？"></a>2.4 要不试试 JSX？</h3><p>铺垫了这么多，只是前戏。上面提到这些方案，要么过于简单、要么过于复杂、要么平淡无奇。我将目光投向了 JSX，我发现它可以满足我的大部分需求。</p>
+<p>先来看看一下我们的 Mock 服务器的原型设计:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Get, Post, mock &#125; <span class="keyword">from</span> <span class="string">'jsxmock'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (</span><br><span class="line">  &lt;server port=<span class="string">"4321"</span>&gt;</span><br><span class="line">    &#123;<span class="comment">/* 首页 */</span>&#125;</span><br><span class="line">    &lt;Get&gt;hello world&lt;<span class="regexp">/Get&gt;</span></span><br><span class="line"><span class="regexp">    &#123;/</span>* 登录 *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">    &lt;Post path="/</span>login<span class="string">"&gt;login success&lt;/Post&gt;</span></span><br><span class="line"><span class="string">    &#123;/* 返回 JSON */&#125;</span></span><br><span class="line"><span class="string">    &lt;Get path="</span>/json<span class="string">"&gt;&#123;&#123; id: 1 &#125;&#125;&lt;/Get&gt;</span></span><br><span class="line"><span class="string">    &#123;/* mockjs */&#125;</span></span><br><span class="line"><span class="string">    &lt;Get path="</span>/mockjs<span class="string">"&gt;&#123;mock(&#123; 'id|+1': 1, name: '@name' &#125;)&#125;&lt;/Get&gt;</span></span><br><span class="line"><span class="string">    &#123;/*自定义逻辑*/&#125;</span></span><br><span class="line"><span class="string">    &lt;Get path="</span>/user/:id<span class="string">"&gt;&#123;(req, res) =&gt; res.send('hello')&#125;&lt;/Get&gt;</span></span><br><span class="line"><span class="string">  &lt;/server&gt;</span></span><br><span class="line"><span class="string">)</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>嵌套匹配场景</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (</span><br><span class="line">  &lt;server&gt;</span><br><span class="line">    &lt;Get path=<span class="string">"/api"</span>&gt;</span><br><span class="line">      &#123;<span class="comment">/* 匹配 /api?method=foo */</span>&#125;</span><br><span class="line">      &lt;MatchBySearch key=<span class="string">"method"</span> value=<span class="string">"foo"</span>&gt;</span><br><span class="line">        foo</span><br><span class="line">      &lt;<span class="regexp">/MatchBySearch&gt;</span></span><br><span class="line"><span class="regexp">      &#123;/</span>* 匹配 /api?method=bar *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">      &lt;MatchBySearch key="method" value="bar"&gt;</span></span><br><span class="line"><span class="regexp">        bar</span></span><br><span class="line"><span class="regexp">      &lt;/</span>MatchBySearch&gt;</span><br><span class="line">      &lt;BlackHole&gt;我会吃掉任何请求&lt;<span class="regexp">/BlackHole&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Get&gt;</span><br><span class="line">  &lt;<span class="regexp">/server&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>有点 Verbose? 进一步封装组件:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> MyAwesomeAPI = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; path = <span class="string">'/api'</span>, children &#125; = props</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Get path=&#123;path&#125;&gt;</span><br><span class="line">      &#123;<span class="built_in">Object</span>.keys(children).map(<span class="function"><span class="params">name</span> =&gt;</span> (</span><br><span class="line">        &lt;MatchBySearch key=<span class="string">"method"</span> value=&#123;name&#125;&gt;</span><br><span class="line">          &#123;children[name]&#125;</span><br><span class="line">        &lt;<span class="regexp">/MatchBySearch&gt;</span></span><br><span class="line"><span class="regexp">      ))&#125;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Get&gt;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (</span><br><span class="line">  &lt;server&gt;</span><br><span class="line">    &lt;MyAwesomeAPI&gt;&#123;&#123; <span class="attr">foo</span>: <span class="string">'foo'</span>, <span class="attr">bar</span>: <span class="string">'bar'</span> &#125;&#125;&lt;<span class="regexp">/MyAwesomeAPI&gt;</span></span><br><span class="line"><span class="regexp">    &lt;MyAwesomeAPI path="/</span>api<span class="number">-2</span><span class="string">"&gt;&#123;&#123; hello: 'foo', world: 'bar' &#125;&#125;&lt;/MyAwesomeAPI&gt;</span></span><br><span class="line"><span class="string">  &lt;/server&gt;</span></span><br><span class="line"><span class="string">)</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>看起来不错哈？我们看到了 JSX 作为 DSL 的潜力，也把 React 的组件思维搬到了 GUI 之外的领域。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>你知道我的风格，篇幅较长 ☕️ 休息一会，再往下看。</p>
+<p><br><br><br></p>
+<h2 id="3-jsx-入门"><a href="#3-jsx-入门" class="headerlink" title="3. JSX 入门"></a>3. JSX 入门</h2><p>如果你是 React 的开发者，JSX 应该再熟悉不过了。它不过是一个语法糖，但是它目前不是 JavaScript 标准的一部分。Babel、Typescript 都支持转译 JSX。</p>
+<p>例如</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> jsx = (</span><br><span class="line">  &lt;div foo=<span class="string">"bar"</span>&gt;</span><br><span class="line">    &lt;span&gt;<span class="number">1</span>&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">    &lt;span&gt;2&lt;/</span>span&gt;</span><br><span class="line">    &lt;Custom&gt;custom element&lt;<span class="regexp">/Custom&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>会转译为:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> jsx = React.createElement(</span><br><span class="line">  <span class="string">'div'</span>,</span><br><span class="line">  &#123;</span><br><span class="line">    foo: <span class="string">'bar'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  React.createElement(<span class="string">'span'</span>, <span class="literal">null</span>, <span class="string">'1'</span>),</span><br><span class="line">  React.createElement(<span class="string">'span'</span>, <span class="literal">null</span>, <span class="string">'2'</span>),</span><br><span class="line">  React.createElement(Custom, <span class="literal">null</span>, <span class="string">'custom element'</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h3 id="3-1-自定义工厂"><a href="#3-1-自定义工厂" class="headerlink" title="3.1 自定义工厂"></a>3.1 自定义工厂</h3><p>JSX 需要一个<strong>工厂方法</strong>来创建创建’节点实例’。默认是 <code>React.createElement</code>。我们可以通过注释配置来提示转译插件。按照习惯，自定义工厂都命名为 <code>h</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* @jsx h */</span></span><br><span class="line"><span class="comment">/* @jsxFrag 'fragment' */</span></span><br><span class="line"><span class="keyword">import</span> &#123; h &#125; <span class="keyword">from</span> <span class="string">'somelib'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> jsx = (</span><br><span class="line">  &lt;div foo=<span class="string">"bar"</span>&gt;</span><br><span class="line">    &lt;span&gt;<span class="number">1</span>&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">    &lt;span&gt;2&lt;/</span>span&gt;</span><br><span class="line">    &lt;&gt;fragement&lt;<span class="regexp">/&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>将转译为:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; h &#125; <span class="keyword">from</span> <span class="string">'somelib'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> jsx = h(</span><br><span class="line">  <span class="string">'div'</span>,</span><br><span class="line">  &#123;</span><br><span class="line">    foo: <span class="string">'bar'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  h(<span class="string">'span'</span>, <span class="literal">null</span>, <span class="string">'1'</span>),</span><br><span class="line">  h(<span class="string">'span'</span>, <span class="literal">null</span>, <span class="string">'2'</span>),</span><br><span class="line">  h(<span class="string">'fragment'</span>, <span class="literal">null</span>, <span class="string">'fragement'</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h3 id="3-2-host-component-vs-custom-component"><a href="#3-2-host-component-vs-custom-component" class="headerlink" title="3.2 Host Component vs Custom Component"></a>3.2 Host Component vs Custom Component</h3><p>JSX 会区分两种组件类型。小写开头的为内置组件，它们以字符串的形式传入 createElement; 大写开头的表示自定义组件, 作用域内必须存在该变量, 否则会报错。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 内置组件</span></span><br><span class="line">;<span class="xml"><span class="tag">&lt;<span class="name">div</span> /&gt;</span></span></span><br><span class="line"><span class="xml">// 自定义组件</span></span><br><span class="line"><span class="xml">;<span class="tag">&lt;<span class="name">Custom</span> /&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h3 id="3-3-简单实现-createelement-工厂方法"><a href="#3-3-简单实现-createelement-工厂方法" class="headerlink" title="3.3 简单实现 createElement 工厂方法"></a>3.3 简单实现 createElement 工厂方法</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">createElement</span>(<span class="params">type, props, ...children</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> copy = &#123; ...(props || EMPTY_OBJECT) &#125;</span><br><span class="line">  copy.children = copy.children || (children.length &gt; <span class="number">1</span> ? children : children[<span class="number">0</span>])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    _vnode: <span class="literal">true</span>,</span><br><span class="line">    type,</span><br><span class="line">    props: copy,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h2 id="4-基础组件的设计"><a href="#4-基础组件的设计" class="headerlink" title="4. 基础组件的设计"></a>4. 基础组件的设计</h2><h3 id="4-1-来源于-koa-的灵感"><a href="#4-1-来源于-koa-的灵感" class="headerlink" title="4.1 来源于 Koa 的灵感"></a>4.1 来源于 Koa 的灵感</h3><p>大家应该比较熟悉 koa 中间件机制。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// logger</span></span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> next()</span><br><span class="line">  <span class="keyword">const</span> rt = ctx.response.get(<span class="string">'X-Response-Time'</span>)</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;ctx.method&#125;</span> <span class="subst">$&#123;ctx.url&#125;</span> - <span class="subst">$&#123;rt&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// x-response-time</span></span><br><span class="line">app.use(<span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> start = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="keyword">await</span> next()</span><br><span class="line">  <span class="keyword">const</span> ms = <span class="built_in">Date</span>.now() - start</span><br><span class="line">  ctx.set(<span class="string">'X-Response-Time'</span>, <span class="string">`<span class="subst">$&#123;ms&#125;</span>ms`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// response</span></span><br><span class="line">app.use(<span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">  ctx.body = <span class="string">'Hello World'</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>形象的说，它就是一个洋葱模型:</p>
+<p><img src="/images/jsx-as-dsl/koa.png" alt></p>
+<p><br></p>
+<p>中间件调用 next，就会进入下一级。 如果把函数的边界打破。它的样子确实像洋葱:</p>
+<p><img src="/images/jsx-as-dsl/koa-2.png" alt></p>
+<p><br></p>
+<p>✨<strong>我发现使用 JSX 可以更直观地表示这种洋葱结构</strong></p>
+<p><br></p>
+<p><img src="/images/jsx-as-dsl/koa-3.png" alt></p>
+<p><br><br><br></p>
+<h3 id="4-2-use-基础组件"><a href="#4-2-use-基础组件" class="headerlink" title="4.2 use 基础组件"></a>4.2 use 基础组件</h3><p>于是乎，有了 <code>&lt;use /&gt;</code> 这个基础组件。它类似于 Koa 的 <code>app.use</code>, 用于拦截请求，可以进行响应, 也可以选择进入下一层。</p>
+<p><strong>① 来看看整体设计</strong>。</p>
+<p>use 正是基于上面说的，使用 JSX 来描述中间件包裹层次的基础组件。因为使用的是一种树状结构，所以要区分<strong>兄弟中间件</strong>和<strong>子中间件</strong>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;server&gt;</span><br><span class="line">  &lt;use m=&#123;A&#125;&gt;</span><br><span class="line">    &lt;use m=&#123;Aa&#125; /&gt;</span><br><span class="line">    &lt;use m=&#123;Ab&#125; /&gt;</span><br><span class="line">  &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  &lt;use m=&#123;B&#125; /</span>&gt;</span><br><span class="line">  &lt;use m=&#123;C&#125; /&gt;</span><br><span class="line">&lt;<span class="regexp">/server&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其中 <code>Aa</code>、<code>Ab</code> 就是 <code>A</code> 的<strong>子中间件</strong>。在 A 中可以调用类似 koa 的 <code>next</code> 函数，进入下级中间件。</p>
+<p><code>A</code>、<code>B</code>、<code>C</code>之间就是<strong>兄弟中间件</strong>。当前继中间件未匹配时，就会执行下一个相邻中间件。</p>
+<p>乍一看，这就是 koa 和 express 的结合啊!</p>
+<p><br></p>
+<p><strong>② 再看看 Props 设计</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">interface UseProps &#123;</span><br><span class="line">  m: <span class="function">(<span class="params">req, res, recurse: (</span>) =&gt;</span> <span class="built_in">Promise</span>&lt;boolean&gt;) =&gt; <span class="built_in">Promise</span>&lt;boolean&gt;;</span><br><span class="line">  skip?: boolean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><code>m</code></p>
+<ul>
+<li><p><code>req</code>、<code>res</code>：Express 的请求对象和响应对象</p>
+</li>
+<li><p><code>recurse</code>：递归执行子级中间件, 类似 koa 的 next。返回一个<code>Promise&lt;boolean&gt;</code>, 它将在下级中间件执行完成后 resolve，boolean 表示下级中间件是否匹配拦截了请求。</p>
+</li>
+<li><p>返回值：返回一个 <code>Promise&lt;boolean&gt;</code> 表示当前中间件是否匹配(拦截请求)。如果匹配，后续的兄弟中间件将不会被执行。</p>
+</li>
+</ul>
+</li>
+<li><p><code>skip</code>：强制跳过，我们在开发时可能会临时跳过匹配请求，这个有点像单元测试中的 skip</p>
+</li>
+</ul>
+<p><br></p>
+<p><strong>③ 看一下运行实例</strong></p>
+<p>假设代码为:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> cb = <span class="function"><span class="params">name</span> =&gt;</span> () =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(name)</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (</span><br><span class="line">  &lt;server&gt;</span><br><span class="line">    &lt;use</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'A'</span>)</span><br><span class="line">        <span class="keyword">if</span> (req.path === <span class="string">'/user'</span>) <span class="keyword">await</span> rec() <span class="comment">// 如果匹配，则放行，让其递归进入内部</span></span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'end A'</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &lt;use m=&#123;cb(<span class="string">'A-1'</span>)&#125;&gt;如果父级匹配，则这里会被执行&lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">      &lt;use m=&#123;cb('A-2')&#125;&gt;...&lt;/u</span>se&gt;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">    &lt;use m=&#123;cb('B')&#125; /</span>&gt;</span><br><span class="line">    &lt;use m=&#123;cb(<span class="string">'C'</span>)&#125; /&gt;</span><br><span class="line">  &lt;<span class="regexp">/server&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br></pre></td></tr></table></figure>
+<p>如果请求的是 ‘/‘，那么打印的是 <code>A -&gt; end A -&gt; B -&gt; C</code>；<br>如果请求为 ‘/user’, 那么打印的是 <code>A -&gt; A-1 -&gt; A-2 -&gt; end A -&gt; B -&gt; C</code></p>
+<p><br></p>
+<p>我们的基础组件和 Koa / Express 一样，核心保持非常小而简洁，当然它也比较低级，这样能够保证灵活性。</p>
+<p><strong>这个简单的基础组件设计就是整个框架的‘基石’</strong>。 如果你了解 Koa 和 Express，这里没有新的东西。只是换了一种表现方式。</p>
+<p><br><br><br></p>
+<h3 id="4-3-高层组件的封装"><a href="#4-3-高层组件的封装" class="headerlink" title="4.3 高层组件的封装"></a>4.3 高层组件的封装</h3><p>Ok, 有了 <code>use</code> 这个基础原语, 我可以做很多有意思的事情，使用组件化的思维封装出更高级的 API。</p>
+<p><br></p>
+<p><strong>① <code>&lt;Log&gt;</code>：打日志</strong></p>
+<p>封装一个最简单的组件:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Log: Component = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;use</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> start = <span class="built_in">Date</span>.now()</span><br><span class="line">        <span class="comment">// 进入下一级</span></span><br><span class="line">        <span class="keyword">const</span> rtn = <span class="keyword">await</span> rec()</span><br><span class="line">        <span class="built_in">console</span>.log(</span><br><span class="line">          <span class="string">`<span class="subst">$&#123;req.method&#125;</span> <span class="subst">$&#123;req.path&#125;</span>: <span class="subst">$&#123;<span class="built_in">Date</span>.now() - start&#125;</span>ms`</span></span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">return</span> rtn</span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &#123;props.children&#125;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>用法:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;server&gt;</span><br><span class="line">  &lt;Log&gt;</span><br><span class="line">    &lt;Get&gt;hello world&lt;<span class="regexp">/Get&gt;</span></span><br><span class="line"><span class="regexp">    &lt;Post path="/</span>login<span class="string">"&gt;login sucess&lt;/Post&gt;</span></span><br><span class="line"><span class="string">    ...</span></span><br><span class="line"><span class="string">  &lt;/Log&gt;</span></span><br><span class="line"><span class="string">&lt;/server&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p><strong>② <code>&lt;NotFound&gt;</code>: 404</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> NotFound = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; children &#125; = props</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;use</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="keyword">const</span> found = <span class="keyword">await</span> rec()</span><br><span class="line">        <span class="keyword">if</span> (!found) &#123;</span><br><span class="line">          <span class="comment">// 下级未匹配</span></span><br><span class="line">          res.status(<span class="number">404</span>)</span><br><span class="line">          res.send(<span class="string">'Not Found'</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &#123;children&#125;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>用法和 Log 一样。<code>recurse</code> 返回 false 时，表示下级没有匹配到请求。</p>
+<p><br><br><br></p>
+<p><strong>③ <code>&lt;Catch&gt;</code>: 异常处理</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Catch: Component = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;use</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">await</span> rec()</span><br><span class="line">        &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">          res.status(<span class="number">500</span>)</span><br><span class="line">          res.send(err.message)</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &#123;props.children&#125;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>用法和 Log 一样。捕获下级中间件的异常。</p>
+<p><br><br><br></p>
+<p><strong>④ <code>&lt;Match&gt;</code>: 请求匹配</strong></p>
+<p>Match 组件也是一个非常基础的组件，其他高层组件都是基于它来实现。它用于匹配请求，并作出响应。先来看看 Props 设计：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> type CustomResponder =</span><br><span class="line">  | MiddlewareMatcher</span><br><span class="line">  | MockType</span><br><span class="line">  | boolean</span><br><span class="line">  | string</span><br><span class="line">  | number</span><br><span class="line">  | object</span><br><span class="line">  | <span class="literal">null</span></span><br><span class="line">  | <span class="literal">undefined</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> interface MatchProps &#123;</span><br><span class="line">  match?: <span class="function">(<span class="params">req: Request, res: Response</span>) =&gt;</span> boolean <span class="comment">// 请求匹配</span></span><br><span class="line">  headers?: StringRecord <span class="comment">// 默认响应报头</span></span><br><span class="line">  code?: number | string <span class="comment">// 默认响应码</span></span><br><span class="line">  <span class="comment">// children 类型则比较复杂, 可以是原始类型、对象、Mock对象、自定义响应函数，以及下级中间件</span></span><br><span class="line">  children?: ComponentChildren | CustomResponder</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Match 组件主体:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Match = <span class="function">(<span class="params">props: MatchProps</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; match, skip, children &#125; = props</span><br><span class="line">  <span class="comment">// 对 children 进行转换</span></span><br><span class="line">  <span class="keyword">let</span> response = generateCustomResponder(children, props)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;use</span><br><span class="line">      skip=&#123;skip&#125;</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="comment">// 检查是否匹配</span></span><br><span class="line">        <span class="keyword">if</span> (match ? match(req, res) : <span class="literal">true</span>) &#123;</span><br><span class="line">          <span class="keyword">if</span> (response) &#123;</span><br><span class="line">            <span class="keyword">return</span> response(req, res, rec)</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 如果没有响应器，则将控制权交给下级组件</span></span><br><span class="line">          <span class="keyword">return</span> rec()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &#123;children&#125;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>限于篇幅，Match 的具体细节可以看<a href="https://github.com/ivan-94/jsxmock/blob/master/src/components/Match.tsx" target="_blank" rel="noopener">这里</a></p>
+<p>前进，前进。 <code>Get</code>、<code>Post</code>、<code>Delete</code>、<code>MatchByJSON</code>、<code>MatchBySearch</code> 都是在 <code>Match</code> 基础上封装了，这里就不展开了。</p>
+<p><br><br><br></p>
+<p><strong>⑤ <code>&lt;Delay&gt;</code>: 延迟响应</strong></p>
+<p>太兴奋了，一不小心又写得老长，我可以去写小册了。Ok, 最后一个例子, 在 Mock API 会有模拟延迟响应的场景, 实现很简单:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Delay = <span class="function">(<span class="params">props: DelayProps</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; timeout = <span class="number">3000</span>, ...other &#125; = props</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;use</span><br><span class="line">      m=&#123;<span class="keyword">async</span> (req, res, rec) =&gt; &#123;</span><br><span class="line">        <span class="keyword">await</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">res</span> =&gt;</span> setTimeout(res, timeout))</span><br><span class="line">        <span class="keyword">return</span> rec()</span><br><span class="line">      &#125;&#125;</span><br><span class="line">    &gt;</span><br><span class="line">      &lt;Match &#123;...other&#125; /&gt;</span><br><span class="line">    &lt;<span class="regexp">/use&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>用法：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;Get path=<span class="string">"/delay"</span>&gt;</span><br><span class="line">  &#123;<span class="comment">/* 延迟 5s 返回 */</span>&#125;</span><br><span class="line">  &lt;Delay timeout=&#123;<span class="number">5000</span>&#125;&gt;Delay Delay...&lt;<span class="regexp">/Delay&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>Get&gt;</span><br></pre></td></tr></table></figure>
+<p>更多使用案例，请看 <a href="https://github.com/ivan-94/jsxmock" target="_blank" rel="noopener">jsxmock 文档</a>)</p>
+<p>坚持到这里不容易，你对它的原理可能感兴趣，那不妨继续看下去。</p>
+<p><br><br><br></p>
+<h2 id="5-浅谈实现原理"><a href="#5-浅谈实现原理" class="headerlink" title="5. 浅谈实现原理"></a>5. 浅谈实现原理</h2><p>简单看一下实现。如果了解过 React 或者 Virtual-DOM 的实现原理。这一切就很好理解了。</p>
+<p><br></p>
+<h3 id="5-1-‘渲染’"><a href="#5-1-‘渲染’" class="headerlink" title="5.1 ‘渲染’"></a>5.1 ‘渲染’</h3><p>这是打了引号的’渲染’。这只是一种习惯的称谓，并不是指它会渲染成 GUI。它用来展开整颗 JSX 树。对于我们来说很简单，我们没有所谓的更新或者 UI 渲染相关的东西。只需递归这个树、收集我们需要的东西即可。</p>
+<p>我们的目的是收集到所有的中间件，以及它们的嵌套关系。我们用 MiddlewareNode 这个树形数据结构来存储它们：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> type Middleware = (</span><br><span class="line">  req: Request,</span><br><span class="line">  res: Response,</span><br><span class="line">  <span class="comment">// 递归</span></span><br><span class="line">  recurse: <span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">Promise</span>&lt;boolean&gt;,</span><br><span class="line">) =&gt; <span class="built_in">Promise</span>&lt;boolean&gt;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> interface MiddlewareNode &#123;</span><br><span class="line">  m: Middleware           <span class="comment">// 中间件函数</span></span><br><span class="line">  skip: boolean           <span class="comment">// 是否跳过</span></span><br><span class="line">  children: MiddlewareNode[] <span class="comment">// 子级中间件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>渲染函数:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> currentMiddlewareNode</span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">vnode</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 🔴 创建根中间件</span></span><br><span class="line">  <span class="keyword">const</span> middlewares = (currentMiddlewareNode = createMiddlewareNode())</span><br><span class="line">  <span class="comment">// 🔴 挂载</span></span><br><span class="line">  <span class="keyword">const</span> tree = mount(vnode)</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>挂载是一个递归的过程，这个过程中，遇到<code>自定义组件</code>我们就展开，遇到 use 组件就将它们收集到 <code>currentMiddlewareNode</code> 中:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">mount</span>(<span class="params">vnode</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> prevMiddlewareNode</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> vnode.type === <span class="string">'function'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴自定义组件展开</span></span><br><span class="line">    <span class="keyword">const</span> rtn = vnode.type(vnode.props)</span><br><span class="line">    <span class="keyword">if</span> (rtn != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 递归挂载自定义组件的渲染结果</span></span><br><span class="line">      mount(rtn, inst)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">typeof</span> vnode.type === <span class="string">'string'</span>) &#123;</span><br><span class="line">    <span class="comment">// 内置组件</span></span><br><span class="line">    <span class="keyword">if</span> (vnode.type === <span class="string">'use'</span>) &#123;</span><br><span class="line">      <span class="comment">// 🔴收集中间件</span></span><br><span class="line">      <span class="keyword">const</span> md = createMiddlewareNode(inst.props.m)</span><br><span class="line">      md.skip = !!inst.props.skip</span><br><span class="line">      currentMiddlewareNode.children.push(md)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 保存父级中间件</span></span><br><span class="line">      prevMiddlewareNode = currentMiddlewareNode</span><br><span class="line">      currentMiddlewareNode = md <span class="comment">// ⬇️推入栈，下级的中间件将加入这个列表</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// ... 其他内置组件</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 🔴递归挂载子级节点</span></span><br><span class="line">    mountChilren(inst.props.children, inst)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (vnode.type === <span class="string">'use'</span>) &#123;</span><br><span class="line">      currentMiddlewareNode = prevMiddlewareNode <span class="comment">// ⬆️弹出栈</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 子节点列表挂载</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">mountChilren</span>(<span class="params">children: any, parent: Instance</span>) </span>&#123;</span><br><span class="line">  childrenToArray(children).forEach(mount)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="5-2-运行"><a href="#5-2-运行" class="headerlink" title="5.2 运行"></a>5.2 运行</h3><p>现在看看怎么运行起来。我们实现了一个简单的中间件机制，相对 Koa 好理解一点：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">runMiddlewares</span>(<span class="params">req, res, current</span>): <span class="title">Promise</span>&lt;<span class="title">boolean</span>&gt; </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; m, skip, children &#125; = current</span><br><span class="line">  <span class="keyword">if</span> (skip) &#123;</span><br><span class="line">    <span class="comment">// 跳过, 直接返回 false</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 调用中间件</span></span><br><span class="line">  <span class="keyword">return</span> m(req, res, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="comment">// recurse 回调</span></span><br><span class="line">    <span class="comment">// 🔴 如果有下级中间件，则递归调用子级中间件</span></span><br><span class="line">    <span class="keyword">if</span> (children &amp;&amp; children.length) &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> child <span class="keyword">of</span> children) &#123;</span><br><span class="line">        <span class="keyword">const</span> matched = <span class="keyword">await</span> runMiddlewares(req, res, child)</span><br><span class="line">        <span class="keyword">if</span> (matched) &#123;</span><br><span class="line">          <span class="comment">// 🔴 如果其中一个兄弟中间件匹配，后续的中间件都不会被执行</span></span><br><span class="line">          <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span> <span class="comment">// 🔴 没有下级中间件，或者没有任何下级中间件匹配</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>很简单哈？ 就是递归递归递归</p>
+<p><br><br><br></p>
+<h2 id="6-总结，终于完事了"><a href="#6-总结，终于完事了" class="headerlink" title="6. 总结，终于完事了"></a>6. 总结，终于完事了</h2><p>本文从配置文件讲到 DSL，又讲到了 JavaScript 内部 DSL 表达形式和能力。最后将焦点聚集在了 JSX 上面。</p>
+<p>我通过一个实战的案例展示了 JSX 和 React 的组件化思维，它不仅仅适用于描述用户界面，我们也看到 JSX 作为一种 DSL 的潜力和灵活性。</p>
+<p>最后总结一下优缺点。</p>
+<p><br></p>
+<p><strong>✅ 优点</strong></p>
+<ul>
+<li><strong>更好的类型推断和约束</strong>。 Typescript 友好</li>
+<li><strong>可组合</strong>。具有组件封装和组合能力, 可以轻易封装高级、易于使用的接口</li>
+<li><strong>Just Javascript</strong>。 本身就是 JavaScript 代码，很灵活</li>
+<li><strong>更好的组织性、媲美配置文件</strong>。JSX 语法类似于 XML，有良好的组织性。</li>
+<li><strong>习惯</strong>。 如果你习惯 React，Vue 这类前端框架，JSX 配置方式很容易被接受和上手</li>
+<li><strong>实现简单</strong>。</li>
+<li><strong>更能直观地表现层级结构</strong>。比如表示中间件的洋葱结构</li>
+<li><strong>模块化</strong>。与生俱来，可以将接口分发到不同的文件中，然后可轻易地组合起来。</li>
+</ul>
+<p><br></p>
+<p><strong>⚠️ 缺点</strong></p>
+<ul>
+<li>代码需要转译。需要 Babel 和 Typescript 转译。</li>
+<li>有点 Verbose。</li>
+</ul>
+<p><br></p>
+<p><strong>灵活却有组织性</strong>。灵活通常容易导致杂乱无章，组织性则可能意味着牺牲灵活性，两者在某种意义上面看是矛盾的。能够将两者平衡案例其实很少见，JSX 可能是一个。（我好像在吹 🐂）</p>
+<p><br></p>
+<p><strong>🎉🎉代码已经在 Github, 目前正处于原型阶段: <a href="https://github.com/ivan-94/jsxmock" target="_blank" rel="noopener">ivan-94/jsxmock</a> 欢迎 ⭐️ 和贡献。</strong></p>
+<p><br><br><br></p>
+<h2 id="7-扩展"><a href="#7-扩展" class="headerlink" title="7. 扩展"></a>7. 扩展</h2><ul>
+<li><a href="https://www.yinwang.org/blog-cn/2017/05/25/dsl" target="_blank" rel="noopener">DSL 的误区</a></li>
+<li><a href="https://draveness.me/dsl" target="_blank" rel="noopener">谈谈 DSL 以及 DSL 的应用（以 CocoaPods 为例）</a></li>
+<li><a href="https://www.phodal.com/blog/javascript-dsl-example/" target="_blank" rel="noopener">JavaScript DSL 示例</a></li>
+<li><a href="https://www.zhihu.com/question/35436669" target="_blank" rel="noopener">你是如何构建 Web 前端 Mock Server 的？</a></li>
+<li><a href="https://docs.svrx.io/zh/blog/mock.html" target="_blank" rel="noopener">使用 svrx 实现更优雅的接口 Mock</a></li>
+</ul>
+<p><br></p>
+<p>也学别人建个群(好多读者问过)，试试水吧…</p>
+<p><img src="/images/group.png" alt></p>
+<p><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+<p><br></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-领域问题的描述"><span class="toc-number">1.</span> <span class="toc-text">1. 领域问题的描述</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-配置文件形式"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 配置文件形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-编程语言与内部-dsl"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 编程语言与内部 DSL</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-javascript-内部-dsl"><span class="toc-number">2.</span> <span class="toc-text">2. JavaScript 内部 DSL</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-对象形式"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 对象形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-链式调用形式"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 链式调用形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-es2015-template-tag"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 ES2015 Template Tag</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-要不试试-jsx？"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 要不试试 JSX？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-jsx-入门"><span class="toc-number">3.</span> <span class="toc-text">3. JSX 入门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-自定义工厂"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 自定义工厂</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-host-component-vs-custom-component"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 Host Component vs Custom Component</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-简单实现-createelement-工厂方法"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 简单实现 createElement 工厂方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-基础组件的设计"><span class="toc-number">4.</span> <span class="toc-text">4. 基础组件的设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-来源于-koa-的灵感"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 来源于 Koa 的灵感</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-use-基础组件"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 use 基础组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-高层组件的封装"><span class="toc-number">4.3.</span> <span class="toc-text">4.3 高层组件的封装</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-浅谈实现原理"><span class="toc-number">5.</span> <span class="toc-text">5. 浅谈实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-‘渲染’"><span class="toc-number">5.1.</span> <span class="toc-text">5.1 ‘渲染’</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-运行"><span class="toc-number">5.2.</span> <span class="toc-text">5.2 运行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-总结，终于完事了"><span class="toc-number">6.</span> <span class="toc-text">6. 总结，终于完事了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-扩展"><span class="toc-number">7.</span> <span class="toc-text">7. 扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/11/29/jsx-as-dsl/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&text=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&is_video=false&description=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=JSX AS DSL? 写个 Mock API 服务器看看&body=Check out this article: https://bobi.ink/2019/11/29/jsx-as-dsl/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&title=JSX AS DSL? 写个 Mock API 服务器看看"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/11/29/jsx-as-dsl/&name=JSX AS DSL? 写个 Mock API 服务器看看&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="CSS 是前端开发的重要组成部分，但是它并不完美，本文主要探讨 React 样式管理方面的一些解决方案，目的是实现样式的高度可定制化, 让大型项目的样式代码更容易维护. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 认识 CSS 的局限性 1️⃣ 全局性 2️⃣ 依赖 3️⃣ 无用代码的移除 4️⃣ 压缩 5️⃣ 常量共享 6">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React组件设计实践总结03 - 样式的管理">
+<meta property="og:url" content="https://bobi.ink/2019/05/14/react-component-design-03/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="CSS 是前端开发的重要组成部分，但是它并不完美，本文主要探讨 React 样式管理方面的一些解决方案，目的是实现样式的高度可定制化, 让大型项目的样式代码更容易维护. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 认识 CSS 的局限性 1️⃣ 全局性 2️⃣ 依赖 3️⃣ 无用代码的移除 4️⃣ 压缩 5️⃣ 常量共享 6">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/04/vjeux-speak.png">
+<meta property="og:image" content="https://bobi.ink/images/04/gray-scale.png">
+<meta property="og:image" content="https://bobi.ink/images/04/sem-color.png">
+<meta property="og:image" content="https://bobi.ink/images/04/styled-benchmark.png">
+<meta property="og:image" content="https://bobi.ink/images/04/css-determination.png">
+<meta property="og:image" content="https://bobi.ink/images/04/bootstrap-rem.gif">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React组件设计实践总结03 - 样式的管理">
+<meta name="twitter:description" content="CSS 是前端开发的重要组成部分，但是它并不完美，本文主要探讨 React 样式管理方面的一些解决方案，目的是实现样式的高度可定制化, 让大型项目的样式代码更容易维护. 系列目录  01 类型检查 02 组件的组织 03 样式的管理 04 组件的思维 05 状态管理   目录   1. 认识 CSS 的局限性 1️⃣ 全局性 2️⃣ 依赖 3️⃣ 无用代码的移除 4️⃣ 压缩 5️⃣ 常量共享 6">
+<meta name="twitter:image" content="https://bobi.ink/images/04/vjeux-speak.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>React组件设计实践总结03 - 样式的管理</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/05/15/react-component-design-04/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/05/11/react-component-design-02/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/14/react-component-design-03/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/14/react-component-design-03/&text=React组件设计实践总结03 - 样式的管理"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/14/react-component-design-03/&is_video=false&description=React组件设计实践总结03 - 样式的管理"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结03 - 样式的管理&body=Check out this article: https://bobi.ink/2019/05/14/react-component-design-03/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/14/react-component-design-03/&name=React组件设计实践总结03 - 样式的管理&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-认识-css-的局限性"><span class="toc-number">1.</span> <span class="toc-text">1. 认识 CSS 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-全局性"><span class="toc-number">1.1.</span> <span class="toc-text">1️⃣ 全局性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-依赖"><span class="toc-number">1.2.</span> <span class="toc-text">2️⃣ 依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-无用代码的移除"><span class="toc-number">1.3.</span> <span class="toc-text">3️⃣ 无用代码的移除</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-压缩"><span class="toc-number">1.4.</span> <span class="toc-text">4️⃣ 压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-常量共享"><span class="toc-number">1.5.</span> <span class="toc-text">5️⃣ 常量共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-css-解析方式的不确定性"><span class="toc-number">1.6.</span> <span class="toc-text">6️⃣ CSS 解析方式的不确定性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-组件的样式管理"><span class="toc-number">2.</span> <span class="toc-text">2. 组件的样式管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-组件的样式应该高度可定制化"><span class="toc-number">2.1.</span> <span class="toc-text">1️⃣ 组件的样式应该高度可定制化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-避免使用内联-css"><span class="toc-number">2.2.</span> <span class="toc-text">2️⃣ 避免使用内联 CSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-使用-css-in-js"><span class="toc-number">2.3.</span> <span class="toc-text">3️⃣ 使用 CSS-in-js</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#0-基本用法"><span class="toc-number">2.3.1.</span> <span class="toc-text">0. 基本用法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-样式扩展"><span class="toc-number">2.3.2.</span> <span class="toc-text">1. 样式扩展</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-mixin-机制"><span class="toc-number">2.3.3.</span> <span class="toc-text">2. mixin 机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-类-scss-的语法"><span class="toc-number">2.3.4.</span> <span class="toc-text">3. 类 SCSS 的语法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-js-带来的动态性"><span class="toc-number">2.3.5.</span> <span class="toc-text">5. JS 带来的动态性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-绑定组件的全局样式"><span class="toc-number">2.3.6.</span> <span class="toc-text">6. 绑定组件的全局样式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-theme-机制及-theme-对象的设计"><span class="toc-number">2.3.7.</span> <span class="toc-text">7. Theme 机制及 Theme 对象的设计</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-提升开发体验"><span class="toc-number">2.3.8.</span> <span class="toc-text">8. 提升开发体验</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#9-了解-styled-components-的局限性"><span class="toc-number">2.3.9.</span> <span class="toc-text">9. 了解 styled-components 的局限性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#10-一些开发规范"><span class="toc-number">2.3.10.</span> <span class="toc-text">10. 一些开发规范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#11-其他-css-in-js-方案"><span class="toc-number">2.3.11.</span> <span class="toc-text">11. 其他 CSS-in-js 方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-通用的组件库不应该耦合-css-in-js-css-module-的方案"><span class="toc-number">2.4.</span> <span class="toc-text">4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-优先使用原生-css"><span class="toc-number">2.5.</span> <span class="toc-text">5️⃣ 优先使用原生 CSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-选择合适自己团队的技术栈"><span class="toc-number">2.6.</span> <span class="toc-text">6️⃣ 选择合适自己团队的技术栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7️⃣-使用-svgr-转换-svg-图标"><span class="toc-number">2.7.</span> <span class="toc-text">7️⃣ 使用 svgr 转换 svg 图标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8️⃣-结合使用-rem-和-em-等相对单位-创建更有弹性的组件"><span class="toc-number">2.8.</span> <span class="toc-text">8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-规范"><span class="toc-number">3.</span> <span class="toc-text">3. 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-促进建立统一的-ui-设计规范"><span class="toc-number">3.1.</span> <span class="toc-text">1️⃣ 促进建立统一的 UI 设计规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-css-编写规范"><span class="toc-number">3.2.</span> <span class="toc-text">2️⃣ CSS 编写规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-使用stylelint进行样式规范检查"><span class="toc-number">3.3.</span> <span class="toc-text">3️⃣ 使用stylelint进行样式规范检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">4.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        React组件设计实践总结03 - 样式的管理
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-05-13T16:00:00.000Z" itemprop="datePublished">2019-05-14</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>CSS 是前端开发的重要组成部分，但是它并不完美，本文主要探讨 React 样式管理方面的一些解决方案，目的是实现样式的高度可定制化, 让大型项目的样式代码更容易维护.</p>
+<p><strong>系列目录</strong></p>
+<ul>
+<li><a href="/2019/05/10/react-component-design-01/">01 类型检查</a></li>
+<li><a href="/2019/05/11/react-component-design-02/">02 组件的组织</a></li>
+<li><a href="/2019/05/14/react-component-design-03/">03 样式的管理</a></li>
+<li><a href="/2019/05/15/react-component-design-04/">04 组件的思维</a></li>
+<li><a href="/2019/05/20/react-component-design-05/">05 状态管理</a></li>
+</ul>
+<p><br></p>
+<p><strong>目录</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#1-认识-css-的局限性">1. 认识 CSS 的局限性</a><ul>
+<li><a href="#1️⃣-全局性">1️⃣ 全局性</a></li>
+<li><a href="#2️⃣-依赖">2️⃣ 依赖</a></li>
+<li><a href="#3️⃣-无用代码的移除">3️⃣ 无用代码的移除</a></li>
+<li><a href="#4️⃣-压缩">4️⃣ 压缩</a></li>
+<li><a href="#5️⃣-常量共享">5️⃣ 常量共享</a></li>
+<li><a href="#6️⃣-css-解析方式的不确定性">6️⃣ CSS 解析方式的不确定性</a></li>
+</ul>
+</li>
+<li><a href="#2-组件的样式管理">2. 组件的样式管理</a><ul>
+<li><a href="#1️⃣-组件的样式应该高度可定制化">1️⃣ 组件的样式应该高度可定制化</a></li>
+<li><a href="#2️⃣-避免使用内联-css">2️⃣ 避免使用内联 CSS</a></li>
+<li><a href="#3️⃣-使用-css-in-js">3️⃣ 使用 CSS-in-js</a><ul>
+<li><a href="#0-基本用法">0. 基本用法</a></li>
+<li><a href="#1-样式扩展">1. 样式扩展</a></li>
+<li><a href="#2-mixin-机制">2. mixin 机制</a></li>
+<li><a href="#3-类-scss-的语法">3. 类 SCSS 的语法</a></li>
+<li><a href="#5-js-带来的动态性">5. JS 带来的动态性</a></li>
+<li><a href="#6-绑定组件的全局样式">6. 绑定组件的<code>全局样式</code></a></li>
+<li><a href="#7-theme-机制及-theme-对象的设计">7. Theme 机制及 Theme 对象的设计</a></li>
+<li><a href="#8-提升开发体验">8. 提升开发体验</a></li>
+<li><a href="#9-了解-styled-components-的局限性">9. 了解 styled-components 的局限性</a></li>
+<li><a href="#10-一些开发规范">10. 一些开发规范</a></li>
+<li><a href="#11-其他-css-in-js-方案">11. 其他 CSS-in-js 方案</a></li>
+</ul>
+</li>
+<li><a href="#4️⃣-通用的组件库不应该耦合-css-in-jscss-module-的方案">4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案</a></li>
+<li><a href="#5️⃣-优先使用原生-css">5️⃣ 优先使用原生 CSS</a></li>
+<li><a href="#6️⃣-选择合适自己团队的技术栈">6️⃣ 选择合适自己团队的技术栈</a></li>
+<li><a href="#7️⃣-使用-svgr-转换-svg-图标">7️⃣ 使用 svgr 转换 svg 图标</a></li>
+<li><a href="#8️⃣-结合使用-rem-和-em-等相对单位-创建更有弹性的组件">8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件</a></li>
+</ul>
+</li>
+<li><a href="#3-规范">3. 规范</a><ul>
+<li><a href="#1️⃣-促进建立统一的-ui-设计规范">1️⃣ 促进建立统一的 UI 设计规范</a></li>
+<li><a href="#2️⃣-css-编写规范">2️⃣ CSS 编写规范</a></li>
+<li><a href="#3️⃣-使用stylelint进行样式规范检查">3️⃣ 使用stylelint进行样式规范检查</a></li>
+</ul>
+</li>
+<li><a href="#扩展">扩展</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="1-认识-css-的局限性"><a href="#1-认识-css-的局限性" class="headerlink" title="1. 认识 CSS 的局限性"></a>1. 认识 CSS 的局限性</h2><center><br> <img src="/images/04/vjeux-speak.png" alt="vjeux-speak" width="500"><br></center>
+
+<p>2014 年<a href="https://github.com/vjeux" target="_blank" rel="noopener">vjeux</a>一个 <a href="https://speakerd.s3.amazonaws.com/presentations/2e15908049bb013230960224c1b4b8bd/css-in-javascript.pdf" target="_blank" rel="noopener">speak</a> 深刻揭示的原生 CSS 的一些局限性. 虽然它有些争议, 对于开发者来说更多的是启发. 至从那之后出现了很多 <code>CSS-in-js</code> 解决方案.</p>
+<h3 id="1️⃣-全局性"><a href="#1️⃣-全局性" class="headerlink" title="1️⃣ 全局性"></a>1️⃣ 全局性</h3><p>CSS 的选择器是没有隔离性的, 不管是使用命名空间还是 BEM 模式组织, 最终都会污染全局命名空间. 尤其是大型团队合作的项目, 很难确定某个特定的类或者元素是否已经赋过样式. 所以在大部分情况下我们都会绞尽脑汁新创建一个类名, 而不是复用已有的类型.</p>
+<p>解决的方向: 生成唯一的类名; shadow dom; 内联样式; Vue-scoped 方案</p>
+<p><br></p>
+<h3 id="2️⃣-依赖"><a href="#2️⃣-依赖" class="headerlink" title="2️⃣ 依赖"></a>2️⃣ 依赖</h3><p>由于 CSS 的’全局性’, 所以就产生了依赖问题:</p>
+<p>一方面我们需要在组件渲染前就需要先将 CSS 加载完毕, 但是<strong>很难清晰地定义某个特定组件依赖于某段特定的 CSS 代码</strong>; 另一方面, <strong>全局性导致你的样式可能被别的组件依赖(某种程度的细节耦合)</strong>, 你不能随便修改你的样式, 以免破坏其他页面或组件的样式. 如果团队没有制定合适的 CSS 规范(例如 BEM, 不直接使用标签选择器, 减少选择器嵌套等等), 代码很快就会失控</p>
+<p>解决的方向: 之前文章提到组件是一个内聚单元, 样式应该是和组件绑定的. 最基本的解决办法是使用类似 BEM 命名规范来避免组件之间的命名冲突, 再通过创建优于复用, 组合优于继承的原则, 来避免组件间样式耦合;</p>
+<p><br></p>
+<h3 id="3️⃣-无用代码的移除"><a href="#3️⃣-无用代码的移除" class="headerlink" title="3️⃣ 无用代码的移除"></a>3️⃣ 无用代码的移除</h3><p>由于上述’依赖’问题, 组件样式之间并没有明确的边界, 很难判断哪些样式属于那个组件; 在加上 CSS 的’叠层特性’, 更无法确定删除样式会带来什么影响.</p>
+<blockquote>
+<p>现代浏览器已支持 CSS 无用代码检查. 但对于无组织的 CSS 效果不会太大</p>
+</blockquote>
+<p>解决的方向: 如果样式的依赖比较明确，则可以安全地移除无用代码</p>
+<p><br></p>
+<h3 id="4️⃣-压缩"><a href="#4️⃣-压缩" class="headerlink" title="4️⃣ 压缩"></a>4️⃣ 压缩</h3><p>选择器和类名的压缩可以减少文件的体积, 提高加载的性能. 因为原生 CSS 一般有开发者由配置类名(在 html 或 js 动态指定), 所以工具很难对类名进行控制.</p>
+<blockquote>
+<p>压缩类名也会降低代码的可读性, 变得难以调试.</p>
+</blockquote>
+<p>解决的方向: 由工具来转换或创建类名</p>
+<p><br></p>
+<h3 id="5️⃣-常量共享"><a href="#5️⃣-常量共享" class="headerlink" title="5️⃣ 常量共享"></a>5️⃣ 常量共享</h3><p>常规的 CSS 很难做到在样式和 JS 之间共享变量, 例如自定义主题色, 通常通过内联样式来部分实现这种需求</p>
+<p>解决的方向: CSS-in-js</p>
+<p><br></p>
+<h3 id="6️⃣-css-解析方式的不确定性"><a href="#6️⃣-css-解析方式的不确定性" class="headerlink" title="6️⃣ CSS 解析方式的不确定性"></a>6️⃣ CSS 解析方式的不确定性</h3><p>CSS 规则的加载顺序是很重要的, 他会影响属性应用的优先级, 如果按需加载 CSS, 则无法确保他们的解析顺序, 进而导致错误的样式应用到元素上. 有些开发者为了解决这个问题, 使用!important 声明属性, 这无疑是进入了另一个坑.</p>
+<p>解决方向：避免使用全局样式，组件样式隔离；样式加载和组件生命周期绑定</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="2-组件的样式管理"><a href="#2-组件的样式管理" class="headerlink" title="2. 组件的样式管理"></a>2. 组件的样式管理</h2><h3 id="1️⃣-组件的样式应该高度可定制化"><a href="#1️⃣-组件的样式应该高度可定制化" class="headerlink" title="1️⃣ 组件的样式应该高度可定制化"></a>1️⃣ 组件的样式应该高度可定制化</h3><p>组件的样式应该是可以自由定制的, 开发者应该考虑组件的各种使用场景. 所以一个好的组件必须暴露相关的样式定制接口. 至少需要支持为顶层元素配置<code>className</code>和<code>style</code>属性:</p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> ButtonProps &#123;</span><br><span class="line">  className?: <span class="built_in">string</span>;</span><br><span class="line">  style?: React.CSSProperties;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这两个属性应该是每个展示型组件应该暴露的 props, 其他嵌套元素也要考虑支持配置样式, 例如 footerClassName, footerStyle.</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="2️⃣-避免使用内联-css"><a href="#2️⃣-避免使用内联-css" class="headerlink" title="2️⃣ 避免使用内联 CSS"></a>2️⃣ 避免使用内联 CSS</h3><ol>
+<li>style props 添加的属性不能自动增加厂商前缀, 这可能会导致兼容性问题. 如果添加厂商前缀又会让代码变得啰嗦.</li>
+<li>内联 CSS 不支持复杂的样式配置, 例如伪元素, 伪类, 动画定义, 媒体查询和媒体回退(对象不允许同名属性, 例如<code>display: -webkit-flex; display: flex;</code>)</li>
+<li>内联样式通过 object 传入组件, 内联的 object 每次渲染会重新生成, 会导致组件重新渲染. 当然通过某些工具可以将静态的 object 提取出去</li>
+<li>不方便调试和阅读<br>…</li>
+</ol>
+<p>所以 内联 CSS 适合用于设置动态且比较简单的样式属性</p>
+<blockquote>
+<p>社区上有许多 CSS-in-js 方案是基于内联 CSS 的, 例如 Radium, 它使用 JS 添加事件处理器来模拟伪类, 另外也媒体查询和动画. 不过不是所有东西都可以通过 JS 模拟, 比如伪元素. 所以这类解决方案用得比较少</p>
+</blockquote>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="3️⃣-使用-css-in-js"><a href="#3️⃣-使用-css-in-js" class="headerlink" title="3️⃣ 使用 CSS-in-js"></a>3️⃣ 使用 CSS-in-js</h3><p>社区有很多 CSS 解决方案, 有个<a href="https://github.com/MicheleBertoli/css-in-js" target="_blank" rel="noopener">项目(MicheleBertoli/css-in-js)</a>专门罗列和对比了这些方案. 读者也可以读这篇文章(<a href="https://www.javascriptstuff.com/how-to-style-react/" target="_blank" rel="noopener">What to use for React styling?</a>)学习对 CSS 相关技术进行选型决策</p>
+<p>社区上最流行的, 也是笔者觉得使用起来最舒服的是<a href="https://www.styled-components.com" target="_blank" rel="noopener"><code>styled-components</code></a>, styled-components 有下列特性:</p>
+<ul>
+<li>自动生成类名, 解决 CSS 的全局性和样式冲突. 通过组件名来标志样式, 自动生成唯一的类名, 开发者不需要为元素定义类名.</li>
+<li>绑定组件. 隔离了 CSS 的依赖问题, 让组件 JSX 更加简洁, 反过来开发者需要考虑更多组件的语义</li>
+<li>天生支持’关键 CSS’. 样式和组件绑定, 可以和组件一起进行代码分割和异步加载</li>
+<li>自动添加厂商前缀</li>
+<li>灵活的动态样式. 通过 props 和全局 theme 来动态控制样式</li>
+<li>提供了一些 CSS 预处理器的语法</li>
+<li>主题机制</li>
+<li>支持 react-native. 这个用起来比较爽</li>
+<li>支持 <a href="https://github.com/stylelint/stylelint" target="_blank" rel="noopener">stylelint</a>, 编辑器高亮和智能提示</li>
+<li>支持服务端渲染</li>
+<li>符合分离展示组件和行为组件原则</li>
+</ul>
+<blockquote>
+<p>推荐这篇文章: <a href="https://medium.com/@gajus/stop-using-css-in-javascript-for-web-development-fa32fb873dcc" target="_blank" rel="noopener">Stop using css-in-javascript for web development</a>, styled-components 可以基本覆盖所有 CSS 的使用场景:</p>
+</blockquote>
+<p><br></p>
+<h4 id="0-基本用法"><a href="#0-基本用法" class="headerlink" title="0. 基本用法"></a>0. 基本用法</h4><figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 定义组件props</span></span><br><span class="line"><span class="keyword">const</span> Title = styled.h1&lt;&#123; active?: <span class="built_in">boolean</span> &#125;&gt;<span class="string">`</span></span><br><span class="line"><span class="string">  color: <span class="subst">$&#123;props =&gt; (props.active ? 'red' : 'gray')&#125;</span>;</span></span><br><span class="line"><span class="string">`</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 固定或计算组件props</span></span><br><span class="line"><span class="keyword">const</span> Input = styled.input.attrs(&#123;</span><br><span class="line">  <span class="keyword">type</span>: <span class="string">'text'</span>,</span><br><span class="line">  size: <span class="function"><span class="params">props</span> =&gt;</span> (props.small ? <span class="number">5</span> : <span class="literal">undefined</span>),</span><br><span class="line">&#125;)<span class="string">``</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h4 id="1-样式扩展"><a href="#1-样式扩展" class="headerlink" title="1. 样式扩展"></a>1. 样式扩展</h4><figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Button = styled.button<span class="string">`</span></span><br><span class="line"><span class="string">  color: palevioletred;</span></span><br><span class="line"><span class="string">  font-size: 1em;</span></span><br><span class="line"><span class="string">  margin: 1em;</span></span><br><span class="line"><span class="string">  padding: 0.25em 1em;</span></span><br><span class="line"><span class="string">  border: 2px solid palevioletred;</span></span><br><span class="line"><span class="string">  border-radius: 3px;</span></span><br><span class="line"><span class="string">`</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 覆盖和扩展已有的组件, 包含styled生成的组件还是自定义组件(通过className传入)</span></span><br><span class="line"><span class="keyword">const</span> TomatoButton = styled(Button)<span class="string">`</span></span><br><span class="line"><span class="string">  color: tomato;</span></span><br><span class="line"><span class="string">  border-color: tomato;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h4 id="2-mixin-机制"><a href="#2-mixin-机制" class="headerlink" title="2. mixin 机制"></a>2. mixin 机制</h4><p>在 SCSS 中, mixin 是重要的 CSS 复用机制, styled-components 也可以实现:</p>
+<p>定义:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; css &#125; <span class="keyword">from</span> <span class="string">'styled-components'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// utils/styled-mixins.ts</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">truncate</span>(<span class="params">width</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> css<span class="string">`</span></span><br><span class="line"><span class="string">    width: <span class="subst">$&#123;width&#125;</span>;</span></span><br><span class="line"><span class="string">    white-space: nowrap;</span></span><br><span class="line"><span class="string">    overflow: hidden;</span></span><br><span class="line"><span class="string">    text-overflow: ellipsis;</span></span><br><span class="line"><span class="string">  `</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; truncate &#125; <span class="keyword">from</span> <span class="string">'~/utils/styled-mixins'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Box = styled.div<span class="string">`</span></span><br><span class="line"><span class="string">  // 混入</span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;truncate('250px')&#125;</span></span></span><br><span class="line"><span class="string">  background: papayawhip;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h4 id="3-类-scss-的语法"><a href="#3-类-scss-的语法" class="headerlink" title="3. 类 SCSS 的语法"></a>3. 类 SCSS 的语法</h4><figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Example = styled(Component)<span class="string">`</span></span><br><span class="line"><span class="string">  // 自动厂商前缀</span></span><br><span class="line"><span class="string">  padding: 2em 1em;</span></span><br><span class="line"><span class="string">  background: papayawhip;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  // 伪类</span></span><br><span class="line"><span class="string">  &amp;:hover &#123;</span></span><br><span class="line"><span class="string">    background: palevioletred;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  // 提供样式优先级技巧</span></span><br><span class="line"><span class="string">  &amp;&amp;&amp; &#123;</span></span><br><span class="line"><span class="string">    color: palevioletred;</span></span><br><span class="line"><span class="string">    font-weight: bold;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  // 覆盖内联css样式</span></span><br><span class="line"><span class="string">  &amp;[style] &#123;</span></span><br><span class="line"><span class="string">    font-size: 12px !important;</span></span><br><span class="line"><span class="string">    color: blue !important;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  // 支持媒体查询</span></span><br><span class="line"><span class="string">  @media (max-width: 600px) &#123;</span></span><br><span class="line"><span class="string">    background: tomato;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    // 嵌套规则</span></span><br><span class="line"><span class="string">    &amp;:hover &#123;</span></span><br><span class="line"><span class="string">      background: yellow;</span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  &gt; p &#123;</span></span><br><span class="line"><span class="string">    /* descendant-selectors work as well, but are more of an escape hatch */</span></span><br><span class="line"><span class="string">    text-decoration: underline;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  /* Contextual selectors work as well */</span></span><br><span class="line"><span class="string">  html.test &amp; &#123;</span></span><br><span class="line"><span class="string">    display: none;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>引用其他组件</strong><br></p>
+<p>由于 styled-components 的类名是自动生成的, 所以不能直接在选择器中声明他们, 但可以在模板字符串中引用其他组件:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Icon = styled.svg<span class="string">`</span></span><br><span class="line"><span class="string">  flex: none;</span></span><br><span class="line"><span class="string">  transition: fill 0.25s;</span></span><br><span class="line"><span class="string">  width: 48px;</span></span><br><span class="line"><span class="string">  height: 48px;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  // 引用其他组件的类名. 这个组件必须是styled-components生成或者包装的组件</span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;Link&#125;</span>:hover &amp; &#123;</span></span><br><span class="line"><span class="string">    fill: rebeccapurple;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h4 id="5-js-带来的动态性"><a href="#5-js-带来的动态性" class="headerlink" title="5. JS 带来的动态性"></a>5. JS 带来的动态性</h4><p>媒体查询帮助方法:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// utils/styled.ts</span></span><br><span class="line"><span class="keyword">const</span> sizes = &#123;</span><br><span class="line">  giant: <span class="number">1170</span>,</span><br><span class="line">  desktop: <span class="number">992</span>,</span><br><span class="line">  tablet: <span class="number">768</span>,</span><br><span class="line">  phone: <span class="number">376</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> media = <span class="built_in">Object</span>.keys(sizes).reduce(<span class="function">(<span class="params">accumulator, label</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> emSize = sizes[label] / <span class="number">16</span>;</span><br><span class="line">  accumulator[label] = <span class="function">(<span class="params">...args</span>) =&gt;</span> css<span class="string">`</span></span><br><span class="line"><span class="string">    @media (max-width: <span class="subst">$&#123;emSize&#125;</span>em) &#123;</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;css(...args)&#125;</span></span></span><br><span class="line"><span class="string">    &#125;</span></span><br><span class="line"><span class="string">  `</span>;</span><br><span class="line">  <span class="keyword">return</span> accumulator;</span><br><span class="line">&#125;, &#123;&#125;);</span><br></pre></td></tr></table></figure>
+<p>使用:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Container = styled.div<span class="string">`</span></span><br><span class="line"><span class="string">  color: #333;</span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;media.desktop`padding: 0 20px;`&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;media.tablet`padding: 0 10px;`&#125;</span></span></span><br><span class="line"><span class="string">  <span class="subst">$&#123;media.phone`padding: 0 5px;`&#125;</span></span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>SCSS 也提供了很多内置工具方法, 比如颜色的处理, 尺寸的计算. styled-components 提供了一个类似的 js 库: <a href="https://github.com/styled-components/polished" target="_blank" rel="noopener">polished</a>来满足这部分需求, 另外还集成了常用的 mixin, 如 clearfix. 通过 babel 插件可以在编译时转换为静态代码, 不需要运行时.</p>
+</blockquote>
+<p><br></p>
+<h4 id="6-绑定组件的全局样式"><a href="#6-绑定组件的全局样式" class="headerlink" title="6. 绑定组件的全局样式"></a>6. 绑定组件的<code>全局样式</code></h4><p>全局样式和组件生命周期绑定, 当组件卸载时也会删除全局样式. 全局样式通常用于覆盖一些第三方组件样式</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> GlobalStyle = createGlobalStyle<span class="string">`</span></span><br><span class="line"><span class="string">  body &#123;</span></span><br><span class="line"><span class="string">    color: <span class="subst">$&#123;props =&gt; (props.whiteColor ? 'white' : 'black')&#125;</span>;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">`</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Test</span></span><br><span class="line">&lt;React.Fragment&gt;</span><br><span class="line">  &lt;GlobalStyle whiteColor /&gt;</span><br><span class="line">  &lt;Navigation /&gt; &#123;<span class="comment">/* example of other top-level stuff */</span>&#125;</span><br><span class="line">&lt;<span class="regexp">/React.Fragment&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h4 id="7-theme-机制及-theme-对象的设计"><a href="#7-theme-机制及-theme-对象的设计" class="headerlink" title="7. Theme 机制及 Theme 对象的设计"></a>7. Theme 机制及 Theme 对象的设计</h4><p>styled-components 的 <a href="https://www.styled-components.com/docs/advanced#theming" target="_blank" rel="noopener">ThemeProvider</a> 可以用于取代 SCSS 的变量机制, 只不过它更加灵活, 可以被所有下级组件共享, 并动态变化.</p>
+<p>关于 Theme 对象的设计我觉得可以参考传统的 UI 框架, 例如<a href="https://github.com/zurb/foundation-sites/tree/develop/scss" target="_blank" rel="noopener">Foundation</a>或者<a href="https://github.com/twbs/bootstrap/tree/master/scss" target="_blank" rel="noopener">Bootstrap</a>, 经过多年的迭代它们代码组织非常好, 非常值得学习. 以 Bootstrap 的项目结构为例:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── _alert.scss</span><br><span class="line">├── ...                # 定义各种组件的样式</span><br><span class="line">├── _print.scss        # 打印样式适配</span><br><span class="line">├── _root.scss         # 🔴根样式, 即全局样式</span><br><span class="line">├── _transitions.scss  # 过渡效果</span><br><span class="line">├── _type.scss         # 🔴基本排版样式</span><br><span class="line">├── _reboot.scss       # 🔴浏览器重置样式, 类似于normalize.css</span><br><span class="line">├── _functions.scss</span><br><span class="line">├── _mixins.scss</span><br><span class="line">├── _utilities.scss</span><br><span class="line">├── _variables.scss    # 🔴变量配置, 包含全局配置和所有组件配置</span><br><span class="line">├── bootstrap-grid.scss</span><br><span class="line">├── bootstrap-reboot.scss</span><br><span class="line">├── bootstrap.scss</span><br><span class="line">├── mixins             # 各种mixin, 可复用的css代码</span><br><span class="line">├── utilities          # 各种工具方法</span><br><span class="line">└── vendor</span><br><span class="line">    └── _rfs.scss</span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/twbs/bootstrap/blob/master/scss/_variables.scss" target="_blank" rel="noopener"><code>_variables.scss</code></a>包含了以下配置:</p>
+<ul>
+<li>颜色系统: 调色盘配置<ul>
+<li>灰阶颜色: 提供白色到黑色之间多个级别的灰阶颜色. 例如<br><img src="/images/04/gray-scale.png" width="300"></li>
+<li>语义颜色: 根据 UI 上面的语义, 定义各种颜色. 这个也是 CSS 开发的常见模式<br><img src="/images/04/sem-color.png" width="300"></li>
+</ul>
+</li>
+<li>尺寸系统: 多个级别的间距, 尺寸大小配置</li>
+<li>配置开关: 全局性的配置开关, 例如是否支持圆角, 阴影</li>
+<li>链接样式配置: 如颜色, 激活状态, decoration</li>
+<li>排版: 字体, 字体大小, font-weight, 行高, 边框, 标题等基本排版配置</li>
+<li>网格系统断点配置</li>
+</ul>
+<p>bootstrap 将这些配置项有很高的参考意义. 组件可以认为是 UI 设计师 的产出, 如果你的应用有统一和规范的设计语言(参考<a href="https://ant.design/docs/spec/values-cn" target="_blank" rel="noopener">antd</a>), 这些配置会很有意义。样式可配置化可以让你的代码更灵活, 更稳定, 可复用性和可维护性更高. 不管对于 UI 设计还是客户端开发, 设计规范可以提高团队工作效率, 减少沟通成本.</p>
+<p>styled-components 的 Theme 使用的是<code>React Context</code> API, 官方文档有详尽的描述, 这里就不展开了. 点击这里<a href="https://www.styled-components.com/docs/advanced#theming" target="_blank" rel="noopener">了解更多</a>, 另外在<a href="https://www.styled-components.com/docs/api#typescript" target="_blank" rel="noopener">这里</a>了解如何在 Typescript 中声明 theme 类型</p>
+<p><br></p>
+<h4 id="8-提升开发体验"><a href="#8-提升开发体验" class="headerlink" title="8. 提升开发体验"></a>8. 提升开发体验</h4><p>可以使用<code>babel-plugin-styled-components</code>或<a href="https://babeljs.io/blog/2017/09/11/zero-config-with-babel-macros" target="_blank" rel="noopener"><code>babel macro</code></a>来支持服务端渲染、 样式压缩和提升 debug 体验. 推荐使用 macro 形式, 无需安装和配置 babel 插件. 在 create-react-app 中已内置支持:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> styled, &#123; createGlobalStyle &#125; <span class="keyword">from</span> <span class="string">'styled-components/macro'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Thing = styled.div<span class="string">`</span></span><br><span class="line"><span class="string">  color: red;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+<p>详见<a href="https://www.styled-components.com/docs/tooling#babel-macro" target="_blank" rel="noopener">Tooling</a></p>
+<p><br></p>
+<h4 id="9-了解-styled-components-的局限性"><a href="#9-了解-styled-components-的局限性" class="headerlink" title="9. 了解 styled-components 的局限性"></a>9. 了解 styled-components 的局限性</h4><p>比较能想到的局限性是性能问题:</p>
+<ol>
+<li>css-in-js: 需要一个 JS 运行时, 会增加 js 包体积(大约 15KB)</li>
+<li>相比原生 CSS 会有更多节点嵌套(例如 ThemeConsumer)和计算消耗. 这个对于复杂的组件树的渲染影响尤为明显</li>
+<li>不能抽取为 CSS 文件, 这通常不算问题</li>
+</ol>
+<blockquote>
+<p>官方<a href="https://github.com/styled-components/styled-components/tree/master/packages/styled-components/benchmarks" target="_blank" rel="noopener">benchmark</a></p>
+</blockquote>
+<p>下面是基于 v4.0 基准测试对比图, 在众多 CSS-in-js 方案中, styled-components 处于中上水平:</p>
+<p><img src="/images/04/styled-benchmark.png" alt="styled-components benchmark"></p>
+<p><br></p>
+<h4 id="10-一些开发规范"><a href="#10-一些开发规范" class="headerlink" title="10. 一些开发规范"></a>10. 一些开发规范</h4><ul>
+<li>避免无意义的组件名. 避免类似<code>Div</code>, <code>Span</code>这类直接照搬元素名的无意义的组件命名</li>
+</ul>
+<p><br></p>
+<ul>
+<li><p>在一个文件中定义 styled-components 组件. 对于比较简单的组件, 一般会在同一个文件中定义 styled-components 组件就行了. 下面是典型组件的文件结构:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; FC &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> styled <span class="keyword">from</span> <span class="string">'styled-components/macro'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在顶部定义所有styled-components组件</span></span><br><span class="line"><span class="keyword">const</span> Header = styled.header<span class="string">``</span>;</span><br><span class="line"><span class="keyword">const</span> Title = styled.div<span class="string">``</span>;</span><br><span class="line"><span class="keyword">const</span> StepName = styled.div<span class="string">``</span>;</span><br><span class="line"><span class="keyword">const</span> StepBars = styled.div<span class="string">``</span>;</span><br><span class="line"><span class="keyword">const</span> StepBar = styled.div&lt;&#123; active?: <span class="built_in">boolean</span> &#125;&gt;<span class="string">``</span>;</span><br><span class="line"><span class="keyword">const</span> FormContainer = styled.div<span class="string">``</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用组件</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Steps: FC&lt;StepsProps&gt; = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> &lt;&gt;...&lt;<span class="regexp">/&gt;;</span></span><br><span class="line"><span class="regexp">&#125;;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default Steps;</span></span><br></pre></td></tr></table></figure>
+<p>然而对于比较复杂的页面组件来说, 会让文件变得很臃肿, 扰乱组件的主体, 所以笔者一般会像抽取到单独的<code>styled.tsx</code>文件中:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; FC &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Header, Title, StepName, StepBars, StepBar, FormContainer &#125; <span class="keyword">from</span> <span class="string">'./styled'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> Steps: FC&lt;StepsProps&gt; = <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> &lt;&gt;...&lt;<span class="regexp">/&gt;;</span></span><br><span class="line"><span class="regexp">&#125;;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default Steps;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li><p>考虑导出 styled-components 组件, 方便上级组件设置样式</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ---Foo/index.ts---</span></span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> Styled <span class="keyword">from</span> <span class="string">'./styled'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123; Styled &#125;;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ---Bar/index.ts----</span></span><br><span class="line"><span class="keyword">import</span> &#123; Styled &#125; <span class="keyword">from</span> <span class="string">'../Foo'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> MyComponent = styled.div<span class="string">`</span></span><br><span class="line"><span class="string">  &amp; <span class="subst">$&#123;Styled.SomeComponent&#125;</span> &#123;</span></span><br><span class="line"><span class="string">    color: red;</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">`</span>;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<h4 id="11-其他-css-in-js-方案"><a href="#11-其他-css-in-js-方案" class="headerlink" title="11. 其他 CSS-in-js 方案"></a>11. 其他 CSS-in-js 方案</h4><ul>
+<li>CSS-module</li>
+<li>JSS</li>
+<li>emotion</li>
+<li>glamorous</li>
+</ul>
+<p>这里值得一提的是<a href="https://github.com/css-modules/css-modules" target="_blank" rel="noopener">CSS-module</a>, 这也是社区比较流行的解决方案. 严格来说, 这不是 CSS-in-js. 有兴趣的读者可以看这篇文章<a href="https://zhuanlan.zhihu.com/p/20495964" target="_blank" rel="noopener">CSS Modules 详解及 React 中实践</a>.</p>
+<p>特性:</p>
+<ul>
+<li>比较轻量, 不需要 JS 运行时, 因为他在编译阶段进行计算</li>
+<li>所有样式默认都是 local, 通过导入模块方式可以导入这些生成的类名</li>
+<li>可以和 CSS proprocessor 配合</li>
+<li>采用非标准的语法, 例如:global, :local, :export, compose:</li>
+</ul>
+<p>CSS module 同样也有外部样式覆盖问题, 所以需要通过其他手段对关键节点添加其他属性(如 data-name).</p>
+<blockquote>
+<p>如果使用 css-module, 建议使用<code>*.module.css</code>来命名 css 文件, 和普通 CSS 区分开来.</p>
+</blockquote>
+<p>扩展:</p>
+<ul>
+<li><a href="https://github.com/stereobooster/css-in-js-101" target="_blank" rel="noopener">CSS-in-JS 101: All you need to know</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="4️⃣-通用的组件库不应该耦合-css-in-js-css-module-的方案"><a href="#4️⃣-通用的组件库不应该耦合-css-in-js-css-module-的方案" class="headerlink" title="4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案"></a>4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案</h3><p>如果是作为第三方组件库形式开发, 个人觉得不应该耦合各种 CSS-in-js/CSS-module. 不能强求你的组件库使用者耦合这些技术栈, 而且部分技术是需要构建工具支持的. 建议使用原生 CSS 或者将 SCSS/Less 这些预处理工具作为增强方案</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="5️⃣-优先使用原生-css"><a href="#5️⃣-优先使用原生-css" class="headerlink" title="5️⃣ 优先使用原生 CSS"></a>5️⃣ 优先使用原生 CSS</h3><p>笔者的项目大部分都是使用<code>styled-components</code>, 但对于部分极致要求性能的组件, 一般我会回退使用原生 CSS, 再配合 BEM 命名规范. 这种最简单方式, 能够满足大部分需求.</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="6️⃣-选择合适自己团队的技术栈"><a href="#6️⃣-选择合适自己团队的技术栈" class="headerlink" title="6️⃣ 选择合适自己团队的技术栈"></a>6️⃣ 选择合适自己团队的技术栈</h3><p>每个团队的情况和偏好不一样, 选择合适自己的才是最好的. 关于 CSS 方面的技术栈搭配也非常多样:</p>
+<p><img src="/images/04/css-determination.png" alt="css determination"></p>
+<ul>
+<li><strong>选择 CSS-in-js 方案</strong>:<br>优点: 这个方案解决了大部分 CSS 的缺陷, 灵活, 动态性强, 学习成本比较低, 非常适合组件化的场景.<br>缺点: 性能相比静态 CSS 要弱, 不过这点已经慢慢在改善. 可以考虑在部分组件使用原生 CSS</li>
+<li><strong>选择 CSS 方案</strong>:<ul>
+<li><strong>选择原生 CSS 方案</strong>: 这种方案最简单</li>
+<li><strong>选择 Preprocessor</strong>: 添加 CSS 预处理器, 可以增强 CSS 的可编程性: 例如模块化, 变量, 函数, mixin.<br>优点: 预处理器可以减少代码重复, 让 CSS 更好维护. 适合组织性要求很高的大型项目.<br>缺点: 就是需要学习成本, 所以这里笔者建议使用标准的 cssnext 来代替 SCSS/Less 这些方案</li>
+<li><strong>方法论</strong>: CSS 的各种方法论旨在提高 CSS 的组织性, 提供一些架构建议, 让 CSS 更好维护.</li>
+<li><strong>postcss</strong>: 对 CSS 进行优化增强, 例如添加厂商前缀</li>
+<li><strong>css-module</strong>: 隔离 CSS, 支持暴露变量给 JS, 解决 CSS 的一些缺陷, 让 CSS 适合组件化场景.<br>可选, 通过合适的命名和组织其实是可以规避 CSS 的缺陷</li>
+</ul>
+</li>
+</ul>
+<p>综上所述, CSS-in-js 和 CSS 方案各有适用场景. 比如对于组件库, 如 antd 则选择了 Preprocessor 方案; 对于一般应用笔者建议使用 CSS-in-js 方案, 它学习成本很低, 并且<code>There&#39;s Only One Way To Do It</code> 没有太多心智负担, 不需要学习冗杂的方法论, 代码相对比较可控; 另外它还支持跨平台, 在 ReactNative 下, styled-components 是更好的选择. 而 CSS 方案, 对于大型应用要做到有组织有纪律和规划化, 需要花费较大的精力, 尤其是团队成员能力不均情况下, 很容易失控</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="7️⃣-使用-svgr-转换-svg-图标"><a href="#7️⃣-使用-svgr-转换-svg-图标" class="headerlink" title="7️⃣ 使用 svgr 转换 svg 图标"></a>7️⃣ 使用 svgr 转换 svg 图标</h3><p>如今 CSS-Image-Sprite 早已被 <a href="https://github.com/jkphl/svg-sprite" target="_blank" rel="noopener">SVG-Sprite</a> 取代. 而在 React 生态中使用<a href="https://github.com/smooth-code/svgr#webpack-usage" target="_blank" rel="noopener"><code>svgr</code></a>更加方便, 它可以将 svg 文件转换为 React 组件, 也就是一个普通的 JS 模块, 它有以下优势:</p>
+<ul>
+<li>转换为普通 JS 文件, 方便代码分割和异步加载</li>
+<li>相比 svg-sprite 和 iconfont 方案更容易管理</li>
+<li>svg 可以通过 CSS/JS 配置, 可操作性更强; 相比 iconfont 支持多色</li>
+<li>支持 svgo 压缩</li>
+</ul>
+<p>基本用法:</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> starUrl, &#123; ReactComponent <span class="keyword">as</span> Star &#125; <span class="keyword">from</span> <span class="string">'./star.svg'</span>;</span><br><span class="line"><span class="keyword">const</span> App = <span class="function"><span class="params">()</span> =&gt;</span> (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;img src=&#123;starUrl&#125; alt=<span class="string">"star"</span> /&gt;</span><br><span class="line">    &lt;Star /&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">);</span></span><br></pre></td></tr></table></figure>
+<p>了解<a href="https://www.smooth-code.com/open-source/svgr/docs/webpack/" target="_blank" rel="noopener">更多</a></p>
+<blockquote>
+<p>antd 3.9 之后使用 svg 图标<a href="https://ant.design/components/icon-cn/#SVG-图标" target="_blank" rel="noopener">代替了 font 图标</a> <br><br>对比<a href="https://aotu.io/notes/2018/11/23/SVG_vs_Image_vs_iconfont/index.html" target="_blank" rel="noopener">SVG vs Image, SVG vs Iconfont</a></p>
+</blockquote>
+<p><br></p>
+<hr>
+<p><br></p>
+<h3 id="8️⃣-结合使用-rem-和-em-等相对单位-创建更有弹性的组件"><a href="#8️⃣-结合使用-rem-和-em-等相对单位-创建更有弹性的组件" class="headerlink" title="8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件"></a>8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件</h3><p>Bootstrap v4 全面使用 rem 作为基本单位, 这使得所有组件都可以响应浏览器字体的调整:</p>
+<p><img src="/images/04/bootstrap-rem.gif" alt></p>
+<p>rem 可以让整个文档可以响应 html 字体的变化, 经常用于移动端等比例还原设计稿, 详见<a href="https://www.zhihu.com/column/p/30413803" target="_blank" rel="noopener">Rem 布局的原理解析</a>. 我个人对于觉得弹性组件来说更重要的是 em 单位, 尤其是那些比例固定组件, 例如 Button, Switch, Icon. 比如我会这样定义 svg Icon 的样式:</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.svg-icon</span> &#123;</span><br><span class="line">  <span class="attribute">width</span>: <span class="number">1em</span>;</span><br><span class="line">  <span class="attribute">height</span>: <span class="number">1em</span>;</span><br><span class="line">  <span class="attribute">fill</span>: currentColor;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>像 iconfont 一样, 外部只需要设置<code>font-size</code>就可以配置 icon 到合适的尺寸, 默认则继承当前上下文的字体大小:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;MyIcon style=&#123;&#123; fontSize: 17 &#125;&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<p>em 可以让<code>Switch</code>这类固定比例的组件的样式可以更容易的被配置, 可以配合函数将px转换为em:</p>
+<iframe src="https://codesandbox.io/embed/z67r8rpnr4?fontsize=14" title="Switch" style="width:100%; height:500px; border:0; border-radius: 4px; overflow:hidden;" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+
+
+<p>扩展:</p>
+<ul>
+<li><a href="https://www.sitepoint.com/understanding-and-using-rem-units-in-css/" target="_blank" rel="noopener">Understanding and Using rem Units in CSS</a></li>
+<li><a href="https://www.zhihu.com/column/p/30413803" target="_blank" rel="noopener">Rem 布局的原理解析</a></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br></p>
+<h2 id="3-规范"><a href="#3-规范" class="headerlink" title="3. 规范"></a>3. 规范</h2><h3 id="1️⃣-促进建立统一的-ui-设计规范"><a href="#1️⃣-促进建立统一的-ui-设计规范" class="headerlink" title="1️⃣ 促进建立统一的 UI 设计规范"></a>1️⃣ 促进建立统一的 UI 设计规范</h3><p>上文已经阐述了 UI 设计规范的重要性, 有兴趣的读者可以看看这篇文章<a href="https://juejin.im/post/5b766ac56fb9a009aa154c27" target="_blank" rel="noopener">开发和设计沟通有多难？ - 你只差一个设计规范</a>. 简单总结一下:</p>
+<ul>
+<li>提供团队协作效率</li>
+<li>提高组件的复用率. 统一的组件规范可以让组件更好管理</li>
+<li>保持产品迭代过程中品牌一致性</li>
+</ul>
+<h3 id="2️⃣-css-编写规范"><a href="#2️⃣-css-编写规范" class="headerlink" title="2️⃣ CSS 编写规范"></a>2️⃣ CSS 编写规范</h3><p>可以参考以下规范:</p>
+<ul>
+<li><a href="https://codeguide.bootcss.com" target="_blank" rel="noopener">编码规范 by @mdo</a> bootstrap 使用的规范</li>
+<li><a href="https://github.com/airbnb/css" target="_blank" rel="noopener">Airbnb CSS/Sass styleguide</a></li>
+<li><a href="https://guide.aotu.io/docs/css/code.html#CSS3浏览器私有前缀写法" target="_blank" rel="noopener">Aotu 实验室代码规范</a></li>
+<li><a href="https://github.com/fex-team/styleguide/blob/master/css.md" target="_blank" rel="noopener">FEX-Team 编码规范</a></li>
+</ul>
+<h3 id="3️⃣-使用stylelint进行样式规范检查"><a href="#3️⃣-使用stylelint进行样式规范检查" class="headerlink" title="3️⃣ 使用stylelint进行样式规范检查"></a>3️⃣ 使用stylelint进行样式规范检查</h3><p><br></p>
+<hr>
+<p><br></p>
+<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><ul>
+<li><a href="https://reactjs.org/docs/faq-styling.html" target="_blank" rel="noopener">Styling and CSS</a></li>
+<li><a href="https://medium.com/@gajus/stop-using-css-in-javascript-for-web-development-fa32fb873dcc" target="_blank" rel="noopener">Stop using CSS in JavaScript for web development</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/26878157" target="_blank" rel="noopener">精读《请停止 css-in-js 的行为》</a></li>
+<li><a href="https://github.com/MicheleBertoli/css-in-js" target="_blank" rel="noopener">MicheleBertoli/css-in-js</a></li>
+<li><a href="https://www.javascriptstuff.com/how-to-style-react/" target="_blank" rel="noopener">What to use for React styling?</a></li>
+<li><a href="https://www.styled-components.com/docs/faqs" target="_blank" rel="noopener">styled-components FAQ</a></li>
+<li><a href="https://medium.com/ansarada-thinking/styled-components-v4-the-good-the-bad-and-something-completely-different-e891139e0138" target="_blank" rel="noopener">Styled components V4: the good, the bad, and something completely different</a></li>
+<li><a href="https://reactarmory.com/answers/should-i-use-css-in-js" target="_blank" rel="noopener">Should I use CSS-in-JS?</a></li>
+<li><a href="http://qinsman.com/1606_uispec/" target="_blank" rel="noopener">聊聊 UI 设计规范：移动端、H5 与 Web 端</a></li>
+<li><a href="https://juejin.im/post/5b768e18e51d45565d23e52c" target="_blank" rel="noopener">开发也能构建 UI 组件设计规范</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-认识-css-的局限性"><span class="toc-number">1.</span> <span class="toc-text">1. 认识 CSS 的局限性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-全局性"><span class="toc-number">1.1.</span> <span class="toc-text">1️⃣ 全局性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-依赖"><span class="toc-number">1.2.</span> <span class="toc-text">2️⃣ 依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-无用代码的移除"><span class="toc-number">1.3.</span> <span class="toc-text">3️⃣ 无用代码的移除</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-压缩"><span class="toc-number">1.4.</span> <span class="toc-text">4️⃣ 压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-常量共享"><span class="toc-number">1.5.</span> <span class="toc-text">5️⃣ 常量共享</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-css-解析方式的不确定性"><span class="toc-number">1.6.</span> <span class="toc-text">6️⃣ CSS 解析方式的不确定性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-组件的样式管理"><span class="toc-number">2.</span> <span class="toc-text">2. 组件的样式管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-组件的样式应该高度可定制化"><span class="toc-number">2.1.</span> <span class="toc-text">1️⃣ 组件的样式应该高度可定制化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-避免使用内联-css"><span class="toc-number">2.2.</span> <span class="toc-text">2️⃣ 避免使用内联 CSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-使用-css-in-js"><span class="toc-number">2.3.</span> <span class="toc-text">3️⃣ 使用 CSS-in-js</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#0-基本用法"><span class="toc-number">2.3.1.</span> <span class="toc-text">0. 基本用法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-样式扩展"><span class="toc-number">2.3.2.</span> <span class="toc-text">1. 样式扩展</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-mixin-机制"><span class="toc-number">2.3.3.</span> <span class="toc-text">2. mixin 机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-类-scss-的语法"><span class="toc-number">2.3.4.</span> <span class="toc-text">3. 类 SCSS 的语法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-js-带来的动态性"><span class="toc-number">2.3.5.</span> <span class="toc-text">5. JS 带来的动态性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-绑定组件的全局样式"><span class="toc-number">2.3.6.</span> <span class="toc-text">6. 绑定组件的全局样式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-theme-机制及-theme-对象的设计"><span class="toc-number">2.3.7.</span> <span class="toc-text">7. Theme 机制及 Theme 对象的设计</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-提升开发体验"><span class="toc-number">2.3.8.</span> <span class="toc-text">8. 提升开发体验</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#9-了解-styled-components-的局限性"><span class="toc-number">2.3.9.</span> <span class="toc-text">9. 了解 styled-components 的局限性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#10-一些开发规范"><span class="toc-number">2.3.10.</span> <span class="toc-text">10. 一些开发规范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#11-其他-css-in-js-方案"><span class="toc-number">2.3.11.</span> <span class="toc-text">11. 其他 CSS-in-js 方案</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4️⃣-通用的组件库不应该耦合-css-in-js-css-module-的方案"><span class="toc-number">2.4.</span> <span class="toc-text">4️⃣ 通用的组件库不应该耦合 CSS-in-js/CSS-module 的方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5️⃣-优先使用原生-css"><span class="toc-number">2.5.</span> <span class="toc-text">5️⃣ 优先使用原生 CSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6️⃣-选择合适自己团队的技术栈"><span class="toc-number">2.6.</span> <span class="toc-text">6️⃣ 选择合适自己团队的技术栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7️⃣-使用-svgr-转换-svg-图标"><span class="toc-number">2.7.</span> <span class="toc-text">7️⃣ 使用 svgr 转换 svg 图标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8️⃣-结合使用-rem-和-em-等相对单位-创建更有弹性的组件"><span class="toc-number">2.8.</span> <span class="toc-text">8️⃣ 结合使用 rem 和 em 等相对单位, 创建更有弹性的组件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-规范"><span class="toc-number">3.</span> <span class="toc-text">3. 规范</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1️⃣-促进建立统一的-ui-设计规范"><span class="toc-number">3.1.</span> <span class="toc-text">1️⃣ 促进建立统一的 UI 设计规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2️⃣-css-编写规范"><span class="toc-number">3.2.</span> <span class="toc-text">2️⃣ CSS 编写规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3️⃣-使用stylelint进行样式规范检查"><span class="toc-number">3.3.</span> <span class="toc-text">3️⃣ 使用stylelint进行样式规范检查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展"><span class="toc-number">4.</span> <span class="toc-text">扩展</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/05/14/react-component-design-03/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/05/14/react-component-design-03/&text=React组件设计实践总结03 - 样式的管理"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/05/14/react-component-design-03/&is_video=false&description=React组件设计实践总结03 - 样式的管理"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=React组件设计实践总结03 - 样式的管理&body=Check out this article: https://bobi.ink/2019/05/14/react-component-design-03/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/05/14/react-component-design-03/&title=React组件设计实践总结03 - 样式的管理"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/05/14/react-component-design-03/&name=React组件设计实践总结03 - 样式的管理&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

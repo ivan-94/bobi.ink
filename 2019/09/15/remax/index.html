@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="上个月蚂蚁金服前端发布了一个新的框架 Remax, 口号是使用真正的、完整的 React 来开发小程序. 对于原本的 React 开发者来说 ‘Learn once, write anywhere’ , 和 ReactNative 开发体验差不多，而对于小程序来说则是全新的开发体验。 Taro号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，边柳 在它的 《Remax - 使用真正">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自己写个React渲染器: 以 Remax 为例(用React写小程序)">
+<meta property="og:url" content="https://bobi.ink/2019/09/15/remax/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="上个月蚂蚁金服前端发布了一个新的框架 Remax, 口号是使用真正的、完整的 React 来开发小程序. 对于原本的 React 开发者来说 ‘Learn once, write anywhere’ , 和 ReactNative 开发体验差不多，而对于小程序来说则是全新的开发体验。 Taro号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，边柳 在它的 《Remax - 使用真正">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/remax/01.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/02.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/04.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/wxm.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/03.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/overview.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/tree-compare.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/mount.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/update.png">
+<meta property="og:image" content="https://bobi.ink/images/remax/07.png">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.330Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="自己写个React渲染器: 以 Remax 为例(用React写小程序)">
+<meta name="twitter:description" content="上个月蚂蚁金服前端发布了一个新的框架 Remax, 口号是使用真正的、完整的 React 来开发小程序. 对于原本的 React 开发者来说 ‘Learn once, write anywhere’ , 和 ReactNative 开发体验差不多，而对于小程序来说则是全新的开发体验。 Taro号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，边柳 在它的 《Remax - 使用真正">
+<meta name="twitter:image" content="https://bobi.ink/images/remax/01.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>自己写个React渲染器: 以 Remax 为例(用React写小程序)</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/09/23/kanban/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/09/11/arch-pattern/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/15/remax/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/15/remax/&text=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/15/remax/&is_video=false&description=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=自己写个React渲染器: 以 Remax 为例(用React写小程序)&body=Check out this article: https://bobi.ink/2019/09/15/remax/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/15/remax/&name=自己写个React渲染器: 以 Remax 为例(用React写小程序)&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关于react的一些基本概念"><span class="toc-number">1.</span> <span class="toc-text">关于React的一些基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#自定义react渲染器"><span class="toc-number">2.</span> <span class="toc-text">自定义React渲染器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hostconfig-渲染器适配"><span class="toc-number">3.</span> <span class="toc-text">HostConfig 渲染器适配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#宿主组件"><span class="toc-number">4.</span> <span class="toc-text">宿主组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#镜像树的构建和操作"><span class="toc-number">5.</span> <span class="toc-text">镜像树的构建和操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#节点更新"><span class="toc-number">6.</span> <span class="toc-text">节点更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#副作用提交"><span class="toc-number">7.</span> <span class="toc-text">副作用提交</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hostconfig执行流程总结"><span class="toc-number">8.</span> <span class="toc-text">HostConfig执行流程总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#同步到渲染进程"><span class="toc-number">9.</span> <span class="toc-text">同步到渲染进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">11.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        自己写个React渲染器: 以 Remax 为例(用React写小程序)
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-09-14T16:00:00.000Z" itemprop="datePublished">2019-09-15</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>上个月蚂蚁金服前端发布了一个新的框架 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a>, 口号是<strong>使用真正的、完整的 React 来开发小程序</strong>.</p>
+<p>对于原本的 React 开发者来说 ‘Learn once, write anywhere’ , 和 ReactNative 开发体验差不多，<strong>而对于小程序来说则是全新的开发体验</strong>。</p>
+<p><a href="https://github.com/NervJS/taro" target="_blank" rel="noopener"><code>Taro</code></a>号称是‘类React’的开发方案，但是它是使用静态编译的方式实现，<a href="https://www.zhihu.com/people/meck" target="_blank" rel="noopener">边柳</a> 在它的 <a href="https://zhuanlan.zhihu.com/p/79788488" target="_blank" rel="noopener">《Remax - 使用真正的 React 构建小程序》</a>文章中也提到了这一点:</p>
+<p><code>所谓静态编译，就是使用工具把代码语法分析一遍，把其中的 JSX 部分和逻辑部分抽取出来，分别生成小程序的模板和 Page 定义。</code></p>
+<p>这种方案实现起来比较复杂，且运行时并没有 React 存在。</p>
+<p><br></p>
+<p>相比而言，<a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 的解决方案就简单很多，<strong>它不过就是新的React渲染器</strong>.</p>
+<p><img src="/images/remax/01.png" alt></p>
+<p><br></p>
+<blockquote>
+<p>因为 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 刚发布不久，核心代码比较简单，感兴趣的可以去 <a href="https://github.com/remaxjs/remax" target="_blank" rel="noopener">github</a> 观摩贡献 <br><br>可以通过 CodeSandbox 游乐场试玩自定义Renderer: <a href="https://codesandbox.io/s/react-custom-renderer-mm9kl?fontsize=14" target="_blank" rel="noopener">Edit react-custom-renderer</a> <br><br>文章看起来比较长，好戏在后头，一步一步来 🦖</p>
+</blockquote>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<!-- TOC -->
+<ul>
+<li><a href="#关于react的一些基本概念">关于React的一些基本概念</a></li>
+<li><a href="#自定义react渲染器">自定义React渲染器</a></li>
+<li><a href="#hostconfig-渲染器适配">HostConfig 渲染器适配</a></li>
+<li><a href="#宿主组件">宿主组件</a></li>
+<li><a href="#镜像树的构建和操作">镜像树的构建和操作</a></li>
+<li><a href="#节点更新">节点更新</a></li>
+<li><a href="#副作用提交">副作用提交</a></li>
+<li><a href="#hostconfig执行流程总结">HostConfig执行流程总结</a></li>
+<li><a href="#同步到渲染进程">同步到渲染进程</a></li>
+<li><a href="#总结">总结</a></li>
+<li><a href="#扩展阅读">扩展阅读</a></li>
+</ul>
+<!-- /TOC -->
+<p><br></p>
+<h2 id="关于react的一些基本概念"><a href="#关于react的一些基本概念" class="headerlink" title="关于React的一些基本概念"></a>关于React的一些基本概念</h2><p>创建一个 React 自定义渲染器，你需要对React渲染的基本原理有一定的了解。所以在深入阅读本文之前，先要确保你能够理解以下几个基本概念:</p>
+<p><strong>1. Element</strong></p>
+<p>我们可以通过 <code>JSX</code> 或者 <code>React.createElement</code> 来创建 Element，用来描述我们要创建的视图节点。比如:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;button <span class="class"><span class="keyword">class</span></span>=<span class="string">'button button-blue'</span>&gt;</span><br><span class="line">  &lt;b&gt;</span><br><span class="line">    OK!</span><br><span class="line">  &lt;<span class="regexp">/b&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>button&gt;</span><br></pre></td></tr></table></figure>
+<p><code>JSX</code> 会被转义译为:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">React.createElement(</span><br><span class="line">  <span class="string">"button"</span>,</span><br><span class="line">  &#123; <span class="attr">class</span>: <span class="string">'button button-blue'</span> &#125;,</span><br><span class="line">  React.createElement(<span class="string">"b"</span>, <span class="literal">null</span>, <span class="string">"OK!"</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><code>React.createElement</code> 最终构建出类似这样的对象:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  type: <span class="string">'button'</span>,</span><br><span class="line">  props: &#123;</span><br><span class="line">    className: <span class="string">'button button-blue'</span>,</span><br><span class="line">    children: &#123;</span><br><span class="line">      type: <span class="string">'b'</span>,</span><br><span class="line">      props: &#123;</span><br><span class="line">        children: <span class="string">'OK!'</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说 <strong>Element 就是一个普通的对象，描述用户创建的节点类型、props 以及 children</strong>。这些 Elements 组合成树，描述用户视图</p>
+<p><br></p>
+<p><strong>2. Component</strong></p>
+<p>可以认为是 Element 的类型，它有两种类型：</p>
+<ul>
+<li><p><strong>Host Component</strong>: 宿主组件，这是由渲染的平台提供的‘内置’组件，例如<code>ReactDOM</code> 平台下面的 <code>DOM</code> 节点，如 <code>div</code>、<code>span</code>… 这些组件类型为字符串</p>
+</li>
+<li><p><strong>Composite Component</strong>: 复合组件，这是一种用户自定义的组件封装单位。通常包含自定义的逻辑、状态以及输出 Element 树。复合类型可以为类或函数</p>
+</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> DeleteAccount = <span class="function"><span class="params">()</span> =&gt;</span> (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;p&gt;Are you sure?<span class="xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">    &lt;DangerButton&gt;Yep&lt;<span class="regexp">/DangerButton&gt;</span></span><br><span class="line"><span class="regexp">    &lt;Button color='blue'&gt;Cancel&lt;/</span>Button&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">);</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>3. Instance</strong></p>
+<p>当 React 开始渲染一个 Element 时，会根据组件类型为它创建一个‘实例’，例如类组件，会调用<code>new</code>操作符实例化。这个实例会一直引用，直到 Element 从 Element Tree 中被移除。</p>
+<p><code>首次渲染</code>: React 会实例化一个 <code>MyButton</code> 实例，调用挂载相关的生命周期方法，并执行 <code>render</code> 方法，递归渲染下级</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">render(<span class="xml"><span class="tag">&lt;<span class="name">MyButton</span>&gt;</span>foo<span class="tag">&lt;/<span class="name">MyButton</span>&gt;</span></span>, container)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>更新</code>: 因为组件类型没有变化，React 不会再实例化，这个属于‘节点更新’，React 会执行更新相关的生命周期方法，如<code>shouldComponentUpdate</code>。如果需要更新则再次执行<code>render</code>方法</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">render(<span class="xml"><span class="tag">&lt;<span class="name">MyButton</span>&gt;</span>bar<span class="tag">&lt;/<span class="name">MyButton</span>&gt;</span></span>, container)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>卸载</code>: 组件类型不一样了, 原有的 MyButton 被替换. MyButton 的实例将要被销毁，React 会执行卸载相关的生命周期方法，如<code>componentWillUnmount</code></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">render(<span class="xml"><span class="tag">&lt;<span class="name">button</span>&gt;</span>bar<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>, container)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>4. Reconciler</strong> &amp; <strong>Renderer</strong></p>
+<p><code>Reconciler</code> 和 <code>Renderer</code> 的关系可以通过下图缕清楚.</p>
+<p><strong>Reconciler 的职责是维护 VirtualDOM 树，内部实现了 Diff/Fiber 算法，决定什么时候更新、以及要更新什么</strong></p>
+<p>而 <strong>Renderer 负责具体平台的渲染工作，它会提供宿主组件、处理事件等等</strong>。例如ReactDOM就是一个渲染器，负责DOM节点的渲染和DOM事件处理。</p>
+<p><br></p>
+<p><img src="/images/remax/02.png" alt></p>
+<p><br></p>
+<p><strong>5. Fiber 的两个阶段</strong><br>React 使用了 Fiber 架构之后，更新过程被分为两个阶段(Phase)</p>
+<ul>
+<li><strong>协调阶段(Reconciliation Phase)</strong> 这个阶段 React 会找出需要更新的节点。这个阶段是可以被打断的，比如有优先级更高的事件要处理时。</li>
+<li><strong>提交阶段(Commit Phase)</strong> 将上一个阶段计算出来的需要处理的<strong>副作用(Effects)</strong>一次性执行了。这个阶段必须同步执行，不能被打断</li>
+</ul>
+<p><br></p>
+<p>如果按照<code>render</code>为界，可以将生命周期函数按照两个阶段进行划分：</p>
+<ul>
+<li><strong>协调阶段</strong><ul>
+<li><code>constructor</code></li>
+<li><code>componentWillMount</code> 废弃</li>
+<li><code>componentWillReceiveProps</code> 废弃</li>
+<li><code>static getDerivedStateFromProps</code></li>
+<li><code>shouldComponentUpdate</code></li>
+<li><code>componentWillUpdate</code> 废弃</li>
+<li><code>render</code></li>
+<li><code>getSnapshotBeforeUpdate()</code></li>
+</ul>
+</li>
+<li><strong>提交阶段</strong><ul>
+<li><code>componentDidMount</code></li>
+<li><code>componentDidUpdate</code></li>
+<li><code>componentWillUnmount</code></li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<blockquote>
+<p>没理解？那么下文读起来对你可能比较吃力，建议阅读一些关于React基本原理的相关文章。</p>
+</blockquote>
+<p><br></p>
+<p>就目前而言，React 大部分核心的工作已经在 Reconciler 中完成，好在 React 的架构和模块划分还比较清晰，React官方也暴露了一些库，这极大简化了我们开发 Renderer 的难度。开始吧！</p>
+<p><br></p>
+<h2 id="自定义react渲染器"><a href="#自定义react渲染器" class="headerlink" title="自定义React渲染器"></a>自定义React渲染器</h2><p>React官方暴露了一些库供开发者来扩展自定义渲染器：</p>
+<ul>
+<li><a href="https://github.com/facebook/react/tree/master/packages/react-reconciler" target="_blank" rel="noopener">react-reconciler</a> - 这就是 React 的协调器, React 的核心所在。我们主要通过它来开发渲染器。</li>
+<li><a href="https://github.com/facebook/react/tree/master/packages/scheduler" target="_blank" rel="noopener">scheduler</a> - 合作调度器的一些 API 。本文不会用到</li>
+</ul>
+<blockquote>
+<p>需要注意的是，<strong>这些包还是实验性的</strong>，API可能不太稳定。另外，没有详细的文档，你需要查看源代码或者其他渲染器实现；本文以及扩展阅读中的文章也是很好的学习资料。</p>
+</blockquote>
+<p><br></p>
+<p>创建一个自定义渲染器只需两步:</p>
+<p><img src="/images/remax/04.png" alt></p>
+<p>第一步: <strong>实现宿主配置</strong>，这是<code>react-reconciler</code>要求宿主提供的一些适配器方法和配置项。这些配置项定义了如何创建节点实例、构建节点树、提交和更新等操作。下文会详细介绍这些配置项</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Reconciler = <span class="built_in">require</span>(<span class="string">'react-reconciler'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> HostConfig = &#123;</span><br><span class="line">  <span class="comment">// ... 实现适配器方法和配置项</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>第二步：<strong>实现渲染函数</strong>，类似于<a href="https://reactjs.org/docs/react-dom.html#render" target="_blank" rel="noopener"><code>ReactDOM.render()</code></a> 方法</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 创建Reconciler实例, 并将HostConfig传递给Reconciler</span></span><br><span class="line"><span class="keyword">const</span> MyRenderer = Reconciler(HostConfig);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 假设和ReactDOM一样，接收三个参数</span></span><br><span class="line"><span class="comment"> * render(&lt;MyComponent /&gt;, container, () =&gt; console.log('rendered'))</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">element, container, callback</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 创建根容器</span></span><br><span class="line">  <span class="keyword">if</span> (!container._rootContainer) &#123;</span><br><span class="line">    container._rootContainer = ReactReconcilerInst.createContainer(container, <span class="literal">false</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 更新根容器</span></span><br><span class="line">  <span class="keyword">return</span> ReactReconcilerInst.updateContainer(element, container._rootContainer, <span class="literal">null</span>, callback);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>容器既是 React 组件树挂载的<code>目标</code>(例如 ReactDOM 我们通常会挂载到 <code>#root</code> 元素，<code>#root</code> 就是一个容器)、也是组件树的 <code>根Fiber节点(FiberRoot)</code>。根节点是整个组件树的入口，它将会被 Reconciler 用来保存一些信息，以及管理所有节点的更新和渲染。</p>
+<p>关于 Fiber 架构的一些细节可以看这些文章:</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/57346388" target="_blank" rel="noopener">《译 深入React fiber架构及源码》</a></li>
+<li><a href="https://juejin.im/post/5ab7b3a2f265da2378403e57" target="_blank" rel="noopener">《React Fiber》</a> 有能力的同学，可以直接看<a href="https://www.youtube.com/watch?v=ZCuYPiUIONs" target="_blank" rel="noopener">Lin Clark</a>的演讲</li>
+</ul>
+<p><br></p>
+<h2 id="hostconfig-渲染器适配"><a href="#hostconfig-渲染器适配" class="headerlink" title="HostConfig 渲染器适配"></a>HostConfig 渲染器适配</h2><p><code>HostConfig</code> 支持非常多的参数，完整列表可以看<a href="https://github.com/facebook/react/blob/master/packages/react-reconciler/src/forks/ReactFiberHostConfig.custom.js" target="_blank" rel="noopener">这里</a>. 下面是一些自定义渲染器<strong>必须</strong>提供的参数：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">interface HostConfig &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 用于分享一些上下文信息</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 获取根容器的上下文信息, 只在根节点调用一次</span></span><br><span class="line">  getRootHostContext(rootContainerInstance: Container): HostContext;</span><br><span class="line">  <span class="comment">// 获取子节点的上下文信息, 每遍历一个节点都会调用一次</span></span><br><span class="line">  getChildHostContext(parentHostContext: HostContext, <span class="attr">type</span>: Type, <span class="attr">rootContainerInstance</span>: Container): HostContext;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 节点实例的创建</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 普通节点实例创建，例如DOM的Element类型</span></span><br><span class="line">  createInstance(type: Type, <span class="attr">props</span>: Props, <span class="attr">rootContainerInstance</span>: Container, <span class="attr">hostContext</span>: HostContext, <span class="attr">internalInstanceHandle</span>: OpaqueHandle,): Instance;</span><br><span class="line">  <span class="comment">// 文本节点的创建，例如DOM的Text类型</span></span><br><span class="line">  createTextInstance(text: string, <span class="attr">rootContainerInstance</span>: Container, <span class="attr">hostContext</span>: HostContext, <span class="attr">internalInstanceHandle</span>: OpaqueHandle): TextInstance;</span><br><span class="line">  <span class="comment">// 决定是否要处理子节点/子文本节点. 如果不想创建则返回true. 例如ReactDOM中使用dangerouslySetInnerHTML, 这时候子节点会被忽略</span></span><br><span class="line">  shouldSetTextContent(type: Type, <span class="attr">props</span>: Props): boolean;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 节点树构建</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 如果节点在*未挂载*状态下，会调用这个来添加子节点</span></span><br><span class="line">  appendInitialChild(parentInstance: Instance, <span class="attr">child</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// **下面都是副作用(Effect)，在’提交‘阶段被执行**</span></span><br><span class="line">  <span class="comment">// 添加子节点</span></span><br><span class="line">  appendChild?(parentInstance: Instance, <span class="attr">child</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 添加子节点到容器节点(根节点)</span></span><br><span class="line">  appendChildToContainer?(container: Container, <span class="attr">child</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 插入子节点</span></span><br><span class="line">  insertBefore?(parentInstance: Instance, <span class="attr">child</span>: Instance | TextInstance, <span class="attr">beforeChild</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 插入子节点到容器节点(根节点)</span></span><br><span class="line">  insertInContainerBefore?(container: Container, <span class="attr">child</span>: Instance | TextInstance, <span class="attr">beforeChild</span>: Instance | TextInstance,): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 删除子节点</span></span><br><span class="line">  removeChild?(parentInstance: Instance, <span class="attr">child</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 从容器节点(根节点)中移除子节点</span></span><br><span class="line">  removeChildFromContainer?(container: Container, <span class="attr">child</span>: Instance | TextInstance): <span class="keyword">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 节点挂载</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 在完成所有子节点初始化时(所有子节点都appendInitialChild完毕)时被调用, 如果返回true，则commitMount将会被触发</span></span><br><span class="line">  <span class="comment">// ReactDOM通过这个属性和commitMount配置实现表单元素的autofocus功能</span></span><br><span class="line">  finalizeInitialChildren(parentInstance: Instance, <span class="attr">type</span>: Type, <span class="attr">props</span>: Props, <span class="attr">rootContainerInstance</span>: Container, <span class="attr">hostContext</span>: HostContext): boolean;</span><br><span class="line">  <span class="comment">// 和finalizeInitialChildren配合使用，commitRoot会在’提交‘完成后(resetAfterCommit)执行, 也就是说组件树渲染完毕后执行</span></span><br><span class="line">  commitMount?(instance: Instance, <span class="attr">type</span>: Type, <span class="attr">newProps</span>: Props, <span class="attr">internalInstanceHandle</span>: OpaqueHandle): <span class="keyword">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 节点更新</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 准备节点更新. 如果返回空则表示不更新，这时候commitUpdate则不会被调用</span></span><br><span class="line">  prepareUpdate(instance: Instance, <span class="attr">type</span>: Type, <span class="attr">oldProps</span>: Props, <span class="attr">newProps</span>: Props, <span class="attr">rootContainerInstance</span>: Container, <span class="attr">hostContext</span>: HostContext,): <span class="literal">null</span> | UpdatePayload;</span><br><span class="line">  <span class="comment">// **下面都是副作用(Effect)，在’提交‘阶段被执行**</span></span><br><span class="line">  <span class="comment">// 文本节点提交</span></span><br><span class="line">  commitTextUpdate?(textInstance: TextInstance, <span class="attr">oldText</span>: string, <span class="attr">newText</span>: string): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 普通节点提交</span></span><br><span class="line">  commitUpdate?(instance: Instance, <span class="attr">updatePayload</span>: UpdatePayload, <span class="attr">type</span>: Type, <span class="attr">oldProps</span>: Props, <span class="attr">newProps</span>: Props, <span class="attr">internalInstanceHandle</span>: OpaqueHandle): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 重置普通节点文本内容, 这个需要和shouldSetTextContent(返回true时)配合使用，</span></span><br><span class="line">  resetTextContent?(instance: Instance): <span class="keyword">void</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 提交</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 开始’提交‘之前被调用，比如这里可以保存一些状态，在’提交‘完成后恢复状态。比如ReactDOM会保存当前元素的焦点状态，在提交后恢复</span></span><br><span class="line">  <span class="comment">// 执行完prepareForCommit，就会开始执行Effects(节点更新)</span></span><br><span class="line">  prepareForCommit(containerInfo: Container): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 和prepareForCommit对应，在提交完成后被执行</span></span><br><span class="line">  resetAfterCommit(containerInfo: Container): <span class="keyword">void</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 调度</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 这个函数将被Reconciler用来计算当前时间, 比如计算任务剩余时间 </span></span><br><span class="line">  <span class="comment">// ReactDOM中会优先使用Performance.now, 普通场景用Date.now即可</span></span><br><span class="line">  now(): number;</span><br><span class="line">  <span class="comment">// 自定义计时器</span></span><br><span class="line">  setTimeout(handler: <span class="function">(<span class="params">...args: any[]</span>) =&gt;</span> <span class="keyword">void</span>, <span class="attr">timeout</span>: number): TimeoutHandle | NoTimeout;</span><br><span class="line">  <span class="comment">// 取消计时器</span></span><br><span class="line">  clearTimeout(handle: TimeoutHandle | NoTimeout): <span class="keyword">void</span>;</span><br><span class="line">  <span class="comment">// 表示一个空的计时器，见👆clearTimeout的签名</span></span><br><span class="line">  noTimeout: NoTimeout;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ? 功能未知</span></span><br><span class="line">  shouldDeprioritizeSubtree(type: Type, <span class="attr">props</span>: Props): boolean;</span><br><span class="line">  <span class="comment">// 废弃</span></span><br><span class="line">  scheduleDeferredCallback(callback: <span class="function"><span class="params">()</span> =&gt;</span> any, options?: &#123; <span class="attr">timeout</span>: number &#125;): any;</span><br><span class="line">  <span class="comment">// 废弃</span></span><br><span class="line">  cancelDeferredCallback(callbackID: any): <span class="keyword">void</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 功能开启</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 开启节点修改，一般渲染器都会开启，不然无法更新节点</span></span><br><span class="line">  supportsMutation: boolean;</span><br><span class="line">  <span class="comment">// 开启持久化 ?</span></span><br><span class="line">  supportsPersistence: boolean;</span><br><span class="line">  <span class="comment">// 开启hydrate，一般用于服务端渲染</span></span><br><span class="line">  supportsHydration: boolean;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 杂项</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 获取可公开的节点实例，即你愿意暴露给用户的节点信息，用户通过ref可以获取到这个对象。一般自定义渲染器原样返回即可, 除非你想有选择地给用户暴露信息</span></span><br><span class="line">  getPublicInstance(instance: Instance | TextInstance): PublicInstance;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// ... 还有很多参数，由于一般渲染器不会用到，暂时不讲了</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>如果按照<code>Fiber的两个阶段</code>来划分的话，接口分类是这样的:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">| 协调阶段                 | 开始提交         | 提交阶段                  | 提交完成         |</span><br><span class="line">|-------------------------|----------------|--------------------------|-----------------|</span><br><span class="line">| createInstance          | prepareCommit  | appendChild              | resetAfterCommit|</span><br><span class="line">| createTextInstance      |                | appendChildToContainer   | commitMount     |</span><br><span class="line">| shouldSetTextContent    |                | insertBefore             |                 |</span><br><span class="line">| appendInitialChild      |                | insertInContainerBefore  |                 |</span><br><span class="line">| finalizeInitialChildren  |                | removeChild              |                 |</span><br><span class="line">| prepareUpdate           |                | removeChildFromContainer |                 |</span><br><span class="line">|                         |                | commitTextUpdate         |                 |</span><br><span class="line">|                         |                | commitUpdate             |                 |</span><br><span class="line">|                         |                | resetTextContent         |                 |</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>通过上面接口定义可以知道 <code>HostConfig</code> 配置比较丰富，涉及节点操作、挂载、更新、调度、以及各种生命周期钩子, 可以控制渲染器的各种行为.</p>
+<p>看得有点蒙圈？没关系, 你暂时没有必要了解所有的参数，下面会一点一点展开解释这些功能。你可以最后再回来看这里。</p>
+<p><br></p>
+<h2 id="宿主组件"><a href="#宿主组件" class="headerlink" title="宿主组件"></a>宿主组件</h2><p>React中有两种组件类型，一种是<code>宿主组件(Host Component)</code>, 另一种是<code>复合组件(CompositeComponent)</code>. <code>宿主组件</code>是平台提供的，例如 <code>ReactDOM</code> 平台提供了 <code>div</code>、<code>span</code>、<code>h1</code>… 等组件. 这些组件通常是字符串类型，直接渲染为平台下面的视图节点。</p>
+<p>而<code>复合组件</code>，也称为<code>自定义组件</code>，用于组合其他<code>复合组件</code>和<code>宿主组件</code>，通常是类或函数。</p>
+<p>渲染器不需要关心<code>复合组件</code>的处理, Reconciler 交给渲染器的是一颗<code>宿主组件树</code>。</p>
+<p>当然在 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 中，也定义了很多小程序特定的<code>宿主组件</code>，比如我们可以这样子使用它们:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MyComp</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">view</span>&gt;</span><span class="tag">&lt;<span class="name">text</span>&gt;</span>hello world<span class="tag">&lt;/<span class="name">text</span>&gt;</span><span class="tag">&lt;/<span class="name">view</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>Reconciler</code> 会调用 <code>HostConfig</code> 的 <code>createInstance</code> 和<code>createTextInstance</code> 来创建<code>宿主组件</code>的实例，所以自定义渲染器必须实现这两个方法. 看看 <code>Remax</code> 是怎么做的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HostConfig = &#123;</span><br><span class="line">  <span class="comment">// 创建宿主组件实例</span></span><br><span class="line">  createInstance(type: string, <span class="attr">newProps</span>: any, <span class="attr">container</span>: Container) &#123;</span><br><span class="line">    <span class="keyword">const</span> id = generate();</span><br><span class="line">    <span class="comment">// 预处理props, remax会对事件类型Props进行一些特殊处理</span></span><br><span class="line">    <span class="keyword">const</span> props = processProps(newProps, container, id);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> VNode(&#123;</span><br><span class="line">      id,</span><br><span class="line">      type,</span><br><span class="line">      props,</span><br><span class="line">      container,</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建宿主组件文本节点实例</span></span><br><span class="line">  createTextInstance(text: string, <span class="attr">container</span>: Container) &#123;</span><br><span class="line">    <span class="keyword">const</span> id = generate();</span><br><span class="line">    <span class="keyword">const</span> node = <span class="keyword">new</span> VNode(&#123;</span><br><span class="line">      id,</span><br><span class="line">      type: TYPE_TEXT,</span><br><span class="line">      props: <span class="literal">null</span>,</span><br><span class="line">      container,</span><br><span class="line">    &#125;);</span><br><span class="line">    node.text = text;</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 判断是否需要处理子节点。如果返回true则不创建，整个下级组件树都会被忽略。</span></span><br><span class="line">  <span class="comment">// 有一些场景是不需要创建文本节点的，而是由父节点内部消化。</span></span><br><span class="line">  <span class="comment">// 举个例子，在ReactDOM中，如果某个节点设置了dangerouslySetInnerHTML，那么它的children应该被忽略，</span></span><br><span class="line">  <span class="comment">// 这时候 shouldSetTextContent则应该返回true</span></span><br><span class="line">  shouldSetTextContent(type, nextProps) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 ReactDOM 中上面两个方法分别会通过 <code>document.createElement</code> 和 <code>document.createTextNode</code> 来创建<code>宿主组件</code>(即<code>DOM节点</code>)。</p>
+<p><br></p>
+<p><img src="/images/remax/wxm.png" alt></p>
+<p>上面是微信小程序的架构图(图片来源: <a href="https://mp.weixin.qq.com/s/3QE3g0NmaBAi91lbrihhVw" target="_blank" rel="noopener">一起脱去小程序的外套 - 微信小程序架构解析</a>)。</p>
+<p><strong>因为小程序隔离了<code>渲染进程</code>和<code>逻辑进程</code>。<a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 是跑在<code>逻辑进程</code>上的，在<code>逻辑进程</code>中无法进行实际的渲染, 只能通过<code>setData</code>方式将更新指令传递给<code>渲染进程</code>后，再进行解析渲染</strong>。</p>
+<p>所以<a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a>选择在<code>逻辑进程</code>中先构成一颗<code>镜像树</code>(Mirror Tree), 然后再同步到<code>渲染进程</code>中，如下图:</p>
+<p><img src="/images/remax/03.png" alt></p>
+<p><br></p>
+<p><strong>上面的 <code>VNode</code> 就是镜像树中的<code>虚拟节点</code>，主要用于保存一些节点信息，不做任何特殊处理</strong>, 它的结构如下:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">VNode</span> </span>&#123;</span><br><span class="line">  id: number;                  <span class="comment">// 唯一的节点id</span></span><br><span class="line">  container: Container;</span><br><span class="line">  children: VNode[];           <span class="comment">// 子节点</span></span><br><span class="line">  mounted = <span class="literal">false</span>;             <span class="comment">// 节点是否已经挂载</span></span><br><span class="line">  type: string | symbol;       <span class="comment">// 节点的类型</span></span><br><span class="line">  props?: any;                 <span class="comment">// 节点的props</span></span><br><span class="line">  parent: VNode | <span class="literal">null</span> = <span class="literal">null</span>; <span class="comment">// 父节点引用</span></span><br><span class="line">  text?: string;               <span class="comment">// 如果是文本节点，这里保存文本内容</span></span><br><span class="line">  path(): Path                 <span class="comment">// 节点的路径. 同步到渲染进程后，通过path恢复到树中</span></span><br><span class="line">  <span class="comment">// 子节点操作</span></span><br><span class="line">  appendChild(node: VNode, <span class="attr">immediately</span>: boolean)</span><br><span class="line">  removeChild(node: VNode, <span class="attr">immediately</span>: boolean)</span><br><span class="line">  insertBefore(newNode: VNode, <span class="attr">referenceNode</span>: VNode, <span class="attr">immediately</span>: boolean)</span><br><span class="line"></span><br><span class="line">  update()                     <span class="comment">// 触发同步到渲染进程</span></span><br><span class="line">  toJSON(): string</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>VNode 的完整代码可以看<a href="https://github.com/remaxjs/remax/blob/master/packages/remax/src/VNode.ts" target="_blank" rel="noopener">这里</a></p>
+<p><br></p>
+<h2 id="镜像树的构建和操作"><a href="#镜像树的构建和操作" class="headerlink" title="镜像树的构建和操作"></a>镜像树的构建和操作</h2><p>要构建出完整的节点树需要实现<code>HostConfig</code> 的 <code>appendChild</code>、<code>insertBefore</code>、<code>removeChild</code> 等方法, 如下， 这些方法都比较容易理解，所以不需要过多解释。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HostConfig = &#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 支持节点修改</span></span><br><span class="line">  <span class="comment">// 有些静态渲染的场景，例如渲染为pdf文档，这时候可以关闭</span></span><br><span class="line">  <span class="comment">// 当关闭时，只需要实现appendInitiaChild</span></span><br><span class="line">  supportsMutation: <span class="literal">true</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 用于初始化(首次)时添加子节点</span></span><br><span class="line">  appendInitialChild: <span class="function">(<span class="params">parent: VNode, child: VNode</span>) =&gt;</span> &#123;</span><br><span class="line">    parent.appendChild(child, <span class="literal">false</span>);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 添加子节点</span></span><br><span class="line">  appendChild(parent: VNode, <span class="attr">child</span>: VNode) &#123;</span><br><span class="line">    parent.appendChild(child, <span class="literal">false</span>);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 插入子节点</span></span><br><span class="line">  insertBefore(parent: VNode, <span class="attr">child</span>: VNode, <span class="attr">beforeChild</span>: VNode) &#123;</span><br><span class="line">    parent.insertBefore(child, beforeChild, <span class="literal">false</span>);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 删除节点</span></span><br><span class="line">  removeChild(parent: VNode, <span class="attr">child</span>: VNode) &#123;</span><br><span class="line">    parent.removeChild(child, <span class="literal">false</span>);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 添加节点到容器节点，一般情况我们不需要和appendChild特殊区分</span></span><br><span class="line">  appendChildToContainer(container: any, <span class="attr">child</span>: VNode) &#123;</span><br><span class="line">    container.appendChild(child);</span><br><span class="line">    child.mounted = <span class="literal">true</span>;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 插入节点到容器节点</span></span><br><span class="line">  insertInContainerBefore(container: any, <span class="attr">child</span>: VNode, <span class="attr">beforeChild</span>: VNode) &#123;</span><br><span class="line">    container.insertBefore(child, beforeChild);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从容器节点移除节点</span></span><br><span class="line">  removeChildFromContainer(container: any, <span class="attr">child</span>: VNode) &#123;</span><br><span class="line">    container.removeChild(child);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<h2 id="节点更新"><a href="#节点更新" class="headerlink" title="节点更新"></a>节点更新</h2><p>上一节讲的是树结构层面的更新，当节点属性变动或者文本内容变动时，也需要进行更新。我们可以通过下列 <code>HostConfig</code> 配置来处理这类更新:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HostConfig = &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 更新相关</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="comment">// 可以在这里比对props，如果props没有变化则不进行更新，这和React组件的shouldComponentUpdate差不多</span></span><br><span class="line">  <span class="comment">// **返回’空‘则表示不更新该节点, 这时候commitUpdate则不会被调用**</span></span><br><span class="line">  prepareUpdate(node: VNode, <span class="attr">type</span>: string, <span class="attr">oldProps</span>: any, <span class="attr">newProps</span>: any) &#123;</span><br><span class="line">    oldProps = processProps(oldProps, node.container, node.id);</span><br><span class="line">    newProps = processProps(newProps, node.container, node.id);</span><br><span class="line">    <span class="keyword">if</span> (!shallowequal(newProps, oldProps)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 进行节点更新</span></span><br><span class="line">  commitUpdate(</span><br><span class="line">    node: VNode,</span><br><span class="line">    updatePayload: any,</span><br><span class="line">    type: string,</span><br><span class="line">    oldProps: any,</span><br><span class="line">    newProps: any</span><br><span class="line">  ) &#123;</span><br><span class="line">    node.props = processProps(newProps, node.container, node.id);</span><br><span class="line">    node.update();</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 进行文本节点更新</span></span><br><span class="line">  commitTextUpdate(node: VNode, <span class="attr">oldText</span>: string, <span class="attr">newText</span>: string) &#123;</span><br><span class="line">    <span class="keyword">if</span> (oldText !== newText) &#123;</span><br><span class="line">      node.text = newText;</span><br><span class="line">      <span class="comment">// 更新节点</span></span><br><span class="line">      node.update();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Ok, 这个也比较好理解。<br>对于普通节点更新，<code>Reconciler</code> 会先调用 <code>prepareUpdate</code>, 确定是否要更新，如果返回非空数据，<code>Reconciler</code> 就会将节点放入 <code>Effects</code> 链中，在<code>提交</code>阶段调用 <code>commitUpdate</code> 来执行更新。<br>文本节点更新则直接调用 <code>commitTextUpdate</code>，不在话下.</p>
+<p><br></p>
+<h2 id="副作用提交"><a href="#副作用提交" class="headerlink" title="副作用提交"></a>副作用提交</h2><p>React 的<code>更新的两个阶段</code>这个概念非常重要，这个也体现在HostConfig上:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HostConfig = &#123;</span><br><span class="line">  <span class="comment">// Reconciler说，我要开始提交了，你提交前要做什么，就在这做吧</span></span><br><span class="line">  <span class="comment">// 比如ReactDOM会在这里保存当前DOM文档的选中状态和焦点状态, 以及禁用事件处理。因为DOM更新可能会破坏这些状态</span></span><br><span class="line">  prepareForCommit: <span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Reconciler说，我已经提交完了</span></span><br><span class="line">  <span class="comment">// ReactDOM会在这里恢复提交前的DOM文档的选中状态和焦点状态</span></span><br><span class="line">  resetAfterCommit: <span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 在协调阶段，当一个节点完成'创建'后调用。如果有子节点，则在所有子节点appendInitialChild完成后调用</span></span><br><span class="line">  <span class="comment">// 返回一个boolean值表示’完成提交‘后是否要调用commitMount. 通俗讲就是告诉Reconciler，当前节点完成’挂载‘后要执行某些东西</span></span><br><span class="line">  <span class="comment">// ReactDOM会使用这个钩子来处理带有autofoucs属性的节点，在commitMount中实现自动获取焦点</span></span><br><span class="line">  finalizeInitialChildren: <span class="function"><span class="params">()</span> =&gt;</span> <span class="literal">false</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 和finalizeInitialChildren配合使用，如果前者返回true，在Reconciler完成提交后，对应节点的commitMount会被执行</span></span><br><span class="line">  commitMount: <span class="function"><span class="params">()</span> =&gt;</span> &#123;&#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>将上文讲到的所有钩子都聚合起来，按照更新的阶段和应用的目标(target)进行划分，它们的分布是这样的：</p>
+<p><img src="/images/remax/overview.png" alt></p>
+<p><br></p>
+<p>那么对于 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 来说, 什么时候应该将’更新’提交到<code>渲染进程</code>呢？答案是上图所有在<code>提交阶段</code>的方法被调用时。</p>
+<p><code>提交阶段</code>原意就是用于执行各种副作用的，例如视图更新、远程方法请求、订阅… 所以 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 也会在这个阶段收集<code>更新指令</code>，在下一个循环推送给渲染进程。</p>
+<p><br></p>
+<h2 id="hostconfig执行流程总结"><a href="#hostconfig执行流程总结" class="headerlink" title="HostConfig执行流程总结"></a>HostConfig执行流程总结</h2><p>回顾一下自定义渲染器各种方法调用的流程, 首先看一下<strong>挂载</strong>的流程:</p>
+<p>假设我们的组件结构如下:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> container = <span class="keyword">new</span> Container()</span><br><span class="line"><span class="keyword">const</span> MyComp = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;span&gt;hello world&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>div&gt;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">render(</span><br><span class="line">  &lt;div className=<span class="string">"root"</span>&gt;</span><br><span class="line">    &lt;MyComp /&gt;</span><br><span class="line">    &lt;span&gt;--custom renderer&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;,</span><br><span class="line">  container,</span><br><span class="line">  () =&gt; &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"rendered"</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>React 组件树的结构如下(左图)，但对于渲染器来说，树结构是右图。<br>自定义组件是React 层级的东西，渲染器只需要关心最终需要渲染的视图结构, 换句话说渲染器只关心<code>宿主组件</code>:</p>
+<p><img src="/images/remax/tree-compare.png" alt></p>
+<p><br></p>
+<p>挂载会经历以下流程:</p>
+<p><img src="/images/remax/mount.png" alt></p>
+<p>通过上面的流程图，可以很清晰看到每个钩子的调用时机。</p>
+<p><br></p>
+<p>同理，我们再来看一下节点<strong>更新</strong>时的流程. 我们稍微改造一下上面的程序，让它定时触发更新:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> MyComp = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> [count, setCount] = useState(<span class="number">1</span>)</span><br><span class="line">  <span class="keyword">const</span> isEven = count % <span class="number">2</span> === <span class="number">0</span></span><br><span class="line">  useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> timer = setInterval(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 递增计数器</span></span><br><span class="line">      setCount(<span class="function"><span class="params">c</span> =&gt;</span> c + <span class="number">1</span>)</span><br><span class="line">    &#125;, <span class="number">10000</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="params">()</span> =&gt;</span> clearInterval(timer)</span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div className=<span class="string">"mycomp"</span> style=&#123;&#123; <span class="attr">color</span>: isEven ? <span class="string">"red"</span> : <span class="string">"blue"</span> &#125;&#125;&gt;</span><br><span class="line">      &#123;isEven ? <span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>even<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span> : <span class="literal">null</span>&#125;</span><br><span class="line">      &lt;span className=<span class="string">"foo"</span>&gt;hello world &#123;count&#125;&lt;<span class="regexp">/span&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>div&gt;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>下面是更新的流程:</p>
+<p><img src="/images/remax/update.png" alt></p>
+<p><br></p>
+<p>当<code>MyComp</code>的 <code>count</code> 由1变为2时，<code>MyComp</code> 会被重新渲染，这时候新增了一个<code>div</code> 节点(红色虚框), 另外 <code>hello world 1</code> 也变成了 <code>hello world 2</code>。</p>
+<p>新增的 <code>div</code> 节点创建流程和挂载时一样，只不过它不会立即插入到父节点中，而是先放到<code>Effect</code>链表中，在<code>提交阶段</code>统一执行。</p>
+<p>同理<code>hello world {count}</code>文本节点的更新、以及其他节点的 Props 更新都是放到Effect链表中，最后时刻才更新提交. 如上图的 <code>insertBefore</code>、<code>commitTextUpdate</code>、<code>commitUpdate</code>.</p>
+<p>另外一个比较重要的是 <code>prepareUpdate</code> 钩子，你可以在这里告诉 Reconciler，节点是否需要更新，如果需要更新则返回非空值，这样 <code>commitUpdate</code> 才会被触发。</p>
+<p><br></p>
+<h2 id="同步到渲染进程"><a href="#同步到渲染进程" class="headerlink" title="同步到渲染进程"></a>同步到渲染进程</h2><p>React 自定义渲染器差不多就这样了，接下来就是平台相关的事情了。<br><a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 目前的做法是在触发更新后，通过小程序 <code>Page</code> 对象的 <code>setData</code> 方法将<code>更新指令</code>传递给渲染进程;<br><code>渲染进程</code>侧再通过 <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/view/wxs/" target="_blank" rel="noopener"><code>WXS</code></a> 机制，将<code>更新指令</code>恢复到树中； 最后再通过<code>模板</code>机制，将树递归渲染出来。</p>
+<p>整体的架构如下:</p>
+<p><img src="/images/remax/07.png" alt></p>
+<p><br></p>
+<p>先来看看<code>逻辑进程</code>侧是如何推送更新指令的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在根容器上管理更新</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">Container</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// 触发更新</span></span><br><span class="line">  requestUpdate(</span><br><span class="line">    path: Path,</span><br><span class="line">    start: number,</span><br><span class="line">    deleteCount: number,</span><br><span class="line">    immediately: boolean,</span><br><span class="line">    ...items: RawNode[]</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="keyword">const</span> update: SpliceUpdate = &#123;</span><br><span class="line">      path, <span class="comment">// 更新节点的树路径</span></span><br><span class="line">      start, <span class="comment">// 更新节点在children中的索引</span></span><br><span class="line">      deleteCount,</span><br><span class="line">      items, <span class="comment">// 当前节点的信息</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">if</span> (immediately) &#123;</span><br><span class="line">      <span class="keyword">this</span>.updateQueue.push(update);</span><br><span class="line">      <span class="keyword">this</span>.applyUpdate();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// 放入更新队列，延时收集更新指令</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.updateQueue.length === <span class="number">0</span>) &#123;</span><br><span class="line">        setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">this</span>.applyUpdate());</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">this</span>.updateQueue.push(update);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  applyUpdate() &#123;</span><br><span class="line">    <span class="keyword">const</span> action = &#123;</span><br><span class="line">      type: <span class="string">'splice'</span>,</span><br><span class="line">      payload: <span class="keyword">this</span>.updateQueue.map(<span class="function"><span class="params">update</span> =&gt;</span> (&#123;</span><br><span class="line">        path: stringPath(update.path),</span><br><span class="line">        start: update.start,</span><br><span class="line">        deleteCount: update.deleteCount,</span><br><span class="line">        item: update.items[<span class="number">0</span>],</span><br><span class="line">      &#125;)),</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 通过setData通知渲染进程</span></span><br><span class="line">    <span class="keyword">this</span>.context.setData(&#123; action &#125;);</span><br><span class="line">    <span class="keyword">this</span>.updateQueue = [];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>逻辑还是比较清楚的，即将需要更新的节点(包含节点路径、节点信息)推入更新队列，然后触发 <code>setData</code> 通知到<code>渲染进程</code>。</p>
+<p><br></p>
+<p><code>渲染进程</code>侧，则需要通过 <code>WXS</code> 机制，相对应地将<code>更新指令</code>恢复到<code>渲染树</code>中：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 渲染树</span></span><br><span class="line"><span class="keyword">var</span> tree = &#123;</span><br><span class="line">  root: &#123;</span><br><span class="line">    children: [],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将指令应用到渲染树</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reduce</span>(<span class="params">action</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">'splice'</span>:</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; action.payload.length; i += <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> value = <span class="keyword">get</span>(tree, action.payload[i].path);</span><br><span class="line">        if (action.payload[i].item) &#123;</span><br><span class="line">          value.splice(</span><br><span class="line">            action.payload[i].start,</span><br><span class="line">            action.payload[i].deleteCount,</span><br><span class="line">            action.payload[i].item</span><br><span class="line">          );</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          value.splice(action.payload[i].start, action.payload[i].deleteCount);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span>(tree, action.payload[i].path, value);</span><br><span class="line">      &#125;</span><br><span class="line">      return tree;</span><br><span class="line">    default:</span><br><span class="line">      return tree;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>OK, 接着开始渲染, <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 采用了<code>模板</code>的形式进行渲染:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">wxs</span> <span class="attr">src</span>=<span class="string">"../../helper.wxs"</span> <span class="attr">module</span>=<span class="string">"helper"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">import</span> <span class="attr">src</span>=<span class="string">"../../base.wxml"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">template</span> <span class="attr">is</span>=<span class="string">"REMAX_TPL"</span> <span class="attr">data</span>=<span class="string">"&#123;&#123;tree: helper.reduce(action)&#125;&#125;"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 为每个组件类型都生成了一个<code>template</code>，动态’递归’渲染整颗树:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span> <span class="attr">name</span>=<span class="string">"REMAX_TPL"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">block</span> <span class="attr">wx:for</span>=<span class="string">"&#123;&#123;tree.root.children&#125;&#125;"</span> <span class="attr">wx:key</span>=<span class="string">"&#123;&#123;id&#125;&#125;"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">template</span> <span class="attr">is</span>=<span class="string">"REMAX_TPL_1_CONTAINER"</span> <span class="attr">data</span>=<span class="string">"&#123;&#123;i: item&#125;&#125;"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">block</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">wxs</span> <span class="attr">module</span>=<span class="string">"_h"</span>&gt;</span></span><br><span class="line">  module.exports = &#123;</span><br><span class="line">  v: function(value) &#123;</span><br><span class="line">  return value !== undefined ? value : '';</span><br><span class="line">  &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">wxs</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 按照层级生成模板 --&gt;</span></span><br><span class="line">&lt;% for (var i = 1; i &lt;= depth; i++) &#123; %&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">%var</span> <span class="attr">id</span> = <span class="string">i;</span> %&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 生成组件模板 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%</span> <span class="attr">for</span> (<span class="attr">let</span> <span class="attr">component</span> <span class="attr">of</span> <span class="attr">components</span>) &#123; %&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%-</span> <span class="attr">include</span>('<span class="attr">.</span>/<span class="attr">component.ejs</span>', &#123;</span></span><br><span class="line"><span class="tag">        <span class="attr">props:</span> <span class="attr">component.props</span>,</span></span><br><span class="line"><span class="tag">        <span class="attr">id:</span> <span class="attr">component.id</span>,</span></span><br><span class="line"><span class="tag">        <span class="attr">templateId:</span> <span class="attr">id</span>,</span></span><br><span class="line"><span class="tag">      &#125;) %&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%</span> &#125; %&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">template</span> <span class="attr">name</span>=<span class="string">"REMAX_TPL_&lt;%=id%&gt;_plain-text"</span> <span class="attr">data</span>=<span class="string">"&#123;&#123;i: i&#125;&#125;"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">block</span>&gt;</span>&#123;&#123;i.text&#125;&#125;<span class="tag">&lt;/<span class="name">block</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--  把动态选择模板的逻辑放入一个模板内，可以提升性能问题 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">template</span> <span class="attr">name</span>=<span class="string">"REMAX_TPL_&lt;%=id%&gt;_CONTAINER"</span> <span class="attr">data</span>=<span class="string">"&#123;&#123;i: i&#125;&#125;"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">template</span> <span class="attr">is</span>=<span class="string">"&#123;&#123;'REMAX_TPL_&lt;%=id%&gt;_' + i.type&#125;&#125;"</span> <span class="attr">data</span>=<span class="string">"&#123;&#123;i: i&#125;&#125;"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">%</span> &#125; %&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>限于小程序的渲染机制，以下因素可能会影响渲染的性能:</p>
+<ul>
+<li>进程IPC。更新指令通过IPC通知到渲染进程，频繁更新可能会影响性能.  ReactNative 中涉及到 Native 和 JS引擎之间的通信，也是存在这个问题的。<br>所以小程序才有了 <code>WXS</code> 这类方案，用来处理复杂的视图交互问题，比如动画。未来 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 也需要考虑这个问题</li>
+<li><code>Reconciler</code>这一层已经进行了 Diff，到<code>渲染进程</code>可能需要重复再做一遍？</li>
+<li>基于模板的方案，局部更新是否会导致页面级别重新渲染？和小程序原生的自定义组件相比性能如何？</li>
+</ul>
+<p><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文以 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a> 为例，科普一个 React 自定义渲染器是如何运作的。对于 <a href="https://github.com/remaxjs" target="_blank" rel="noopener"><code>Remax</code></a>，目前还处于开发阶段，很多功能还不完善。至于<a href="https://github.com/remaxjs/remax/issues/156" target="_blank" rel="noopener">性能如何</a>，笔者还不好做评论，可以看官方给出的初步<a href="https://github.com/remaxjs/benchmark" target="_blank" rel="noopener">基准测试</a>。有能力的同学，可以参与代码贡献或者 Issue 讨论。</p>
+<p>最后谢谢<a href="https://www.zhihu.com/people/meck" target="_blank" rel="noopener">边柳</a>对本文审校和建议。</p>
+<p><br></p>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><ul>
+<li><a href="https://zhuanlan.zhihu.com/p/79788488" target="_blank" rel="noopener">Remax - 使用真正的 React 构建小程序</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/26027085" target="_blank" rel="noopener">React Fiber是什么</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/57346388" target="_blank" rel="noopener">深入React fiber架构及源码</a></li>
+<li><a href="https://medium.com/@agent_hunt/hello-world-custom-react-renderer-9a95b7cd04bc" target="_blank" rel="noopener">Hello World Custom React Renderer - Shailesh - Medium</a></li>
+<li><a href="https://blog.atulr.com/react-custom-renderer-1/" target="_blank" rel="noopener">⚛️👆 Part 1/3 - Beginners guide to Custom React Renderers. How to build your own renderer from scratch?</a> 这系列文章很棒</li>
+<li><a href="https://zhuanlan.zhihu.com/p/82741561" target="_blank" rel="noopener">谜之wxs，uni-app如何用它大幅提升性能</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/59787245" target="_blank" rel="noopener">全新重构，uni-app实现微信端性能翻倍</a></li>
+<li><a href="https://www.zhihu.com/search?type=content&amp;q=小程序原理" target="_blank" rel="noopener">浅谈小程序运行机制</a></li>
+</ul>
+<p><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#关于react的一些基本概念"><span class="toc-number">1.</span> <span class="toc-text">关于React的一些基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#自定义react渲染器"><span class="toc-number">2.</span> <span class="toc-text">自定义React渲染器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hostconfig-渲染器适配"><span class="toc-number">3.</span> <span class="toc-text">HostConfig 渲染器适配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#宿主组件"><span class="toc-number">4.</span> <span class="toc-text">宿主组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#镜像树的构建和操作"><span class="toc-number">5.</span> <span class="toc-text">镜像树的构建和操作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#节点更新"><span class="toc-number">6.</span> <span class="toc-text">节点更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#副作用提交"><span class="toc-number">7.</span> <span class="toc-text">副作用提交</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#hostconfig执行流程总结"><span class="toc-number">8.</span> <span class="toc-text">HostConfig执行流程总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#同步到渲染进程"><span class="toc-number">9.</span> <span class="toc-text">同步到渲染进程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">11.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/15/remax/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/15/remax/&text=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/15/remax/&is_video=false&description=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=自己写个React渲染器: 以 Remax 为例(用React写小程序)&body=Check out this article: https://bobi.ink/2019/09/15/remax/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/15/remax/&title=自己写个React渲染器: 以 Remax 为例(用React写小程序)"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/15/remax/&name=自己写个React渲染器: 以 Remax 为例(用React写小程序)&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="这期来聊一聊前端框架。 “if 我是前端 Leader” 是我的一个文章系列，说说我人在其位，欲谋其职的一些点点滴滴感悟。跟前端 Leader 只有那么一丢丢关系，干货不多，但老少皆宜，不要被标题给唬住了。  文章大纲    什么是框架? 前端‘框架’的发展历程 前端框架启蒙阶段 野蛮生长期 前端框架整合期   现有的框架都有什么？ 谈谈前端团队框架体系的建设 第一阶段: 前端工程化 / 基础设施">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="if 我是前端Leader，谈谈前端框架体系建设">
+<meta property="og:url" content="https://bobi.ink/2019/12/06/fe-framework/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="这期来聊一聊前端框架。 “if 我是前端 Leader” 是我的一个文章系列，说说我人在其位，欲谋其职的一些点点滴滴感悟。跟前端 Leader 只有那么一丢丢关系，干货不多，但老少皆宜，不要被标题给唬住了。  文章大纲    什么是框架? 前端‘框架’的发展历程 前端框架启蒙阶段 野蛮生长期 前端框架整合期   现有的框架都有什么？ 谈谈前端团队框架体系的建设 第一阶段: 前端工程化 / 基础设施">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/bigfish.jpg">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/framework-content.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/time.jpg">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/framework-order.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/base.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/app-dev.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/component.png">
+<meta property="og:image" content="https://bobi.ink/images/fe-framework/icework.png">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.328Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="if 我是前端Leader，谈谈前端框架体系建设">
+<meta name="twitter:description" content="这期来聊一聊前端框架。 “if 我是前端 Leader” 是我的一个文章系列，说说我人在其位，欲谋其职的一些点点滴滴感悟。跟前端 Leader 只有那么一丢丢关系，干货不多，但老少皆宜，不要被标题给唬住了。  文章大纲    什么是框架? 前端‘框架’的发展历程 前端框架启蒙阶段 野蛮生长期 前端框架整合期   现有的框架都有什么？ 谈谈前端团队框架体系的建设 第一阶段: 前端工程化 / 基础设施">
+<meta name="twitter:image" content="https://bobi.ink/images/fe-framework/bigfish.jpg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>if 我是前端Leader，谈谈前端框架体系建设</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/12/16/electron/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/11/29/jsx-as-dsl/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/12/06/fe-framework/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/12/06/fe-framework/&text=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/12/06/fe-framework/&is_video=false&description=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端Leader，谈谈前端框架体系建设&body=Check out this article: https://bobi.ink/2019/12/06/fe-framework/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/12/06/fe-framework/&name=if 我是前端Leader，谈谈前端框架体系建设&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是框架"><span class="toc-number">1.</span> <span class="toc-text">什么是框架?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#前端‘框架’的发展历程"><span class="toc-number">2.</span> <span class="toc-text">前端‘框架’的发展历程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#前端框架启蒙阶段"><span class="toc-number">2.1.</span> <span class="toc-text">前端框架启蒙阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#野蛮生长期"><span class="toc-number">2.2.</span> <span class="toc-text">野蛮生长期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#前端框架整合期"><span class="toc-number">2.3.</span> <span class="toc-text">前端框架整合期</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的框架都有什么？"><span class="toc-number">3.</span> <span class="toc-text">现有的框架都有什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#谈谈前端团队框架体系的建设"><span class="toc-number">4.</span> <span class="toc-text">谈谈前端团队框架体系的建设</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#第一阶段-前端工程化-基础设施"><span class="toc-number">4.1.</span> <span class="toc-text">第一阶段: 前端工程化 / 基础设施</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第二阶段-应用开发方案整合"><span class="toc-number">4.2.</span> <span class="toc-text">第二阶段: 应用开发方案整合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第三阶段-组件体系"><span class="toc-number">4.3.</span> <span class="toc-text">第三阶段: 组件体系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第四阶段：打通上下游"><span class="toc-number">4.4.</span> <span class="toc-text">第四阶段：打通上下游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#未来-ai"><span class="toc-number">4.5.</span> <span class="toc-text">未来: AI?</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">5.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        if 我是前端Leader，谈谈前端框架体系建设
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-12-05T16:00:00.000Z" itemprop="datePublished">2019-12-06</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这期来聊一聊前端框架。</p>
+<p>“if 我是前端 Leader” 是我的一个文章系列，说说我人在其位，欲谋其职的一些点点滴滴感悟。跟前端 Leader 只有那么一丢丢关系，干货不多，但老少皆宜，不要被标题给唬住了。</p>
+<p><br></p>
+<p><strong>文章大纲</strong></p>
+<p><br></p>
+<!-- TOC -->
+<ul>
+<li><a href="#什么是框架">什么是框架?</a></li>
+<li><a href="#前端框架的发展历程">前端‘框架’的发展历程</a><ul>
+<li><a href="#前端框架启蒙阶段">前端框架启蒙阶段</a></li>
+<li><a href="#野蛮生长期">野蛮生长期</a></li>
+<li><a href="#前端框架整合期">前端框架整合期</a></li>
+</ul>
+</li>
+<li><a href="#现有的框架都有什么">现有的框架都有什么？</a></li>
+<li><a href="#谈谈前端团队框架体系的建设">谈谈前端团队框架体系的建设</a><ul>
+<li><a href="#第一阶段-前端工程化--基础设施">第一阶段: 前端工程化 / 基础设施</a></li>
+<li><a href="#第二阶段-应用开发方案整合">第二阶段: 应用开发方案整合</a></li>
+<li><a href="#第三阶段-组件体系">第三阶段: 组件体系</a></li>
+<li><a href="#第四阶段打通上下游">第四阶段：打通上下游</a></li>
+<li><a href="#未来-ai">未来: AI?</a></li>
+</ul>
+</li>
+<li><a href="#扩展资料">扩展资料</a></li>
+</ul>
+<!-- /TOC -->
+<p><br><br><br></p>
+<h2 id="什么是框架"><a href="#什么是框架" class="headerlink" title="什么是框架?"></a>什么是框架?</h2><p>这应该不是我第一次谈‘框架‘了。React 是一个框架吗？ Vue 是一个框架吗？ 严格来说不是，它们只是一个视图解决方案，这里面算得上是框架的估计只有 Angular。</p>
+<p>如果说后端框架围绕着<code>数据存储</code>建立起来，那么前端框架的基础就是视图库，毕竟前端的本质工作就是视图。这是为什么前端生态圈一般是围绕着视图库展开的。所以说，<strong>前端框架的基础是‘视图’库</strong>。</p>
+<p>如果跟后端框架比起来，成熟的前端框架其实不多。</p>
+<p><br></p>
+<p><strong>什么是框架？</strong></p>
+<p><br></p>
+<p>看个例子。打开 <a href="https://umijs.org" target="_blank" rel="noopener">UmiJS</a>, 它对自己的描述是:</p>
+<blockquote>
+<p><strong>可插拔的企业级 react 应用框架</strong></p>
+</blockquote>
+<p>关键字是<strong>企业级</strong>。什么是企业级，我自己也说不清楚。我只知道 React 没有说自己是企业级，Koa、Express 也没有，然而 <a href="https://eggjs.org" target="_blank" rel="noopener">Eggjs</a> 和 <a href="https://umijs.org" target="_blank" rel="noopener">Umijs</a> 都说它们是<strong>企业级框架</strong>；Angular 通常也常常跟企业级这个概念联系在一起；语言层面有 Java。</p>
+<p>对比一下他们就知道了，我觉得企业级表示它是 <strong>面向企业生产，目的是提高企业的生产力</strong>。总结一下有以下特点：</p>
+<p><br></p>
+<ul>
+<li>是高效 + 成熟方案的整合</li>
+<li>关注生产的整个链路，而不是某个环节</li>
+<li>有更强的约束和限制</li>
+<li>更严苛的要求。性能、可扩展性(以应对不同的需求)、健壮性、稳定性、可用性、安全性</li>
+<li>标准化</li>
+<li>经过生产环境验证, 有较多用例保证</li>
+</ul>
+<p><br></p>
+<p>归根到底还是成本问题，框架最本质的目的就是要减低各类成本。让更少的人可以做更多的事情、且能保证质量、降低维护成本，且能保证不断优化和演进。</p>
+<p><br></p>
+<p><strong>给个定义吧。</strong></p>
+<p><br></p>
+<p><strong>前端框架体系的建立离不开前端工程化成熟和‘最佳实践‘的沉淀’。你可以认为框架就是一个整合的方案，提供一个前端‘最佳‘的组合配置。开发者需要做的就是在这个框架约束下填充自己业务代码。</strong></p>
+<p><br></p>
+<p>好处：</p>
+<ul>
+<li>效率提升。让开发者关注业务开发</li>
+<li>学习成本降低。框架封装了很多底层复杂性</li>
+<li>更强的约束。所有动作必须按照框架规定的执行, 避免干坏事、蠢事。更强的约束也意味着框架集成度更高、框架内部可以做更多事情，但灵活性也更低。</li>
+<li>产品质量。框架内部会自动处理很多事情，例如性能优化、安全性处理</li>
+<li>可维护性。所有项目都按照一致的、标准化的规范开发，升级迭代方便。这一点对团队项目的可维护性很重要。</li>
+</ul>
+<p><br></p>
+<p>坏处:</p>
+<ul>
+<li>灵活性。不能满足所有人的需求，最佳实践这种东西有点武断</li>
+<li>滞后性。具体方案可能会滞后。</li>
+<li>大而全。对于某些项目可能过重。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="前端‘框架’的发展历程"><a href="#前端‘框架’的发展历程" class="headerlink" title="前端‘框架’的发展历程"></a>前端‘框架’的发展历程</h2><h3 id="前端框架启蒙阶段"><a href="#前端框架启蒙阶段" class="headerlink" title="前端框架启蒙阶段"></a>前端框架启蒙阶段</h3><p>在 React、Vue 流行之前已经有许多‘前端框架‘，例如 Angular、Ember、Backbone…</p>
+<p>它们大部分都受到后端框架的启发，因为当年也正是后端框架最火的时候，例如 Rails。所以在它们身上会看到很多后端框架的影子。</p>
+<p>但是很多后端的开发模式，在前端有点吃不开。更本质的原因是前端工程化还不成熟，基础相对薄弱，难以支撑上层建筑的发展。</p>
+<p><br><br><br></p>
+<h3 id="野蛮生长期"><a href="#野蛮生长期" class="headerlink" title="野蛮生长期"></a>野蛮生长期</h3><p>随着 NodeJS 的普及、JavaScript 语言日益强大，前端工程化逐步深化。 React 这类视图库出来后，很多东西被打碎重构, 正所谓百花齐放，欣欣向荣。</p>
+<p>围绕着三大视图库各种各样的库百花齐放，前端也拓展到了浏览器以外的领域。人们都乐于造轮子，使用最新的技术。</p>
+<p>由于发展得太快，所谓的框架/最佳实践很难被广泛接受，或者很容易就过时了，每个人每个团队更热衷于创造自己的组合方案，往往也只限于团队内部。</p>
+<p><br><br><br></p>
+<h3 id="前端框架整合期"><a href="#前端框架整合期" class="headerlink" title="前端框架整合期"></a>前端框架整合期</h3><p>几乎每个团队都会重复走这样的路子：<em>稳定技术栈、工程化建设、基础库/组件库建设、沉淀自己的最佳实践</em>。</p>
+<p>团队没有一定的工程能力和资源其实是很难将这些零散的实践体系化、有机地粘合起来, 长期有效的维护更新更是一件难事, 半途而废的居多。</p>
+<p>现在前端发展开始进入平稳阶段。所以大一统的前端‘框架’再一次进入人们的视野。就像 Umi 的作者 <a href="https://www.zhihu.com/people/chenchengpro/activities" target="_blank" rel="noopener">云谦</a> 说的: <em>现在是工业化时代, 框架像是一个魔法球，把各种技术栈吸到一起，加工后吐给用户，以此来支撑业务</em>。</p>
+<p><img src="/images/fe-framework/bigfish.jpg" alt><br><em>上图来源于&lt;蚂蚁前端研发最佳实践&gt; PPT</em></p>
+<p><br></p>
+<p>框架就是将各种技术栈方案、基础设施整合起来, 暴露标准的、一致性的接口, 让开发者专注业务开发。</p>
+<p><br><br><br></p>
+<h2 id="现有的框架都有什么？"><a href="#现有的框架都有什么？" class="headerlink" title="现有的框架都有什么？"></a>现有的框架都有什么？</h2><p><strong>一个前端开发框架应该涵盖前端开发链路的各个环节。为约束和简化业务开发、提供有用的指导</strong>。</p>
+<p>看看现有‘前端框架‘吧，现在社区上比较流行的‘框架’有 Angular、Next.js、Nuxt、Umi。我们横向对比一下它们的一些特性，发现基本上包含这些东西：</p>
+<p><img src="/images/fe-framework/framework-content.png" alt></p>
+<p><br></p>
+<p>跟衣服的标准码一样。社区开源的都是通用类型框架，可以预知的是它们没有办法满足所有团队的要求。我们往往需要根据自己业务情况量身定制框架。</p>
+<p>为了应对这些需求，不同的框架也有不同的应对策略:</p>
+<ul>
+<li><strong>更开放</strong>。框架只提供核心功能，附加几乎什么事情都能干的<strong>插件机制</strong>。插件可以干预框架的整个生命周期，不满足的需求可以自己定制自己的插件</li>
+<li><strong>更决断</strong>。我给你提供的就是最好的，能满足你的尽量满足你，其他的你不要管太多，也没有必要管, 专注你的业务。</li>
+</ul>
+<p><br></p>
+<p>我们也有自己的选择策略:</p>
+<ul>
+<li>自己搞。例如大厂团队，有资源、有丰富的实践经验。他们有能力将自己的‘最佳实践’体系化。他们会选择创建自己的框架。同时他们也乐于将经验分享出来，也可以利用社区完善自己的作品。个人，基于学习和折腾的目的, 也可以搞一套。</li>
+<li>基于开源框架扩展。可以将开源框架作为基础，根据自己团队情况进行扩展开发。</li>
+<li>完全使用开源框架。开源框架可以满足许多通用的需求, 适合简单的应用场景。<strong>我们选择一个框架主要有两个原因：① 我们要提高工作效率；② 我们需要一个标准</strong>。 为了标准，其实可妥协一些事情。更重要的是这些框架是在不断发展和演进的, 从而我们团队的技术也可以免费地跟随他们演进和发展。将开源框架的默认最佳实践开发视为标准。</li>
+</ul>
+<p><br></p>
+<p>我一直坚信<strong>专业的人做专业的事。要善于将事情外包出去，腾空自己去做重要的事情</strong>。大厂有专门的团队在做工具、建设基础设施，社区上开源的框架也由一大帮牛人在维护，而且通常开发迭代很活跃。所以说社区已经有的方案，可以直接拿来用，不要自己去造轮子，因为你一般没那么多精力。</p>
+<p><br><br><br></p>
+<h2 id="谈谈前端团队框架体系的建设"><a href="#谈谈前端团队框架体系的建设" class="headerlink" title="谈谈前端团队框架体系的建设"></a>谈谈前端团队框架体系的建设</h2><p>前端开发的时间都花在了哪里?</p>
+<p><img src="/images/fe-framework/time.jpg" alt><br><em>上图来源于&lt;蚂蚁前端研发最佳实践&gt; PPT</em></p>
+<p><br></p>
+<p>对于前端团队来说，开源前端框架只是一个基础，只是涉及前端开发的某个很小的部分，它就像一艘船。你要航线穿越大西洋，还有做很多工作、需要紧密高效的协作、可靠的后勤保障、目标和方向、坚定的领导… 路还很长。</p>
+<p><strong>现在来聊聊‘广义的‘框架体系，它集成自身业务，涉及前端开发完整链路，关注点从前端应用上升到了前端团队研发体系</strong>。</p>
+<p><br></p>
+<p><img src="/images/fe-framework/framework-order.png" alt></p>
+<p><br></p>
+<p>九层之台，起于累土。 前端团队框架体系的建设是一个渐进式的过程，首先从基础设施开始、接着就是应用开发技术栈组合，再到组件体系，后面是上层的业务开发方案… 上层以下层为基础，共同构建出完整的框架体系。</p>
+<p>我觉得前端团队可以按照这样的分层结构，分阶段来完成这些建设任务。</p>
+<p><br></p>
+<h3 id="第一阶段-前端工程化-基础设施"><a href="#第一阶段-前端工程化-基础设施" class="headerlink" title="第一阶段: 前端工程化 / 基础设施"></a>第一阶段: 前端工程化 / 基础设施</h3><p>最基础的阶段，关注前端的基础设施建设。这个阶段已经比较成熟，社区上有很多开箱即用的方案，例如 Umi、Next.js、Vue-CLI、Create-React-App 等等。主要内容有:</p>
+<p><img src="/images/fe-framework/base.png" alt></p>
+<p><br></p>
+<h3 id="第二阶段-应用开发方案整合"><a href="#第二阶段-应用开发方案整合" class="headerlink" title="第二阶段: 应用开发方案整合"></a>第二阶段: 应用开发方案整合</h3><p>在完善基础设施的同时，团队的应用开发技术栈组合方案也应该稳定下来，成为框架的一部分。这些组合也非常重要，它会影响上层的组件建设和业务开发。主要内容有:</p>
+<p><img src="/images/fe-framework/app-dev.png" alt></p>
+<p><br></p>
+<h3 id="第三阶段-组件体系"><a href="#第三阶段-组件体系" class="headerlink" title="第三阶段: 组件体系"></a>第三阶段: 组件体系</h3><p>组件化现在是前端主流开发模式，这里还有很多工作可以做，还有很大的提效空间。</p>
+<p>整个组件体系也是一个分层式的结构：</p>
+<p><img src="/images/fe-framework/component.png" alt></p>
+<ul>
+<li>基础组件。越底层，就说明可复用的程度越高、越通用。Ant-Design、Element-UI、iView、Material-UI 这些就属于基础组件库，有能力的团队也可以开发一套符合自己设计风格的组件库。</li>
+<li>业务组件。在基础组件之上封装的、耦合自己业务的组件。它们一般从重复的业务场景中抽象出来。</li>
+<li>区块。再往上，就很难用模块化的组件去组织了。于是有人(阿里前端)提出了‘区块’的概念，<strong>你可以认为‘区块’是：代码片段、代码示例、代码模板…</strong> 这么看来，这并不是一种新的概念? 还没完! <strong>区块还要配套‘区块市场’才能展现它的用处。区块市场是一个代码片段分享平台，维护着大量的区块，试图覆盖大部分常见的使用场景。对于开发者来说就是找到尽量匹配自己场景的区块，拷贝过来，稍微改改就行了。这是一种 ‘Ctrl+C，Ctrl+V’ 编程哲学的完美实践啊</strong>。</li>
+<li>页面。和区块差不多，快速生成页面和路由。约定式的路由可以给页面自动化创建带来一些便利。</li>
+<li>布局。例如后台的整体布局。</li>
+<li>项目。项目的整体结构。可以通过‘脚手架‘ 来快速生成项目模板。</li>
+</ul>
+<p><br></p>
+<p><img src="/images/fe-framework/icework.png" alt></p>
+<p><br></p>
+<p>像区块、页面生成这些操作需要一些工具辅助。例如：</p>
+<ul>
+<li>生成器。生成不同级别的元件<ul>
+<li>项目(项目模板)。 俗称脚手架, 支持不同的项目类型：应用、组件库、程序库、 插件</li>
+<li>页面/路由</li>
+<li>区块</li>
+<li>组件</li>
+<li>数据模型</li>
+</ul>
+</li>
+<li>可视化工具。可视化的项目编排工具, 如飞冰。</li>
+</ul>
+<p><br></p>
+<h3 id="第四阶段：打通上下游"><a href="#第四阶段：打通上下游" class="headerlink" title="第四阶段：打通上下游"></a>第四阶段：打通上下游</h3><p>前端只是研发流程的一环，只是前端自嗨，上下游没有资源支持，是很难走远的。</p>
+<p>对于前端来说，通常上游指的是 UI、下游指的是后端。</p>
+<p>对于 UI。上面说的组件体系，其实是建立在稳定的、一致的、统一的 UI 设计语言之上的。否则一切都是空谈。所以我们要求 UI 设计团队要有良好的设计规范、能和前端组件体系绑定并良性迭代。</p>
+<p>对于 后端。可以促进建立更标准的接口范式、封装通用的服务(有利于业务组件复用)、更深的有业务中台、BFF…</p>
+<p>上下游的打通，对前端生产力的解放也有非常大的促进作用。</p>
+<p><br></p>
+<h3 id="未来-ai"><a href="#未来-ai" class="headerlink" title="未来: AI?"></a>未来: AI?</h3><p>AI 自动生成前端代码？ 太高大上了，还是把话筒交给它吧： <a href="https://mp.weixin.qq.com/s/EktHbvCnghkywZE8rOvMhw" target="_blank" rel="noopener">《双 11 模块 79.34% 的代码是怎样智能生成的？》</a>， 溜了</p>
+<p><br><br><br></p>
+<h2 id="扩展资料"><a href="#扩展资料" class="headerlink" title="扩展资料"></a>扩展资料</h2><ul>
+<li><a href="https://zhuanlan.zhihu.com/p/94949118" target="_blank" rel="noopener">《蚂蚁前端研发最佳实践》文字稿</a> 好文</li>
+<li><a href="https://mp.weixin.qq.com/s/EktHbvCnghkywZE8rOvMhw" target="_blank" rel="noopener">双 11 模块 79.34% 的代码是怎样智能生成的？</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是框架"><span class="toc-number">1.</span> <span class="toc-text">什么是框架?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#前端‘框架’的发展历程"><span class="toc-number">2.</span> <span class="toc-text">前端‘框架’的发展历程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#前端框架启蒙阶段"><span class="toc-number">2.1.</span> <span class="toc-text">前端框架启蒙阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#野蛮生长期"><span class="toc-number">2.2.</span> <span class="toc-text">野蛮生长期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#前端框架整合期"><span class="toc-number">2.3.</span> <span class="toc-text">前端框架整合期</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#现有的框架都有什么？"><span class="toc-number">3.</span> <span class="toc-text">现有的框架都有什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#谈谈前端团队框架体系的建设"><span class="toc-number">4.</span> <span class="toc-text">谈谈前端团队框架体系的建设</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#第一阶段-前端工程化-基础设施"><span class="toc-number">4.1.</span> <span class="toc-text">第一阶段: 前端工程化 / 基础设施</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第二阶段-应用开发方案整合"><span class="toc-number">4.2.</span> <span class="toc-text">第二阶段: 应用开发方案整合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第三阶段-组件体系"><span class="toc-number">4.3.</span> <span class="toc-text">第三阶段: 组件体系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第四阶段：打通上下游"><span class="toc-number">4.4.</span> <span class="toc-text">第四阶段：打通上下游</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#未来-ai"><span class="toc-number">4.5.</span> <span class="toc-text">未来: AI?</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展资料"><span class="toc-number">5.</span> <span class="toc-text">扩展资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/12/06/fe-framework/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/12/06/fe-framework/&text=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/12/06/fe-framework/&is_video=false&description=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端Leader，谈谈前端框架体系建设&body=Check out this article: https://bobi.ink/2019/12/06/fe-framework/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/12/06/fe-framework/&title=if 我是前端Leader，谈谈前端框架体系建设"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/12/06/fe-framework/&name=if 我是前端Leader，谈谈前端框架体系建设&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

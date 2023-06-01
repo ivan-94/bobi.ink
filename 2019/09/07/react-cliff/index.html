@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="译注: 原文作者是Mathias Bynens, 他是V8开发者，这篇文章也发布在V8的博客上。他的相关文章质量非常高，如果你想了解JavaScript引擎内部是如何工作的，他的文章一定不能错过。后面我还会翻译他的其他文章，一方面是他文章质量很高，另外一方面是我想学习一下他们是怎么写文章的，通过翻译文章，让我可以更好地消化知识和模仿写作技巧, 最后奇文共赏！  原文链接: The story o">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于React的一个V8性能瓶颈背后的故事">
+<meta property="og:url" content="https://bobi.ink/2019/09/07/react-cliff/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="译注: 原文作者是Mathias Bynens, 他是V8开发者，这篇文章也发布在V8的博客上。他的相关文章质量非常高，如果你想了解JavaScript引擎内部是如何工作的，他的文章一定不能错过。后面我还会翻译他的其他文章，一方面是他文章质量很高，另外一方面是我想学习一下他们是怎么写文章的，通过翻译文章，让我可以更好地消化知识和模仿写作技巧, 最后奇文共赏！  原文链接: The story o">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/01-javascript-types.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/02-primitives-objects.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/03-primitives-objects-typeof.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/04-smi-vs-heapnumber.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/05-update-smi.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/06-update-heapnumber.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/07-heapnumbers.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/08-garbage-heapnumbers.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/09-mutableheapnumber.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/10-update-mutableheapnumber.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/11-mutableheapnumber-to-heapnumber.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/12-smi-no-boxing.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/13-shape.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/14-shape-transition.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/15-shape-deprecation.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/16-split-shape.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/17-shape-nonextensible.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/18-repro-shape-setup.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/19-orphaned-shape.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/20-fibernode-shape.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/21-orphan-islands.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/22-fix.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/23-fix-fibernode-shape-1.svg">
+<meta property="og:image" content="https://bobi.ink/images/react-cliff/24-fix-fibernode-shape-2.svg">
+<meta property="og:image" content="https://bobi.ink/images/sponsor.jpg">
+<meta property="og:updated_time" content="2023-06-01T09:55:14.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="关于React的一个V8性能瓶颈背后的故事">
+<meta name="twitter:description" content="译注: 原文作者是Mathias Bynens, 他是V8开发者，这篇文章也发布在V8的博客上。他的相关文章质量非常高，如果你想了解JavaScript引擎内部是如何工作的，他的文章一定不能错过。后面我还会翻译他的其他文章，一方面是他文章质量很高，另外一方面是我想学习一下他们是怎么写文章的，通过翻译文章，让我可以更好地消化知识和模仿写作技巧, 最后奇文共赏！  原文链接: The story o">
+<meta name="twitter:image" content="https://bobi.ink/images/react-cliff/01-javascript-types.svg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>关于React的一个V8性能瓶颈背后的故事</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2019/09/11/arch-pattern/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/09/06/fe-design/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/07/react-cliff/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/07/react-cliff/&text=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/07/react-cliff/&is_video=false&description=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=关于React的一个V8性能瓶颈背后的故事&body=Check out this article: https://bobi.ink/2019/09/07/react-cliff/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/07/react-cliff/&name=关于React的一个V8性能瓶颈背后的故事&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#javascript-类型"><span class="toc-number">1.</span> <span class="toc-text">JavaScript 类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#值的表示"><span class="toc-number">2.</span> <span class="toc-text">值的表示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#smi-vs-heapnumber-vs-mutableheapnumber"><span class="toc-number">3.</span> <span class="toc-text">Smi vs. HeapNumber vs. MutableHeapNumber</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#shape-废弃和迁移"><span class="toc-number">4.</span> <span class="toc-text">Shape 废弃和迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#可扩展性和完整性级别转换"><span class="toc-number">5.</span> <span class="toc-text">可扩展性和完整性级别转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#react的性能问题"><span class="toc-number">6.</span> <span class="toc-text">React的性能问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        关于React的一个V8性能瓶颈背后的故事
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2019-09-06T16:00:00.000Z" itemprop="datePublished">2019-09-07</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>译注: 原文作者是<a href="https://twitter.com/mathias" target="_blank" rel="noopener">Mathias Bynens</a>, 他是V8开发者，这篇文章也发布在<a href="https://v8.dev/blog" target="_blank" rel="noopener">V8的博客</a>上。他的<a href="https://mathiasbynens.be" target="_blank" rel="noopener">相关文章</a>质量非常高，如果你想了解JavaScript引擎内部是如何工作的，他的文章一定不能错过。后面我还会翻译他的其他文章，一方面是他文章质量很高，另外一方面是我想学习一下他们是怎么写文章的，通过翻译文章，让我可以更好地消化知识和模仿写作技巧, 最后奇文共赏！</p>
+</blockquote>
+<p>原文链接: <a href="https://v8.dev/blog/react-cliff" target="_blank" rel="noopener">The story of a V8 performance cliff in React</a></p>
+<p><a href="https://mathiasbynens.be/notes/shapes-ics" target="_blank" rel="noopener">之前</a>我们讨论过Javascript引擎是如何通过Shape(外形)和内联缓存(Inline Caches)来优化对象和数组的访问的, 我们还特别探讨了<a href="https://mathiasbynens.be/notes/prototypes" target="_blank" rel="noopener">Javascript引擎是如何加速原型属性访问</a>. 这篇文章讲述<strong>V8如何为不同的Javascript值选择最佳的内存表示(representations), 以及它是如何影响外形机制(shape machinery)的</strong>。这些可以帮助我们解释最近React内核出现的V8性能瓶颈(Performance cliff)问题</p>
+<blockquote>
+<p>如果不想看文章，可以看这个演讲： <a href="https://www.youtube.com/watch?v=0I0d8LkDqyc" target="_blank" rel="noopener">“JavaScript engine fundamentals: the good, the bad, and the ugly”</a></p>
+</blockquote>
+<p><br></p>
+<h2 id="javascript-类型"><a href="#javascript-类型" class="headerlink" title="JavaScript 类型"></a>JavaScript 类型</h2><p>每一个Javascript值都属于以下八个类型之一(目前): <code>Number</code>, <code>String</code>, <code>Symbol</code>, <code>BigInt</code>, <code>Boolean</code>, <code>Undefined</code>, <code>Null</code>, 以及 <code>Object</code>.</p>
+<p><img src="/images/react-cliff/01-javascript-types.svg" alt></p>
+<p>但是有个总所周知的例外，在JavaScript中可以通过<code>typeof</code>操作符观察值的类型：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typeof</span> <span class="number">42</span>;</span><br><span class="line"><span class="comment">// → 'number'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="string">'foo'</span>;</span><br><span class="line"><span class="comment">// → 'string'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="built_in">Symbol</span>(<span class="string">'bar'</span>);</span><br><span class="line"><span class="comment">// → 'symbol'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="number">42</span>n;</span><br><span class="line"><span class="comment">// → 'bigint'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="literal">true</span>;</span><br><span class="line"><span class="comment">// → 'boolean'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="literal">undefined</span>;</span><br><span class="line"><span class="comment">// → 'undefined'</span></span><br><span class="line"><span class="keyword">typeof</span> <span class="literal">null</span>;</span><br><span class="line"><span class="comment">// → 'object' 🤔</span></span><br><span class="line"><span class="keyword">typeof</span> &#123; <span class="attr">x</span>: <span class="number">42</span> &#125;;</span><br><span class="line"><span class="comment">// → 'object'</span></span><br></pre></td></tr></table></figure>
+<p><code>typeof null</code>返回的是’<code>object</code>‘, 而不是’<code>null</code>‘, 尽管<code>Null</code>有一个自己的类型。要理解为什么，考虑将所有Javascript类型的集合分为两组：</p>
+<ul>
+<li><em>对象类型</em> (i.e. <code>Object</code>类型)</li>
+<li><em>原始(primitives)类型</em> (i.e. 任何非对象值)</li>
+</ul>
+<p>因此, <code>null</code>可以理解为”无对象值”, 而<code>undefined</code>则表示为“无值”.</p>
+<blockquote>
+<p>译注：也就是，null可以理解为对象类型的’undefined’；而undefined是所有类型的’undefined’</p>
+</blockquote>
+<p><img src="/images/react-cliff/02-primitives-objects.svg" alt></p>
+<p>遵循这个思路，Brendan Eich 在设计Javascript的时候受到了Java的影响，让<code>typeof</code>右侧所有值(即所有对象和null值)都返回’object’. 这就是为什么<code>typeof null === &#39;object&#39;</code>的原因, 尽管规范中有一个单独的<code>Null</code>类型。</p>
+<p><img src="/images/react-cliff/03-primitives-objects-typeof.svg" alt></p>
+<p><br></p>
+<h2 id="值的表示"><a href="#值的表示" class="headerlink" title="值的表示"></a>值的表示</h2><p>Javascript引擎必须能够在内存中表示任意的Javascript值. 然而，需要注意的是，<strong>Javascript的值类型和Javascript引擎如何在内存中表示它们是两回事</strong>.</p>
+<p>例如值 <code>42</code>，Javascript中是<code>number</code>类型。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typeof</span> <span class="number">42</span>;</span><br><span class="line"><span class="comment">// → 'number'</span></span><br></pre></td></tr></table></figure>
+<p>在内存中有很多种方式来表示类似<code>42</code>这样的整型数字:</p>
+<table>
+<thead>
+<tr>
+<th>表示</th>
+<th>位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8-bit二进制补码</td>
+<td><code>0010 1010</code></td>
+</tr>
+<tr>
+<td>32-bit二进制补码</td>
+<td><code>0000 0000 0000 0000 0000 0000 0010 1010</code></td>
+</tr>
+<tr>
+<td>压缩二进制编码十进制(packed binary-coded decimal (BCD))</td>
+<td><code>0100 0010</code></td>
+</tr>
+<tr>
+<td>32-bit IEEE-754 浮点数</td>
+<td><code>0100 0010 0010 1000 0000 0000 0000 0000</code></td>
+</tr>
+<tr>
+<td>64-bit IEEE-754 浮点数</td>
+<td><code>0100 0000 0100 0101 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000</code></td>
+</tr>
+</tbody>
+</table>
+<p>ECMAScript标准的数字类型是64位的浮点数，或者称为双精度浮点数或者Float64. 然而，这不是意味着Javascript引擎就一定要一直按照Float64表示保存数字 —— 这么做会非常低效！引擎可以选择其他内部表示，只要可被察觉的行为和Float64完全匹配就行。</p>
+<p>实际的JavaScript应用中，大多数数字碰巧都是<a href="https://tc39.es/ecma262/#array-index" target="_blank" rel="noopener">合法ECMAScript数组索引</a>。即0 to 2³²−2之间的整型值.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">array[<span class="number">0</span>]; <span class="comment">// 最小合法的数组索引.</span></span><br><span class="line">array[<span class="number">42</span>];</span><br><span class="line">array[<span class="number">2</span>**<span class="number">32</span><span class="number">-2</span>]; <span class="comment">// 最大合法数组索引.</span></span><br></pre></td></tr></table></figure>
+<p>JavaScript引擎可以为这类数字选择最优内存表示，来优化通过索引访问数组元素的代码。为了让处理器可以执行内存访问操作，数组索引必须是<a href="https://en.wikipedia.org/wiki/Two%27s_complement" target="_blank" rel="noopener">二进制补码</a>. 将数组索引表示为Float64实际上是一种浪费，因为引擎必须在每次有人访问数组元素时在float64和二进制补码之间来回转换</p>
+<p>32位的二进制补码表示不仅仅对数组操作有用。一般来说，<strong>处理器执行整型操作会比浮点型操作要快得多</strong>。这就是为什么下一个例子中，第一个循环执行速度是第二个循环的两倍.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; ++i) &#123;</span><br><span class="line">  <span class="comment">// fast 🚀</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0.1</span>; i &lt; <span class="number">1000.1</span>; ++i) &#123;</span><br><span class="line">  <span class="comment">// slow 🐌</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>操作符也一样。下面代码片段中，取模操作符的性能依赖于操作数是否是整型.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> remainder = value % divisor;</span><br><span class="line"><span class="comment">// Fast 🚀 如果 `value` 和 `divisor` 都表示为整型,</span></span><br><span class="line"><span class="comment">// slow 🐌 其他情况</span></span><br></pre></td></tr></table></figure>
+<p>如果两个操作数都表示为整型，CPU就可以非常高效地计算结果。如果<code>divisor</code>是2的幂, V8还有额外的快速通道(fast-paths)。对于表示为浮点树的值，计算则要复杂的多，并且需要更长的时间.</p>
+<p>因为整型操作通常都比浮点型操作要快得多，所以引擎似乎可以总是使用二进制补码来表示所有整型值和整型的计算结果。不幸的是，这会违反ECMAScript规范！ECMAScript是在Float64基础上进行标准化，因此实际上某些整数操作也可能会输出浮点数。在这种情况下，JS引擎输出正确的结果更重要。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Float64 的安全整型范围是 53 bits. 超过这个返回会失去精度,</span></span><br><span class="line"><span class="number">2</span>**<span class="number">53</span> === <span class="number">2</span>**<span class="number">53</span>+<span class="number">1</span>;</span><br><span class="line"><span class="comment">// → true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Float64 支持-0, 索引 -1 * 0 必须是 -0, 但是二进制补码是没办法表示-0.</span></span><br><span class="line"><span class="number">-1</span>*<span class="number">0</span> === <span class="number">-0</span>;</span><br><span class="line"><span class="comment">// → true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Float64 可以通过除以0来得到无穷大.</span></span><br><span class="line"><span class="number">1</span>/<span class="number">0</span> === <span class="literal">Infinity</span>;</span><br><span class="line"><span class="comment">// → true</span></span><br><span class="line"><span class="number">-1</span>/<span class="number">0</span> === -<span class="literal">Infinity</span>;</span><br><span class="line"><span class="comment">// → true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Float64 还有NaN.</span></span><br><span class="line"><span class="number">0</span>/<span class="number">0</span> === <span class="literal">NaN</span>;</span><br></pre></td></tr></table></figure>
+<p>尽管左侧都是整型，右侧所有值却都是浮点型。这就是为什么32位二进制补码不能正确地执行上面这些操作。所以JavaScript引擎必须特别谨慎，以确保整数操作可以适当地回退，从而输出花哨(符合规范)的Float64结果。</p>
+<p>对于31位有符号整数范围内的小整数，V8使用一个称为<code>Smi</code>(译注: Small Integer)的特殊表示。其他非<code>Smi</code>的表示称为<code>HeapObject</code>，即指向内存中某些实体的地址。对于数字，我们使用的是一个特殊类型的<code>HeapObject</code>, 尚且称为<code>HeapNumber</code>, 用来表示不在Smi范围内的数字.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> -<span class="literal">Infinity</span> <span class="comment">// HeapNumber</span></span><br><span class="line">-(<span class="number">2</span>**<span class="number">30</span>)<span class="number">-1</span> <span class="comment">// HeapNumber</span></span><br><span class="line">  -(<span class="number">2</span>**<span class="number">30</span>) <span class="comment">// Smi</span></span><br><span class="line">       <span class="number">-42</span> <span class="comment">// Smi</span></span><br><span class="line">        <span class="number">-0</span> <span class="comment">// HeapNumber</span></span><br><span class="line">         <span class="number">0</span> <span class="comment">// Smi</span></span><br><span class="line">       <span class="number">4.2</span> <span class="comment">// HeapNumber</span></span><br><span class="line">        <span class="number">42</span> <span class="comment">// Smi</span></span><br><span class="line">   <span class="number">2</span>**<span class="number">30</span><span class="number">-1</span> <span class="comment">// Smi</span></span><br><span class="line">     <span class="number">2</span>**<span class="number">30</span> <span class="comment">// HeapNumber</span></span><br><span class="line">  <span class="literal">Infinity</span> <span class="comment">// HeapNumber</span></span><br><span class="line">       <span class="literal">NaN</span> <span class="comment">// HeapNumber</span></span><br></pre></td></tr></table></figure>
+<p>如上所示，一些JavaScript数字表示为<code>Smi</code>，而另一些则表示为<code>HeapNumber</code>. V8特意为<code>Smi</code>优化过，因为小整数在实际JavaScript程序中太常见了。<code>Smi</code>不需要在内存中额外分配专门的实体, 可以进行快速的整型操作.</p>
+<p>这里更重要的一点是，<strong>即使是相同Javascript类型的值，为了优化，背后可能会以完全不同的方式进行表示</strong>。</p>
+<p><br><br><br></p>
+<h2 id="smi-vs-heapnumber-vs-mutableheapnumber"><a href="#smi-vs-heapnumber-vs-mutableheapnumber" class="headerlink" title="Smi vs. HeapNumber vs. MutableHeapNumber"></a>Smi vs. HeapNumber vs. MutableHeapNumber</h2><p>下面介绍它们底层是怎么工作的。假设你有下列对象:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> o = &#123;</span><br><span class="line">  x: <span class="number">42</span>,  <span class="comment">// Smi</span></span><br><span class="line">  y: <span class="number">4.2</span>, <span class="comment">// HeapNumber</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>x</code>的值<code>42</code>可以被编码为<code>Smi</code>，所以你可以在对象自己内部进行保存。另一方面，值<code>4.2</code>则需要一个单独的实体来保存，然后对象再指向这个实体.</p>
+<p><img src="/images/react-cliff/04-smi-vs-heapnumber.svg" alt></p>
+<p>现在开始执行下面的Javascript片段:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">o.x += <span class="number">10</span>;</span><br><span class="line"><span class="comment">// → o.x 现在是 52</span></span><br><span class="line">o.y += <span class="number">1</span>;</span><br><span class="line"><span class="comment">// → o.y 现在是 5.2</span></span><br></pre></td></tr></table></figure>
+<p>这种情况下，<code>x</code>的值可以被原地(in-place)更新，因为新的值<code>52</code>还是符合<code>Smi</code>的范围.</p>
+<p><img src="/images/react-cliff/05-update-smi.svg" alt></p>
+<p>然而，新值<code>y=5.2</code>不符合<code>Smi</code>，且和之前的值<code>4.2</code>不一样，所以V8必须分配一个新的<code>HeapNumber</code>实体，再赋值给y。</p>
+<p><img src="/images/react-cliff/06-update-heapnumber.svg" alt></p>
+<p><code>HeapNumber</code>是不可变的，这也让某些优化成为可能。举个例子，如果我们将y的值赋给x:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">o.x = o.y;</span><br><span class="line"><span class="comment">// → o.x 现在是 5.2</span></span><br></pre></td></tr></table></figure>
+<p>…我们现在可以简单地链接到同一个HeapNumber，而不是分配一个新的.</p>
+<p><img src="/images/react-cliff/07-heapnumbers.svg" alt></p>
+<p><code>HeapNumbers</code>不可变的一个缺点是，频繁更新字段不在<code>Smi</code>范围内的值会比较慢，如下例所示:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 创建一个 `HeapNumber` 实例.</span></span><br><span class="line"><span class="keyword">const</span> o = &#123; <span class="attr">x</span>: <span class="number">0.1</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  <span class="comment">// 创建另一个 `HeapNumber` 实例.</span></span><br><span class="line">  o.x += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第一行通过初始化值<code>0.1</code>创建一个<code>HeapNumber</code>实例。循环体将它的值改变为<code>1.1</code>、<code>2.1</code>、<code>3.1</code>、<code>4.1</code>、最后是<code>5.1</code>，这个过程总共创建了6个<code>HeapNumber</code>实例，其中5个会在循环结束后被垃圾回收。</p>
+<p><img src="/images/react-cliff/08-garbage-heapnumbers.svg" alt></p>
+<p>为了避免这个问题，V8也提供了一种机制来原地更新非<code>Smi</code>数字字段作为优化。当一个数字字段保存的值超出了<code>Smi</code>的范围后，V8会在<code>Shape</code>中将这个字段标记为<code>Double</code>, 并且分配一个称为<code>MutableHeapNumber</code>实体来保存实际的值。</p>
+<p><img src="/images/react-cliff/09-mutableheapnumber.svg" alt></p>
+<blockquote>
+<p>译注: 关于<code>Shape</code>是什么，可以阅读这篇<a href="https://mathiasbynens.be/notes/shapes-ics" target="_blank" rel="noopener">文章</a>, 简单说<code>Shape</code>就是一个对象的‘外形’，JavaScript引擎可以通过<code>Shape</code>来优化对象的属性访问。</p>
+</blockquote>
+<p>现在当字段的值变动时，V8不需要在分配一个新的<code>HeapNumber</code>，而是直接原地更新<code>MutableHeapNumber</code>.</p>
+<p><img src="/images/react-cliff/10-update-mutableheapnumber.svg" alt></p>
+<p>然而，这种方式也有一个缺陷。因为MutableHeapNumber的值可以被修改，所以这些值不能安全传递给其他变量</p>
+<p><img src="/images/react-cliff/11-mutableheapnumber-to-heapnumber.svg" alt></p>
+<p>举个例子，如果你将<code>o.x</code>赋值给其他变量<code>y</code>，你可不想下一次<code>o.x</code>变动时影响到<code>y</code>的值 —— 这违反了JavaScript规范！因此，当<code>o.x</code>被访问后，在将其赋值给<code>y</code>之前，必须将该数字重新装箱(re-boxed)成一个常规的<code>HeapNumber</code>。</p>
+<p>对于浮点数，V8会在背后执行所有上面提到的“包装(boxing)”魔法。但是对于小整数来说，使用<code>MutableHeapNumber</code>就是浪费，因为<code>Smi</code>是更高效的表示。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> object = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="comment">// → 不需要‘包装’x字段</span></span><br><span class="line"></span><br><span class="line">object.x += <span class="number">1</span>;</span><br><span class="line"><span class="comment">// → 直接在对象内部更新</span></span><br></pre></td></tr></table></figure>
+<p>为了避免低效率，对于小整数，我们必须在<code>Shape</code>上将该字段标记为<code>Smi</code>表示，只要符合小整数的范围，我们就可以简单地原地更新数字值。</p>
+<p><img src="/images/react-cliff/12-smi-no-boxing.svg" alt></p>
+<p><br></p>
+<h2 id="shape-废弃和迁移"><a href="#shape-废弃和迁移" class="headerlink" title="Shape 废弃和迁移"></a>Shape 废弃和迁移</h2><p>那么，如果一个字段初始化时是<code>Smi</code>，但是后续保存了一个超出小整数方位的值呢？比如下面这种情况，两个对象都使用相同的<code>Shape</code>，即<code>x</code>在初始化时表示为<code>Smi</code>:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> a = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="keyword">const</span> b = &#123; <span class="attr">x</span>: <span class="number">2</span> &#125;;</span><br><span class="line"><span class="comment">// → 对象现在将 `x`字段 表示为 `Smi`</span></span><br><span class="line"></span><br><span class="line">b.x = <span class="number">0.2</span>;</span><br><span class="line"><span class="comment">// → `b.x` 现在表示为 `Double`</span></span><br><span class="line"></span><br><span class="line">y = a.x;</span><br></pre></td></tr></table></figure>
+<p>一开始两个对象都指向同一个<code>Shape</code>，<code>x</code>被标记为<code>Smi</code>表示：</p>
+<p><img src="/images/react-cliff/13-shape.svg" alt></p>
+<p>当<code>b.x</code>修改为<code>Double</code>表示时，V8会分配一个新的<code>Shape</code>，将<code>x</code>设置为<code>Double</code>表示，并且它会指向回<code>空Shape</code>(译注：Shape是树结构)。另外V8还会分配一个<code>MutableHeapNumber</code>来保存<code>x</code>的新值<code>0.2</code>. 接着我们更新对象<code>b</code>指向新的<code>Shape</code>，并且修改对象的<code>x</code>指向刚才分配的<code>MutableHeapNumber</code>。最后，我们标记旧的<code>Shape</code>为废弃状态，并从转换树(transition tree)中移除。这是通过将<code>“x”</code>从空<code>Shape</code>转换为新创建的<code>Shape</code>的方式来完成的。</p>
+<p><img src="/images/react-cliff/14-shape-transition.svg" alt></p>
+<p>这个时候我们还不能完全将<code>旧Shape</code>删除掉，因为它还被<code>a</code>使用着，而且你不能着急遍历内存来找出所有指向<code>旧Shape</code>的对象，这种做法太低效。所以V8采用惰性方式: 对于<code>a</code>的任意属性的访问和赋值，会首先迁移到新的<code>Shape</code>。这样做, 最终可以将废弃的Shape变成‘不能到达(unreachable)’, 让垃圾回收器释放掉它。</p>
+<p><img src="/images/react-cliff/15-shape-deprecation.svg" alt></p>
+<p>如果修改表示的字段不是链中的最后一个字段，则会出现更棘手的情况：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> o = &#123;</span><br><span class="line">  x: <span class="number">1</span>,</span><br><span class="line">  y: <span class="number">2</span>,</span><br><span class="line">  z: <span class="number">3</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">o.y = <span class="number">0.1</span>;</span><br></pre></td></tr></table></figure>
+<p>这种情况，V8需要找到所谓的<code>分割Shape</code>(split shape), 即相关属性在被引入到<code>Shape</code>链之前的<code>Shape</code>。这里我们修改的是<code>y</code>，所以我们可以找到引入<code>y</code>之前的最后一个<code>Shape</code>，在上面的例子中这个<code>Shape</code>就是<code>x</code>：</p>
+<p><img src="/images/react-cliff/16-split-shape.svg" alt></p>
+<p>从<code>分割Shape</code>(即x)开始，我们为y创建一个新的转换链, 它将y标记为<code>Double</code>表示，并重放(replay)之前的其他转换. 我们将对<code>y</code>应用这个新的转换链，将旧的树标记为废弃。在最后一步，我们将实例<code>o</code>迁移到新的<code>Shape</code>，现在使用一个<code>MutableHeapNumber</code>来保存<code>y</code>的值。后面新创建的对象都不会使用旧的<code>Shape</code>的路径，一旦所有旧<code>Shape</code>的引用都移除了，<code>Shape</code>树的废弃部分就会被销毁。</p>
+<h2 id="可扩展性和完整性级别转换"><a href="#可扩展性和完整性级别转换" class="headerlink" title="可扩展性和完整性级别转换"></a>可扩展性和完整性级别转换</h2><p><code>Object.preventExtensions()</code>阻止新的属性添加到对象中, 否则它就会抛出异常。(如果你不在严格模式，它将不会抛出异常，而是什么都不干)</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> object = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="built_in">Object</span>.preventExtensions(object);</span><br><span class="line">object.y = <span class="number">2</span>;</span><br><span class="line"><span class="comment">// TypeError: Cannot add property y;</span></span><br><span class="line"><span class="comment">//            object is not extensible</span></span><br></pre></td></tr></table></figure>
+<p><code>Object.seal</code>和<code>Object.preventExtensions</code>类似，只不过它将所有属性标记为<code>non-configurable</code>, 这意味着你不能删除它们, 或者改变它们的<code>Configurable</code>、<code>Enumerable</code>、<code>Writable</code>属性。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> object = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="built_in">Object</span>.seal(object);</span><br><span class="line">object.y = <span class="number">2</span>;</span><br><span class="line"><span class="comment">// TypeError: Cannot add property y;</span></span><br><span class="line"><span class="comment">//            object is not extensible</span></span><br><span class="line"><span class="keyword">delete</span> object.x;</span><br><span class="line"><span class="comment">// TypeError: Cannot delete property x</span></span><br></pre></td></tr></table></figure>
+<p><code>Object.freeze</code>和<code>Object.seal</code>差不多, 只不过它还会阻止已存在的属性被修改。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> object = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="built_in">Object</span>.freeze(object);</span><br><span class="line">object.y = <span class="number">2</span>;</span><br><span class="line"><span class="comment">// TypeError: Cannot add property y;</span></span><br><span class="line"><span class="comment">//            object is not extensible</span></span><br><span class="line"><span class="keyword">delete</span> object.x;</span><br><span class="line"><span class="comment">// TypeError: Cannot delete property x</span></span><br><span class="line">object.x = <span class="number">3</span>;</span><br><span class="line"><span class="comment">// TypeError: Cannot assign to read-only property x</span></span><br></pre></td></tr></table></figure>
+<p>让我们考虑这样一个具体的例子，下面两个对象都包含单个<code>x</code>属性，后者还阻止了对象扩展。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> a = &#123; <span class="attr">x</span>: <span class="number">1</span> &#125;;</span><br><span class="line"><span class="keyword">const</span> b = &#123; <span class="attr">x</span>: <span class="number">2</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.preventExtensions(b);</span><br></pre></td></tr></table></figure>
+<p>我们都知道它一开始会从空<code>Shape</code>转换为一个包含<code>x</code>(表示为Smi)的新<code>Shape</code>。当我们阻止<code>b</code>被扩展时，我们会执行一项特殊的转换，创建一个新的<code>Shape</code>并标记为’不可扩展’。这个特殊的转换不会引入任何新的属性 —— 它只是一个标记</p>
+<p><img src="/images/react-cliff/17-shape-nonextensible.svg" alt></p>
+<p>注意，我们不能原地更新<code>x</code>的<code>Shape</code>，因为它还被<code>a</code>对象引用，<code>a</code>对象还是可扩展的。</p>
+<p><br></p>
+<h2 id="react的性能问题"><a href="#react的性能问题" class="headerlink" title="React的性能问题"></a>React的性能问题</h2><p>让我们将上述所有东西都放在一起，用我们学到的知识来理解<a href="https://github.com/facebook/react/issues/14365" target="_blank" rel="noopener">最近的React Issue #14365</a>. 当React团队在分析一个真实的应用时，他们发现了V8一个影响React 核心的奇怪性能问题. 下面是这个bug的简单复现:</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> o = &#123; <span class="attr">x</span>: <span class="number">1</span>, <span class="attr">y</span>: <span class="number">2</span> &#125;;</span><br><span class="line"><span class="built_in">Object</span>.preventExtensions(o);</span><br><span class="line">o.y = <span class="number">0.2</span>;</span><br></pre></td></tr></table></figure>
+<p>一开始我们这个对象有两个<code>Smi</code>表示的字段。接着我们还阻止了对象扩展，最后还强制将第二个字段转换为<code>Double</code>表示。</p>
+<p>按照我们上面描述的，这大概会创建以下东西：</p>
+<p><img src="/images/react-cliff/18-repro-shape-setup.svg" alt></p>
+<p>两个属性都会被标记为<code>Smi</code>表示，最后一个转换是可扩展性转换，用于将Shape标记为不可扩展。</p>
+<p>现在我们需要将<code>y</code>转换为<code>Double</code>表示，这意味着我们又要开始找出<code>分割Shape</code>. 在这个例子中，<code>分割Shape</code>就是引入<code>x</code>的那个<code>Shape</code>。但是V8会有点迷惑，因为<code>分割Shape</code>是可扩展的，而当前<code>Shape</code>却被标记为不可扩展。在这种情况下，V8并不知道如何正确地重放转换。所以V8干脆上放弃了尝试理解它，直接创建了一个单独的Shape，它没有连接到现有的Shape树，也没有与任何其他对象共享。可以把它想象成一个<code>孤儿Shape</code>：</p>
+<p><img src="/images/react-cliff/19-orphaned-shape.svg" alt></p>
+<p>你可以想象一下，如果有很多对象都这样子有多糟糕，这会让整个<code>Shape</code>系统变得毫无用处。</p>
+<p>在React的场景中，每个FiberNode在打开分析器时都会有好几个字段用于保存时间戳.</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FiberNode</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    <span class="keyword">this</span>.actualStartTime = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">Object</span>.preventExtensions(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> node1 = <span class="keyword">new</span> FiberNode();</span><br><span class="line"><span class="keyword">const</span> node2 = <span class="keyword">new</span> FiberNode();</span><br></pre></td></tr></table></figure>
+<p>这些字段(例如actualStartTime)被初始化为0或-1，即一开始时是<code>Smi</code>表示。后来，这些字段赋值为<code>performance.now()</code>输出的时间戳，这些时间戳实际是浮点型的。因为不符合<code>Smi</code>范围，它们需要转换为<code>Double</code>表示。恰好在这里，React还阻止了FiberNode实例的可扩展性。</p>
+<p>上面例子的初始状态如下:</p>
+<p><img src="/images/react-cliff/20-fibernode-shape.svg" alt></p>
+<p>按照我们设想的一样, 这两个实例共享了同一个Share树. 后面，当你保存真正的时间戳时，V8找到<code>分割Shape</code>就迷惑了：</p>
+<p><img src="/images/react-cliff/21-orphan-islands.svg" alt></p>
+<p>V8给<code>node1</code>分配了一个新的<code>孤儿Shape</code>，<code>node2</code>同理，这样就生成了两个孤岛，每个孤岛都有自己不相交的Shape。大部分真实的React应用有上千上万个FiberNode。可以想象到，这种情况对V8的性能不是特别乐观。</p>
+<p>幸运的是，我们在V8 <a href="https://v8.dev/blog/v8-release-74" target="_blank" rel="noopener">v7.4</a>修复了这个<a href="https://chromium-review.googlesource.com/c/v8/v8/+/1442640/" target="_blank" rel="noopener">性能问题</a>, 我们也正在研究<a href="https://bit.ly/v8-in-place-field-representation-changes" target="_blank" rel="noopener">如何降低修改字段表示的成本</a>，以消灭剩余的性能瓶颈. 经过修复后，V8可以正确处理这种情况:</p>
+<p><img src="/images/react-cliff/22-fix.svg" alt></p>
+<p>两个FiberNode实例都指向了’actualStartTime’为<code>Smi</code>的不可扩展<code>Shape</code>. 当第一次给<code>node1.actualStartTime</code>赋值时，将创建一个新的转换链，并将之前的链标记为废弃。</p>
+<p><img src="/images/react-cliff/23-fix-fibernode-shape-1.svg" alt></p>
+<p>注意, 现在扩展性转换可以在新链中正确重放。</p>
+<p><img src="/images/react-cliff/24-fix-fibernode-shape-2.svg" alt></p>
+<p>在赋值<code>node2.actualStartTime</code>之后，两个节点都引用到了新的Shape，转换树中废弃的部分将被垃圾回收器回收。</p>
+<p>在Bug未修复之前，React团队通过确保FiberNode上的所有时间和时间段字段都初始化为Double表示，来缓解了这个问题：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FiberNode</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    <span class="comment">// 在一开始强制为Double表示.</span></span><br><span class="line">    <span class="keyword">this</span>.actualStartTime = <span class="built_in">Number</span>.NaN;</span><br><span class="line">    <span class="comment">// 后面依旧可以按照之前的方式初始化值</span></span><br><span class="line">    <span class="keyword">this</span>.actualStartTime = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">Object</span>.preventExtensions(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> node1 = <span class="keyword">new</span> FiberNode();</span><br><span class="line"><span class="keyword">const</span> node2 = <span class="keyword">new</span> FiberNode();</span><br></pre></td></tr></table></figure>
+<p>除了<code>Number.NaN</code>, 任何浮点数值都不在<code>Smi</code>的范围内, 可以用于强制<code>Double</code>表示。例如<code>0.000001</code>, <code>Number.MIN_VALUE</code>, <code>-0</code>和<code>Infinity</code></p>
+<p>值得指出的是，这个具体的React bug是V8特有的，一般来说，开发人员不应该针对特定版本的JavaScript引擎进行优化。不过，当事情不起作用的时候有个把柄总比没有好。</p>
+<p>记住这些Javascript引擎背后执行的一些魔法，<strong>如果可能，尽量不要混合类型，举个例子，不要将你的数字字段初始化为null，因为这样会丧失跟踪字段表示的所有好处</strong>。不混合类型也可以让你的代码更具可读性：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Don’t do this!</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>&#123;</span><br><span class="line">  x = <span class="literal">null</span>;</span><br><span class="line">  y = <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> p = <span class="keyword">new</span> Point();</span><br><span class="line">p.x = <span class="number">0.1</span>;</span><br><span class="line">p.y = <span class="number">402</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>译注：如果你使用Typescript，应该开启strictNull模式</p>
+</blockquote>
+<p>换句话说，编写高可读的代码，是可以提高性能的！</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我们深入讨论了下列内容：</p>
+<ul>
+<li>JavaScript 区分了‘原始类型’和‘对象类型’，typeof是一个骗子</li>
+<li>即使是相同Javascript类型的值，底层可能有不同的表示</li>
+<li>V8尝试给你的Javascript程序的每个属性找出一个最优的表示</li>
+<li>我们还讨论了V8是如何处理Shape废弃和迁移的，另外还包括扩展性转换</li>
+</ul>
+<p>基于这些知识，我们总结出了一些可以帮助提升性能的JavaScript编程技巧：</p>
+<ul>
+<li>始终按照一致的方式初始化你的对象，这样Shape会更有效</li>
+<li>为字段选择合理的初始值，以帮助JavaScript引擎选择最佳的表示。</li>
+</ul>
+<p><br><br><br></p>
+<p><img src="/images/sponsor.jpg" alt></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#javascript-类型"><span class="toc-number">1.</span> <span class="toc-text">JavaScript 类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#值的表示"><span class="toc-number">2.</span> <span class="toc-text">值的表示</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#smi-vs-heapnumber-vs-mutableheapnumber"><span class="toc-number">3.</span> <span class="toc-text">Smi vs. HeapNumber vs. MutableHeapNumber</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#shape-废弃和迁移"><span class="toc-number">4.</span> <span class="toc-text">Shape 废弃和迁移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#可扩展性和完整性级别转换"><span class="toc-number">5.</span> <span class="toc-text">可扩展性和完整性级别转换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#react的性能问题"><span class="toc-number">6.</span> <span class="toc-text">React的性能问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2019/09/07/react-cliff/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2019/09/07/react-cliff/&text=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2019/09/07/react-cliff/&is_video=false&description=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=关于React的一个V8性能瓶颈背后的故事&body=Check out this article: https://bobi.ink/2019/09/07/react-cliff/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2019/09/07/react-cliff/&title=关于React的一个V8性能瓶颈背后的故事"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2019/09/07/react-cliff/&name=关于React的一个V8性能瓶颈背后的故事&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
