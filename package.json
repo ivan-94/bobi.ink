@@ -4,6 +4,9 @@
   "author": "ivan",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "<13.0.0"
+  },
   "scripts": {
     "start": "hexo server -p 8080",
     "build": "hexo generate",
