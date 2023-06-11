@@ -241,7 +241,7 @@
 <p><br></p>
 <p>对于主进程，开启调试后也可以通过 <code>Profile</code> 工具收集 JavaScript 执行信息。</p>
 <p>如果你要分析某段代码的执行过程，也可以通过下面命令生成分析文件，然后导入到 Chrome Performance 中分析:</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span> 输出 cpu 和 堆分析文件</span><br><span class="line">node --cpu-prof --heap-prof -e "require('request’)”“</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 输出 cpu 和 堆分析文件</span></span><br><span class="line">node --cpu-prof --heap-prof -e "require('request’)”“</span><br></pre></td></tr></table></figure>
 <p><br><br><br></p>
 <h3 id="2-优化策略"><a href="#2-优化策略" class="headerlink" title="2. 优化策略"></a>2. 优化策略</h3><h4 id="2-1-继续和白屏作斗争"><a href="#2-1-继续和白屏作斗争" class="headerlink" title="2.1 继续和白屏作斗争"></a>2.1 继续和白屏作斗争</h4><p>即使 Electron 通常从本地文件系统加载 JavaScript 代码，没有网络加载延迟，我们还是需要继续和页面白屏做斗争，因为 JavaScript 等资源的加载、解析和执行还是有相当大的代价(参考<a href="https://v8.dev/blog/cost-of-javascript-2019" target="_blank" rel="noopener">The cost of JavaScript in 2019</a>)。作为一个桌面端应用，细微的白屏延迟用户都可以感觉的到。我们要尽量让用户感觉不到这是一个 Web 页面。</p>
 <p><strong>影响 Electron 白屏的主要因素有：页面窗口的创建、静态资源的加载、JavaScript 解析和执行</strong>。</p>
