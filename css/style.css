@@ -1150,6 +1150,11 @@ article .content .caption {
   position: relative;
   text-align: center;
 }
+article .content aside {
+  background: #efefef;
+  border-radius: 5px;
+  padding: 16px;
+}
 .posttitle {
   text-transform: none;
   font-size: 1.5em;
