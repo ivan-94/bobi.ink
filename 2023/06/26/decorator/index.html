@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Javascript 装饰器实战：用 MobX 的方式打开 Vue">
+<meta property="og:url" content="https://bobi.ink/2023/06/26/decorator/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/decorator/Untitled.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/decorator/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/decorator/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/decorator/Untitled%202.png">
+<meta property="og:updated_time" content="2023-06-26T02:42:29.395Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Javascript 装饰器实战：用 MobX 的方式打开 Vue">
+<meta name="twitter:description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
+<meta name="twitter:image" content="https://bobi.ink/images/decorator/Untitled.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>Javascript 装饰器实战：用 MobX 的方式打开 Vue</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/06/21/happiness/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript 装饰器实战：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=Javascript 装饰器实战：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#概览"><span class="toc-number">1.</span> <span class="toc-text">概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#legacy"><span class="toc-number">2.</span> <span class="toc-text">Legacy</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#observable"><span class="toc-number">2.1.</span> <span class="toc-text">@observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#computed"><span class="toc-number">2.2.</span> <span class="toc-text">@computed</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#new"><span class="toc-number">3.</span> <span class="toc-text">New</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#observable-1"><span class="toc-number">3.1.</span> <span class="toc-text">@observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#computed-1"><span class="toc-number">3.2.</span> <span class="toc-text">@computed</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">5.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Javascript 装饰器实战：用 MobX 的方式打开 Vue
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-06-25T16:00:00.000Z" itemprop="datePublished">2023-06-26</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/decorator/Untitled.jpeg" alt="cover"></p>
+<p>去年三月份<a href="https://github.com/tc39/proposal-decorators" target="_blank" rel="noopener">装饰器提案</a>进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 <a href="https://github.com/tc39/proposal-decorators/tree/8ca65c046dd5e9aa3846a1fe5df343a6f7efd9f8" target="_blank" rel="noopener"></a>。装饰器提案距离正式的语言标准，只差临门一脚。</p>
+<p>这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。</p>
+<p><br></p>
+<p>本文将把装饰器语法带到 <code>Vue Reactivity API</code> 中，让我们可以像 MobX 一样，使用类来定义数据模型, 例如:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Counter &#123;</span><br><span class="line">  @observable</span><br><span class="line">  count = 1</span><br><span class="line"></span><br><span class="line">  @computed</span><br><span class="line">  get double() &#123;</span><br><span class="line">    return this.count * 2</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  add = () =&gt; &#123;</span><br><span class="line">    this.count++</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>在这个过程中，我们可以体会到新旧装饰器版本之间的差异和实践中的各种陷阱。</p>
+<p><br><br><br></p>
+<h2 id="概览"><a href="#概览" class="headerlink" title="概览"></a>概览</h2><p><img src="/images/decorator/Untitled.png" alt="思维导图"></p>
+<p>关于装饰器的主要 API 都在上述思维导图中，除此之外，读者可以通过下文「扩展阅读」中提及的链接来深入了解它们。</p>
+<p><br><br><br></p>
+<h2 id="legacy"><a href="#legacy" class="headerlink" title="Legacy"></a>Legacy</h2><p>首先，我们使用旧的装饰器来实现相关的功能。</p>
+<p>在 Typescript 下，需要通过 <code>experimentalDecorators</code> 来启用装饰器语法:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;compilerOptions&quot;: &#123;</span><br><span class="line">    &quot;experimentalDecorators&quot;: true</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果使用 Babel 7 ，配置大概如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;plugins&quot;: [</span><br><span class="line">    [&quot;@babel/plugin-proposal-decorators&quot;, &#123; &quot;version&quot;: &quot;legacy&quot; &#125;]</span><br><span class="line">    [&quot;@babel/plugin-transform-class-properties&quot;, &#123;&quot;loose&quot;: true &#125;]</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<h3 id="observable"><a href="#observable" class="headerlink" title="@observable"></a>@observable</h3><p>我们先来实现 <code>@observable</code> 装饰器，它只能作用于「<code>类属性成员</code>」，比如:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Counter &#123;</span><br><span class="line">  @observable</span><br><span class="line">  count = 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const counter = new Counter()</span><br><span class="line">expect(counter.count).toBe(1)</span><br></pre></td></tr></table></figure>
+<p>属性值可以是<code>原始类型</code>或者<code>对象类型</code>，没有限制。</p>
+<p>为了让 Vue 的视图可以响应它的变化，我们可以使用 <code>ref</code> 来包装它。<code>ref</code> 刚好符合我们的需求，可以放置原始类型，也可以是对象, <code>ref</code> 会将其包装为 <code>reactive</code> 。</p>
+<p><br></p>
+<p>初步实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export const observable: PropertyDecorator = function (target, propertyKey) &#123;</span><br><span class="line">  if (typeof target === &apos;function&apos;) &#123;</span><br><span class="line">    throw new Error(&apos;Observable cannot be used on static properties&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (arguments.length &gt; 2 &amp;&amp; arguments[2] != null) &#123;</span><br><span class="line">    throw new Error(&apos;Observable cannot be used on methods&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const accessor: Initializer = (self) =&gt; &#123;</span><br><span class="line">    const value = ref()</span><br><span class="line"></span><br><span class="line">    return &#123;</span><br><span class="line">      get() &#123;</span><br><span class="line">        return unref(value)</span><br><span class="line">      &#125;,</span><br><span class="line">      set(val) &#123;</span><br><span class="line">        value.value = val</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 定义getter /setter 长远</span><br><span class="line">  Object.defineProperty(target, propertyKey, &#123;</span><br><span class="line">    enumerable: true,</span><br><span class="line">    configurable: true,</span><br><span class="line">    get: function () &#123;</span><br><span class="line">      // 惰性初始化</span><br><span class="line">      return initialIfNeed(this, propertyKey, accessor).get()</span><br><span class="line">    &#125;,</span><br><span class="line">    set: function (value) &#123;</span><br><span class="line">      initialIfNeed(this, propertyKey, accessor).set(value)</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>解释一下上面的代码：</p>
+<ul>
+<li>将装饰器的类型设置为 <code>PropertyDecorator</code>。<blockquote>
+<p>📢 对应的类型还有： ClassDecorator、MethodDecorator、ParameterDecorator<br><br></p>
+<p>⚠️ 旧版<em>装饰器使用位置上 Typescript 并没作类型检查，装饰器可以随意用在类、方法、属性各种位置上</em>。<br><br></p>
+</blockquote>
+</li>
+<li>可以通过 <code>target</code> 的类型，来判断装饰器作用于<code>静态成员</code>上还是<code>实例成员</code>上。如果是静态成员，target 是类本身；如果是实例成员，target 为类的<code>原型对象(prototype)</code></li>
+<li><p><code>属性装饰器</code>只会接收两个参数：类和属性名。因为属性在构造函数中创建, 在类定义阶段，获取不到更多信息：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class A &#123;</span><br><span class="line">  foo = 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// transpile to</span><br><span class="line">class A &#123;</span><br><span class="line">  constructor() &#123;</span><br><span class="line">    this.foo = 1</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>我们定义了一个新的 <code>getter</code>/<code>setter</code> 成员, 这样外部才能透明地使用 ref, 不需要加上 <code>.value</code> 后缀</p>
+</li>
+<li><p><code>惰性初始化</code> ref。旧版的装饰器并没有提供 <code>addInitializer</code> 这样的初始化钩子，我们曲线救国，使用惰性初始化的方式：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const REACTIVE_CACHE = Symbol(&apos;reactive_cache&apos;)</span><br><span class="line">export interface ReactiveAccessor &#123;</span><br><span class="line">  get(): any</span><br><span class="line">  set(value: any): void</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function getReactiveCache(target: any): Record&lt;string | symbol, any&gt; &#123;</span><br><span class="line">  if (!hasProp(target, REACTIVE_CACHE)) &#123;</span><br><span class="line">    addHiddenProp(target, REACTIVE_CACHE, &#123;&#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return target[REACTIVE_CACHE]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export type Initializer = (target: any) =&gt; ReactiveAccessor</span><br><span class="line"></span><br><span class="line">export function initialIfNeed(target: any, key: string | symbol, initializer: Initializer) &#123;</span><br><span class="line">  const cache = getReactiveCache(target)</span><br><span class="line">  // 如果属性未定义，就执行初始化</span><br><span class="line">  if (!hasProp(cache, key)) &#123;</span><br><span class="line">    cache[key] = initializer(target)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return cache[key]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>这里我们将信息缓存在 REACTIVE_CACHE 字段中，实现惰性初始化。
+</code></pre></li>
+</ul>
+<p><br><br><br><br><br></p>
+<p>写个单元测试看看:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">test(&apos;base type&apos;, () =&gt; &#123;</span><br><span class="line">  class A &#123;</span><br><span class="line">    @observable</span><br><span class="line">    str = &apos;str&apos;</span><br><span class="line"></span><br><span class="line">    @observable</span><br><span class="line">    num = 1</span><br><span class="line"></span><br><span class="line">    @observable</span><br><span class="line">    withoutInitialValue: any</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const a = new A()</span><br><span class="line"></span><br><span class="line">  let str</span><br><span class="line">  let num</span><br><span class="line">  let withoutInitialValue</span><br><span class="line">  // 🔴 初始值应该正常被设置</span><br><span class="line">  expect(a.str).toBe(&apos;str&apos;)</span><br><span class="line">  expect(a.num).toBe(1)</span><br><span class="line">  expect(a.withoutInitialValue).toBe(undefined)</span><br><span class="line"></span><br><span class="line">  // 🔴 属性的变动应该被检测</span><br><span class="line">  watchSyncEffect(() =&gt; &#123;</span><br><span class="line">    str = a.str</span><br><span class="line">  &#125;)</span><br><span class="line">  watchSyncEffect(() =&gt; &#123;</span><br><span class="line">    num = a.num</span><br><span class="line">  &#125;)</span><br><span class="line">  watchSyncEffect(() =&gt; &#123;</span><br><span class="line">    withoutInitialValue = a.withoutInitialValue</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  a.str = &apos;new str&apos;</span><br><span class="line">  a.num = 2</span><br><span class="line">  a.withoutInitialValue = &apos;withoutInitialValue&apos;</span><br><span class="line"></span><br><span class="line">  expect(str).toBe(&apos;new str&apos;)</span><br><span class="line">  expect(num).toBe(2)</span><br><span class="line">  expect(withoutInitialValue).toBe(&apos;withoutInitialValue&apos;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>💥 在较新的构建工具中(比如 vite)，上述的测试大概率无法通过！为什么？</p>
+<p><br></p>
+<p><strong>经过调试会发现我们在 observable 中的 <code>defineProperty</code> 并没有生效？</strong></p>
+<p><br><br><br></p>
+<p>通过阅读 Vite 的文档可以找到一些线索，即 Typescript 的 <code>[useDefineForClassFields](https://cn.vitejs.dev/guide/features.html#usedefineforclassfields)</code>:</p>
+<blockquote>
+<p>从 Vite v2.5.0 开始，如果 TypeScript 的 target 是  <code>ESNext</code>  或  <code>ES2022</code>  及更新版本，此选项默认值则为  <code>true</code>。这与  <strong><code>[tsc</code> v4.3.2 及以后版本的行为](<a href="https://github.com/microsoft/TypeScript/pull/42663" target="_blank" rel="noopener">https://github.com/microsoft/TypeScript/pull/42663</a>)</strong>  一致。这也是标准的 ECMAScript 的运行时行为</p>
+</blockquote>
+<p><br></p>
+<p><code>useDefineForClassFields</code> 会改变<code>类实例属性</code>的定义方式：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class A &#123;</span><br><span class="line">  foo = 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 旧</span><br><span class="line">class A &#123;</span><br><span class="line">  constructor() &#123;</span><br><span class="line">    this.foo = 1</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 新：useDefineForClassFields</span><br><span class="line">class A &#123;</span><br><span class="line">  constructor() &#123;</span><br><span class="line">    Object.defineProperty(this, &apos;foo&apos;, &#123;</span><br><span class="line">      enumerable: true,</span><br><span class="line">      configurable: true,</span><br><span class="line">      writable: true,</span><br><span class="line">      value: 1,</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这就是为什么我们装饰器内的 <code>defineProperty</code> 无法生效的原因。</p>
+<p><br><br><br></p>
+<p>解决办法：</p>
+<p>方法 1： 显式关闭掉 useDefineForClassFields。如果是 Babel 需要配置 <code>@babel/plugin-transform-class-properties</code> 的 <code>loose</code> 为 true：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;plugins&quot;: [</span><br><span class="line">    [&quot;@babel/plugin-proposal-decorators&quot;, &#123; &quot;version&quot;: &quot;legacy&quot; &#125;]</span><br><span class="line">    [&quot;@babel/plugin-transform-class-properties&quot;, &#123;&quot;loose&quot;: true &#125;]</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>方法 2： 或者模仿 <a href="https://www.mobxjs.com/enabling-decorators" target="_blank" rel="noopener">MobX V6</a> 的 API:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class TodoList &#123;</span><br><span class="line">  @observable todos = []</span><br><span class="line"></span><br><span class="line">  @computed</span><br><span class="line">  get unfinishedTodoCount() &#123;</span><br><span class="line">    return this.todos.filter((todo) =&gt; !todo.finished).length</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  constructor() &#123;</span><br><span class="line">    makeObservable(this)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MobX 的 observable、computed 等装饰器只是收集了一些<strong><code>标记信息</code>，</strong> 本身不会对类进行转换，真正进行转换是在 <code>makeObservable</code> 中进行的， 而 <code>makeObservable</code> 的执行时机是在所有属性都初始化完毕之后。</p>
+<p>由于本文只关注装饰器的能力，这里就不展开了，有兴趣的读者可以看下 MobX 的源码。</p>
+<p><br><br><br><br><br></p>
+<h3 id="computed"><a href="#computed" class="headerlink" title="@computed"></a>@computed</h3><p>按照同样的方法，我们来实现一下 <code>@computed</code> 装饰器，MobX 的 computed 和 Vue 的 computed 概念基本一致，就是用来做衍生数据的计算。</p>
+<p><br></p>
+<p>@computed 只能应用在 <code>getter</code> 上面:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export const computed: MethodDecorator = function (target, propertyKey, descriptor) &#123;</span><br><span class="line">  // 不支持 static</span><br><span class="line">  if (typeof target === &apos;function&apos;) &#123;</span><br><span class="line">    throw new Error(&apos;computed cannot be used on static member&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 必须是 getter</span><br><span class="line">  if (</span><br><span class="line">    descriptor == null ||</span><br><span class="line">    typeof descriptor !== &apos;object&apos; ||</span><br><span class="line">    typeof descriptor.get !== &apos;function&apos;</span><br><span class="line">  ) &#123;</span><br><span class="line">    throw new Error(&apos;computed can only be used on getter&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const initialGetter = descriptor.get</span><br><span class="line">  const accessor: Initializer = (self) =&gt; &#123;</span><br><span class="line">    const value = vueComputed(() =&gt; initialGetter.call(self))</span><br><span class="line"></span><br><span class="line">    return &#123;</span><br><span class="line">      get() &#123;</span><br><span class="line">        return unref(value)</span><br><span class="line">      &#125;,</span><br><span class="line">      set() &#123;</span><br><span class="line">        // readonly</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  descriptor.get = function () &#123;</span><br><span class="line">    // 惰性初始化</span><br><span class="line">    return initialIfNeed(this, propertyKey, accessor).get()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>getter/setter/method 装饰器的用法一致。会接收 <code>descriptor</code> 作为第三个参数，我们可以对 <code>descriptor</code> 进行修改，或者返回一个新的 <code>descriptor</code>。</li>
+<li>我们使用 vue 的 computed API 对 getter 函数进行简单包装。</li>
+</ul>
+<p><br><br><br></p>
+<p>测试一下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">test(&apos;computed&apos;, () =&gt; &#123;</span><br><span class="line">  const count = ref(0)</span><br><span class="line">  class A &#123;</span><br><span class="line">    @computed</span><br><span class="line">    get double() &#123;</span><br><span class="line">      return count.value * 2</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const a = new A()</span><br><span class="line">  let value</span><br><span class="line">  watchSyncEffect(() =&gt; &#123;</span><br><span class="line">    value = a.double</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  expect(value).toBe(0)</span><br><span class="line">  count.value++</span><br><span class="line">  expect(value).toBe(2)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>Ok, 没问题，可以正常运行。我们配合组件的实际场景再测试看看：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">test(&apos;render&apos;, () =&gt; &#123;</span><br><span class="line">  class A &#123;</span><br><span class="line">    @observable</span><br><span class="line">    count = 1</span><br><span class="line"></span><br><span class="line">    @computed</span><br><span class="line">    get double() &#123;</span><br><span class="line">      return this.count * 2</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  let count</span><br><span class="line">  const a = new A()</span><br><span class="line"></span><br><span class="line">  const Comp = defineComponent(&#123;</span><br><span class="line">    setup() &#123;</span><br><span class="line">      watchSyncEffect(() =&gt; &#123;</span><br><span class="line">        count = a.double</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      return () =&gt; &#123;</span><br><span class="line">        /* ignore */</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  const &#123; unmount &#125; = render(Comp)</span><br><span class="line"></span><br><span class="line">  let count2</span><br><span class="line">  watchSyncEffect(() =&gt; &#123;</span><br><span class="line">    count2 = a.double</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  expect(count).toBe(2)</span><br><span class="line">  expect(count2).toBe(2)</span><br><span class="line"></span><br><span class="line">  a.count++</span><br><span class="line">  expect(count).toBe(4)</span><br><span class="line">  expect(count2).toBe(4)</span><br><span class="line"></span><br><span class="line">  // 🔴 卸载</span><br><span class="line">  unmount()</span><br><span class="line"></span><br><span class="line">  a.count++</span><br><span class="line">  expect(count).toBe(4)</span><br><span class="line">  // 💥 received 4</span><br><span class="line">  expect(count2).toBe(6)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的用例没有通过，<strong>在组件卸载之后，@computed 装饰的 double 就失去了响应性</strong>。Why?</p>
+<p><br><br><br></p>
+<p>解决这个问题之前，我们需要了解一下 <code>[effectScope](https://cn.vuejs.org/api/reactivity-advanced.html#effectscope)</code>, <code>effectScope</code> 创建一个 <code>effect 作用域</code>，可以捕获其中所创建的响应式副作用 (即计算属性和侦听器)，这样捕获到的副作用可以一起处理和销毁。</p>
+<p><br></p>
+<p><strong>Vue <code>setup</code> 就是包装在 effectScope 之下，如果我们的 computed 在 setup 下被初始化，就会被 setup 捕获，当组件卸载时就会被随之清理掉</strong>。</p>
+<p><br></p>
+<p>我们的 <code>@computed</code> 是为全局作用域设计的，不能因为某个组件卸载而被销毁掉。为了解决这个问题，我们需要自己构造一个独立的 <code>悬挂 effectScope</code> (<code>Detached effectScope</code> )：</p>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line">const accessor: Initializer = (self) =&gt; &#123;</span><br><span class="line"><span class="addition">+   // true 标记为 detached</span></span><br><span class="line"><span class="addition">+   const scope = effectScope(true)</span></span><br><span class="line"><span class="deletion">-   const value = vueComputed(() =&gt; initialGetter.call(self))</span></span><br><span class="line"><span class="addition">+   const value = scope.run(() =&gt; vueComputed(() =&gt; initialGetter.call(self)))</span></span><br><span class="line"></span><br><span class="line">    return &#123;</span><br><span class="line">      get() &#123;</span><br><span class="line">        return unref(value)</span><br><span class="line">      &#125;,</span><br><span class="line">      set() &#123;</span><br><span class="line">        // readonly</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<blockquote>
+<p>💡 watch 也会有相同的问题，读者可以自行尝试一下</p>
+</blockquote>
+<p><br></p>
+<p>💥 <strong>会不会内存泄露？</strong>理论上会泄露，取决于被 computed 订阅的数据源。如果该订阅源长期未释放，可能会出现内存泄露。<br><br></p>
+<p>解决办法是将对应的<code>类实例</code>和<code>组件</code>的生命周期绑定。当组件释放时，调用类实例的释放方法，例如：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const providerStore = &lt;T,&gt;(store: new () =&gt; T): T =&gt; &#123;</span><br><span class="line">  const instance = new store()</span><br><span class="line">  // 将组件的 effectScope 传入实例中进行绑定</span><br><span class="line">  instance.__effect_scope__ = getCurrentScope()</span><br><span class="line">  return instance</span><br><span class="line">&#125;</span><br><span class="line">// computed 实现调整</span><br><span class="line">const scope = target.__effect_scope__ ?? effectScope(true)</span><br><span class="line">// 在 setup 中调用</span><br><span class="line">const store = providerStore(Store)</span><br></pre></td></tr></table></figure>
+<p><br><br>比如 <code>全局Store</code> 可以和 <code>Vue App</code> 绑定，<code>页面 Store</code> 可以和<code>页面组件</code>绑定。<br><br><br>🔴 <strong>MobX computed 并没有该问题，MobX 的 computed 在<code>订阅者</code>清空时，会「<code>挂起</code>(suspend)」，清空自己的<code>订阅</code>(除非显式设置了 keepAlive)，从而可以规避这种内存泄露。详见<a href="https://github.com/mobxjs/mobx/blob/27efa3cc637e3195589874990c23d4de82c12072/packages/mobx/src/core/observable.ts%23L124" target="_blank" rel="noopener">这里</a>。<br>只能看后续 Vue 官方是否也作类似的支持了。</strong></p>
+<p><br><br><br></p>
+<hr>
+<p><br><br><br></p>
+<h2 id="new"><a href="#new" class="headerlink" title="New"></a>New</h2><p>2022/3 装饰器议案正式进入 Stage 3 阶段，按照惯例，Typescript 也在 5.0 版本加入了该功能。</p>
+<p>新版装饰器外形如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">type Decorator = (</span><br><span class="line">  value: Input,</span><br><span class="line">  context: &#123;</span><br><span class="line">    kind: string</span><br><span class="line">    name: string | symbol</span><br><span class="line">    access: &#123;</span><br><span class="line">      get?(): unknown</span><br><span class="line">      set?(value: unknown): void</span><br><span class="line">    &#125;</span><br><span class="line">    private?: boolean</span><br><span class="line">    static?: boolean</span><br><span class="line">    addInitializer?(initializer: () =&gt; void): void</span><br><span class="line">  &#125;</span><br><span class="line">) =&gt; Output | void</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>相比旧版的装饰器，新版的 API 形式上更加统一了，并且提供了一些上下文信息，对于开发者来说更加便利。</p>
+<p><br><br><br></p>
+<p>核心的变化如下：</p>
+<ul>
+<li><p>形式上更加统一，不管是什么位置，都遵循 <code>(value, context) ⇒ output | void</code>， 这个心智上更接近<code>管道(pipe)</code>, 接收一个 Value , 可以返回一个新的 Value 来<strong>替换旧的 Value</strong>。<br><img src="/images/decorator/Untitled%201.png" alt="linux 管道"><br>linux 管道</p>
+<p><br></p>
+</li>
+<li><p><code>context</code> 提供了必要的上下文信息，对开发者来说更加便利，可以快速判断装饰器的类型、是否为静态属性、私有属性等等。</p>
+</li>
+<li><p>更倾向于将装饰器当做一个纯函数(管道、转换器)来使用，尽量不包含副作用(比如修改类的结构)。</p>
+<p><br></p>
+<p><strong>为了限制副作用，装饰器基本上屏蔽了一些底层细节，比如 descriptor，构造函数、原型对象，这些在新的装饰器中基本拿不到。</strong></p>
+<p><br></p>
+<p>副作用只能在 <code>context.addInitializer</code> 中调用，但是能力也非常有限。就拿<code>属性装饰器</code>来举例，initializer 通常在 class 内置的 defineProperty 之前调用，如果你在 <code>initializer</code> 中使用了 <code>defineProperty</code>，那么将被覆盖:</p>
+<p>以 Typescript 的编译结果为例：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Bar &#123;</span><br><span class="line">  @d</span><br><span class="line">  foo = 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 编译结果：</span><br><span class="line">let Bar = (() =&gt; &#123;</span><br><span class="line">    var _a;</span><br><span class="line">    let _instanceExtraInitializers_1 = [];</span><br><span class="line">    let _foo_decorators;</span><br><span class="line">    let _foo_initializers = [];</span><br><span class="line">    return _a = class Bar &#123;</span><br><span class="line">            constructor() &#123;</span><br><span class="line">                // 🔴 ③ 定义属性</span><br><span class="line">                Object.defineProperty(this, &quot;foo&quot;, &#123;</span><br><span class="line">                    enumerable: true,</span><br><span class="line">                    configurable: true,</span><br><span class="line">                    writable: true,</span><br><span class="line">                    value:</span><br><span class="line">                      // 🔴 ① 先执行其他装饰器的 addInitializer 回调</span><br><span class="line">                      (__runInitializers(this, _instanceExtraInitializers_1),</span><br><span class="line">                        // 🔴 ② 属性装饰器的 initializer</span><br><span class="line">                        __runInitializers(this, _foo_initializers, 1))</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        (() =&gt; &#123;</span><br><span class="line">            _foo_decorators = [d];</span><br><span class="line">            __esDecorate(null, null, _foo_decorators, &#123; kind: &quot;field&quot;, name: &quot;foo&quot;, static: false, private: false, access: &#123; has: obj =&gt; &quot;foo&quot; in obj, get: obj =&gt; obj.foo, set: (obj, value) =&gt; &#123; obj.foo = value; &#125; &#125; &#125;, _foo_initializers, _instanceExtraInitializers_1);</span><br><span class="line">        &#125;)(),</span><br><span class="line">        _a;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<p>这样做的好处，笔者认为主要有以下几点:</p>
+<ul>
+<li>性能优化：旧版的装饰器可以对 class 进行魔改，这就导致了引擎在解析完 Class 体后再去执行装饰器时，最终的 Class 结构可能发生较大的改变，导致引擎的优化无法生效（来源：<a href="https://developer.aliyun.com/article/892441" target="_blank" rel="noopener">ECMAScript 双月报告：装饰器提案进入 Stage 3</a>）。</li>
+<li>因为旧版可能会对类的结构进行破坏性魔改，这种副作用可能导致多个装饰器组合时，有难以预期的问题。</li>
+<li>更容易测试</li>
+</ul>
+<p><br></p>
+<p><strong>另外 Typescript 针对新的装饰器也提供了更严格的类型检查，比如可以约束装饰器使用的位置，旧版可以使用在任意位置，只能通过运行时进行检查</strong>。</p>
+<p><img src="/images/decorator/Untitled%202.png" alt="Typescript 为新版装饰器提供了更严格的类型检查"></p>
+<p>Typescript 为新版装饰器提供了更严格的类型检查</p>
+<p><br></p>
+<blockquote>
+<p>💡  目前装饰器还未成为正式的语言特性，不排除后面还有特性变更。</p>
+</blockquote>
+<p><br></p>
+<blockquote>
+<p>💡  截止至文章发布的时间，Vite 使用新版装饰器还有一些问题。本文使用 Babel + Jest 来测试相关代码。</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h3 id="observable-1"><a href="#observable-1" class="headerlink" title="@observable"></a>@observable</h3><p>新版的<code>属性装饰器</code> API 如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">type ClassFieldDecorator = (</span><br><span class="line">  value: undefined,</span><br><span class="line">  context: &#123;</span><br><span class="line">    kind: &apos;field&apos;</span><br><span class="line">    name: string | symbol</span><br><span class="line">    access: &#123; get(): unknown; set(value: unknown): void &#125;</span><br><span class="line">    static: boolean</span><br><span class="line">    private: boolean</span><br><span class="line">  &#125;</span><br><span class="line">) =&gt; (initialValue: unknown) =&gt; unknown | void</span><br></pre></td></tr></table></figure>
+<ul>
+<li>value 始终为 undefined，因为属性在类定义时不存在，无法获取到初始值</li>
+<li>context 没有 <code>addInitializer</code> 。属性装饰器的返回值是一个函数，这个实际上就是一个 <code>initializer</code></li>
+<li>访问不到类和类的原型</li>
+<li>在 initializer 中也不能调用 defineProperty。原因见上文</li>
+</ul>
+<p>也就是说，<strong>属性装饰器基本上堵死了我们去改造属性的机会</strong>…</p>
+<p><br><br><br></p>
+<hr>
+<p><br></p>
+<p>且慢，跟随装饰器发布的还有一个<code>自动访问器</code>(Auto Accessor)的特性(🙂  越来越像 Java、C# 了）</p>
+<p>自动访问器使用 <code>accessor</code> 关键字定义：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class C &#123;</span><br><span class="line">  accessor x = 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相当于：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class C &#123;</span><br><span class="line">  #x = 1</span><br><span class="line"></span><br><span class="line">  get x() &#123;</span><br><span class="line">    return this.#x</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  set x(val) &#123;</span><br><span class="line">    this.#x = val</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这有啥用？稍安勿躁，它在装饰器场景有大用，先来看下它的 API:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">type ClassAutoAccessorDecorator = (</span><br><span class="line">  value: &#123;</span><br><span class="line">    get: () =&gt; unknown;</span><br><span class="line">    set(value: unknown) =&gt; void;</span><br><span class="line">  &#125;,</span><br><span class="line">  context: &#123;</span><br><span class="line">    kind: &quot;accessor&quot;;</span><br><span class="line">    name: string | symbol;</span><br><span class="line">    access: &#123; get(): unknown, set(value: unknown): void &#125;;</span><br><span class="line">    static: boolean;</span><br><span class="line">    private: boolean;</span><br><span class="line">    addInitializer(initializer: () =&gt; void): void;</span><br><span class="line">  &#125;</span><br><span class="line">) =&gt; &#123;</span><br><span class="line">  get?: () =&gt; unknown;</span><br><span class="line">  set?: (value: unknown) =&gt; void;</span><br><span class="line">  init?: (initialValue: unknown) =&gt; unknown;</span><br><span class="line">&#125; | void;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>value 接收 getter 和 setter</li>
+<li>可以返回新的 getter 和 setter</li>
+<li>init 可以对初始值进行<strong>_转换_</strong>。</li>
+</ul>
+<p><br><br><br></p>
+<p>它的妙用在于，我们可以「兵不血刃」(不改变结构或者新增属性)地实现拦截，看看我们 observable 的实现就知道了：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export function observable&lt;This, Value&gt;(</span><br><span class="line">  value: ClassAccessorDecoratorTarget&lt;This, Value&gt;,</span><br><span class="line">  context: ClassAccessorDecoratorContext&lt;This, Value&gt;</span><br><span class="line">): ClassAccessorDecoratorResult&lt;This, Value&gt; | void &#123;</span><br><span class="line">  if (context.kind !== &apos;accessor&apos;) &#123;</span><br><span class="line">    throw new Error(&apos;observable can only be used on accessor&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (context.static) &#123;</span><br><span class="line">    throw new Error(&apos;observable can not be used on static accessor&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return &#123;</span><br><span class="line">    init(val) &#123;</span><br><span class="line">      return ref(val)</span><br><span class="line">    &#125;</span><br><span class="line">    get() &#123;</span><br><span class="line">      return (value.get.call(this) as Ref&lt;Value&gt;).value</span><br><span class="line">    &#125;,</span><br><span class="line">    set(val) &#123;</span><br><span class="line">      const ref = value.get.call(this) as Ref&lt;Value&gt;</span><br><span class="line"></span><br><span class="line">      ref.value = val</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<ul>
+<li>通过 <code>context</code>，我们可以更方便地判断是否是静态成员、是否装饰在预期的位置</li>
+<li>上述代码我们没有修改任何类的结构、新增任何属性。我们直接在 init 中将初始值转换为 ref, 相对应的 getter/setter 也作简单的改造。</li>
+</ul>
+<p><br></p>
+<p>很简单是不是？只不过，这个对已有的代码倾入性太大了，所有相关的属性都需要修改为 <code>accessor</code>, 但对于 API 使用者来说没什么区别：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class A &#123;</span><br><span class="line">  @observable</span><br><span class="line">  accessor obj = &#123;</span><br><span class="line">    count: 1,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h3 id="computed-1"><a href="#computed-1" class="headerlink" title="@computed"></a>@computed</h3><p>Getter 装饰器和 Setter、Method 装饰器类型基本一致：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">type ClassGetterDecorator = (</span><br><span class="line">  value: Function,</span><br><span class="line">  context: &#123;</span><br><span class="line">    kind: &apos;getter&apos;</span><br><span class="line">    name: string | symbol</span><br><span class="line">    access: &#123; get(): unknown &#125;</span><br><span class="line">    static: boolean</span><br><span class="line">    private: boolean</span><br><span class="line">    addInitializer(initializer: () =&gt; void): void</span><br><span class="line">  &#125;</span><br><span class="line">) =&gt; Function | void</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>直接来看 computed 实现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export function computed&lt;This, Return, Value extends () =&gt; Return&gt;(</span><br><span class="line">  value: Value,</span><br><span class="line">  context: ClassGetterDecoratorContext&lt;This, Return&gt;</span><br><span class="line">): Value | void &#123;</span><br><span class="line">  if (context.static) &#123;</span><br><span class="line">    throw new Error(&apos;computed cannot be used on static member&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (context.kind !== &apos;getter&apos;) &#123;</span><br><span class="line">    throw new Error(&apos;computed can only be used on getter&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  context.addInitializer(function (this: unknown) &#123;</span><br><span class="line">    const scope = effectScope(true)</span><br><span class="line"></span><br><span class="line">    const val = scope.run(() =&gt; vueComputed(() =&gt; value.call(this)))</span><br><span class="line"></span><br><span class="line">    Object.defineProperty(this, context.name, &#123;</span><br><span class="line">      configurable: true,</span><br><span class="line">      enumerable: false,</span><br><span class="line">      get() &#123;</span><br><span class="line">        return unref(val)</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>通过 <code>addInitializer</code> 来添加初始化逻辑(副作用)， this 为当前类的实例。旧版的装饰器并没有提供类似的时机，我们只能通过<code>惰性初始化</code>去模拟这种效果。</p>
+<p><br></p>
+<p>不过上面的程序也有个潜在的 BUG, 我们在新建一个 log 装饰器，组合在一起看看：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function log(value: Function, context: ClassGetterDecoratorContext) &#123;</span><br><span class="line">  return function (this: unknown) &#123;</span><br><span class="line">    console.log(&apos;start calling...&apos;)</span><br><span class="line">    return value.apply(this)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class A &#123;</span><br><span class="line">  @observable</span><br><span class="line">  accessor count = 1</span><br><span class="line"></span><br><span class="line">  @log</span><br><span class="line">  @computed</span><br><span class="line">  get double() &#123;</span><br><span class="line">    return this.count * 2</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行上述代码，我们会发现并没有打印 <code>start calling...</code> 邪恶的副作用…</p>
+<p><br><br><br></p>
+<p>主要原因是上述代码我们在 <code>addInitializer</code> 中引用的 ‘value’ 是类原始的 getter 值，而我们又重新用 defineProperty 覆盖了属性，导致 @log 装饰的值丢失了。</p>
+<p><br></p>
+<p>实际上在新版的装饰器中，更符合规范的用法是：<strong>返回新的值来替换旧的值</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const COMPUTED_CACHE: unique symbol = Symbol(&apos;computed_cache&apos;)</span><br><span class="line"></span><br><span class="line">export function computed&lt;This, Return, Value extends () =&gt; Return&gt;(</span><br><span class="line">  value: Value,</span><br><span class="line">  context: ClassGetterDecoratorContext&lt;This, Return&gt;</span><br><span class="line">): Value | void &#123;</span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  // 🔴 初始化缓存对象</span><br><span class="line">  context.addInitializer(function (this: unknown) &#123;</span><br><span class="line">    if (!Object.prototype.hasOwnProperty.call(this, COMPUTED_CACHE)) &#123;</span><br><span class="line">      Object.defineProperty(this, COMPUTED_CACHE, &#123;</span><br><span class="line">        configurable: true,</span><br><span class="line">        enumerable: false,</span><br><span class="line">        value: new Map(),</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  return function (this: Object) &#123;</span><br><span class="line">    const cache = this[COMPUTED_CACHE] as Map&lt;string | symbol, Ref&lt;Return&gt;&gt;</span><br><span class="line">    if (!cache.has(context.name)) &#123;</span><br><span class="line">      // 🔴 惰性初始化</span><br><span class="line">      const scope = effectScope(true)</span><br><span class="line"></span><br><span class="line">      const val = scope.run(() =&gt; vueComputed(() =&gt; value.call(this)))!</span><br><span class="line"></span><br><span class="line">      cache.set(context.name, val)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return unref(cache.get(context.name))</span><br><span class="line">  &#125; as Value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的代码中，我们返回的新的函数来取代原有的 <code>getter</code>，另外在 <code>addInitializer</code> 中初始化缓存属性。我们建议在 <code>addInitializer</code> 中一次性将需要的属性都初始化完毕，避免在 getter 中动态去添加新的属性，<a href="https://mathiasbynens.be/notes/shapes-ics" target="_blank" rel="noopener">利好 JavaScript 引擎的优化</a>。</p>
+<p><br></p>
+<p>这样做的好处是更符合新版装饰器的心智和设计意图，也可以保证装饰器按照组合的顺序调用。</p>
+<p><br><br><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要详细对比了新版和旧版的装饰器差异，通过实战将装饰器的能力和陷阱挖掘出来。</p>
+<p><br></p>
+<p>总得来说，新版的装饰器更加统一直观、更容易入手，在能力上也克制地收敛了。不过目前社区上大量的库和框架还停留在 Stage 1 装饰器，升级和改造需要较大的成本，我们可以暂时观望观望。</p>
+<p><br></p>
+<p>下一步：装饰器比较复杂的应用是依赖注入，当前的依赖注入库都深度依赖 <code>reflect-metadata</code> 来实现。而 <a href="https://github.com/tc39/proposal-decorator-metadata?spm=a2c6h.12873639.article-detail.8.68bd13c4Dt6Qt7" target="_blank" rel="noopener">Decorator Metadata</a> 目前也进入了 Stage 3 阶段，很快就会和我们见面(Typescript 5.2)，届时我们再聊聊如何实现依赖注入(🐶 看你们的点赞)。</p>
+<p><br><br><br></p>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><ul>
+<li><strong><a href="https://github.com/tc39/proposal-decorators" target="_blank" rel="noopener">proposal-decorators</a></strong></li>
+<li><a href="https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-0.html" target="_blank" rel="noopener">Typescript 5.0</a> 发布日志</li>
+<li><a href="https://mp.weixin.qq.com/s/QnWez2sEWuL8j8GVDmBNTA" target="_blank" rel="noopener">TypeScript 5.0 将支持全新的装饰器写法！</a></li>
+<li><a href="https://developer.aliyun.com/article/892441" target="_blank" rel="noopener">ECMAScript 双月报告：装饰器提案进入 Stage 3</a></li>
+<li><a href="https://cn.vitejs.dev/guide/features.html#usedefineforclassfields" target="_blank" rel="noopener">vite typescript <code>useDefineForClassFields</code></a></li>
+<li><a href="https://babeljs.io/docs/babel-plugin-proposal-decorators" target="_blank" rel="noopener">@babel/plugin-proposal-decorators</a></li>
+<li>Javascript 引擎优化机制:<ul>
+<li><a href="https://mathiasbynens.be/notes/shapes-ics" target="_blank" rel="noopener">JavaScript engine fundamentals: Shapes and Inline Caches</a></li>
+<li><a href="https://mathiasbynens.be/notes/prototypes" target="_blank" rel="noopener">JavaScript engine fundamentals: optimizing prototypes</a></li>
+</ul>
+</li>
+<li><a href="https://cn.mobx.js.org/refguide/action.html" target="_blank" rel="noopener">MobX</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#概览"><span class="toc-number">1.</span> <span class="toc-text">概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#legacy"><span class="toc-number">2.</span> <span class="toc-text">Legacy</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#observable"><span class="toc-number">2.1.</span> <span class="toc-text">@observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#computed"><span class="toc-number">2.2.</span> <span class="toc-text">@computed</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#new"><span class="toc-number">3.</span> <span class="toc-text">New</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#observable-1"><span class="toc-number">3.1.</span> <span class="toc-text">@observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#computed-1"><span class="toc-number">3.2.</span> <span class="toc-text">@computed</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">5.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Javascript 装饰器实战：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=Javascript 装饰器实战：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
