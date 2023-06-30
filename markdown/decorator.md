@@ -1,5 +1,5 @@
 ---
-title: 'Javascript 装饰器实战：用 MobX 的方式打开 Vue'
+title: '全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue'
 date: 2023/6/26
 categories: 前端
 ---
