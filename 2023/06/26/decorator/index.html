@@ -9,7 +9,7 @@
     <meta name="description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
 <meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Javascript 装饰器实战：用 MobX 的方式打开 Vue">
+<meta property="og:title" content="全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue">
 <meta property="og:url" content="https://bobi.ink/2023/06/26/decorator/index.html">
 <meta property="og:site_name" content="Bobi.ink">
 <meta property="og:description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
@@ -18,9 +18,9 @@
 <meta property="og:image" content="https://bobi.ink/images/decorator/Untitled.png">
 <meta property="og:image" content="https://bobi.ink/images/decorator/Untitled%201.png">
 <meta property="og:image" content="https://bobi.ink/images/decorator/Untitled%202.png">
-<meta property="og:updated_time" content="2023-06-26T02:42:29.395Z">
+<meta property="og:updated_time" content="2023-06-30T08:35:21.851Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Javascript 装饰器实战：用 MobX 的方式打开 Vue">
+<meta name="twitter:title" content="全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue">
 <meta name="twitter:description" content="去年三月份装饰器提案进入了 Stage 3 阶段，而今年三月份 Typescript 在 5.0 也正式支持了 。装饰器提案距离正式的语言标准，只差临门一脚。 这也意味着旧版的装饰器(Stage 1) 将逐渐退出历史舞台。然而旧版的装饰器已经被广泛的使用，比如 MobX、Angular、NestJS… 未来较长的一段时间内，都会是新旧并存的局面。  本文将把装饰器语法带到 Vue Reactiv">
 <meta name="twitter:image" content="https://bobi.ink/images/decorator/Untitled.jpeg">
     
@@ -42,7 +42,7 @@
         
     
     <!-- title -->
-    <title>Javascript 装饰器实战：用 MobX 的方式打开 Vue</title>
+    <title>全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue</title>
     <!-- styles -->
     <link rel="stylesheet" href="/css/style.css">
     <!-- rss -->
@@ -70,6 +70,8 @@
     <span id="actions">
       <ul>
         
+        <li><a class="icon" href="/2023/06/30/decorator-2/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
         
         <li><a class="icon" href="/2023/06/21/happiness/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
@@ -85,15 +87,15 @@
     <div id="share" style="display: none">
       <ul>
   <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Javascript 装饰器实战：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=Javascript 装饰器实战：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -110,7 +112,7 @@
   <header>
     
     <h1 class="posttitle" itemprop="name headline">
-        Javascript 装饰器实战：用 MobX 的方式打开 Vue
+        全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue
     </h1>
 
 
@@ -390,15 +392,15 @@
     <div id="share-footer" style="display: none">
       <ul>
   <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Javascript 装饰器实战：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=Javascript 装饰器实战：用 MobX 的方式打开 Vue"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=Javascript 装饰器实战：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/26/decorator/&text=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/26/decorator/&is_video=false&description=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue&body=Check out this article: https://bobi.ink/2023/06/26/decorator/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/26/decorator/&title=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/26/decorator/&name=全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

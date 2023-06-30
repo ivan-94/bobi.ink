@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="系列文章：  全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue  全新 JavaScript 装饰器实战下篇：实现依赖注入  上一篇文章我们介绍了 JavaScript 最新的装饰器提案，以及它和旧版的区别。这篇文章我们将继续深入装饰器，尝试实现一个简易的依赖注入库。  谈到装饰器我们总会听到 reflect-metadata, 尤其是社区上的依赖注入库，比如 in">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="全新 JavaScript 装饰器实战下篇：实现依赖注入">
+<meta property="og:url" content="https://bobi.ink/2023/06/30/decorator-2/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="系列文章：  全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue  全新 JavaScript 装饰器实战下篇：实现依赖注入  上一篇文章我们介绍了 JavaScript 最新的装饰器提案，以及它和旧版的区别。这篇文章我们将继续深入装饰器，尝试实现一个简易的依赖注入库。  谈到装饰器我们总会听到 reflect-metadata, 尤其是社区上的依赖注入库，比如 in">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/decorator-2/Untitled.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/decorator-2/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/decorator-2/Untitled%201.png">
+<meta property="og:updated_time" content="2023-06-30T08:43:56.329Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="全新 JavaScript 装饰器实战下篇：实现依赖注入">
+<meta name="twitter:description" content="系列文章：  全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue  全新 JavaScript 装饰器实战下篇：实现依赖注入  上一篇文章我们介绍了 JavaScript 最新的装饰器提案，以及它和旧版的区别。这篇文章我们将继续深入装饰器，尝试实现一个简易的依赖注入库。  谈到装饰器我们总会听到 reflect-metadata, 尤其是社区上的依赖注入库，比如 in">
+<meta name="twitter:image" content="https://bobi.ink/images/decorator-2/Untitled.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>全新 JavaScript 装饰器实战下篇：实现依赖注入</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/06/26/decorator/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/30/decorator-2/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/30/decorator-2/&text=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/30/decorator-2/&is_video=false&description=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=全新 JavaScript 装饰器实战下篇：实现依赖注入&body=Check out this article: https://bobi.ink/2023/06/30/decorator-2/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/30/decorator-2/&name=全新 JavaScript 装饰器实战下篇：实现依赖注入&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#di-库经常提及的-reflect-metadata-到底是什么？"><span class="toc-number">1.</span> <span class="toc-text">DI 库经常提及的 reflect-metadata 到底是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#decorator-metadata"><span class="toc-number">2.</span> <span class="toc-text">Decorator Metadata</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#简单理解依赖注入"><span class="toc-number">3.</span> <span class="toc-text">简单理解依赖注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#继续探索-typescript-装饰器的能力边界"><span class="toc-number">4.</span> <span class="toc-text">继续探索 Typescript 装饰器的能力边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实战"><span class="toc-number">5.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#装饰器-api"><span class="toc-number">5.1.</span> <span class="toc-text">装饰器 API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#容器实现"><span class="toc-number">5.2.</span> <span class="toc-text">容器实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">7.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        全新 JavaScript 装饰器实战下篇：实现依赖注入
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-06-29T16:00:00.000Z" itemprop="datePublished">2023-06-30</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/decorator-2/Untitled.jpeg" alt="cover"></p>
+<p><br></p>
+<p>系列文章：</p>
+<ul>
+<li><a href="https://www.notion.so/Javascript-MobX-Vue-5e1c633167094d9784e602d66a5877f8?pvs=21" target="_blank" rel="noopener">全新 Javascript 装饰器实战上篇：用 MobX 的方式打开 Vue </a></li>
+<li><a href="https://www.notion.so/JavaScript-0729df8081ec44b48f6f2e6ec7835120?pvs=21" target="_blank" rel="noopener">全新 JavaScript 装饰器实战下篇：实现依赖注入</a></li>
+</ul>
+<p>上一篇<a href="https://www.notion.so/Javascript-MobX-Vue-5e1c633167094d9784e602d66a5877f8?pvs=21" target="_blank" rel="noopener">文章</a>我们介绍了 JavaScript 最新的装饰器提案，以及它和旧版的区别。这篇文章我们将继续深入装饰器，尝试实现一个简易的依赖注入库。</p>
+<p><br></p>
+<p>谈到装饰器我们总会听到 <code>reflect-metadata</code>, 尤其是社区上的依赖注入库，比如 <a href="https://github.com/inversify/InversifyJS" target="_blank" rel="noopener">inversify.js</a></p>
+<p><br></p>
+<p><img src="/images/decorator-2/Untitled.png" alt="inversify.js"></p>
+<p><br></p>
+<p><strong>我们在上一篇文章的装饰器实现中，会直接去转换或者修改类的结构，大部分场景这并不是最佳实践。</strong></p>
+<p><strong>大部分情况下我们应该利用装饰器来收集一些标注信息</strong>，比如 MobX 用装饰器来标注哪些是 observable、哪些是 computed；Inversify.js 用 inject 标注哪些属性需要进行注入；Angular.js 使用 Input/Output 标记属性….</p>
+<p>如果我们要通过装饰器来标记类的原信息，那就得来认识一下：装饰器的好搭子 <code>reflect-metadata</code> 。</p>
+<p><br><br><br><br><br></p>
+<h2 id="di-库经常提及的-reflect-metadata-到底是什么？"><a href="#di-库经常提及的-reflect-metadata-到底是什么？" class="headerlink" title="DI 库经常提及的 reflect-metadata 到底是什么？"></a>DI 库经常提及的 reflect-metadata 到底是什么？</h2><p>这是一个 JavaScript 提案，但是作者并没有<a href="https://github.com/rbuckton/reflect-metadata/issues/96" target="_blank" rel="noopener">将其提交到 TC39</a>。它的继任者现在是 <a href="https://github.com/tc39/proposal-decorator-metadata" target="_blank" rel="noopener">Decorator Metadata</a>，现在已经进入了 Stage 3 阶段，Typescript 也将在 5.2 中实现这个提案。</p>
+<p>Decorator Metadata 会在下文详细介绍，我们先来看看 reflect-metadata。</p>
+<p>先来看看使用它能用来干啥：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">test(&apos;reflect-metadata&apos;, () =&gt; &#123;</span><br><span class="line">  const key = &apos;myKey&apos;</span><br><span class="line"></span><br><span class="line">  // 🔴 装饰器语法</span><br><span class="line">  @Reflect.metadata(key, &apos;inClass&apos;)</span><br><span class="line">  class Foo &#123;</span><br><span class="line">    @Reflect.metadata(key, &apos;inStaticMember&apos;)</span><br><span class="line">    static staticMember = 1</span><br><span class="line"></span><br><span class="line">    @Reflect.metadata(key, &apos;inMember&apos;)</span><br><span class="line">    member = 2</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 🔴 上述装饰器等价于</span><br><span class="line">  Reflect.defineMetadata(key, &apos;inClass&apos;, Foo)</span><br><span class="line">  Reflect.defineMetadata(key, &apos;inStaticMember&apos;, Foo, &apos;staticMember&apos;)</span><br><span class="line">  Reflect.defineMetadata(key, &apos;inMember&apos;, Foo.prototype, &apos;member&apos;)</span><br><span class="line"></span><br><span class="line">  // 🔴 静态成员</span><br><span class="line">  expect(Reflect.getMetadata(key, Foo)).toBe(&apos;inClass&apos;)</span><br><span class="line">  expect(Reflect.getMetadata(key, Foo, &apos;staticMember&apos;)).toBe(&apos;inStaticMember&apos;)</span><br><span class="line"></span><br><span class="line">  // 🔴 实例成员，**需要通过实例获取**</span><br><span class="line">  expect(Reflect.getMetadata(key, Foo, &apos;member&apos;)).toBeUndefined()</span><br><span class="line">  const foo = new Foo()</span><br><span class="line">  expect(Reflect.getMetadata(key, foo, &apos;member&apos;)).toBe(&apos;inMember&apos;)</span><br><span class="line">  // 或者通过原型对象获取</span><br><span class="line">  expect(Reflect.getMetadata(key, Foo.prototype, &apos;member&apos;)).toBe(&apos;inMember&apos;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>通过上面的 「hello world」 我们可以发现：</p>
+<ol>
+<li>可以作为<code>装饰器</code>使用。这个表示这个提案和装饰器有不解的渊源，所以当我们谈及装饰器的时候，总会看到它的身影。</li>
+<li>元数据? 没那么高大上，就是一些 key/value 存储</li>
+<li>扩展了 Reflect API？为什么是 Reflect API?</li>
+<li>关于存储位置，类和静态成员存储在类上，实例成员存储在类的原型上(prototype)</li>
+</ol>
+<p><br></p>
+<p>通过上面的皮毛，我们 GET 不到它要解决痛点是啥。不就是存储一些元数据嘛，我们不需要这个 API 也可以做到，比如 MobX 的装饰器就是放在原型上的一个隐藏自定义属性上：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export function storeAnnotation(prototype: any, key: PropertyKey, annotation: Annotation) &#123;</span><br><span class="line">  if (!hasProp(prototype, storedAnnotationsSymbol)) &#123;</span><br><span class="line">    addHiddenProp(prototype, storedAnnotationsSymbol, &#123;</span><br><span class="line">      // Inherit annotations</span><br><span class="line">      ...prototype[storedAnnotationsSymbol],</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  // ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<p>实际上这个概念是从其他语言借鉴的，比如下面 Java Spring 依赖注入：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MovieRecommender</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> CustomerPreferenceDao customerPreferenceDao;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Autowired</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">MovieRecommender</span><span class="params">(CustomerPreferenceDao customerPreferenceDao)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.customerPreferenceDao = customerPreferenceDao;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 Java 中，可以通过它的 <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/package-summary.html" target="_blank" rel="noopener">Reflect API</a> 可以获取到类的<code>类型信息</code>，比如方法、方法的参数、返回值等类型信息。</p>
+<p>然而，JavaScript 是一门弱类型语言，没有这类信息。所以我们在实现<code>依赖注入</code>时，并不能做到像 Java 那么强大：</p>
+<p><br></p>
+<p>Java:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Engine</span> </span>&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Car</span> </span>&#123;</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> Engine engine;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      engine.turnOn();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>vs Typescript</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">interface Engine &#123;&#125;</span><br><span class="line"></span><br><span class="line">@injectable()</span><br><span class="line">class Car &#123;</span><br><span class="line">  @inject(&apos;EngineKey&apos;)</span><br><span class="line">  private engine: Engine</span><br><span class="line">  start() &#123;</span><br><span class="line">    this.engine.turnOn()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>Java Spring 可以自动推断类型来进行注入</strong>，这个类型可以是接口、具体的类、抽象类等等。而现在 JavaScript 下的 DI 库，我们通常需要显式指定一个标识符，或者只能是一个具体的类(不支持接口)， 一点也不够优雅。</p>
+<p>既然现在有了 <code>Typescript</code> ，能不能做到呢？Typescript 最终也是转换为 JavaScript ，默认情况下<code>类型信息</code>都会被裁减掉。</p>
+<p>而 reflect-metadata 的初衷还是想将 Java/C# 这类语言的 Reflect 能力带到 JavaScript。<strong>因此就拟定了这样一个协议， 让 Typescript 或者其他转译到 JavaScript 强类型语言，可以通过它将类型信息保留下来。</strong></p>
+<p><br></p>
+<p>所以我们看到 Typescript 是它的主要推动者。我们在 Typescript 中可以通过开启 <code>emitDecoratorMetadata</code> 实现装饰器类型信息的保留:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">interface Bar &#123;&#125;</span><br><span class="line"></span><br><span class="line">@d</span><br><span class="line">class Foo &#123;</span><br><span class="line">  @d</span><br><span class="line">  static staticMember = 1</span><br><span class="line"></span><br><span class="line">  @d</span><br><span class="line">  member = 2</span><br><span class="line"></span><br><span class="line">  @d</span><br><span class="line">  method(foo: number, bar: Bar, baz: Foo): string &#123;&#125;</span><br><span class="line"></span><br><span class="line">  constructor(a: Bar) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>转换结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">var __metadata =</span><br><span class="line">  (this &amp;&amp; this.__metadata) ||</span><br><span class="line">  function (k, v) &#123;</span><br><span class="line">    if (typeof Reflect === &apos;object&apos; &amp;&amp; typeof Reflect.metadata === &apos;function&apos;)</span><br><span class="line">      return Reflect.metadata(k, v)</span><br><span class="line">  &#125;</span><br><span class="line">// 省略部分代码</span><br><span class="line">__decorate([d, __metadata(&apos;design:type&apos;, Object)], Foo.prototype, &apos;member&apos;, void 0)</span><br><span class="line">__decorate(</span><br><span class="line">  [</span><br><span class="line">    d,</span><br><span class="line">    __metadata(&apos;design:type&apos;, Function),</span><br><span class="line">    __metadata(&apos;design:paramtypes&apos;, [Number, Object, Foo]),</span><br><span class="line">    __metadata(&apos;design:returntype&apos;, String),</span><br><span class="line">  ],</span><br><span class="line">  Foo.prototype,</span><br><span class="line">  &apos;method&apos;,</span><br><span class="line">  null</span><br><span class="line">)</span><br><span class="line">__decorate([d, __metadata(&apos;design:type&apos;, Object)], Foo, &apos;staticMember&apos;, void 0)</span><br><span class="line">Foo = __decorate([d, __metadata(&apos;design:paramtypes&apos;, [Object])], Foo)</span><br></pre></td></tr></table></figure>
+<p>我们看到大部分的类型信息都保留下来了，比如成员类型、方法的参数/返回值类型。</p>
+<p>但是它也有局限性，比如接口等自定义类型依旧无法保留，毕竟 JavaScript 并没有这些概念。这也直接决定了依旧无法和 Java 这种「原生」强类型语言比肩。</p>
+<p><br></p>
+<blockquote>
+<p>reflect-metadata 可能代表的是 JavaScript 作为一个新汇编语言的觉悟，但是目前的事实也证明了这条路比较难。就拿 Typescript 来说，保留的信息比较有限，而且这会让开发者的技术栈严重依赖 Typescript，另外像 esbuild、swc、babel 这些转译器也很难跟进这种特性。<br><br><br>实际上，现在流行的 DI 库，如 <code>inversify</code>、<code>tsyringe</code> 对 Typescript <code>emitDecoratorMetadata</code> 的依赖也很小，去掉基本上不影响其有效运行。</p>
+</blockquote>
+<blockquote>
+</blockquote>
+<p><br></p>
+<p>总结, reflect-metadata 视图提供一个类(class)元信息的存储标准。在笔者开来，主要的愿景是为上层更高级的语言(比如 Typescript)保留静态类型信息提供一种方式。其次，普通开发者也能使用这个标准化的 API 来给类标注信息。</p>
+<p><br><br><br><br><br></p>
+<h2 id="decorator-metadata"><a href="#decorator-metadata" class="headerlink" title="Decorator Metadata"></a>Decorator Metadata</h2><p>如今的 Metadata 提案已经从装饰器中分离出来，目前也进入了 Stage 3 阶段。经过重新设计的 Metadata 和 reflect-metadata 不是同一个玩意。</p>
+<p>这个提案非常简单，就是新增了一个内置 Symbol —— <code>Symbol.metadata</code>。在装饰器的配合将元数据存储在类的 Symbol.metadata 下面:</p>
+<p><br><br><br></p>
+<p>针对装饰器协议的扩展:</p>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line">type Decorator = (value: Input, context: &#123;</span><br><span class="line">  kind: string;</span><br><span class="line">  name: string | symbol;</span><br><span class="line">  access: &#123;</span><br><span class="line">    get?(): unknown;</span><br><span class="line">    set?(value: unknown): void;</span><br><span class="line">  &#125;;</span><br><span class="line">  isPrivate?: boolean;</span><br><span class="line">  isStatic?: boolean;</span><br><span class="line">  addInitializer?(initializer: () =&gt; void): void;</span><br><span class="line"><span class="addition">+ metadata?: Record&lt;string | number | symbol, unknown&gt;;</span></span><br><span class="line">&#125;) =&gt; Output | void;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>所有装饰器的 context 对象新增了 metadata 对象。 metadata 只是一个普通的对象，没什么特别：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function meta(key: string) &#123;</span><br><span class="line">  return (value: unknown, context: DecoratorContext) =&gt; &#123;</span><br><span class="line">    context.metadata![key] = true</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@meta(&apos;inClass&apos;)</span><br><span class="line">class Foo &#123;</span><br><span class="line">  @meta(&apos;inStaticMember&apos;)</span><br><span class="line">  static staticMember = 1</span><br><span class="line"></span><br><span class="line">  @meta(&apos;inMember&apos;)</span><br><span class="line">  member = 2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 类的所有装饰器共享</span><br><span class="line">expect(Foo[Symbol.metadata]).toEqual(&#123;</span><br><span class="line">  inStaticMember: true,</span><br><span class="line">  inMember: true,</span><br><span class="line">  inClass: true,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>就是这么朴实且无华。因为<strong>所有装饰器都是共享一个对象空间</strong>，避免冲突的职责就交给开发者了。</p>
+<p>大概有两种方式：</p>
+<ul>
+<li>命名空间。比如单纯用字符串 key <code>库名称.{是否静态}.{装饰器位置}.{属性名}</code>，或者创建一个私有 Symbol 按嵌套的结构存储。</li>
+<li><p>私有空间。以下是 MetaData 提案中的例子：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const PRIVATE_METADATA = new WeakMap();</span><br><span class="line"></span><br><span class="line">function meta(key, value) &#123;</span><br><span class="line">  return (_, context) =&gt; &#123;</span><br><span class="line">    let metadata = PRIVATE_METADATA.get(context.metadata);</span><br><span class="line"></span><br><span class="line">    if (!metadata) &#123;</span><br><span class="line">      metadata = &#123;&#125;;</span><br><span class="line">      PRIVATE_METADATA.set(context.metadata, metadata);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    metadata[key] = value;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">@meta(&apos;a&apos; &apos;x&apos;)</span><br><span class="line">class C &#123;</span><br><span class="line">  @meta(&apos;b&apos;, &apos;y&apos;)</span><br><span class="line">  m() &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PRIVATE_METADATA.get(C[Symbol.metadata]).a; // &apos;x&apos;</span><br><span class="line">PRIVATE_METADATA.get(C[Symbol.metadata]).b; // &apos;y&apos;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<p>Anyway，解决命名冲突有无数的办法。</p>
+<blockquote>
+<p>🙋  那 <code>Typescript</code> 的 <code>emitDecoratorMetadata</code> 还支持吗？暂时看到相关的计划</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h2 id="简单理解依赖注入"><a href="#简单理解依赖注入" class="headerlink" title="简单理解依赖注入"></a>简单理解依赖注入</h2><p>现在开始实战部分，首先我们需要了解一下什么是依赖注入：</p>
+<p><img src="/images/decorator-2/Untitled%201.png" alt="di"></p>
+<p>理解依赖注入，需要搞清楚以下几个概念：</p>
+<ul>
+<li><strong>接口(interface)。</strong>接口是一个协议，或者是一个需求。这个由’甲方‘提出来，比如我们要一个手机，那么能“打电话”、”发短信”, 就是需求。接口是一个抽象的东西，并不是具体的实现。对于消费者来说它并不关心的内部细节、是怎么制造出来的。</li>
+<li><strong>实现(implements)</strong>。满足接口需求的具体实现，比如“手机”这个接口的实现，可以是 iphone、小米手机、华为手机等等。</li>
+<li><strong>依赖注入</strong>。依赖注入的意思就是<code>需求者</code>描述好自己的<code>需求</code>，然后由<code>经销商</code>来查找<strong>符合需求</strong>的<code>实现</code>，给到需求者。需求者从头到尾，不会去关心这个需求是怎么去实现的，它只关心它自己要干的事情。</li>
+<li><strong>三种角色</strong>:<ul>
+<li><code>需求者</code>。或者说<code>消费者</code></li>
+<li><code>经销商</code>(容器)。我们也称为容器，他负责协调需求和实现。</li>
+<li><code>供应商</code>。需求的具体实现者。</li>
+</ul>
+</li>
+</ul>
+<p><br><br><br></p>
+<p>可以通过一个例子(来源<a href="https://www.notion.so/wakeapp-framework-b08cb3cb5f8e49f597aa90bbb89a1641?pvs=21" target="_blank" rel="noopener">这里</a>)来理解一下：</p>
+<p><br></p>
+<ol>
+<li><p>定义需求(协议)</p>
+<p>首先定义需求，描述我们期望得到一个怎样的东西。</p>
+<p>需求通常使用 <code>interface</code> 来描述，当然，这并没有限制。你要一个类也可以、字符串、数字也可以，取决你的需求。</p>
+<p>比如我想要一个手机:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">interface IPhone &#123;</span><br><span class="line">  /**</span><br><span class="line">   * 打电话</span><br><span class="line">   */</span><br><span class="line">  call(num: string): void</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 发短信</span><br><span class="line">   */</span><br><span class="line">  sendMessage(num: string, message: string): void</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注册你的需求和标识符的绑定关系：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare global &#123;</span><br><span class="line">  interface DIMapper &#123;</span><br><span class="line">    &apos;DI.IPhone&apos;: IPhone</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>请求注入</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class WeChat &#123;</span><br><span class="line">  // 注入请求</span><br><span class="line">  @inject(&apos;DI.IPhone&apos;)</span><br><span class="line">  myPhone: IPhone</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 打电话老妈</span><br><span class="line">   */</span><br><span class="line">  callMom() &#123;</span><br><span class="line">    this.myPhone.call(&apos;137****110&apos;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>实现需求</p>
+<p>接下来就是供应商来实现需求了。通常使用类来实现需求：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">@injectable()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TheIPhone</span> <span class="title">implements</span> <span class="title">IPhone</span> </span>&#123;</span><br><span class="line">  call(num: string) &#123;</span><br><span class="line">    <span class="comment">// 拨打电话流程</span></span><br><span class="line">  &#125;</span><br><span class="line">  sendMessage(num: string, <span class="attr">message</span>: string) &#123;</span><br><span class="line">    <span class="comment">// 发送短信流程</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>注册实现</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">configureDI((registerSingletonClass) =&gt; &#123;</span><br><span class="line">  registerSingletonClass(&apos;DI.IPhone&apos;, TheIPhone)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p><br><br><br></p>
+<p>如果你理解了上面的例子，那么你已经懂依赖注入了。不过，当你接触到依赖注入的相关实现库时，还有听到这些概念：</p>
+<ul>
+<li><code>容器(Container)</code>。 就是上文提到的<code>经销商</code>，用最简单技术术语来描述的话，他就是一个<code>对象池</code>。他负责协调<code>消费者</code>需求和<code>提供商</code>的实现。</li>
+<li><code>作用域(Scope)</code>。就是对象的存活时间和活动范围<ul>
+<li>存活时间：比较典型的有 singleton(单例)、request(请求， 这个一句话说不清楚，你可以类比为 「HTTP 请求」，这些对象仅在这一次 HTTP 的请求周期内有效)、transient(临时，即每次 inject 请求都创建一个新的对象)。当然，根据实际的场景还可以扩展，比如在 React 组件生命周期</li>
+<li>活动范围： 很多依赖注入库中，容器不是一个单一的对象，而是一个树状的结构，如果要限制某些对象的活动范围，或者覆盖对象的实现，可以通过 Fork 子容器的形式来实现隔离。</li>
+</ul>
+</li>
+<li><code>绑定(binding)</code>。即协议的绑定，比如上面的例子中我们使用 <code>DI.IPhone</code> 字符串来绑定协议和实现。其他编程语言可以做得更加灵活，只需要声明类型，容器会根据类型的兼容性来协调注入。</li>
+</ul>
+<p><br></p>
+<p>当然，一个生产级别的依赖注入实现还会涉及很多技术细节和概念，比如循环依赖、对象构造和析构、工厂、异步加载、对象生命周期管理、中间件、标签(Tagged)等等。</p>
+<p><br></p>
+<p>不过上面我们掌握的知识已经足够覆盖正常的开发场景了。</p>
+<p><br><br><br></p>
+<p><strong>依赖注入的好处就不多说了：</strong></p>
+<ul>
+<li>解耦。面向接口编程。</li>
+<li>可扩展性。每个依赖注入的点就是一个扩展点。</li>
+<li>可测试性。可以让程序职责更加单一，关注真正需要关注的内容。屏蔽干扰，让核心逻辑更容易被测试。</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h2 id="继续探索-typescript-装饰器的能力边界"><a href="#继续探索-typescript-装饰器的能力边界" class="headerlink" title="继续探索 Typescript 装饰器的能力边界"></a>继续探索 Typescript 装饰器的能力边界</h2><p>在上篇<a href="https://www.notion.so/Javascript-MobX-Vue-5e1c633167094d9784e602d66a5877f8?pvs=21" target="_blank" rel="noopener">文章</a>中，我们提到 Typescript 对新版的装饰器有了更严格的检查。</p>
+<p><br></p>
+<p>它可以约束装饰器的位置：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare function injectable&lt;T, Class extends abstract new (...args: any) =&gt; T&gt;(): (</span><br><span class="line">  value: Class,</span><br><span class="line">  context: ClassDecoratorContext&lt;Class&gt;</span><br><span class="line">) =&gt; void</span><br><span class="line"></span><br><span class="line">@injectable()</span><br><span class="line">class Foo &#123;</span><br><span class="line">  // @ts-expect-error ❌ 只能装饰类</span><br><span class="line">  @injectable()</span><br><span class="line">  member = 1</span><br><span class="line"></span><br><span class="line">  // @ts-expect-error ❌ 只能装饰类</span><br><span class="line">  @injectable()</span><br><span class="line">  method() &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这还不止，我们还可以对被装饰的目标值进行约束。以依赖注入的场景来看, 旧版的装饰器很难做到根据注入的标识符来约束<code>实现</code>和<code>注入</code>。现在我们很容易做到：</p>
+<p>先来构造<code>注入标识符</code>的类型(灵感来源于 <code>Vue</code> 的 <code>provide/inject</code>)：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export interface InjectionKey&lt;T&gt; extends Symbol &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>现在可以这样定义标识符：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 定义注入的协议，鸟类</span><br><span class="line">interface Bird &#123;</span><br><span class="line">  fly(): void</span><br><span class="line">  searchForFood(): void</span><br><span class="line">  breed(): void</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 将接口和标识符实现绑定</span><br><span class="line">const BIRD_BINDING: InjectionKey&lt;Bird&gt; = Symbol(&apos;Bird&apos;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们再来定义 <code>injectable</code> 装饰器：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare function injectable&lt;T, Class extends abstract new (...args: any) =&gt; T&gt;(</span><br><span class="line">  // 传入 InjectionKey 类型，推断出 T 来约束 class</span><br><span class="line">  key: InjectionKey&lt;T&gt;</span><br><span class="line">): (value: Class, context: ClassDecoratorContext&lt;Class&gt;) =&gt; void</span><br></pre></td></tr></table></figure>
+<p>测试一下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// @ts-expect-error ❌ 没有履行 Bird 协议</span><br><span class="line">@injectable(BIRD_BINDING)</span><br><span class="line">class Eagle &#123;&#125;</span><br><span class="line"></span><br><span class="line">// ✅ 履行了 Bird 协议</span><br><span class="line">@injectable(BIRD_BINDING)</span><br><span class="line">class Pigeon implements Bird &#123;</span><br><span class="line">  fly() &#123;&#125;</span><br><span class="line">  searchForFood() &#123;&#125;</span><br><span class="line">  breed() &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们现在可以对<code>实现者</code>的<code>协议履行</code>进行严格检查。</p>
+<p><br><br><br></p>
+<p>同理我们可以检查注入侧：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare function inject&lt;T&gt;(</span><br><span class="line">  key: InjectionKey&lt;T&gt;</span><br><span class="line">): (value: undefined, context: ClassFieldDecoratorContext&lt;unknown, T | undefined&gt;) =&gt; void</span><br><span class="line"></span><br><span class="line">declare function injectAll&lt;T&gt;(</span><br><span class="line">  key: InjectionKey&lt;T&gt;</span><br><span class="line">): (value: undefined, context: ClassFieldDecoratorContext&lt;unknown, T[] | undefined&gt;) =&gt; void</span><br></pre></td></tr></table></figure>
+<p>示例：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Zoo &#123;</span><br><span class="line">  // @ts-expect-error ❌ 类型不匹配</span><br><span class="line">  @inject(BIRD_BINDING)</span><br><span class="line">  private unknown?: number</span><br><span class="line"></span><br><span class="line">  // ✅</span><br><span class="line">  @inject(BIRD_BINDING)</span><br><span class="line">  private bird?: Bird</span><br><span class="line"></span><br><span class="line">  // @ts-expect-error ❌ 类型不匹配</span><br><span class="line">  @injectAll(BIRD_BINDING)</span><br><span class="line">  private allBirds?: Bird</span><br><span class="line"></span><br><span class="line">  // ✅</span><br><span class="line">  @injectAll(BIRD_BINDING)</span><br><span class="line">  private birds?: Bird[]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是不是很酷?！</p>
+<p><br><br><br><br><br></p>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><p>接下来我们把上面讲到的知识点运用起来，实现一个简易的依赖注入库。</p>
+<p>🔴  运行环境：由于使用了较新的特性，其他构建平台暂未跟进(包括 Babel、Vite)。下面代码基于 Typescript 5.2(next) + <code>jest</code> + <code>ts-jest</code> 运行。</p>
+<p>为了确保运行， 需要添加以下 polyfill：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// typescript polyfill</span><br><span class="line">declare global &#123;</span><br><span class="line">  interface SymbolConstructor &#123;</span><br><span class="line">    readonly metadata: unique symbol</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  interface Function &#123;</span><br><span class="line">    [Symbol.metadata]?: DecoratorMetadata</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">// runtime polyfill</span><br><span class="line">if (typeof Symbol.metadata === &apos;undefined&apos;) &#123;</span><br><span class="line">  // @ts-expect-error</span><br><span class="line">  Symbol.metadata = Symbol(&apos;Symbol.metadata&apos;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡  在新版的装饰器中，实现依赖注入不一定要用到 Decorator Metadata, 可以看装饰器提案中的<a href="https://github.com/tc39/proposal-decorators#access-and-metadata-sidechanneling" target="_blank" rel="noopener">例子</a>。</p>
+</blockquote>
+<p><br><br><br><br><br><br><br></p>
+<h3 id="装饰器-api"><a href="#装饰器-api" class="headerlink" title="装饰器 API"></a>装饰器 API</h3><p>首先，我们把关键的装饰器 API 定义出来:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 🔴 InjectionKey 用于定义依赖注入的标识符, 可是实现标志服和协议的绑定，我们在上文介绍过了</span><br><span class="line">export interface InjectionKey&lt;T&gt; extends Symbol &#123;&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 作用域类型, 作为简单示例，我们就支持两种作用域类型</span><br><span class="line">export enum Scope &#123;</span><br><span class="line">  Singleton,</span><br><span class="line">  Transient,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 类装饰器，支持被注入的类都需要使用它来装饰</span><br><span class="line">// 可以接受一个 scope，默认为 单例</span><br><span class="line">export function injectable&lt;T, Class extends abstract new (...args: any) =&gt; T&gt;(</span><br><span class="line">  key: InjectionKey&lt;T&gt;,</span><br><span class="line">  scope?: Scope</span><br><span class="line">) &#123;</span><br><span class="line">  return (value: Class, context: ClassDecoratorContext&lt;Class&gt;) =&gt; &#123;</span><br><span class="line">    const metadata = getOrCreateMetadata(context.metadata)</span><br><span class="line"></span><br><span class="line">    if (metadata.injectable) &#123;</span><br><span class="line">      throw new Error(&apos;injectable is already defined&apos;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    metadata.injectable = key</span><br><span class="line">    metadata.scope = scope</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 属性装饰器, 声明注入</span><br><span class="line">export function inject&lt;T&gt;(key: InjectionKey&lt;T&gt;) &#123;</span><br><span class="line">  return (value: undefined, context: ClassFieldDecoratorContext&lt;unknown, T | undefined&gt;) =&gt; &#123;</span><br><span class="line">    injectToField(&#123; key, context &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 属性装饰器, 声明注入所有绑定</span><br><span class="line">export function injectAll&lt;T&gt;(key: InjectionKey&lt;T&gt;) &#123;</span><br><span class="line">  return (value: undefined, context: ClassFieldDecoratorContext&lt;unknown, T[] | undefined&gt;) =&gt; &#123;</span><br><span class="line">    injectToField(&#123; key, multiple: true, context &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述装饰器不会对类进行改造，只是利用 Decorator Metadata 进行一些标注：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 🔴 我们存储在类 Decorator Metadata 的数据</span><br><span class="line">interface InjectionMetadata &#123;</span><br><span class="line">  // 类是否装饰了 @injectable</span><br><span class="line">  injectable?: InjectionKey&lt;unknown&gt;</span><br><span class="line">  // 作用域</span><br><span class="line">  scope?: Scope</span><br><span class="line">  // 类需要进行注入的属性</span><br><span class="line">  injections?: Map&lt;PropertyKey, Injection&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 类属性注入信息</span><br><span class="line">interface Injection &#123;</span><br><span class="line">  // 属性名</span><br><span class="line">  key: InjectionKey&lt;unknown&gt;</span><br><span class="line">  // 是否获取多个实例</span><br><span class="line">  multiple?: boolean</span><br><span class="line">  // 装饰器的上下文</span><br><span class="line">  context: ClassFieldDecoratorContext</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 Decorator Metadata 的 KEY, 使用 Symbol，避免和其他库冲突</span><br><span class="line">const METADATA_KEY: unique symbol = Symbol(&apos;METADATA_KEY&apos;)</span><br><span class="line"></span><br><span class="line">// 初始化 metadata</span><br><span class="line">function getOrCreateMetadata&lt;T&gt;(metadata: DecoratorMetadata): InjectionMetadata &#123;</span><br><span class="line">  if (metadata == null) &#123;</span><br><span class="line">    throw new Error(&apos;Decorator metadata is not defined&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return metadata[METADATA_KEY] ?? (metadata[METADATA_KEY] = &#123;&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 标记属性注入</span><br><span class="line">function injectToField(injection: Injection) &#123;</span><br><span class="line">  const &#123; context &#125; = injection</span><br><span class="line"></span><br><span class="line">  if (context.static === true) &#123;</span><br><span class="line">    throw new Error(&apos;inject cannot be used on static fields&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const metadata = getOrCreateMetadata(context.metadata)</span><br><span class="line"></span><br><span class="line">  if (metadata.injections == null) &#123;</span><br><span class="line">    metadata.injections = new Map()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (metadata.injections.has(context.name)) &#123;</span><br><span class="line">    throw new Error(`inject is already defined for $&#123;context.name.toString()&#125;`)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  metadata.injections.set(context.name, injection)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试驱动开发，我们先把测试用例写了，也方便读者对我们 API 的用法有基本的了解：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 定义协议</span><br><span class="line">interface Bird &#123;</span><br><span class="line">  fly(): void</span><br><span class="line">  searchForFood(): void</span><br><span class="line">  breed(): void</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">interface IZoo &#123;</span><br><span class="line">  getAllBirds(): Bird[]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 定义标识符，并绑定协议</span><br><span class="line">const BIRD_BINDING: InjectionKey&lt;Bird&gt; = Symbol.for(&apos;Bird&apos;)</span><br><span class="line">const ZOO_KEY: InjectionKey&lt;IZoo&gt; = Symbol.for(&apos;Zoo&apos;)</span><br><span class="line"></span><br><span class="line">// ...</span><br><span class="line"></span><br><span class="line">test(&apos;property inject&apos;, () =&gt; &#123;</span><br><span class="line">  // 🔴 使用 @injectable 标注支持注入的类</span><br><span class="line">  @injectable(BIRD_BINDING)</span><br><span class="line">  class MyBird &#123;</span><br><span class="line">    fly() &#123;&#125;</span><br><span class="line">    searchForFood() &#123;&#125;</span><br><span class="line">    breed() &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @injectable(BIRD_BINDING)</span><br><span class="line">  class MyBird2 &#123;</span><br><span class="line">    fly() &#123;&#125;</span><br><span class="line">    searchForFood() &#123;&#125;</span><br><span class="line">    breed() &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @injectable(ZOO_KEY)</span><br><span class="line">  class Zoo implements IZoo &#123;</span><br><span class="line">    // 🔴 获取所有 Bird 实例</span><br><span class="line">    @injectAll(BIRD_BINDING)</span><br><span class="line">    birds?: Bird[]</span><br><span class="line"></span><br><span class="line">    getAllBirds() &#123;</span><br><span class="line">      return this.birds!</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 🔴 注册到容器</span><br><span class="line">  const container = new Container()</span><br><span class="line">  container.bind(BIRD_BINDING, MyBird)</span><br><span class="line">  container.bind(BIRD_BINDING, MyBird2)</span><br><span class="line">  container.bind(ZOO_KEY, Zoo)</span><br><span class="line"></span><br><span class="line">  // 测试</span><br><span class="line">  const zoo = container.get(ZOO_KEY)</span><br><span class="line"></span><br><span class="line">  expect(zoo).toBeInstanceOf(Zoo)</span><br><span class="line">  expect(zoo.getAllBirds().length).toBe(2)</span><br><span class="line">  expect(zoo.getAllBirds()[0]).toBeInstanceOf(MyBird)</span><br><span class="line">  expect(zoo.getAllBirds()[1]).toBeInstanceOf(MyBird2)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h3 id="容器实现"><a href="#容器实现" class="headerlink" title="容器实现"></a>容器实现</h3><p>接下来就是实现容器了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">type Ctor&lt;T = unknown&gt; = new (...args: any) =&gt; T</span><br><span class="line"></span><br><span class="line">export class Container &#123;</span><br><span class="line">  // 存储绑定关系</span><br><span class="line">  private bindings: Map&lt;InjectionKey&lt;unknown&gt;, Ctor[]&gt; = new Map()</span><br><span class="line">  // 单例对象池</span><br><span class="line">  private pools: Map&lt;Ctor, unknown&gt; = new Map()</span><br><span class="line"></span><br><span class="line">  // 🔴 绑定，传入 InjectionKey 和 类实现</span><br><span class="line">  bind&lt;T&gt;(key: InjectionKey&lt;T&gt;, impl: new (...args: any) =&gt; T) &#123;</span><br><span class="line">    // 装饰器信息检查</span><br><span class="line">    if (impl[Symbol.metadata] == null) &#123;</span><br><span class="line">      throw new Error(`No metadata found for $&#123;impl.name&#125;`)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    const metadata = impl[Symbol.metadata]![METADATA_KEY] as InjectionMetadata | undefined</span><br><span class="line"></span><br><span class="line">    if (metadata == null || metadata.injectable == null) &#123;</span><br><span class="line">      throw new Error(`No injectable found for $&#123;impl.name&#125;`)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 存储</span><br><span class="line">    if (this.bindings.has(key)) &#123;</span><br><span class="line">      this.bindings.get(key)!.push(impl)</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      this.bindings.set(key, [impl])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 🔴 获取实例</span><br><span class="line">  get&lt;T&gt;(key: InjectionKey&lt;T&gt;): T &#123;</span><br><span class="line">    return this.resolve(key, false) as T</span><br><span class="line">  &#125;</span><br><span class="line">  // 🔴 获取所有实例</span><br><span class="line">  getAll&lt;T&gt;(key: InjectionKey&lt;T&gt;): T[] &#123;</span><br><span class="line">    return this.resolve(key, true) as T[]</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 🔴 对象查找</span><br><span class="line">   */</span><br><span class="line">  private resolve(key: InjectionKey&lt;unknown&gt;, multiple: boolean): unknown &#123;</span><br><span class="line">    const binding = this.bindings.get(key)</span><br><span class="line"></span><br><span class="line">    if (binding == null) &#123;</span><br><span class="line">      throw new Error(`No binding found for $&#123;key.toString()&#125;`)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (!multiple &amp;&amp; binding.length &gt; 1) &#123;</span><br><span class="line">      throw new Error(`Multiple bindings found for $&#123;key.toString()&#125;`)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return multiple</span><br><span class="line">      ? binding.map((impl) =&gt; this.createInstance(impl))</span><br><span class="line">      : this.createInstance(binding[0])</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 🔴 对象实例化</span><br><span class="line">   */</span><br><span class="line">  private createInstance(impl: Ctor): unknown &#123;</span><br><span class="line">    const metadata = impl[Symbol.metadata]![METADATA_KEY] as InjectionMetadata</span><br><span class="line">    const &#123; scope = Scope.Singleton, injections &#125; = metadata</span><br><span class="line"></span><br><span class="line">    // 单例</span><br><span class="line">    if (scope === Scope.Singleton &amp;&amp; this.pools.has(impl)) &#123;</span><br><span class="line">      return this.pools.get(impl)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 实例化</span><br><span class="line">    const instance = new impl()</span><br><span class="line"></span><br><span class="line">    // 依赖注入，递归调用</span><br><span class="line">    if (injections != null) &#123;</span><br><span class="line">      for (const injection of injections.values()) &#123;</span><br><span class="line">        const &#123; key, context, multiple &#125; = injection</span><br><span class="line">        const value = multiple ? this.getAll(key) : this.get(key)</span><br><span class="line">        // 🔴 利用新版装饰器的 access 实现注入</span><br><span class="line">        context.access.set(instance, value)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (scope === Scope.Singleton) &#123;</span><br><span class="line">      this.pools.set(impl, instance)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return instance</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>整个代码非常简单，这里对新版装饰器的妙用在于 <code>context.access.set(instance, value)</code> , 用起来非常方便，我们不需要关心属性的存储过程，比如<code>私有属性</code>。</p>
+<p><br></p>
+<p>上面的代码有一个问题没有解决，就是<code>循环依赖</code>。我们写一个测试来复现一下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">test(&apos;cycle dependency&apos;, () =&gt; &#123;</span><br><span class="line">  const container = new Container()</span><br><span class="line"></span><br><span class="line">  const A_KEY: InjectionKey&lt;A&gt; = Symbol(&apos;A&apos;)</span><br><span class="line">  const B_KEY: InjectionKey&lt;B&gt; = Symbol(&apos;B&apos;)</span><br><span class="line"></span><br><span class="line">  @injectable(A_KEY)</span><br><span class="line">  class A &#123;</span><br><span class="line">    @inject(B_KEY)</span><br><span class="line">    b?: B</span><br><span class="line"></span><br><span class="line">    constructor() &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @injectable(B_KEY)</span><br><span class="line">  class B &#123;</span><br><span class="line">    @inject(A_KEY)</span><br><span class="line">    a?: A</span><br><span class="line"></span><br><span class="line">    constructor() &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  container.bind(A_KEY, A)</span><br><span class="line">  container.bind(B_KEY, B)</span><br><span class="line"></span><br><span class="line">  const a = container.get(A_KEY)</span><br><span class="line">  expect(a).toBeInstanceOf(A)</span><br><span class="line">  const b = container.get(B_KEY)</span><br><span class="line">  expect(b).toBeInstanceOf(B)</span><br><span class="line">  expect(a.b).toBe(b)</span><br><span class="line">  expect(b.a).toBe(a)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>上面的测试用例会出现<code>调用栈溢出</code>。因为 A → B 之间出现了循环依赖。这个也好办，我们新增一个缓存属性，存储正在实例化的对象，可以简单解决问题：</p>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line">export class Container &#123;</span><br><span class="line"><span class="addition">+ // 正在创建的对象</span></span><br><span class="line"><span class="addition">+ private creating: Map&lt;Ctor, unknown&gt; = new Map()</span></span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 对象实例化</span><br><span class="line">   */</span><br><span class="line">  private createInstance(impl: Ctor): unknown &#123;</span><br><span class="line"><span class="addition">+   if (this.creating.has(impl)) &#123;</span></span><br><span class="line"><span class="addition">+     return this.creating.get(impl)</span></span><br><span class="line"><span class="addition">+   &#125;</span></span><br><span class="line">    // ...</span><br><span class="line"><span class="addition">+   // 实例化</span></span><br><span class="line"><span class="addition">+   const instance = new impl()</span></span><br><span class="line"><span class="addition">+   // 缓存</span></span><br><span class="line"><span class="addition">+   this.creating.set(impl, instance)</span></span><br><span class="line"></span><br><span class="line"><span class="addition">+   try &#123;</span></span><br><span class="line">      // 依赖注入</span><br><span class="line">      if (injections != null) &#123;</span><br><span class="line">        for (const injection of injections.values()) &#123;</span><br><span class="line">          const &#123; key, context, multiple &#125; = injection</span><br><span class="line">          const value = multiple ? this.getAll(key) : this.get(key)</span><br><span class="line">          context.access.set(instance, value)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      if (scope <span class="comment">=== Scope.Singleton) &#123;</span></span><br><span class="line">        this.pools.set(impl, instance)</span><br><span class="line">      &#125;</span><br><span class="line"><span class="addition">+   &#125; finally &#123;</span></span><br><span class="line"><span class="addition">+     this.creating.delete(impl)</span></span><br><span class="line"><span class="addition">+   &#125;</span></span><br><span class="line"></span><br><span class="line">    return instance</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面就是装饰器的核心逻辑了。如果你对生产级别 DI 库感兴趣，可以深入看下扩展阅读提及的开源实现。</p>
+<p>上面相关源码可以在<a href="https://github.com/ivan-94/decoractor-in-action/tree/new-di/src/di" target="_blank" rel="noopener">这里</a>找到。</p>
+<p><br><br><br><br><br></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文回顾了装饰器的老搭档 <code>reflect-metadata</code> 的历史，它的愿景给装饰器提供标准化的元数据存储服务，更长远来愿景是给 JavaScript 的上层语言提供保留静态信息的接口。</p>
+<p>但它最终没有提交给 tc39, 现在随着新的装饰器标准的发展，已经被 <code>Decorator Metadata</code> 提案取代。<code>Decorator Metadata</code> 相比 reflect-metadata 简化很多，就是新增了 <code>Symbol.metadata</code>, 配合装饰器 context.metadata，开发者可以存储任意元数据。</p>
+<p>接着我们继续探索了 Typescript 对装饰器类型检查的增强，可以让我们写出更安全的代码。尤其在 DI 这个场景。</p>
+<p>最后我们将上面学到的知识融会贯通，开发了一个简易的依赖注入实现。</p>
+<p><br><br><br><br><br></p>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><ul>
+<li>Decorator<br><a href="https://github.com/tc39/proposal-decorators" target="_blank" rel="noopener">https://github.com/tc39/proposal-decorators</a></li>
+<li>Decorator Metadata<br><a href="https://github.com/tc39/proposal-decorator-metadata" target="_blank" rel="noopener">https://github.com/tc39/proposal-decorator-metadata</a></li>
+<li>reflect-metadata<br><a href="https://github.com/rbuckton/reflect-metadata" target="_blank" rel="noopener">https://github.com/rbuckton/reflect-metadata</a><ul>
+<li><a href="https://dev.to/svehla/why-reflect-metadata-suc-s-5fal" target="_blank" rel="noopener">Why reflect-metadata suc*s</a></li>
+<li><a href="https://www.typescriptlang.org/docs/handbook/decorators.html" target="_blank" rel="noopener">Typescript Experimental Decorator</a></li>
+<li><a href="https://medium.com/jspoint/introduction-to-reflect-metadata-package-and-its-ecmascript-proposal-8798405d7d88" target="_blank" rel="noopener">Introduction to “reflect-metadata” package and its ECMAScript proposal</a></li>
+</ul>
+</li>
+<li>DI 实现<br><a href="https://github.com/inversify/InversifyJS" target="_blank" rel="noopener">https://github.com/inversify/InversifyJS</a><br><a href="https://github.com/microsoft/tsyringe" target="_blank" rel="noopener">https://github.com/microsoft/tsyringe</a><br><a href="https://github.com/midwayjs/injection" target="_blank" rel="noopener">https://github.com/midwayjs/injection</a><br><a href="https://github.com/jeffijoe/awilix" target="_blank" rel="noopener">https://github.com/jeffijoe/awilix</a><br><a href="https://github.com/typestack/typedi" target="_blank" rel="noopener">https://github.com/typestack/typedi</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#di-库经常提及的-reflect-metadata-到底是什么？"><span class="toc-number">1.</span> <span class="toc-text">DI 库经常提及的 reflect-metadata 到底是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#decorator-metadata"><span class="toc-number">2.</span> <span class="toc-text">Decorator Metadata</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#简单理解依赖注入"><span class="toc-number">3.</span> <span class="toc-text">简单理解依赖注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#继续探索-typescript-装饰器的能力边界"><span class="toc-number">4.</span> <span class="toc-text">继续探索 Typescript 装饰器的能力边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实战"><span class="toc-number">5.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#装饰器-api"><span class="toc-number">5.1.</span> <span class="toc-text">装饰器 API</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#容器实现"><span class="toc-number">5.2.</span> <span class="toc-text">容器实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#扩展阅读"><span class="toc-number">7.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/06/30/decorator-2/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/06/30/decorator-2/&text=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/06/30/decorator-2/&is_video=false&description=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=全新 JavaScript 装饰器实战下篇：实现依赖注入&body=Check out this article: https://bobi.ink/2023/06/30/decorator-2/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/06/30/decorator-2/&title=全新 JavaScript 装饰器实战下篇：实现依赖注入"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/06/30/decorator-2/&name=全新 JavaScript 装饰器实战下篇：实现依赖注入&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
