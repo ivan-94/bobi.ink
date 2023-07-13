@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="微前端实现原理、框架选型之类的文章比较泛滥，我不打算讲这些玩意，本文主要来源于笔者过去一年落地微前端的一手经验，尽量不讲技术细节，而是讲一个体系化的方案是怎么搭建起来。 文章较长，耐心看完保证会有收获。 背景与痛点首先来看下业务背景，方便读者了解我们为什么选择微前端，以及其他相关技术选型的原因。 前端在架构上面的变化远落后于后端，后端的架构已经经历了微服务、中台化、DDD 改造的腥风血雨… 在改">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微前端的落地和治理实战">
+<meta property="og:url" content="https://bobi.ink/2023/07/13/microfrontend/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="微前端实现原理、框架选型之类的文章比较泛滥，我不打算讲这些玩意，本文主要来源于笔者过去一年落地微前端的一手经验，尽量不讲技术细节，而是讲一个体系化的方案是怎么搭建起来。 文章较长，耐心看完保证会有收获。 背景与痛点首先来看下业务背景，方便读者了解我们为什么选择微前端，以及其他相关技术选型的原因。 前端在架构上面的变化远落后于后端，后端的架构已经经历了微服务、中台化、DDD 改造的腥风血雨… 在改">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%206.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%207.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%208.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%209.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2010.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2011.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2012.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2013.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2014.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2015.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2016.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2017.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2018.png">
+<meta property="og:image" content="https://bobi.ink/images/microfrontend/Untitled%2019.png">
+<meta property="og:updated_time" content="2023-07-13T02:11:54.631Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="微前端的落地和治理实战">
+<meta name="twitter:description" content="微前端实现原理、框架选型之类的文章比较泛滥，我不打算讲这些玩意，本文主要来源于笔者过去一年落地微前端的一手经验，尽量不讲技术细节，而是讲一个体系化的方案是怎么搭建起来。 文章较长，耐心看完保证会有收获。 背景与痛点首先来看下业务背景，方便读者了解我们为什么选择微前端，以及其他相关技术选型的原因。 前端在架构上面的变化远落后于后端，后端的架构已经经历了微服务、中台化、DDD 改造的腥风血雨… 在改">
+<meta name="twitter:image" content="https://bobi.ink/images/microfrontend/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>微前端的落地和治理实战</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/07/09/vue-with-rx/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/13/microfrontend/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/13/microfrontend/&text=微前端的落地和治理实战"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/13/microfrontend/&is_video=false&description=微前端的落地和治理实战"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=微前端的落地和治理实战&body=Check out this article: https://bobi.ink/2023/07/13/microfrontend/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/13/microfrontend/&name=微前端的落地和治理实战&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#背景与痛点"><span class="toc-number">1.</span> <span class="toc-text">背景与痛点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#架构"><span class="toc-number">2.</span> <span class="toc-text">架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#基座"><span class="toc-number">3.</span> <span class="toc-text">基座</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#子应用接入"><span class="toc-number">4.</span> <span class="toc-text">子应用接入</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#配置"><span class="toc-number">4.1.</span> <span class="toc-text">配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#挂载"><span class="toc-number">4.2.</span> <span class="toc-text">挂载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#本地开发和调试"><span class="toc-number">4.3.</span> <span class="toc-text">本地开发和调试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#部署和治理"><span class="toc-number">5.</span> <span class="toc-text">部署和治理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#容器化"><span class="toc-number">5.1.</span> <span class="toc-text">容器化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#运行容器"><span class="toc-number">5.2.</span> <span class="toc-text">运行容器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果实现子应用的自动发现？"><span class="toc-number">5.3.</span> <span class="toc-text">如果实现子应用的自动发现？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#部署和运维"><span class="toc-number">5.4.</span> <span class="toc-text">部署和运维</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#那么配置呢？"><span class="toc-number">5.5.</span> <span class="toc-text">那么配置呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更多"><span class="toc-number">5.6.</span> <span class="toc-text">更多</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有哪些最佳实践"><span class="toc-number">5.7.</span> <span class="toc-text">有哪些最佳实践?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#未来"><span class="toc-number">5.8.</span> <span class="toc-text">未来</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">7.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        微前端的落地和治理实战
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-07-12T16:00:00.000Z" itemprop="datePublished">2023-07-13</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/microfrontend/Untitled.png" alt="Untitled"></p>
+<p>微前端实现原理、框架选型之类的文章比较泛滥，我不打算讲这些玩意，本文主要来源于笔者过去一年落地微前端的一手经验，尽量不讲技术细节，而是讲一个体系化的方案是怎么搭建起来。</p>
+<p>文章较长，耐心看完保证会有收获。</p>
+<h1 id="背景与痛点"><a href="#背景与痛点" class="headerlink" title="背景与痛点"></a>背景与痛点</h1><p>首先来看下业务背景，方便读者了解我们为什么选择微前端，以及其他相关技术选型的原因。</p>
+<p>前端在架构上面的变化远落后于后端，后端的架构已经经历了微服务、中台化、DDD 改造的腥风血雨…</p>
+<p>在改造成微前端之前, 我们也是一个巨型的<code>单体应用</code>，后面随着业务的复杂化，业务和团队进一步进行拆分， 我们的前端项目也根据<a href="https://zh.wikipedia.org/zh-hans/%E5%BA%B7%E5%A8%81%E5%AE%9A%E5%BE%8B" target="_blank" rel="noopener"><code>康威定律</code></a>，进化成为了‘<code>多页应用</code>’， 如下图所示：</p>
+<p><img src="/images/microfrontend/Untitled%201.png" alt="多页"></p>
+<p><br></p>
+<p>我们主要做的是 2B 业务，做 <a href="https://zh.wikipedia.org/zh-hans/%E6%A6%82%E5%BF%B5%E9%AA%8C%E8%AF%81" target="_blank" rel="noopener">POC</a>(概念验证) 和<code>私有化部署</code>是家常便饭，在已有的架构下，我们需要应用某些配置可能会牵扯多个项目，比如主题、文案、接口配置等信息的修改，需要针对多个项目进行创建分支、修改代码、构建、发布、部署… 一系列繁琐的流程</p>
+<p>主要原因是我们的业务系统经过长期、多团队、多业态的迭代，积累了大量的技术债。</p>
+<ul>
+<li>技术栈老旧，开发效率低，我们想要应用新的技术和规范，但碍于项目体量大、质量差，重构举步维艰。</li>
+<li>子应用的拆分没有固定的范式。有些模块按照团队拆分出独立的仓库，有些仓库则采用 MonoRepo。前者仓库之间存在大量重复代码、缺乏管理；而后者 MonoRepo 则越来越臃肿, 职责不清晰，编译缓慢, 逐渐也演变成了<code>巨石应用</code>。</li>
+<li>基于多页的子应用缺乏管理，规范/标准不统一。无法统一控制视觉呈现、共享的功能和依赖。造成重复工作</li>
+<li>新旧项目、第三方应用集成都很复杂。</li>
+<li>多行业、多团队的项目特性，导致工程管理复杂，扩展性差。</li>
+<li>部署方式原始。</li>
+<li>应用按照菜单聚合，而不是按照业务聚合</li>
+<li>…</li>
+</ul>
+<p><br></p>
+<blockquote>
+<p>💡  怎么理解 “应用按照菜单聚合，而不是按照业务聚合” 呢？</p>
+<p><img src="/images/microfrontend/Untitled%202.png" alt="菜单聚合"></p>
+<p><strong>朴素的多页应用通常按照“菜单”来拆分应用，比如按照上图的顶级 Tab。</strong></p>
+<p>后面来这一个这样的需求，a 应用的某些功能菜单需要在 b Tab 下展示，这时候就傻眼了：</p>
+<ul>
+<li>把 a 的相关代码搬运到 b？如果后面菜单又改了怎么办？再说，你能搬得动吗？</li>
+<li>用 iframe 将 a 套在 b 应用下？</li>
+</ul>
+</blockquote>
+<p><br><br><br></p>
+<p>因此我们亟需一套新的架构，<strong>能统一管理不同团队业务线、同时能够保持原本的独立性和灵活性</strong>。这时候微前端架构就进入了我们的考察范围：</p>
+<p><img src="/images/microfrontend/Untitled%203.png" alt="星状"></p>
+<p>我们需要一个「底座」将不同的应用聚合起来，将原本<code>离散</code>的应用通过一个<code>基座</code>串联起来：</p>
+<ul>
+<li><strong>离散的应用结构，转换为星状结构。</strong>基座可以统一管理子应用。</li>
+<li><strong>开发者可以更专注于业务的开发</strong>。基座会提供配套的登录会话管理、权限管理、菜单管理、路由管理、主题管理等方案，子应用只需关心业务功能本身的开发。</li>
+<li><strong>更容易地集成应用</strong>。不管是自己的业务应用、老旧系统、还是外部第三方应用，都可以在极少改动的情况下集成进来。</li>
+<li><strong>视觉统一</strong>。</li>
+<li><strong>拆分巨石应用，让子应用可以按照“业务聚合”</strong>。<strong>不再耦合菜单</strong>， 让应用更轻量、内聚、更可维护</li>
+</ul>
+<blockquote>
+<p>💡  使用微前端之后，子应用不再耦合菜单，菜单由基座来管理和组合，菜单可以被放在任意位置。</p>
+</blockquote>
+<p><br></p>
+<h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><p><strong>由于我们原本就是<code>多页应用</code>的架构，所以基于<code>路由分发</code> + <code>基座形式</code>的微前端方案是一种比较自然的选择</strong>。整体项目架构如下：</p>
+<p><img src="/images/microfrontend/Untitled%204.png" alt="Untitled"></p>
+<p>我们构造了一整套体系化的方案： 从<code>规范</code>到<code>开发基础库</code>、从<code>权限管理系统</code>到<code>微前端基座</code>、从<code>开发调试</code>到<code>部署运维</code>。</p>
+<ol>
+<li><strong>基础库：</strong>我们将每个应用都重复的工作提取出来，重新设计，并严格管理起来。使之能真正有效地服务业务开发，避免重复造轮子。</li>
+<li><strong>开发规范</strong>：同时，我们期望提供更丰富的开发规范、指导、最佳实践作为支撑。让开发者走更少的弯路。</li>
+<li><strong>权限管理平台</strong>：基座的<strong>菜单</strong>、<strong>权限信息</strong>来源于<code>权限管理平台</code>, 通过权限管理平台可以灵活地给不同业态、不同角色配置不同的菜单和权限。这是我们微前端方案的重要基础。</li>
+<li><strong>基座:</strong> 基座是微前端应用集成的一个重要平台。同时也肩负着管理公共资源、依赖、规范的责任。主要有以下职责：<ul>
+<li>子应用集成。给子应用提供渲染容器</li>
+<li>路由/菜单管理</li>
+<li>权限管理</li>
+<li>主题管理</li>
+<li>会话管理</li>
+<li>多语言管理</li>
+<li>共享依赖等</li>
+</ul>
+</li>
+<li><p><strong>运行容器：<a href="https://wakeadmin.wakedata.com/mapp/deploy.html" target="_blank" rel="noopener">运行容器</a></strong>  是我们提供的一套微前端的运行和部署方案。相比传统纯粹的前端资源静态部署，我们希望在部署阶段可以做更多的事情：</p>
+<ul>
+<li>动态配置。比如域名配置、SEO 信息配置</li>
+<li>主题管理。一键换肤能否实现？</li>
+<li>子应用管理。自动发现子应用，而不是在微前端基座中硬编码？</li>
+<li>语言包。能否实时配置语言包，而不需要重新编译代码、审核、发布…</li>
+<li>开发环境、测试环境部署能否简化？</li>
+</ul>
+<p>得益于<code>运行容器</code>，我们可以实现<strong>前端部署的标准化</strong>，支持「<strong>一键部署」</strong>等能力。</p>
+</li>
+</ol>
+<p><br><br><br><br><br><br><br></p>
+<h1 id="基座"><a href="#基座" class="headerlink" title="基座"></a>基座</h1><p><img src="/images/microfrontend/Untitled%205.png" alt="基座主界面"></p>
+<p>基座主界面</p>
+<p>如上所示，基座为子应用提供了基础的运行环境， 蓝色区域为子应用的运行范围。</p>
+<p><br></p>
+<p><img src="/images/microfrontend/Untitled%206.png" alt="基座结构"></p>
+<p>基座的大概结构如上。</p>
+<p>首先是<code>会话管理</code>，基座会<code>拦截</code>应用的所有请求，如果监听到 401 状态码，则跳转到登录页面进行授权。登录/注册页面也是由子应用提供，我们尽量不让基座耦合具体的业务。</p>
+<p><br></p>
+<p>基座启动后，就会从<code>权限管理平台</code>拉取菜单、权限配置信息，渲染页面的菜单导航框架。同时也会对页面路由进行授权拦截，而细粒度的权限控制(比如按钮)，基座也会暴露 API 供子应用适配。</p>
+<p><br></p>
+<p>至于子应用信息，则是<strong>由<code>运行容器</code>自动发现并注入</strong>，避免在基座中硬编码了这些信息。基座底层基于 <a href="https://github.com/umijs/qiankun" target="_blank" rel="noopener">qiankun</a>，根据路由匹配渲染指定的子应用。</p>
+<blockquote>
+<p>💡 <code>运行容器</code>是啥? 这个我们会在下文介绍，简单来说，它就是一个 <code>NodeJS</code> 服务，会<strong>自动发现</strong>已经部署在服务器中的子应用，然后将这些信息注入到基座的启动代码中。</p>
+</blockquote>
+<p><br></p>
+<p>基座还统一管理了<code>主题包</code>、<code>多语言</code>。从而保证子应用可以有较为统一的呈现。主题包也可以在部署时动态切换，这对于 POC 或者私有化部署比较方便。</p>
+<blockquote>
+<p>💡  主题包主要包含 CSS 变量、组件库样式、语言包、静态资源、甚至一些部署配置信息。</p>
+</blockquote>
+<p><br></p>
+<p><img src="/images/microfrontend/Untitled%207.png" alt="API"></p>
+<p>为了方便子应用使用基座的「<code>服务</code>」， 基座也向子应用暴露了一系列的组件库和 API。</p>
+<p>组件库基于使用 <code>Web Component</code> 的形式，实现框架无关， 基于 Vue 3 创建。Vue 3 <a href="https://cn.vuejs.org/guide/extras/web-components.html" target="_blank" rel="noopener">构建自定义元素</a> 也很方便，所以就没必要引入其他框架专门来编写这块了</p>
+<p>这些 API 可以直接挂载在全局 window 对象上，子应用可以直接访问。</p>
+<blockquote>
+<p>💡  实际上我们封装了一个套壳 npm 库，避免子应用直接访问 window 对象上的服务, 隐藏细节，另外可以提供类型提示。</p>
+</blockquote>
+<p><br><br><br><br><br><br><br></p>
+<h1 id="子应用接入"><a href="#子应用接入" class="headerlink" title="子应用接入"></a>子应用接入</h1><p>简单、免侵入地改造子应用使我们要达成的主要目标。</p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>为此，我们也提供了相应的 <code>vue-cli</code> 插件, 支持快速集成，避免开发者关心 Webpack 底层的各种配置细节</p>
+<blockquote>
+<p>我们的微前端主要基于 <a href="https://github.com/umijs/qiankun" target="_blank" rel="noopener">qiankun</a>，官方目前并不支持 Vite，并且我们大量项目主要以 Vue CLI 为主。</p>
+</blockquote>
+<p>示例：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; defineConfig &#125; = <span class="built_in">require</span>(<span class="string">'@vue/cli-service'</span>)</span><br><span class="line"><span class="keyword">const</span> &#123; defineMappChild &#125; = <span class="built_in">require</span>(<span class="string">'@wakeadmin/vue-cli-plugin-mapp-child'</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = defineConfig(&#123;</span><br><span class="line">  transpileDependencies: <span class="literal">false</span>,</span><br><span class="line">  pluginOptions: &#123;</span><br><span class="line">    <span class="comment">// 只需要简单的配置</span></span><br><span class="line">    ...defineMappChild(&#123;</span><br><span class="line">      mapp: &#123;</span><br><span class="line">        activeRule: <span class="string">'/dsp.html'</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">  lintOnSave: <span class="literal">false</span>,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>多入口配置：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; defineConfig &#125; = <span class="built_in">require</span>(<span class="string">'@vue/cli-service'</span>)</span><br><span class="line"><span class="keyword">const</span> &#123; defineMappChild &#125; = <span class="built_in">require</span>(<span class="string">'@wakeadmin/vue-cli-plugin-mapp-child'</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = defineConfig(&#123;</span><br><span class="line">  <span class="comment">// 多页应用</span></span><br><span class="line">  pages: &#123;</span><br><span class="line">    index: <span class="string">'src/main.ts'</span>,</span><br><span class="line">    another: <span class="string">'src/another.ts'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  pluginOptions: &#123;</span><br><span class="line">    <span class="comment">// 微前端集成配置</span></span><br><span class="line">    ...defineMappChild(&#123;</span><br><span class="line">      mapp: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">// entry 必须为上面 pages 中定义的 key</span></span><br><span class="line">          entry: <span class="string">'index'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">// entry 必须为上面 pages 中定义的 key</span></span><br><span class="line">          entry: <span class="string">'another'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      ],</span><br><span class="line">    &#125;),</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="挂载"><a href="#挂载" class="headerlink" title="挂载"></a>挂载</h2><p>接着调整应用挂载程序：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp, App <span class="keyword">as</span> TApp &#125; <span class="keyword">from</span> <span class="string">'vue'</span></span><br><span class="line"><span class="keyword">import</span> &#123; createRouter, createWebHashHistory &#125; <span class="keyword">from</span> <span class="string">'vue-router'</span></span><br><span class="line"><span class="keyword">import</span> Bay <span class="keyword">from</span> <span class="string">'@wakeadmin/bay'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> App <span class="keyword">from</span> <span class="string">'./App.vue'</span></span><br><span class="line"><span class="keyword">import</span> &#123; routes &#125; <span class="keyword">from</span> <span class="string">'./router'</span></span><br><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">'./store'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> app: TApp</span><br><span class="line"></span><br><span class="line">Bay.createMicroApp(&#123;</span><br><span class="line">  <span class="keyword">async</span> bootstrap() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'bootstrap vue3'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">async</span> mount(container, props) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'mount vue3'</span>, props)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> router = createRouter(&#123;</span><br><span class="line">      history: createWebHashHistory(),</span><br><span class="line">      routes,</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    app = createApp(App).use(store).use(router).use(Bay)</span><br><span class="line"></span><br><span class="line">    app.mount(container?.querySelector(<span class="string">'#app'</span>) ?? <span class="string">'#app'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> unmount() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'unmount vue3'</span>)</span><br><span class="line"></span><br><span class="line">    app.unmount()</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> update() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'update vue3'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="本地开发和调试"><a href="#本地开发和调试" class="headerlink" title="本地开发和调试"></a>本地开发和调试</h2><p>运行起来后， 我们会在终端打印出子应用的相关信息，如下图：</p>
+<p><img src="/images/microfrontend/Untitled%208.png" alt="terminal"></p>
+<p>接下来，只需要在<code>基座的调试页面</code>，注册这个子应用就可以运行起来的：</p>
+<p><img src="/images/microfrontend/Untitled%209.png" alt="debug"></p>
+<blockquote>
+<p>💡  有了微前端之后，子应用的开发和调试也简化了很多，可以随时挂载到任意环境，不需要配置任何服务端代理。</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h1 id="部署和治理"><a href="#部署和治理" class="headerlink" title="部署和治理"></a>部署和治理</h1><p>网上很少关于微前端应用的部署和治理的介绍，下面介绍我们自己摸索出来一套方案， 这也是本文的重点。</p>
+<p><br></p>
+<h2 id="容器化"><a href="#容器化" class="headerlink" title="容器化"></a>容器化</h2><p>在此之前，我们的前端项目都是扔到一台静态资源服务器，很多开发者会手动操作，项目之前通过目录隔离，手动维护 Nginx 进行分流，手段原始且容易出错，场面十分混乱。</p>
+<p>在 2021 年，我们就开始推行前端项目的容器化，来解决这种混乱的状态。</p>
+<p>为了<code>标准化</code>、<code>自动化</code>每个项目的构建操作、部署流程，我们和后端对齐， 使用容器和 K8S 来实现发布产物的封装和部署。这样的好处是：</p>
+<ul>
+<li>实现测试环境和生产环境的统一。</li>
+<li>简化部署流程， 采用统一的配置，无需更改 Nginx 配置</li>
+<li>真正做到不同团队项目的隔离。</li>
+<li>支持回滚</li>
+<li>简化和标准化构建流程。同时也简化了运维的工作，前后端都是容器部署。</li>
+<li>运行的环境更加灵活。我们可以使用最新的 nginx 版本，可以使用 HTTP2 等新的技术，前端自己就可以部署一套 NodeJS 环境，做一些更酷的事情。对运维的依赖性会更低。</li>
+</ul>
+<p><br></p>
+<p>这对我们来说是一个比较重要的升级。我们的工作不再局限于静态资源的伺服，我们可以使用 NodeJS 开发 API、自动化工作流、可以进行服务端渲染等等，拓展了能力的边界。</p>
+<p><br><br><br></p>
+<p>然而，很多配置信息在构建时就固定下来了，比如 CDN 域名，接口请求路径等等。而不同环境通常会使用不同的配置信息。<strong>这样就无法实现构建一次镜像，在不同环境运行。</strong></p>
+<p>后端程序的解决办法是将配置信息外置，比如通过<code>环境变量</code>配置或者从<code>配置中心</code>(比如 Nacos)获取。</p>
+<p>这在前端行不通，所以我们引入了<code>运行容器</code>的概念。</p>
+<p><br><br><br></p>
+<h2 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h2><p><code>运行容器</code>，顾名思义就是整套<code>微前端</code> 的<code>运行时</code>，以 「<code>Docker 容器</code>」的形式部署。我们尽量复用 K8S 提供的基础设施(比如 PVC、配置映射、Sidecar 等) 来实现。</p>
+<p>运行容器的主要结构：</p>
+<p><img src="/images/microfrontend/Untitled%2010.png" alt="container"></p>
+<p><code>运行容器</code>主要包含两大部分：</p>
+<ul>
+<li><code>Nginx</code> ：毫无疑问，Nginx 是<code>静态资源伺服</code>的最佳能手，同时它作为内部服务<code>反向代理</code>。</li>
+<li><code>transpiler</code> (我们称为<code>转换器</code>): 这是一个「搬运工」，主要负责配置的收集、代码转换。并将转换后的静态资源交给  <code>nginx</code>  伺服。</li>
+</ul>
+<p>下面会详细介绍它的能力。</p>
+<p><br><br><br></p>
+<h2 id="如果实现子应用的自动发现？"><a href="#如果实现子应用的自动发现？" class="headerlink" title="如果实现子应用的自动发现？"></a>如果实现子应用的自动发现？</h2><p>答案是<strong>”约定“</strong>。</p>
+<p>运行容器约定了以下目录：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">/data/</span><br><span class="line">  /<span class="built_in">source</span>/                   <span class="comment"># 源目录</span></span><br><span class="line">    /__public__/             <span class="comment"># 公共资源, 外部可以直接访问，不需要 __public__ 前缀</span></span><br><span class="line">    /__config__/             <span class="comment"># 配置目录</span></span><br><span class="line">      config.yml</span><br><span class="line">      any-sub-dir/</span><br><span class="line">        my-config.yml</span><br><span class="line"></span><br><span class="line">    /__entry__/              <span class="comment"># 基座目录</span></span><br><span class="line">      js/</span><br><span class="line">      index.html</span><br><span class="line"></span><br><span class="line">    /__apps__/               <span class="comment"># 子应用目录</span></span><br><span class="line">      wkb/</span><br><span class="line">      dsp/</span><br><span class="line">      dmp/</span><br><span class="line">        js/</span><br><span class="line">        mapp.json</span><br><span class="line">        index.html</span><br><span class="line"></span><br><span class="line">    /__i18n__/               <span class="comment"># 语言包目录</span></span><br><span class="line">      zh.tr</span><br><span class="line">      en.tr</span><br><span class="line">      any-sub-dir/</span><br><span class="line">        zh.tr</span><br><span class="line">        en.tr</span><br><span class="line"></span><br><span class="line">    /__theme__/              <span class="comment"># 主题目录</span></span><br><span class="line">      config.yml</span><br><span class="line">      element-ui.css</span><br><span class="line">      element-plus.css</span><br><span class="line">      fonts/</span><br><span class="line">      i18n/</span><br><span class="line">        zh.tr</span><br><span class="line">        en.tr</span><br><span class="line"></span><br><span class="line">  /public/                    <span class="comment"># nginx 伺服目录</span></span><br></pre></td></tr></table></figure>
+<p>目录结构解析：</p>
+<ul>
+<li><code>/data/source</code>。没错，<code>transpiler</code>  就是<code>转译</code>和搬运这里的静态资源。</li>
+<li><code>/data/public</code>。 <code>transpiler</code>  就是将资源转译后搬运到这里，<code>nginx</code>  对外伺服这个目录。</li>
+</ul>
+<p><br></p>
+<blockquote>
+<p>转译？<code>transpiler</code> 可以认为就是一个模板引擎，它会替换代码里面的动态变量。</p>
+</blockquote>
+<p><br></p>
+<p>再来看  <code>/data/source</code>：</p>
+<ul>
+<li><code>__entry__</code>: 基座编译之后的代码就部署这里。</li>
+<li><code>__apps__</code>: 子应用编译之后的代码就部署这里，子应用之间， 按照唯一的  <code>name</code>  区分目录。</li>
+<li><code>__i18n__</code>: 扩展语言包，文件按照  <code>&lt;language&gt;.tr</code>  命名， 子目录的 .tr 文件也会被扫描到。</li>
+<li><code>__config__</code>: 配置目录。配置文件使用  <code>.yml</code>  或  <code>.yaml</code>  命名，也可以放在子目录下。</li>
+<li><code>__theme__</code>: 主题包目录。可以手动维护，也可以使用  <code>npmTheme</code>  配置项, 让  <code>transpiler</code>  从 npm 拉取。</li>
+<li><code>__public__</code>: 公共资源目录。这些资源可以直接访问，而不需要  <code>__public__</code>  前缀。举个例子:<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">__theme__/</span><br><span class="line">  index.css  *<span class="comment"># -&gt; 访问链接 example.com/__theme__/index.css*</span></span><br><span class="line">__public__/</span><br><span class="line">  hello.html *<span class="comment"># -&gt; 访问链接 example.com/hello.html*</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br><br><br></p>
+<p>那  <code>transpiler</code>  的工作过程应该比较清晰了：</p>
+<ul>
+<li>扫描  <code>__apps__</code>  下的<code>子应用</code>。开发者也可以在<em>子应用目录下</em>使用  <code>mapp.json</code>  显式定义子应用描述信息。扫描后的子应用信息将放在  <code>microApps</code>  变量下。</li>
+<li>扫描  <code>__config__</code>  下的配置文件。解析出配置信息。</li>
+<li>扫描  <code>__i18n__</code>  下的  <code>.tr</code>, 解析结果放在  <code>i18n</code>  变量下。</li>
+<li>扫描  <code>__theme__</code>  目录。<code>__theme__</code>  主题包也支持携带配置文件、语言包，所以这些信息也会合并到配置信息中。另外 CSS 文件、JavaScript 文件将被收集到  <code>theme</code>  变量中。</li>
+</ul>
+<p><br></p>
+<p>扫描完毕之后，<code>transpiler</code>  拿着配置信息进行<code>模板转译</code>，将  <code>/data/source</code>  下的静态资源转换被拷贝到  <code>/data/public</code>  目录下。</p>
+<p>来看个实际的模板例子:</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">""</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"utf-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"IE=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width,initial-scale=1"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"description"</span> <span class="attr">content</span>=<span class="string">"[%= description %]"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"keywords"</span> <span class="attr">content</span>=<span class="string">"[%= keywords %]"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"icon"</span> <span class="attr">href</span>=<span class="string">"[%= assets.IMG_BAY_FAVICON || entryPath + '/favicon.png' %]"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"version"</span> <span class="attr">content</span>=<span class="string">"[%= version %]"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"update-time"</span> <span class="attr">content</span>=<span class="string">"[%= `$&#123;year&#125;-$&#123;month&#125;-$&#123;date&#125;` %]"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>[%= title %]<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [%- theme.stylesheets.map(i =&gt; `&lt;link rel="stylesheet" href="$&#123;i + '?' + hash &#125;" /&gt;`).join('\n') %] --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [%- theme.scripts.map(i =&gt; `&lt;script async="true" src="$&#123;i + '?' + hash&#125;"&gt;&lt;/script&gt;`).join('\n') %] --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [% if (microApps.length) &#123; %] --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [%- </span></span><br><span class="line"><span class="comment">      `&lt;script&gt;</span></span><br><span class="line"><span class="comment">        // 微应用注入</span></span><br><span class="line"><span class="comment">        (window.__MAPPS__ = (window.__MAPPS__ || [])).push($&#123;microApps.map(i =&gt; JSON.stringify(i)).join(', ')&#125;);</span></span><br><span class="line"><span class="comment">      &lt;/script&gt;`</span></span><br><span class="line"><span class="comment">    %] --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [% &#125; %]--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--! [%- `&lt;script&gt;</span></span><br><span class="line"><span class="comment">      // 静态资源注入</span></span><br><span class="line"><span class="comment">      (window.__MAPP_ASSETS__ = (window.__MAPP_ASSETS__ || [])).push($&#123;JSON.stringify(assets)&#125;);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">      // 全局共享的语言包</span></span><br><span class="line"><span class="comment">      window.__I18N_BUNDLES__ = $&#123;JSON.stringify(i18n)&#125;;</span></span><br><span class="line"><span class="comment">    &lt;/script&gt;` %] --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span></span></span><br><span class="line"><span class="tag">      <span class="attr">defer</span>=<span class="string">"defer"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">src</span>=<span class="string">"[%= cdnDomain ? '//' + cdnDomain : '' %][%= removeTrailingSlash(base) %]/__entry__/js/chunk-vendors.582ba02c.js?[%= hash %]"</span></span></span><br><span class="line"><span class="tag">    &gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span></span></span><br><span class="line"><span class="tag">      <span class="attr">defer</span>=<span class="string">"defer"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">src</span>=<span class="string">"[%= cdnDomain ? '//' + cdnDomain : '' %][%= removeTrailingSlash(base) %]/__entry__/js/app.01bd68bb.js?[%= hash %]"</span></span></span><br><span class="line"><span class="tag">    &gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"[%= cdnDomain ? '//' + cdnDomain : '' %][%= removeTrailingSlash(base) %]/__entry__/css/app.d835cada.css?[%= hash %]"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">noscript</span></span></span><br><span class="line"><span class="tag">      &gt;</span><span class="tag">&lt;<span class="name">strong</span></span></span><br><span class="line"><span class="tag">        &gt;</span>We're sorry but [%= title %] doesn't work properly without JavaScript enabled. Please</span><br><span class="line">        enable it to continue.</span><br><span class="line">      <span class="tag">&lt;/<span class="name">strong</span>&gt;</span><span class="tag">&lt;/<span class="name">noscript</span></span></span><br><span class="line"><span class="tag">    &gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"app"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>上面是基座的  <code>index.html</code>  模板。<code>transpiler</code>  基于  <strong><a href="https://ejs.bootcss.com/" target="_blank" rel="noopener">ejs</a></strong>  模板引擎，会解析替换文本文件中  <code>[% 模板 %]</code>  语法。</p>
+<p><br></p>
+<p>还有很多用法值得去挖掘。 比如:</p>
+<ul>
+<li>全局埋点脚本注入</li>
+<li>全局监控脚本注入</li>
+<li>…</li>
+</ul>
+<p>原理就是这么简单，只要子应用部署到 <code>__apps__</code> 目录下，我们就可以监听到，收集到必要的信息后，对 <code>source</code> 目录下的静态文件进行转译，输出到 <code>public</code> 目录下，最终由 Nginx 负责将文件传递给浏览器。</p>
+<p><br><br><br><br><br></p>
+<h2 id="部署和运维"><a href="#部署和运维" class="headerlink" title="部署和运维"></a>部署和运维</h2><p>那么子应用具体如何部署和运维呢？</p>
+<p>子应用构建、生成和发布容器的过程这里就不展开说了，可以自行搜索 Docker 的相关教程，我们这里主要简单介绍一下在 K8S 平台如何部署和运维。</p>
+<p>将基座和子应用聚合在一起，我们需要用到 <code>PVC</code> (PersistentVolumeClaim, 即持久化卷), 你可以认为 PVC 就是一个「网络硬盘」，而每个子应用、基座都是独立运行的「主机」(<code>Pod</code> 或 容器 , <em>Kubernetes</em>  中可部署的最小、最基本对象), 这个 PVC 可以被每个子应用共享访问，只要按照约定将子应用的静态文件拷贝到 PVC 对应位置就行了。如下图所示：</p>
+<p><img src="/images/microfrontend/Untitled%2011.png" alt="PVC"></p>
+<p><br><br><br><br><br></p>
+<p>至于子应用和运行容器在 K8S 下如何组织，可以非常灵活，取决于需求和环境。笔者实践过以下几种方式：</p>
+<ol>
+<li><p>全部部署在一个 Pod 下。子应用作为 <code>Init Sidecar</code>（初始化边车）。这种部署方式比较简单，缺点就是任意一个应用需要更新，整个 Pod 都要重启，包括运行容器。</p>
+<p><img src="/images/microfrontend/Untitled%2012.png" alt="方法1"></p>
+<p>示例图：</p>
+<p><img src="/images/microfrontend/Untitled%2013.png" alt="Sidecar"></p>
+</li>
+<li><p>分离运行容器和子应用。为了避免子应用更新导致整个 Pod 重启（包括运行容器），我们可以将子应用单独拎出去，子应用更新只会重启所在的 Pod，从而避免运行容器停机。</p>
+<p><img src="/images/microfrontend/Untitled%2014.png" alt="方法2"></p>
+</li>
+<li><p>每个子应用都是独立的 Pod。好处就是每个子应用可以真正做到独立部署、启动，坏处就是管理起来稍显麻烦。</p>
+<p><img src="/images/microfrontend/Untitled%2015.png" alt="方法3"></p>
+</li>
+</ol>
+<p>开发者可以根据自己的运行环境选择不同的组织方式。</p>
+<p><br><br><br><br><br></p>
+<h2 id="那么配置呢？"><a href="#那么配置呢？" class="headerlink" title="那么配置呢？"></a>那么配置呢？</h2><p>首先简单的配置可以通过<code>环境变量</code>来实现，因为在 K8S 中，配置环境变量相对简单很多:</p>
+<p><img src="/images/microfrontend/Untitled%2016.png" alt="环境变量配置"></p>
+<p>对于稍微复杂的配置，可以使用<code>配置映射</code>(Config-Maps), 配置映射的每个键值对就相当于一个文件，我们可以挂载到容器的任何位置上：</p>
+<p>定义配置映射：</p>
+<p><img src="/images/microfrontend/Untitled%2017.png" alt="定义配置映射"></p>
+<p>挂载配置映射：</p>
+<p><img src="/images/microfrontend/Untitled%2018.png" alt="挂载配置映射"></p>
+<p>配置映射可以挂载到任意的路径或文件上，它还有一个更赞的能力<strong>是：我们可以直接修改配置映射，这些变动会同步到容器内，从而实现实时变更</strong>。</p>
+<p>小结。我们尽量复用了 K8S 本身的能力，这些能力足以实现较为复杂功能，避免重复造轮子。</p>
+<p><br><br><br><br><br></p>
+<h2 id="更多"><a href="#更多" class="headerlink" title="更多"></a>更多</h2><p>限于篇幅很多细节无法展开，这里点到为止：</p>
+<ul>
+<li><strong>如何实现一键部署？</strong>因为使用的是容器化部署，可以将所有部署声明在 <a href="https://www.notion.so/b590284a71934f97a1db71ef967fbc5a?pvs=21" target="_blank" rel="noopener">yaml 文件</a>中维护, 新环境部署时直接导入就行。我们也开发过一个<a href="https://wakeadmin.wakedata.com/k8s-deploy/index.html#/micro" target="_blank" rel="noopener">可视化生成 yaml 的简易应用</a></li>
+<li><strong>自动化部署？</strong>实现自动化部署有很多手段，如果你的公司有 DevOps 平台(比如我们使用 Zadig) , 这些平台本身就提供了自动化部署的能力，你可以查看相关文档。另外在 Jenkins 中也有相关的插件来实现部署推送。再不济，<a href="https://www.notion.so/a2b1fb632eb44b68b161a38f256756db?pvs=21" target="_blank" rel="noopener">可以使用 rancher 的 CLI 等等</a>。</li>
+<li><strong>子应用如何共享依赖？</strong>可以使用 <a href="https://webpack.js.org/configuration/externals/#externals" target="_blank" rel="noopener">externals</a>, 或者 Webpack 5 的 *<strong>*<a href="https://webpack.js.org/concepts/module-federation/#motivation" target="_blank" rel="noopener">Module Federation</a>,</strong> 我们也探索过类似 <a href="https://www.jsdelivr.com/" target="_blank" rel="noopener">jsDelivr</a> 的方案， 详见<a href="https://wakeadmin.wakedata.com/mapp/advanced/vendors.html#%E9%85%8D%E7%BD%AE%E9%A1%B9" target="_blank" rel="noopener">这里</a></li>
+<li><strong>接口服务</strong>。运行容器除了上文讲到的各种功能，还可以提供一些造福前端的<a href="https://wakeadmin.wakedata.com/mapp/advanced/services.html" target="_blank" rel="noopener">接口服务</a>，比如接口代理、polyfill 服务、vendor 依赖。</li>
+<li><strong><em>安全配置</em></strong>。在运行容器中统一配置 CSP、跨域等安全配置</li>
+<li>…</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h2 id="有哪些最佳实践"><a href="#有哪些最佳实践" class="headerlink" title="有哪些最佳实践?"></a>有哪些最佳实践?</h2><ul>
+<li><strong>保持基座业务无关性</strong>。我们尽量保证基座不耦合业务，为了避免子应用的业务侵入到基座，我们严格管控基座仓库的开发权限，以及向下暴露接口的截面。</li>
+<li><strong>保持子应用之间的独立性</strong>。基座除了 <code>EventBus</code> ，没有提供其他应用通信的手段。对我们来说，微前端只不过是多页应用的延续。 设计良好的应用，不应该耦合其他应用。就算是一些共享状态，也可以从后端读取。</li>
+<li><strong>避免硬编码配置信息</strong>。因为<code>运行容器</code>有动态替换变量的能力，因此应该避免在代码中硬编码配置信息，比如域名信息、企业文案、服务器链接。而是预留模板, 在部署时通过<strong><a href="https://wakeadmin.wakedata.com/mapp/deploy.html" target="_blank" rel="noopener">运行容器</a></strong>来配置。</li>
+<li><strong>按照业务聚合子应用</strong>。即按照业务边界来拆分子应用，而不是按照‘菜单’， 具体来说子应用应该对应后端的微服务，尽管很多时候做不到。</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h2 id="未来"><a href="#未来" class="headerlink" title="未来"></a>未来</h2><p>我们整套方案并没有‘自造’复杂的技术，而是基于已有的工具整合起来的能力。这也是笔者一直坚持的观念，简单至上。</p>
+<p>这个方案未来会如何迭代呢？</p>
+<ul>
+<li>可视化方式，简化部署的流程。毕竟不是所有开发者都熟悉 K8S 这套概念</li>
+<li>发布流程审核。生产环境部署审核。</li>
+<li>基座插件。支持扩展一些除子应用之外的场景，比如一些全局通用的业务 SDK、组件库。常规的子应用只会在路由匹配到时激活，而插件会在基座启动后加载并持久存在。</li>
+<li>支持子应用扩展服务端的能力。当前的子应用都是 CSR，后续运行容器可以支持子应用扩展服务端接口。</li>
+<li>灰度发布。</li>
+<li>支持 Vite</li>
+<li>…</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文大概介绍了我们落地和治理微前端应用的大概思路。这套体系中主要包含了三个主要部件：</p>
+<p><img src="/images/microfrontend/Untitled%2019.png" alt="微前端"></p>
+<ul>
+<li>基座：<code>集中式</code>的微前端方案，基座是整个微前端的核心，负责管理子应用，并为子应用的开发提供必要的支撑</li>
+<li>子应用：负责具体业务实现，按照业务聚合和拆分。</li>
+<li>运行容器：为微前端应用架构提供了部署和治理方案</li>
+</ul>
+<p>因为文章篇幅原因，这里面很多细节无法展开。感兴趣的可以移步我们<a href="https://wakeadmin.wakedata.com/mapp/index.html" target="_blank" rel="noopener">公开的文档</a>（暂未开源）。</p>
+<p><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://wakeadmin.wakedata.com/mapp/index.html" target="_blank" rel="noopener">Wakeadmin</a></li>
+<li><a href="https://github.com/umijs/qiankun" target="_blank" rel="noopener">qiankun</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#背景与痛点"><span class="toc-number">1.</span> <span class="toc-text">背景与痛点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#架构"><span class="toc-number">2.</span> <span class="toc-text">架构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#基座"><span class="toc-number">3.</span> <span class="toc-text">基座</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#子应用接入"><span class="toc-number">4.</span> <span class="toc-text">子应用接入</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#配置"><span class="toc-number">4.1.</span> <span class="toc-text">配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#挂载"><span class="toc-number">4.2.</span> <span class="toc-text">挂载</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#本地开发和调试"><span class="toc-number">4.3.</span> <span class="toc-text">本地开发和调试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#部署和治理"><span class="toc-number">5.</span> <span class="toc-text">部署和治理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#容器化"><span class="toc-number">5.1.</span> <span class="toc-text">容器化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#运行容器"><span class="toc-number">5.2.</span> <span class="toc-text">运行容器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果实现子应用的自动发现？"><span class="toc-number">5.3.</span> <span class="toc-text">如果实现子应用的自动发现？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#部署和运维"><span class="toc-number">5.4.</span> <span class="toc-text">部署和运维</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#那么配置呢？"><span class="toc-number">5.5.</span> <span class="toc-text">那么配置呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#更多"><span class="toc-number">5.6.</span> <span class="toc-text">更多</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#有哪些最佳实践"><span class="toc-number">5.7.</span> <span class="toc-text">有哪些最佳实践?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#未来"><span class="toc-number">5.8.</span> <span class="toc-text">未来</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">7.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/13/microfrontend/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/13/microfrontend/&text=微前端的落地和治理实战"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/13/microfrontend/&is_video=false&description=微前端的落地和治理实战"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=微前端的落地和治理实战&body=Check out this article: https://bobi.ink/2023/07/13/microfrontend/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/13/microfrontend/&title=微前端的落地和治理实战"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/13/microfrontend/&name=微前端的落地和治理实战&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
