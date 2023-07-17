@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="初识声明合并(Declaration Merging) 是 Typescript 的一个高级特性，顾名思义，声明合并就是将相同名称的一个或多个声明合并为单个定义。 例如： interface Box &amp;#123;  height: number;  width: number;&amp;#125;interface Box &amp;#123;  scale: number;&amp;#125;let box: Bo">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TypeScript 接口合并， 你不知道的妙用">
+<meta property="og:url" content="https://bobi.ink/2023/07/17/ts-interface-merge/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="初识声明合并(Declaration Merging) 是 Typescript 的一个高级特性，顾名思义，声明合并就是将相同名称的一个或多个声明合并为单个定义。 例如： interface Box &amp;#123;  height: number;  width: number;&amp;#125;interface Box &amp;#123;  scale: number;&amp;#125;let box: Bo">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/ts-interface-merge/Untitled.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/ts-interface-merge/Untitled.png">
+<meta property="og:updated_time" content="2023-07-17T06:34:55.473Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TypeScript 接口合并， 你不知道的妙用">
+<meta name="twitter:description" content="初识声明合并(Declaration Merging) 是 Typescript 的一个高级特性，顾名思义，声明合并就是将相同名称的一个或多个声明合并为单个定义。 例如： interface Box &amp;#123;  height: number;  width: number;&amp;#125;interface Box &amp;#123;  scale: number;&amp;#125;let box: Bo">
+<meta name="twitter:image" content="https://bobi.ink/images/ts-interface-merge/Untitled.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>TypeScript 接口合并， 你不知道的妙用</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/07/13/microfrontend/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/17/ts-interface-merge/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/17/ts-interface-merge/&text=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/17/ts-interface-merge/&is_video=false&description=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=TypeScript 接口合并， 你不知道的妙用&body=Check out this article: https://bobi.ink/2023/07/17/ts-interface-merge/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/17/ts-interface-merge/&name=TypeScript 接口合并， 你不知道的妙用&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#初识"><span class="toc-number">1.</span> <span class="toc-text">初识</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#jsx-内置组件声明"><span class="toc-number">2.</span> <span class="toc-text">JSX 内置组件声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#vue-全局组件声明"><span class="toc-number">3.</span> <span class="toc-text">Vue 全局组件声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#依赖注入：实现标识符和类型信息绑定"><span class="toc-number">4.</span> <span class="toc-text">依赖注入：实现标识符和类型信息绑定</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#事件订阅"><span class="toc-number">5.</span> <span class="toc-text">事件订阅</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#动态类型插槽"><span class="toc-number">6.</span> <span class="toc-text">动态类型插槽</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#更多"><span class="toc-number">7.</span> <span class="toc-text">更多</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        TypeScript 接口合并， 你不知道的妙用
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-07-16T16:00:00.000Z" itemprop="datePublished">2023-07-17</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/ts-interface-merge/Untitled.jpeg" alt="Untitled"></p>
+<p><br></p>
+<h1 id="初识"><a href="#初识" class="headerlink" title="初识"></a>初识</h1><p><a href="https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces" target="_blank" rel="noopener">声明合并(Declaration Merging)</a> 是 <code>Typescript</code> 的一个高级特性，顾名思义，<code>声明合并</code>就是将相同名称的一个或多个声明合并为单个定义。</p>
+<p>例如：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">interface Box &#123;</span><br><span class="line">  height: number;</span><br><span class="line">  width: number;</span><br><span class="line">&#125;</span><br><span class="line">interface Box &#123;</span><br><span class="line">  scale: number;</span><br><span class="line">&#125;</span><br><span class="line">let box: Box = &#123; height: 5, width: 6, scale: 10 &#125;;</span><br><span class="line"></span><br><span class="line">interface Cloner &#123;</span><br><span class="line">  clone(animal: Animal): Animal;</span><br><span class="line">&#125;</span><br><span class="line">interface Cloner &#123;</span><br><span class="line">  clone(animal: Sheep): Sheep;</span><br><span class="line">&#125;</span><br><span class="line">interface Cloner &#123;</span><br><span class="line">  clone(animal: Dog): Dog;</span><br><span class="line">  clone(animal: Cat): Cat;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// Cloner 将合并为</span><br><span class="line">//interface Cloner &#123;</span><br><span class="line">//  clone(animal: Dog): Dog;</span><br><span class="line">//  clone(animal: Cat): Cat;</span><br><span class="line">//  clone(animal: Sheep): Sheep;</span><br><span class="line">//  clone(animal: Animal): Animal;</span><br><span class="line">//&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>声明合并最初的设计目的是为了解决早期 <code>JavaScript</code> 模块化开发中的类型定义问题。</p>
+<ul>
+<li>早期的 JavaScript 库基本都使用全局的<code>命名空间</code>，比如  <code>jQuery</code>  使用 <code>$</code>, <code>lodash</code> 使用 <code>_</code>。这些库通常还允许对命名空间进行扩展，比如 jQuery 很多插件就是扩展 $ 的原型方法</li>
+<li>早期很多 Javascript 库也会去扩展或覆盖 JavaScript 内置对象的原型。比如古早的 RxJS 就会去 「Monkey Patching」 JavaScript 的 Array、Function 等内置原型对象。</li>
+</ul>
+<p><br><br><br></p>
+<p>尽管这些方案在当今已经属于「反模式」了，但是在 Typescript 2012 年发布那个年代， jQuery 还是王者。</p>
+<p><br></p>
+<p>Typescript 通过类型合并这种机制，支持将分散到不同的文件中的命名空间的类型定义合并起来，避免编译错误。</p>
+<p>现在是 ES Module 当道， 命名空间的模式已经不再流行。但是不妨碍 <a href="https://www.typescriptlang.org/docs/handbook/declaration-merging.html#merging-interfaces" target="_blank" rel="noopener">声明合并</a> 继续发光发热，本文就讲讲它几个有趣的使用场景。</p>
+<p><br><br><br><br><br></p>
+<h1 id="jsx-内置组件声明"><a href="#jsx-内置组件声明" class="headerlink" title="JSX 内置组件声明"></a>JSX 内置组件声明</h1><p>Typescript 下，内置的组件(<code>Host Components</code>) 都挂载在 <code>JSX</code> 命名空间下的 <code>IntrinsicElements</code> 接口中。例如 Vue 的 JSX 声明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// somehow we have to copy=pase the jsx-runtime types here to make TypeScript happy</span><br><span class="line">import type &#123;</span><br><span class="line">  VNode,</span><br><span class="line">  IntrinsicElementAttributes,</span><br><span class="line">  ReservedProps,</span><br><span class="line">  NativeElements</span><br><span class="line">&#125; from &apos;@vue/runtime-dom&apos;</span><br><span class="line"></span><br><span class="line">// 🔴 全局作用域</span><br><span class="line">declare global &#123;</span><br><span class="line">  namespace JSX &#123;</span><br><span class="line">    export interface Element extends VNode &#123;&#125;</span><br><span class="line">    export interface ElementClass &#123;</span><br><span class="line">      $props: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    export interface ElementAttributesProperty &#123;</span><br><span class="line">      $props: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // 🔴 内置组件定义</span><br><span class="line">    export interface IntrinsicElements extends NativeElements &#123;</span><br><span class="line">      // allow arbitrary elements</span><br><span class="line">      // @ts-ignore suppress ts:2374 = Duplicate string index signature.</span><br><span class="line">      [name: string]: any</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    export interface IntrinsicAttributes extends ReservedProps &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们也可以随意地扩展 IntrinsicElements，举个例子，我们开发了一些 <code>Web Component</code> 组件：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare global &#123;</span><br><span class="line">  namespace JSX &#123;</span><br><span class="line">    export interface IntrinsicElements &#123;</span><br><span class="line">      &apos;wkc-header&apos;: &#123;</span><br><span class="line">        // props 定义</span><br><span class="line">        title?: string;</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<blockquote>
+<p>💡 上面例子中 JSX 是放在 <code>global</code> 空间下的，某些极端的场景下，比如有多个库都扩展了它，或者你即用了 Vue 又用了 React， 那么就会互相污染。<br> 现在 Typescript 也支持 JSX 定义的局部化，配合 <a href="https://www.typescriptlang.org/tsconfig#jsxImportSource" target="_blank" rel="noopener">jsxImportSource</a> 选项来开启， 参考 <a href="https://github.com/vuejs/core/blob/main/packages/vue/jsx-runtime/index.d.ts" target="_blank" rel="noopener">Vue 的实现</a></p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h1 id="vue-全局组件声明"><a href="#vue-全局组件声明" class="headerlink" title="Vue 全局组件声明"></a>Vue 全局组件声明</h1><p>和 JSX 类似， Vue 全局组件、全局属性等声明也通过接口合并来实现。下面是 vue-router 的代码示例：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare module &apos;@vue/runtime-core&apos; &#123;</span><br><span class="line">  // Optional API 扩展</span><br><span class="line">  export interface ComponentCustomOptions &#123;</span><br><span class="line">    beforeRouteEnter?: TypesConfig extends Record&lt;&apos;beforeRouteEnter&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : NavigationGuardWithThis&lt;undefined&gt;</span><br><span class="line">    beforeRouteUpdate?: TypesConfig extends Record&lt;&apos;beforeRouteUpdate&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : NavigationGuard</span><br><span class="line">    beforeRouteLeave?: TypesConfig extends Record&lt;&apos;beforeRouteLeave&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : NavigationGuard</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 组件实例属性</span><br><span class="line">  export interface ComponentCustomProperties &#123;</span><br><span class="line">    $route: TypesConfig extends Record&lt;&apos;$route&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : RouteLocationNormalizedLoaded</span><br><span class="line">    $router: TypesConfig extends Record&lt;&apos;$router&apos;, infer T&gt; ? T : Router</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  // 🔴 全局组件</span><br><span class="line">  export interface GlobalComponents &#123;</span><br><span class="line">    RouterView: TypesConfig extends Record&lt;&apos;RouterView&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : typeof RouterView</span><br><span class="line">    RouterLink: TypesConfig extends Record&lt;&apos;RouterLink&apos;, infer T&gt;</span><br><span class="line">      ? T</span><br><span class="line">      : typeof RouterLink</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面我们见识了 JSX 使用 <code>declare global</code>  来挂载<code>全局作用域</code>，而 <code>declare module *</code> 则可以挂载到<code>具体模块的作用域</code>中。</p>
+<p><br></p>
+<p>另外，我们在定义 Vue Route 时，通常会使用 meta 来定义一些路由元数据，比如标题、权限信息等,  也可以通过上面的方式来实现：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare module &apos;vue-router&apos; &#123;</span><br><span class="line">  interface RouteMeta &#123;</span><br><span class="line">    /**</span><br><span class="line">     * 是否显示面包屑, 默认 false</span><br><span class="line">     */</span><br><span class="line">    breadcrumb?: boolean</span><br><span class="line">    </span><br><span class="line">    /**</span><br><span class="line">     * 标题</span><br><span class="line">     */</span><br><span class="line">    title?: string</span><br><span class="line"></span><br><span class="line">    /**</span><br><span class="line">     * 所需权限</span><br><span class="line">     */</span><br><span class="line">    permissions?: string[]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export const routes: RouteRecordRaw[] = [ </span><br><span class="line">  &#123;</span><br><span class="line">    path: &apos;/club/plugins&apos;,</span><br><span class="line">    name: &apos;custom-club-plugins&apos;,</span><br><span class="line">    component: () =&gt; import(&apos;./plugins&apos;),</span><br><span class="line">    // 现在 meta 就支持类型检查了</span><br><span class="line">    meta: &#123;</span><br><span class="line">      breadcrumb: true,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  // ...</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h1 id="依赖注入：实现标识符和类型信息绑定"><a href="#依赖注入：实现标识符和类型信息绑定" class="headerlink" title="依赖注入：实现标识符和类型信息绑定"></a>依赖注入：实现标识符和类型信息绑定</h1><p>还有一个比较有趣的使用场景，即依赖注入。我们在使用 <code>[InversifyJS](https://github.com/inversify/InversifyJS)</code> 这里依赖注入库时，通常都会使用字符串或者 Symbol 来作为依赖注入的<code>标识符</code>。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// inversify 示例</span><br><span class="line">// 定义标识符</span><br><span class="line">const TYPES = &#123;</span><br><span class="line">    Warrior: Symbol.for(&quot;Warrior&quot;),</span><br><span class="line">    Weapon: Symbol.for(&quot;Weapon&quot;),</span><br><span class="line">    ThrowableWeapon: Symbol.for(&quot;ThrowableWeapon&quot;)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">@injectable()</span><br><span class="line">class Ninja implements Warrior &#123;</span><br><span class="line">    @inject(TYPES.Weapon) private _katana: Weapon;</span><br><span class="line">    @inject(TYPES.ThrowableWeapon) private _shuriken: ThrowableWeapon;</span><br><span class="line">    public fight() &#123; return this._katana.hit(); &#125;</span><br><span class="line">    public sneak() &#123; return this._shuriken.throw(); &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>但是这种标识符没有关联任何类型信息，无法进行类型检查和推断。</p>
+<p><br></p>
+<p>于是，笔者就想到了<code>接口合并</code>。能不能利用它来实现标识符和类型之间的绑定？答案是可以的：</p>
+<p>我们可以声明一个全局的 <code>DIMapper</code> 接口。这个接口的 key 为依赖注入的标识符，value 为依赖注入绑定的类型信息。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare global &#123;</span><br><span class="line">  interface DIMapper &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>接下来，依赖注入的『供应商』，就可以用来声明标识符和注入类型的绑定关系：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">interface IPhone &#123;</span><br><span class="line">  /**</span><br><span class="line">   * 打电话</span><br><span class="line">   */</span><br><span class="line">  call(num: string): void</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 发短信</span><br><span class="line">   */</span><br><span class="line">  sendMessage(num: string, message: string): void</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 表示 DI.IPhone 这个标识符关联的就是 IPhone 接口类型</span><br><span class="line">declare global &#123;</span><br><span class="line">  interface DIMapper &#123;</span><br><span class="line">    &apos;DI.IPhone&apos;: IPhone</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们稍微改造一下依赖注入相关方法的实现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 获取所有依赖注入标识符</span><br><span class="line"> */</span><br><span class="line">export type DIIdentifier = keyof DIMapper;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 计算依赖注入值类型</span><br><span class="line"> */</span><br><span class="line">export type DIValue&lt;T extends DIIdentifier&gt; = DIMapper[T];</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 注册依赖</span><br><span class="line"> */</span><br><span class="line">export function registerClass&lt;I extends DIIdentifier, T extends DIValue&lt;I&gt;&gt;(</span><br><span class="line">  identifier: I,</span><br><span class="line">  target: new (...args: never[]) =&gt; T,</span><br><span class="line">): void</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 获取依赖</span><br><span class="line"> */</span><br><span class="line">export function useInject&lt;I extends DIIdentifier, T extends DIValue&lt;I&gt;&gt;(</span><br><span class="line">  identifier: I,</span><br><span class="line">  defaultValue?: T,</span><br><span class="line">): T</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>使用方法：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Foo &#123;&#125;</span><br><span class="line">class MI &#123;</span><br><span class="line">  call(num: string) &#123;&#125;</span><br><span class="line">  sendMessage(num: string, message: string) &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">registerClass(&apos;DI.IPhone&apos;, Foo) // ❌ 这个会报错，Foo 不符合 IPhone 接口</span><br><span class="line">registerClass(&apos;DI.IPhone&apos;, MI) // ✅ OK!</span><br><span class="line"></span><br><span class="line">const phone = useInject(&apos;DI.IPhone&apos;) // phone 自动推断为 IPhone 类型</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 对于依赖注入，我在 <a href="https://juejin.cn/post/7250356064989397053" target="_blank" rel="noopener">全新 JavaScript 装饰器实战下篇：实现依赖注入</a>， 介绍了另外一种更加严格和友好的方式。</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h1 id="事件订阅"><a href="#事件订阅" class="headerlink" title="事件订阅"></a>事件订阅</h1><p>同样的办法也可以用于<code>事件订阅</code>：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">declare global &#123;</span><br><span class="line">  /**</span><br><span class="line">   * 声明 事件 标识符和类型的映射关系</span><br><span class="line">   * @example 扩展定义</span><br><span class="line">   * declare global &#123;</span><br><span class="line">   *   interface EventMapper &#123;</span><br><span class="line">   *     &apos;Event.foo.success&apos;: ISuccessMessage</span><br><span class="line">   *   &#125;</span><br><span class="line">   * &#125;</span><br><span class="line">   */</span><br><span class="line">  interface EventMapper &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 事件名称</span><br><span class="line"> */</span><br><span class="line">export type EventName = keyof EventMapper;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 事件参数</span><br><span class="line"> */</span><br><span class="line">export type EventArgument&lt;T extends EventName&gt; = EventMapper[T];</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>EventBus 实现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export class EventBus &#123;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 监听事件</span><br><span class="line">   */</span><br><span class="line">  on&lt;N extends EventName, A extends EventArgument&lt;N&gt;&gt;(event: N, callback: (arg: A) =&gt; void) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 触发事件</span><br><span class="line"></span><br><span class="line">   */</span><br><span class="line">  emit&lt;N extends EventName, A extends EventArgument&lt;N&gt;&gt;(event: N, arg: A) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h1 id="动态类型插槽"><a href="#动态类型插槽" class="headerlink" title="动态类型插槽"></a>动态类型插槽</h1><p>还有一个比较脑洞的例子，我之前封装过一个 Vue i18n 库，因为  Vue 2/3 差异有点大，所以我就拆了两个库来实现，如下图。<code>i18n</code> 用于  <code>Vue 3</code> + <code>vue-i18n@&gt;=9</code>, <code>i18n-legacy</code> 用于 <code>Vue 2</code> + <code>vue-i18n@8</code>。</p>
+<p>但是两个库大部分的实现是一致的，这些共性部分就提取到 <code>i18n-shared</code> ：</p>
+<p><img src="/images/ts-interface-merge/Untitled.png" alt="Untitled"></p>
+<p>然而 <code>i18n-shared</code> 并不耦合 <code>Vue</code> 和 <code>vue-i18n</code> 的版本，也不可能将它们声明为依赖项， 那么它相关 API 的类型怎么办呢？</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// i18n-shared 代码片段</span><br><span class="line">export interface I18nInstance &#123;</span><br><span class="line">  /**</span><br><span class="line">   * vue 插件安装</span><br><span class="line">   * 🔴 VueApp 是 Vue App 的实例</span><br><span class="line">   */</span><br><span class="line">  install(app: VueApp): void;</span><br><span class="line"></span><br><span class="line">  // 🔴 vue-i18n 的实例</span><br><span class="line">  i18n: VueI18nInstance;</span><br><span class="line"></span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 获取全局实例</span><br><span class="line"> * @returns</span><br><span class="line"> */</span><br><span class="line">export function getGlobalInstance(): I18nInstance &#123;</span><br><span class="line">  if (globalInstance == null) &#123;</span><br><span class="line">    throw new Error(`请先使用 createI18n 创建实例`);</span><br><span class="line">  &#125;</span><br><span class="line">  return globalInstance;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 获取全局 vue i18n 实例</span><br><span class="line"> */</span><br><span class="line">export function getGlobalI18n(): I18nInstance[&apos;i18n&apos;] &#123;</span><br><span class="line">  return getGlobalInstance().i18n;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>这里用<code>泛型</code>也解决不了问题。</p>
+<p>一些奇巧淫技还得是类型合并。我在这里就巧妙地使用了类型合并来创建<code>类型插槽。</code></p>
+<p>首先在 <code>i18n-shared</code> 下预定义一个接口：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 🔴 供子模块详细定义类型参数</span><br><span class="line"> */</span><br><span class="line">export interface I18nSharedTypeParams &#123;</span><br><span class="line">  // VueI18nInstance: vue i18n 实例类型</span><br><span class="line">  // FallbackLocale</span><br><span class="line">  // VueApp 应用类型</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 提取参数</span><br><span class="line">// @ts-expect-error</span><br><span class="line">type ExtraParams&lt;T, V = I18nSharedTypeParams[T]&gt; = V;</span><br><span class="line"></span><br><span class="line">export type VueApp = ExtraParams&lt;&apos;VueApp&apos;&gt;;</span><br><span class="line">export type VueI18nInstance = ExtraParams&lt;&apos;VueI18nInstance&apos;&gt;;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>定义了一个接口 <code>I18nSharedTypeParams</code>，<strong>它具体的类型由下级的库来注入</strong>，我尚且把它命名为 “<code>动态类型插槽</code>” 吧。</p>
+<p>现在 <code>i18n</code> 和 <code>i18n-legacy</code> 就可以根据自己的依赖环境来配置它了：</p>
+<p><br><br><br></p>
+<p>i18n-legacy:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import VueI18n from &apos;vue-i18n&apos;; // vue-i18n@8</span><br><span class="line">import Vue from &apos;vue&apos;; // vue@2</span><br><span class="line"></span><br><span class="line">declare module &apos;i18n-shared&apos; &#123;</span><br><span class="line">  export interface I18nSharedTypeParams &#123;</span><br><span class="line">    VueI18nInstance: VueI18n;</span><br><span class="line">    VueApp: typeof Vue;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>i18n:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import &#123; VueI18n, Composer &#125; from &apos;vue-i18n&apos;; // vue-i18n@9+</span><br><span class="line">import &#123; App &#125; from &apos;vue&apos;; // vue@3</span><br><span class="line"></span><br><span class="line">declare module &apos;i18n-shared&apos; &#123;</span><br><span class="line">  interface I18nSharedTypeParams &#123;</span><br><span class="line">    VueI18nInstance: VueI18n&lt;any, any, any&gt; | Composer&lt;any, any, any&gt;;</span><br><span class="line">    VueApp: App;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡 源码可以<a href="https://github.com/wakeadmin/tools/blob/db3809305e5698ac31a130319f430377a0e9c1be/packages/i18n-shared/src/types.ts#L45" target="_blank" rel="noopener">看这里</a></p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h1 id="更多"><a href="#更多" class="headerlink" title="更多"></a>更多</h1><p>当你深入了解了类型合并之后，你可能会在越来越多的地方发现它的身影。这毕竟是 TypeScript 为数不多，支持动态去扩展类型的特性。</p>
+<p>更多的场景，读者可以开开脑洞，比如：</p>
+<ul>
+<li><code>unplugin-vue-components</code>  Vue 组件自动导入是如何支持类型检查的？</li>
+<li><a href="https://github.com/posva/unplugin-vue-router" target="_blank" rel="noopener">unplugin-vue-router</a> 如何实现支持类型检查的 vue-router?</li>
+<li>给插件系统加上类型检查</li>
+<li>…</li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#初识"><span class="toc-number">1.</span> <span class="toc-text">初识</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#jsx-内置组件声明"><span class="toc-number">2.</span> <span class="toc-text">JSX 内置组件声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#vue-全局组件声明"><span class="toc-number">3.</span> <span class="toc-text">Vue 全局组件声明</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#依赖注入：实现标识符和类型信息绑定"><span class="toc-number">4.</span> <span class="toc-text">依赖注入：实现标识符和类型信息绑定</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#事件订阅"><span class="toc-number">5.</span> <span class="toc-text">事件订阅</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#动态类型插槽"><span class="toc-number">6.</span> <span class="toc-text">动态类型插槽</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#更多"><span class="toc-number">7.</span> <span class="toc-text">更多</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/17/ts-interface-merge/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/17/ts-interface-merge/&text=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/17/ts-interface-merge/&is_video=false&description=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=TypeScript 接口合并， 你不知道的妙用&body=Check out this article: https://bobi.ink/2023/07/17/ts-interface-merge/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/17/ts-interface-merge/&title=TypeScript 接口合并， 你不知道的妙用"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/17/ts-interface-merge/&name=TypeScript 接口合并， 你不知道的妙用&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
