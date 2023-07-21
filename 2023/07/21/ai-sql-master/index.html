@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="ChatGPT 在年初爆火，成为街头巷尾热议的话题。现在的 AI 应该算是目前最卷的赛道了，从卖账号、套壳客户端、 割韭菜教程、大厂争先发布自己的大模型… 作为普通开发者，搞底层大模型不是人人都能企及，下场割韭菜实在卷不过别人，追新也需要付出很多精力。眼前貌似就只有一条路，着眼于 AI 的应用层，看能不能给自己的垂直赛道赋赋能？ 或者针对个人而言，能不能利用 AI 提高工作效率？  所以我开一个">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 调教师系列开篇： MySQL 专家">
+<meta property="og:url" content="https://bobi.ink/2023/07/21/ai-sql-master/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="ChatGPT 在年初爆火，成为街头巷尾热议的话题。现在的 AI 应该算是目前最卷的赛道了，从卖账号、套壳客户端、 割韭菜教程、大厂争先发布自己的大模型… 作为普通开发者，搞底层大模型不是人人都能企及，下场割韭菜实在卷不过别人，追新也需要付出很多精力。眼前貌似就只有一条路，着眼于 AI 的应用层，看能不能给自己的垂直赛道赋赋能？ 或者针对个人而言，能不能利用 AI 提高工作效率？  所以我开一个">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/ai-sql-master/Untitled%204.png">
+<meta property="og:updated_time" content="2023-07-21T09:17:38.044Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AI 调教师系列开篇： MySQL 专家">
+<meta name="twitter:description" content="ChatGPT 在年初爆火，成为街头巷尾热议的话题。现在的 AI 应该算是目前最卷的赛道了，从卖账号、套壳客户端、 割韭菜教程、大厂争先发布自己的大模型… 作为普通开发者，搞底层大模型不是人人都能企及，下场割韭菜实在卷不过别人，追新也需要付出很多精力。眼前貌似就只有一条路，着眼于 AI 的应用层，看能不能给自己的垂直赛道赋赋能？ 或者针对个人而言，能不能利用 AI 提高工作效率？  所以我开一个">
+<meta name="twitter:image" content="https://bobi.ink/images/ai-sql-master/Untitled.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>AI 调教师系列开篇： MySQL 专家</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/07/20/to-be-shit/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/21/ai-sql-master/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/21/ai-sql-master/&text=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/21/ai-sql-master/&is_video=false&description=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AI 调教师系列开篇： MySQL 专家&body=Check out this article: https://bobi.ink/2023/07/21/ai-sql-master/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/21/ai-sql-master/&name=AI 调教师系列开篇： MySQL 专家&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一种全新的人机交互模式"><span class="toc-number">1.</span> <span class="toc-text">一种全新的人机交互模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mysql-专家"><span class="toc-number">2.</span> <span class="toc-text">MySQL 专家</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#prompt-实现"><span class="toc-number">3.</span> <span class="toc-text">Prompt 实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">5.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        AI 调教师系列开篇： MySQL 专家
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-07-20T16:00:00.000Z" itemprop="datePublished">2023-07-21</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/ai-sql-master/Untitled.jpeg" alt="cover"></p>
+<p>ChatGPT 在年初爆火，成为街头巷尾热议的话题。现在的 AI 应该算是目前最卷的赛道了，从卖账号、套壳客户端、 割韭菜教程、大厂争先发布自己的大模型…</p>
+<p>作为普通开发者，搞底层大模型不是人人都能企及，下场割韭菜实在卷不过别人，追新也需要付出很多精力。眼前貌似就只有一条路，着眼于 AI 的应用层，看能不能给自己的垂直赛道赋赋能？ 或者针对个人而言，能不能利用 AI 提高工作效率？</p>
+<p><br></p>
+<p>所以我开一个新坑, 以前端开发者视角， 记录一下作为一个 「AI 调教师」在 <code>AI 应用层</code>的一些实践记录, 没有高谈阔论，就一些碎碎念。</p>
+<p><br><br><br></p>
+<h1 id="一种全新的人机交互模式"><a href="#一种全新的人机交互模式" class="headerlink" title="一种全新的人机交互模式"></a>一种全新的人机交互模式</h1><p>今年二月份，我们就开始尝试将 ChatGPT 接入到我们的工具中，如下图：</p>
+<p><img src="/images/ai-sql-master/Untitled.png" alt="AI对话框"></p>
+<p><br></p>
+<p>就是这样的一个<code>对话框</code>，现在大家可能司空见惯了。那时候并不常见，毕竟 Microsoft Office Copilot、<code>ChatGPT 插件</code>什么的都还没发布。在当时想出这个点子的时候，我一整夜睡不着觉，第二天四五点就决定起床，肝了一天搞出这样的效果。</p>
+<blockquote>
+<p>😂 不知道有没有人跟我一样，一兴奋就会睡不着觉</p>
+</blockquote>
+<p><br></p>
+<p>这是一种全新的系统交互方式，即用<code>自然语言</code>来操控整个系统。怎么操控法呢？</p>
+<p><img src="/images/ai-sql-master/Untitled%201.png" alt="指令"></p>
+<p><br></p>
+<ul>
+<li>这个对话框是全局的<code>常驻</code>的，用户可以随时通过快捷键或者悬浮按钮唤起</li>
+<li>每个页面都可以扩展自己的指令，比如进入数据建模页面，就注册 <code>SQL 专家</code>、<code>数据建模</code>等指令，离开后就销毁：<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// React 代码</span></span><br><span class="line">useEffect(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (model.readonly) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注册扩展</span></span><br><span class="line">  <span class="keyword">return</span> registerExtension(&#123;</span><br><span class="line">    key: <span class="string">'数据建模(测试)'</span>,</span><br><span class="line">    match: <span class="string">'数据建模(测试)'</span>,</span><br><span class="line">    type: ExtensionType.Command,</span><br><span class="line">    description: <span class="string">'数据模型创建和修改'</span>,</span><br><span class="line">    onSend(context) &#123;</span><br><span class="line">      <span class="comment">// ... 实现</span></span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;, [])</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br></p>
+<p><img src="/images/ai-sql-master/Untitled%202.png" alt="指令系统"><br>指令系统</p>
+<p><br></p>
+<p><code>指令</code>类似于现在的 <code>ChatGPT 插件</code>，用于扩展 ChatGPT 的能力边界。</p>
+<p>对话框只是提供了 AI 对话的能力(机制)，而具体的业务、上下文信息只有页面自己最清楚，因此就让页面自己提供与 AI 对接的接口。</p>
+<p>目前的实现方式是通过 <code>#</code> 来唤起选择具体指令，未来我们会利用 ChatGPT 最新的 <a href="https://platform.openai.com/docs/guides/gpt/function-calling" target="_blank" rel="noopener">Function Calling</a> 实现类似 <code>ChatGPT 插件</code> 一样的自然语言调用能力。</p>
+<p><br><br><br><br><br></p>
+<h1 id="mysql-专家"><a href="#mysql-专家" class="headerlink" title="MySQL 专家"></a>MySQL 专家</h1><p>我们第一个接入的 <code>AI 的大腿</code>，就是给我们的<code>数据建模工具</code>接入 <code>AI  生成 SQL 语句</code>的功能：</p>
+<p><img src="/images/ai-sql-master/Untitled.png" alt="对话框"></p>
+<p>如上图所示，我们可以使用自然语言的形式，基于我们已创建的数据模型来做以下事情：</p>
+<ul>
+<li>生成 MySQL 建表、 增删改查语句</li>
+<li>给出优化的建议</li>
+<li>检查是否符合关系型数据的范式等等…</li>
+</ul>
+<p><br></p>
+<p>建表语句：</p>
+<p><img src="/images/ai-sql-master/Untitled%203.png" alt="建表语句"></p>
+<p><br></p>
+<p>优化建议：</p>
+<p><img src="/images/ai-sql-master/Untitled%204.png" alt="优化建议"></p>
+<p>还有很多场景…</p>
+<p><br><br><br><br><br></p>
+<h1 id="prompt-实现"><a href="#prompt-实现" class="headerlink" title="Prompt 实现"></a>Prompt 实现</h1><p>几乎零成本就可以拥有一个 「MySQL 专家」。它的 Prompt 其实很简单！</p>
+<p><br></p>
+<p>首先需要将已创建的数据模型序列化，作为上下文喂给 ChatGPT, 例如：</p>
+<figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="comment">#会员主档</span></span><br><span class="line">Table m_member (</span><br><span class="line">  <span class="symbol">id:</span> Long, PrimaryKey;</span><br><span class="line">  <span class="symbol">tenant_id:</span> Long; <span class="comment">#租户id</span></span><br><span class="line">  <span class="symbol">unique_account_id:</span> String; <span class="comment">#会员一账通id</span></span><br><span class="line">  <span class="symbol">status:</span> Integer; <span class="comment">#会员状态</span></span><br><span class="line">  <span class="symbol">unique_identifier_key:</span> String; <span class="comment">#会员唯一标识键</span></span><br><span class="line">  <span class="symbol">unique_identifier:</span> String; <span class="comment">#会员唯一标识的值</span></span><br><span class="line">  <span class="symbol">ext_json:</span> String; <span class="comment">#自定义扩展字段</span></span><br><span class="line">  <span class="symbol">clubs:</span> String; <span class="comment">#会员所属的俱乐部</span></span><br><span class="line">  <span class="symbol">channel:</span> String; <span class="comment">#渠道</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">#俱乐部会员</span></span><br><span class="line">Table club_member_do (</span><br><span class="line">  <span class="symbol">id:</span> Long, PrimaryKey; <span class="comment">#实体唯一标识符</span></span><br><span class="line">  <span class="symbol">tenant_id:</span> Long; <span class="comment">#租户id</span></span><br><span class="line">  <span class="symbol">club_id:</span> Long; <span class="comment">#俱乐部id</span></span><br><span class="line">  <span class="symbol">unique_account_id:</span> String; <span class="comment">#会员一账通id</span></span><br><span class="line">  <span class="symbol">member_no:</span> String; <span class="comment">#会员卡号</span></span><br><span class="line">  <span class="symbol">level_num:</span> Integer; <span class="comment">#会员等级编号</span></span><br><span class="line">  <span class="symbol">level_expired_time:</span> DateTime; <span class="comment">#等级过期时间</span></span><br><span class="line">  <span class="symbol">nickname:</span> String; <span class="comment">#昵称</span></span><br><span class="line">  <span class="symbol">channel:</span> String; <span class="comment">#渠道</span></span><br><span class="line">  <span class="symbol">certificate_type:</span> String; <span class="comment">#证件类型</span></span><br><span class="line">  <span class="symbol">certificate_no:</span> String; <span class="comment">#证件号码</span></span><br><span class="line">  <span class="symbol">email:</span> String; <span class="comment">#邮箱</span></span><br><span class="line">  <span class="symbol">country_code:</span> String; <span class="comment">#国家编码</span></span><br><span class="line">  <span class="symbol">address:</span> String; <span class="comment">#详细地址信息</span></span><br><span class="line">  <span class="symbol">ext_json:</span> String; <span class="comment">#扩展字段</span></span><br><span class="line">  <span class="symbol">status:</span> Integer; <span class="comment">#俱乐部会员状态</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">#会员变动日志</span></span><br><span class="line">Table m_member_operation_log (</span><br><span class="line">  <span class="symbol">id:</span> Long; <span class="comment">#实体唯一标识符</span></span><br><span class="line">  <span class="symbol">tenant_id:</span> Long; <span class="comment">#租户ID</span></span><br><span class="line">  <span class="symbol">club_id:</span> Long; <span class="comment">#俱乐部Id</span></span><br><span class="line">  <span class="symbol">unique_account_id:</span> String; <span class="comment">#一账通ID</span></span><br><span class="line">  <span class="symbol">operation_type:</span> String; <span class="comment">#操作类型</span></span><br><span class="line">  <span class="symbol">remark:</span> String; <span class="comment">#操作备注</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>这个 DSL 的格式无所谓，ChatGPT 自然语言的处理能力非常强，只要你给出的信息符合一定的规律，格式并不重要。</p>
+<p><br></p>
+<p>完整的 Prompt(<code>system</code>) 模板如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">你是一个 MySQL 专家，你会根据用户给出的概念模型，创建专业、高性能 SQL 语句， 以及回答用户关于数据库的任何问题，提出建设性意见。</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">假设实体(或者表)有多个字段(或者属性), 这些字段支持以下类型:</span><br><span class="line"></span><br><span class="line">- Boolean</span><br><span class="line">- Date</span><br><span class="line">- DateTime</span><br><span class="line">- Timestamp</span><br><span class="line">- Integer</span><br><span class="line">- Decimal</span><br><span class="line">- Long</span><br><span class="line">- Double</span><br><span class="line">- Float</span><br><span class="line">- String</span><br><span class="line">- Text</span><br><span class="line">- LongText</span><br><span class="line">- JSON</span><br><span class="line">- Reference : 表示对其他表的引用</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">这是概念模型：</span><br><span class="line"></span><br><span class="line">$&#123;conception&#125;</span><br><span class="line"></span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">用户输入： &quot;&quot;&quot;$&#123;input&#125;&quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>这是一个很简单的 Prompt，但也揭示了我们写 Prompt 的<a href="https://learningprompt.wiki/docs/chatGPT/tutorial-extras/ChatGPT%20Prompt%20Framework" target="_blank" rel="noopener">主要框架</a>：</p>
+<ul>
+<li><strong>能力与角色</strong>（Capacity and Role）：一上来就给它带个帽子，定义好它的角色和能力</li>
+<li><strong>洞察力</strong>（Insight）：背景信息和上下文。即我们携带了数据模型工具中提取出来的 <code>模型 DSL</code>， 以及 DSL 的基础规则</li>
+<li><strong>指令</strong>（Statement）：要求 ChatGPT 做什么。这个由后续的用户给出</li>
+</ul>
+<p><br></p>
+<p>这里我们也使用了一些<a href="https://learningprompt.wiki/docs/chatGPT/tutorial-tips/%E6%8A%80%E5%B7%A75%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%89%B9%E6%AE%8A%E7%AC%A6%E5%8F%B7%E6%8C%87%E4%BB%A4%E5%92%8C%E9%9C%80%E8%A6%81%E5%A4%84%E7%90%86%E7%9A%84%E6%96%87%E6%9C%AC%E5%88%86%E5%BC%80" target="_blank" rel="noopener">特殊符号</a>, 比如 <code>---</code> <code>&quot;&quot;&quot;</code> , 对文本进行分段，可以提升 AI 反馈的准确性</p>
+<p><br></p>
+<p>因为 ChatGPT 语言模型已经预训练了很多数据库相关的语料，所以回答的效果还不错，不需要太多的指示(即 <code>[Zero-Shot Prompting](https://learningprompt.wiki/docs/chatGPT/tutorial-extras/Zero-Shot%20Prompts)</code>)。</p>
+<blockquote>
+<p>💡  你可以通过这个<a href="https://sdk.vercel.ai/r/25O12Mq" target="_blank" rel="noopener">链接试一试效果</a></p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>「AI 调教师」系列的第一篇文章以一个最简单的示例开始， 这是我为数不多比较短的文章了。如果你想给已有的工具接入 AI 能力，兴许这种方式就是最好的开始，从已有的工具中提取出相关上下文信息，投喂给 AI 来实现智能问答。</p>
+<p>下一篇文章，我们将进一步深化，讲讲如何利用 AI 来实现<code>数据建模</code>(画 ER 图)，敬请期待。同时求赞求关注求收藏，你也可以直接订阅这个专栏。</p>
+<p><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><p>本文用到的技巧</p>
+<ul>
+<li><a href="https://learningprompt.wiki/docs/chatGPT/tutorial-extras/Zero-Shot%20Prompts" target="_blank" rel="noopener">Zero-Shot Prompts</a></li>
+<li><a href="https://learningprompt.wiki/docs/chatGPT/tutorial-tips/%E6%8A%80%E5%B7%A75%EF%BC%9A%E4%BD%BF%E7%94%A8%E7%89%B9%E6%AE%8A%E7%AC%A6%E5%8F%B7%E6%8C%87%E4%BB%A4%E5%92%8C%E9%9C%80%E8%A6%81%E5%A4%84%E7%90%86%E7%9A%84%E6%96%87%E6%9C%AC%E5%88%86%E5%BC%80" target="_blank" rel="noopener">技巧 5：使用特殊符号指令和需要处理的文本分开</a></li>
+<li><a href="https://learningprompt.wiki/docs/chatGPT/tutorial-extras/ChatGPT%20Prompt%20Framework" target="_blank" rel="noopener">CRISPE Prompt Framework</a></li>
+</ul>
+<p>学习 Prompt</p>
+<ul>
+<li><a href="https://learningprompt.wiki/docs/chatGPT/tutorial-basics/%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%20&amp;%20%E4%BD%BF%E7%94%A8%E6%8A%80%E5%B7%A7/scenario-1-ask-questions" target="_blank" rel="noopener">Learning Prompt</a></li>
+<li><a href="https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/" target="_blank" rel="noopener">ChatGPT Prompt Engineering for Developers</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一种全新的人机交互模式"><span class="toc-number">1.</span> <span class="toc-text">一种全新的人机交互模式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mysql-专家"><span class="toc-number">2.</span> <span class="toc-text">MySQL 专家</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#prompt-实现"><span class="toc-number">3.</span> <span class="toc-text">Prompt 实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">4.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">5.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/21/ai-sql-master/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/21/ai-sql-master/&text=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/21/ai-sql-master/&is_video=false&description=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AI 调教师系列开篇： MySQL 专家&body=Check out this article: https://bobi.ink/2023/07/21/ai-sql-master/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/21/ai-sql-master/&title=AI 调教师系列开篇： MySQL 专家"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/21/ai-sql-master/&name=AI 调教师系列开篇： MySQL 专家&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
