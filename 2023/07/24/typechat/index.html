@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Typescript 之父(微软)在 7月 21 号发布了一个有趣的项目—— [Typechat](https://github.com/microsoft/TypeChat)。旨在使用 AI 来连接自然语言和应用的 Schema / API。说白话就是使用 Typescript 类型信息来约束 ChatGPT 输出内容的结构。 我们早已见证过 ChatGPT 的强大，如果想要对接到我们已有的软">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出">
+<meta property="og:url" content="https://bobi.ink/2023/07/24/typechat/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="Typescript 之父(微软)在 7月 21 号发布了一个有趣的项目—— [Typechat](https://github.com/microsoft/TypeChat)。旨在使用 AI 来连接自然语言和应用的 Schema / API。说白话就是使用 Typescript 类型信息来约束 ChatGPT 输出内容的结构。 我们早已见证过 ChatGPT 的强大，如果想要对接到我们已有的软">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%206.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%207.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%208.png">
+<meta property="og:image" content="https://bobi.ink/images/typechat/Untitled%209.png">
+<meta property="og:updated_time" content="2023-07-24T03:27:27.183Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出">
+<meta name="twitter:description" content="Typescript 之父(微软)在 7月 21 号发布了一个有趣的项目—— [Typechat](https://github.com/microsoft/TypeChat)。旨在使用 AI 来连接自然语言和应用的 Schema / API。说白话就是使用 Typescript 类型信息来约束 ChatGPT 输出内容的结构。 我们早已见证过 ChatGPT 的强大，如果想要对接到我们已有的软">
+<meta name="twitter:image" content="https://bobi.ink/images/typechat/Untitled%201.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/07/21/ai-sql-master/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/24/typechat/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/24/typechat/&text=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/24/typechat/&is_video=false&description=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出&body=Check out this article: https://bobi.ink/2023/07/24/typechat/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/24/typechat/&name=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#chatgpt-的能力和缺陷"><span class="toc-number">1.</span> <span class="toc-text">ChatGPT 的能力和缺陷</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#chatgpt-看起来很擅长处理代码"><span class="toc-number">1.0.1.</span> <span class="toc-text">ChatGPT 看起来很擅长处理代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#连续对话和纠错机制"><span class="toc-number">1.1.</span> <span class="toc-text">连续对话和纠错机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dsl-输出"><span class="toc-number">1.2.</span> <span class="toc-text">DSL 输出</span></a></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#typechat"><span class="toc-number">2.</span> <span class="toc-text">TypeChat</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-07-23T16:00:00.000Z" itemprop="datePublished">2023-07-24</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/typechat/Untitled%201.png" alt="Untitled"></p>
+<p>Typescript 之父(微软)在 7月 21 号发布了一个有趣的项目—— <code>[Typechat](https://github.com/microsoft/TypeChat)</code>。<strong>旨在使用 AI 来连接自然语言和应用的 Schema / API</strong>。说白话就是使用 Typescript 类型信息来约束 ChatGPT 输出内容的结构。</p>
+<p>我们早已见证过 ChatGPT 的强大，如果想要对接到我们已有的软件系统，通常会要求它输出 JSON 这类形式化、结构化的数据。如果你调教过 ChatGPT 就会发现， 它的输出结果往往没那么靠谱。为了让它输出符合要求的内容，我们需要给出足够的上下文信息和示例，并且这个调教过程也比较玄学。</p>
+<p>本文就来看看 Typechat 是如何让 ChatGPT 输出符合需求的内容</p>
+<p><br></p>
+<h1 id="chatgpt-的能力和缺陷"><a href="#chatgpt-的能力和缺陷" class="headerlink" title="ChatGPT 的能力和缺陷"></a>ChatGPT 的能力和缺陷</h1><h3 id="chatgpt-看起来很擅长处理代码"><a href="#chatgpt-看起来很擅长处理代码" class="headerlink" title="ChatGPT 看起来很擅长处理代码"></a>ChatGPT 看起来很擅长处理代码</h3><p><img src="/images/typechat/Untitled%202.png" alt="扮演一个 linux 终端"></p>
+<p>扮演一个 linux 终端</p>
+<p><br></p>
+<p><img src="/images/typechat/Untitled%203.png" alt="扮演一个 Javascript 执行器"></p>
+<p>扮演一个 Javascript 执行器</p>
+<p><br></p>
+<p><img src="/images/typechat/Untitled%204.png" alt="扮演 Typescript"></p>
+<p>扮演 Typescript</p>
+<p><br></p>
+<p>这能说明 ChatGPT 的预训练集中包含了丰富的编程语言相关的内容。</p>
+<p><br><br><br><br><br></p>
+<h2 id="连续对话和纠错机制"><a href="#连续对话和纠错机制" class="headerlink" title="连续对话和纠错机制"></a>连续对话和纠错机制</h2><p><img src="/images/typechat/Untitled%205.png" alt="Untitled"></p>
+<p>众所周知， ChatGPT 生成的内容存在一定的随机性和不稳定性，很难一步到位。读者们作为开发者我们经常使用它来生成代码，应该能够体会到。</p>
+<p>这个问题怎么解决呢？大概有以下几个方向</p>
+<ul>
+<li>可以和 ChatGPT 连续对话，引导它，反问它、纠正它</li>
+<li>给 ChatGPT 提供更详细的上下文信息</li>
+<li>使用一些对话的技巧：Chain of thought, 让 ChatGPT 学习推理的过程</li>
+<li>模型微调。</li>
+</ul>
+<p>最后是平常心，开放地对待， AI 不是无所不能的，我们可能用尽的所有技巧， 也可能无法令人满意的答案。</p>
+<p><br><br><br></p>
+<h2 id="dsl-输出"><a href="#dsl-输出" class="headerlink" title="DSL 输出"></a>DSL 输出</h2><p>如果我们想要让 AI 连接到其他生态，比如连接到软件系统、控制硬件设备、实现各种自动化流程，在现在这个阶段，我们需要让 ChatGPT 输出结构化的数据，比如 JSON、XML、或者其他常见的 DSL。</p>
+<p><img src="/images/typechat/Untitled%206.png" alt="Untitled"></p>
+<p>就像我们开头说的 “ <em>Typechat 旨在使用 AI 来连接自然语言和应用的 Schema / API</em>”,  结合上面的流程图理解，你应该就能体会到这句话的意思。<strong><code>AI</code> 在这里就是一个<code>连接者</code>，让用户可以使用<code>自然语言</code>和我们的<code>应用系统</code>进行交互，AI 在这里的责任就是将<code>自然语言</code>翻译为我们应用系统能够处理的 <code>DSL</code></strong>。</p>
+<p><br></p>
+<p>ChatGPT 已经具备这样的能力：</p>
+<p><img src="/images/typechat/Untitled%207.png" alt="绘制 mermaid 流程图"></p>
+<p>绘制 mermaid 流程图</p>
+<p><br></p>
+<p><img src="/images/typechat/Untitled%208.png" alt="输出 JSON"></p>
+<p>输出 JSON</p>
+<p><br></p>
+<p>如果你要求输出更复杂的数据结构，则需要使用 <a href="https://learningprompt.wiki/docs/chatGPT/tutorial-extras/Few-Shot%20Prompting" target="_blank" rel="noopener">Few-shot</a> Prompt 等手段，<strong>在受限的 Token 范围内，给 ChatGPT足够的案例和上下文信息</strong>。</p>
+<p>除此之外，OpenAI 官方在 613 版本的 GPT 3.5 和 4 带来了<code>函数调用</code>的能力(<a href="https://platform.openai.com/docs/guides/gpt/function-calling" target="_blank" rel="noopener">Function Calling</a>), 可以帮助开发者通过 API 方式实现类似于 ChatGPT 插件的数据交互能力。让开发者可以使用  JSON Schema 来描述你的函数接口，GPT 会根据用户的输入，决定调用哪个函数，并组装符合 Schema 要求的 JSON 数据。</p>
+<p>以下是 OpenAI 的官方示例：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment"># 🔴 函数接口定义</span></span><br><span class="line">functions = [</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">"name"</span>: <span class="string">"get_current_weather"</span>,</span><br><span class="line">        <span class="string">"description"</span>: <span class="string">"Get the current weather in a given location"</span>,</span><br><span class="line">        <span class="string">"parameters"</span>: &#123;</span><br><span class="line">            <span class="string">"type"</span>: <span class="string">"object"</span>,</span><br><span class="line">            <span class="string">"properties"</span>: &#123;</span><br><span class="line">                <span class="string">"location"</span>: &#123;</span><br><span class="line">                    <span class="string">"type"</span>: <span class="string">"string"</span>,</span><br><span class="line">                    <span class="string">"description"</span>: <span class="string">"The city and state, e.g. San Francisco, CA"</span>,</span><br><span class="line">                &#125;,</span><br><span class="line">                <span class="string">"unit"</span>: &#123;<span class="string">"type"</span>: <span class="string">"string"</span>, <span class="string">"enum"</span>: [<span class="string">"celsius"</span>, <span class="string">"fahrenheit"</span>]&#125;,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">"required"</span>: [<span class="string">"location"</span>],</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 用户输入</span></span><br><span class="line">messages = [&#123;<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"What's the weather like in Boston?"</span>&#125;]</span><br><span class="line"><span class="comment"># 调用</span></span><br><span class="line">response = openai.ChatCompletion.create(</span><br><span class="line">    model=<span class="string">"gpt-3.5-turbo-0613"</span>,</span><br><span class="line">    messages=messages,</span><br><span class="line">    functions=functions,</span><br><span class="line">    function_call=<span class="string">"auto"</span>,  <span class="comment"># auto is default, but we'll be explicit</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">response_message = response[<span class="string">"choices"</span>][<span class="number">0</span>][<span class="string">"message"</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 GPT 会告诉你最终需要调用哪个函数以及它的参数，也可能不会调用任何东西</span></span><br><span class="line"><span class="keyword">if</span> response_message.get(<span class="string">"function_call"</span>):</span><br></pre></td></tr></table></figure>
+<p>gpt-3.5-turbo-0613、gpt-4-0613 针对 Function calling 这种场景做了微调，实际上这些 ‘函数’ 也是注入到 <code>system</code> prompt 里面，同样会占用请求的 Token。在旧的版本理论上也可以实现类似的效果。我会在后续的文章中专门介绍 Function calling。</p>
+<p><br></p>
+<p>实际上，Function Calling 还是不完美，比如无法保证严格按照我们给定的 JSON  Schema 输出，不支持复杂的 JSON Schema，缺乏灵活性等等。现在我们开始介绍本文的主角 —— typechat</p>
+<p><br><br><br><br><br></p>
+<h1 id="typechat"><a href="#typechat" class="headerlink" title="TypeChat"></a>TypeChat</h1><p>TypeChat 是微软刚发布一个有趣的项目，不同于 Function calling， 它使用 Typescript 类型来作为 「Schema」，要求 ChatGPT 返回符合这个类型定义的数据。</p>
+<p>在 <code>Typechat</code> 中，先定义好 ChatGPT 的响应类型，即 <code>Schema</code>, 例如:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">type Response = &#123;</span><br><span class="line">    items: Item[];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">type Item = &#123;</span><br><span class="line">    name: string;</span><br><span class="line">    quantity: number;</span><br><span class="line">    size?: string;</span><br><span class="line">    notes?: string;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>要求 ChatGPT 返回 JSON 格式，并符合上述的 Response 类型。接着输入用户需求：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">Could I get a blueberry muffin and a grande latte?</span><br></pre></td></tr></table></figure>
+<p>最后 ChatGPT 返回结果：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"items"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">"name"</span>: <span class="string">"blueberry muffin"</span>,</span><br><span class="line">      <span class="string">"quantity"</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">"name"</span>: <span class="string">"latte"</span>,</span><br><span class="line">      <span class="string">"quantity"</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="string">"size"</span>: <span class="string">"grande"</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>那么它是怎么工作的？我们在上一节对 ChatGPT 的能力做了大概的分析，你可以将它们结合起来想想：</p>
+<ul>
+<li>ChatGPT 擅长扮演“代码”执行器,  这其中也包括 Typescript</li>
+<li>ChatGPT 的缺点就是不稳定、随机性。解决办法就给出更多的信息、推理步骤，通过连续对话、反复纠正它。</li>
+<li>ChatGPT 通过给出足够的指示，可以输出‘符合’需求的结构化数据。</li>
+</ul>
+<p><br><br><br><br><br></p>
+<p>Typechat 就是运用了上述思路：</p>
+<p><img src="/images/typechat/Untitled%209.png" alt="Untitled"></p>
+<ul>
+<li>将类型定义和用户需求一起投喂给 ChatGPT，要求它返回指定类型的 JSON数据</li>
+<li>将返回的数据喂给 Typescript 进行检查</li>
+<li>如果类型错误，将错误结果丢回 ChatGPT，重新纠正</li>
+</ul>
+<p><br><br><br></p>
+<p>它的 Prompt 非常简单。 请求的 Prompt：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function createRequestPrompt(request: string) &#123;</span><br><span class="line">      return `You are a service that translates user requests into JSON objects of type &quot;$&#123;validator.typeName&#125;&quot; according to the following TypeScript definitions:\n` +</span><br><span class="line">          `\`\`\`\n$&#123;validator.schema&#125;\`\`\`\n` +</span><br><span class="line">          `The following is a user request:\n` +</span><br><span class="line">          `&quot;&quot;&quot;\n$&#123;request&#125;\n&quot;&quot;&quot;\n` +</span><br><span class="line">          `The following is the user request translated into a JSON object with 2 spaces of indentation and no properties with the value undefined:\n`;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>纠错 Prompt：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function createRepairPrompt(validationError: string) &#123;</span><br><span class="line">        return `The JSON object is invalid for the following reason:\n` +</span><br><span class="line">            `&quot;&quot;&quot;\n$&#123;validationError&#125;\n&quot;&quot;&quot;\n` +</span><br><span class="line">            `The following is a revised JSON object:\n`;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>翻译流程：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">async function translate(request: string) &#123;</span><br><span class="line">        let prompt = typeChat.createRequestPrompt(request);</span><br><span class="line">        let attemptRepair = typeChat.attemptRepair;</span><br><span class="line">        while (true) &#123;</span><br><span class="line">            const response = await model.complete(prompt);</span><br><span class="line">            if (!response.success) &#123;</span><br><span class="line">                return response;</span><br><span class="line">            &#125;</span><br><span class="line">            const responseText = response.data;</span><br><span class="line">            const startIndex = responseText.indexOf(&quot;&#123;&quot;);</span><br><span class="line">            const endIndex = responseText.lastIndexOf(&quot;&#125;&quot;);</span><br><span class="line">            if (!(startIndex &gt;= 0 &amp;&amp; endIndex &gt; startIndex)) &#123;</span><br><span class="line">                return error(`Response is not JSON:\n$&#123;responseText&#125;`);</span><br><span class="line">            &#125;</span><br><span class="line">            const jsonText = responseText.slice(startIndex, endIndex + 1);</span><br><span class="line">            // 🔴 类型检查</span><br><span class="line">            const validation = validator.validate(jsonText);</span><br><span class="line">            if (validation.success) &#123;</span><br><span class="line">                return validation;</span><br><span class="line">            &#125;</span><br><span class="line">            if (!attemptRepair) &#123;</span><br><span class="line">                return error(`JSON validation failed: $&#123;validation.message&#125;\n$&#123;jsonText&#125;`);</span><br><span class="line">            &#125;</span><br><span class="line">            // 🔴 修复</span><br><span class="line">            prompt += `$&#123;responseText&#125;\n$&#123;typeChat.createRepairPrompt(validation.message)&#125;`;</span><br><span class="line">            attemptRepair = false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Typechat 与 Function calling 对比：</p>
+<ul>
+<li>Typescript 可以更简洁、灵活地定义复杂的数据类型；</li>
+<li>Typechat 也加入了简单的纠错机制，进一步保证结果的可靠性。</li>
+</ul>
+<p><br></p>
+<p>它们都改变不了 ChatGPT 的特性，结果依然不一定是可靠的。目前 Typechat  只有一轮纠正，其实际的效果、Token 消耗量等还有待验证。</p>
+<p><br><br><br><br><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>上面我们简单介绍了 ChatGPT 的一些特性和缺陷。接着引入了 Typechat，它给我们提供了一个较新的思路：使用 Typescript 类型来定义 ChatGPT 的输出结构，然后通过 Typescript 来验证输出结果，循环纠正 ChatGPT。</p>
+<p>本文的要点：</p>
+<ul>
+<li>ChatGPT 看起来很擅长处理编程语言。比如 Typescript，这就给 Typechat 的实现奠定了基础。</li>
+<li>使用 Typescript 类型作为 Schema，这本身就可以给 ChatGPT 提供较为严谨的上下文信息。</li>
+<li>ChatGPT 的回答是随机的、不稳定，很难做到一步到位。在实际使用中，需要通过多次对话和纠正才能得到较为完善的结果。所以 Typechat 就引入了自动纠错机制，让 ChatGPT 输出更加稳定。</li>
+<li>编程语言是严苛的，具备可‘纠错性’。我们可以将代码错误信息反馈给 ChatGPT 来完善答案。Typechat 就是利用了这点，其他编程语言也可以轻松实现类似的效果，很快其他语言应该也会有类似的库出来</li>
+</ul>
+<p><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://github.com/microsoft/TypeChat" target="_blank" rel="noopener">https://github.com/microsoft/TypeChat</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#chatgpt-的能力和缺陷"><span class="toc-number">1.</span> <span class="toc-text">ChatGPT 的能力和缺陷</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#chatgpt-看起来很擅长处理代码"><span class="toc-number">1.0.1.</span> <span class="toc-text">ChatGPT 看起来很擅长处理代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#连续对话和纠错机制"><span class="toc-number">1.1.</span> <span class="toc-text">连续对话和纠错机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dsl-输出"><span class="toc-number">1.2.</span> <span class="toc-text">DSL 输出</span></a></li></ol><li class="toc-item toc-level-1"><a class="toc-link" href="#typechat"><span class="toc-number">2.</span> <span class="toc-text">TypeChat</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">3.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/07/24/typechat/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/07/24/typechat/&text=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/07/24/typechat/&is_video=false&description=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出&body=Check out this article: https://bobi.ink/2023/07/24/typechat/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/07/24/typechat/&title=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/07/24/typechat/&name=AI 调教师：聊聊 TypeChat 以及ChatGPT 形式化输出&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
