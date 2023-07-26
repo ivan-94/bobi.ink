@@ -62,45 +62,45 @@ cardinality 可选值有: OneToOne, OneToMany, ManyToOne, ManyToMany
 举个例子，用户输入: """创建一个用户, 这个用户有多个地址"""", 你应该返回：
 
 [
-{
-"name": "User",
-"title": "用户",
-"properties": [
-{
-"name": "id",
-"title": "用户唯一 id",
-"primaryKey": true,
-"type": { "type": "Long" }
-},
-{
-"name": "name",
-"title": "用户名",
-"type": { "type": "String" }
-}
-]
-},
-{
-"name": "Address",
-"title": "地址",
-"properties": [
-{
-"name": "id",
-"title": "唯一 id",
-"primaryKey": true,
-"type": { "type": "Long" }
-},
-{
-"name": "value",
-"title": "详细地址",
-"type": { "type": "String" }
-},
-{
-"name": "userId",
-"title": "用户引用",
-"type": { "type": "Reference", "target": "User", "property": "id", "cardinality": "ManyToOne" }
-}
-]
-}
+  {
+    "name": "User",
+    "title": "用户",
+    "properties": [
+      {
+        "name": "id",
+        "title": "用户唯一 id",
+        "primaryKey": true,
+        "type": { "type": "Long" }
+      },
+      {
+        "name": "name",
+        "title": "用户名",
+        "type": { "type": "String" }
+      }
+    ]
+  },
+  {
+    "name": "Address",
+    "title": "地址",
+    "properties": [
+      {
+        "name": "id",
+        "title": "唯一 id",
+        "primaryKey": true,
+        "type": { "type": "Long" }
+      },
+      {
+        "name": "value",
+        "title": "详细地址",
+        "type": { "type": "String" }
+      },
+      {
+        "name": "userId",
+        "title": "用户引用",
+        "type": { "type": "Reference", "target": "User", "property": "id", "cardinality": "ManyToOne" }
+      }
+    ]
+  }
 ]
 
 你可以根据问题创建多个对象，以数组的形式返回。上面的例子只是一个格式示范, 不要照搬，你需要根据用户的提示, 以及你的数据库建模的丰富经验和行业的最佳实践来回答。
@@ -326,11 +326,11 @@ Given tables:
 
 """
 Table A (
-foo: Long;
+  foo: Long;
 )
 
 Table B (
-bar: Long;
+  bar: Long;
 )
 """
 
@@ -502,74 +502,75 @@ Step 5: Convert the analysis results into the form of %%<action> <key>="<value>"
 type Action = CreateTable | UpdateTable | RemoveTable | AddField | RemoveField | updateField | RenameField;
 
 type CreateTable = {
-action: 'createTable';
-name: string; // table name in upper camel case
-title: string; // table name in chinese
+  action: 'createTable';
+  name: string; // table name in upper camel case
+  title: string; // table name in chinese
 };
 
 type UpdateTable = {
-action: 'updateTable';
-name: string; // table name in upper camel case
-title: string; // table name in chinese
+  action: 'updateTable';
+  name: string; // table name in upper camel case
+  title: string; // table name in chinese
 };
 
 type RemoveTable = {
-action: 'removeTable';
-name: string;
+  action: 'removeTable';
+  name: string;
 };
 
 type FieldType =
-| 'Boolean'
-| 'Data'
-| 'DateTime'
-| 'Timestamp'
-| 'Integer'
-| 'Decimal'
-| 'Long'
-| 'Double'
-| 'Float'
-| 'String'
-| 'Text'
-| 'LongText'
-| 'JSON'
-| 'Reference';
+  | 'Boolean'
+  | 'Data'
+  | 'DateTime'
+  | 'Timestamp'
+  | 'Integer'
+  | 'Decimal'
+  | 'Long'
+  | 'Double'
+  | 'Float'
+  | 'String'
+  | 'Text'
+  | 'LongText'
+  | 'JSON'
+  | 'Reference';
+
 type ReferenceCardinality = 'OneToOne' | 'OneToMany' | 'ManyToOne' | 'ManyToMany';
 
 type AddField = {
-action: 'addField';
-table: string; // table name
-name: string; // field name in lower camel case
-title: string; // field name in chinese
-type: FieldType;
-reference?: string; // reference to other table field, for example: Table.field
-referenceCardinality?: ReferenceCardinality;
-primaryKey?: boolean;
-notNull?: boolean;
+  action: 'addField';
+  table: string; // table name
+  name: string; // field name in lower camel case
+  title: string; // field name in chinese
+  type: FieldType;
+  reference?: string; // reference to other table field, for example: Table.field
+  referenceCardinality?: ReferenceCardinality;
+  primaryKey?: boolean;
+  notNull?: boolean;
 };
 
 type RemoveField = {
-action: 'removeField';
-table: string; // table name
-name: string; // field name
+  action: 'removeField';
+  table: string; // table name
+  name: string; // field name
 };
 
 type updateField = {
-action: 'updateField';
-table: string; // table name
-name: string; // field name in lower camel case
-title?: string; // field name in chinese
-type?: FieldType;
-reference?: string; // reference to other table field, for example: Table.field
-referenceCardinality?: ReferenceCardinality;
-primaryKey?: boolean;
-notNull?: boolean;
+  action: 'updateField';
+  table: string; // table name
+  name: string; // field name in lower camel case
+  title?: string; // field name in chinese
+  type?: FieldType;
+  reference?: string; // reference to other table field, for example: Table.field
+  referenceCardinality?: ReferenceCardinality;
+  primaryKey?: boolean;
+  notNull?: boolean;
 };
 
 type RenameField = {
-action: 'renameField';
-table: string; // table name
-name: string; // field name in lower camel case
-newName: string; // new field name in lower camel case
+  action: 'renameField';
+  table: string; // table name
+  name: string; // field name in lower camel case
+  newName: string; // new field name in lower camel case
 };
 \`\`\`
 
@@ -665,11 +666,11 @@ Given tables:
 
 """
 Table A (
-foo: Long;
+  foo: Long;
 )
 
 Table B (
-bar: Long;
+  bar: Long;
 )
 """
 
@@ -746,13 +747,12 @@ Given tables:
 
 """
 
-
 # 用户
 
 Table User (
-id: Long, PrimaryKey;
-name: String;
-age: String;
+  id: Long, PrimaryKey;
+  name: String;
+  age: String;
 )
 
 """
