@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Web Component 已经被浏览器广泛支持，不再是新鲜玩意了，它有很多使用场景，比如编写跨框架的组件库、微前端，完全用它开发复杂的应用也没问题。 而今天我要介绍的是 Web component 如何扮演框架/微应用之间的胶水层这个角色。 Web Component 是前端通用协议在软件系统中 ，前端通常作为各种后端服务的聚合层，一个页面中可能承载来自多个业务域的内容：  因此前端的业务边界并">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="来一瓶  Web Component 魔法胶水">
+<meta property="og:url" content="https://bobi.ink/2023/08/03/web-component/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="Web Component 已经被浏览器广泛支持，不再是新鲜玩意了，它有很多使用场景，比如编写跨框架的组件库、微前端，完全用它开发复杂的应用也没问题。 而今天我要介绍的是 Web component 如何扮演框架/微应用之间的胶水层这个角色。 Web Component 是前端通用协议在软件系统中 ，前端通常作为各种后端服务的聚合层，一个页面中可能承载来自多个业务域的内容：  因此前端的业务边界并">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/web-component/Untitled%206.png">
+<meta property="og:updated_time" content="2023-08-08T08:08:21.031Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="来一瓶  Web Component 魔法胶水">
+<meta name="twitter:description" content="Web Component 已经被浏览器广泛支持，不再是新鲜玩意了，它有很多使用场景，比如编写跨框架的组件库、微前端，完全用它开发复杂的应用也没问题。 而今天我要介绍的是 Web component 如何扮演框架/微应用之间的胶水层这个角色。 Web Component 是前端通用协议在软件系统中 ，前端通常作为各种后端服务的聚合层，一个页面中可能承载来自多个业务域的内容：  因此前端的业务边界并">
+<meta name="twitter:image" content="https://bobi.ink/images/web-component/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>来一瓶  Web Component 魔法胶水</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2023/08/08/i18n-locale/"><i class="fa fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2023/07/28/mobx/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/03/web-component/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/03/web-component/&text=来一瓶  Web Component 魔法胶水"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/03/web-component/&is_video=false&description=来一瓶  Web Component 魔法胶水"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=来一瓶  Web Component 魔法胶水&body=Check out this article: https://bobi.ink/2023/08/03/web-component/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/03/web-component/&name=来一瓶  Web Component 魔法胶水&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#web-component-是前端通用协议"><span class="toc-number">1.</span> <span class="toc-text">Web Component 是前端通用协议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#web-component-概览"><span class="toc-number">2.</span> <span class="toc-text">Web component 概览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#映射-props"><span class="toc-number">3.</span> <span class="toc-text">映射 Props</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#最佳实践"><span class="toc-number">3.1.</span> <span class="toc-text">最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#框架怎么决定用-html-attribute-还是-property-的呢？"><span class="toc-number">3.2.</span> <span class="toc-text">框架怎么决定用 HTML Attribute 还是 Property 的呢？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#代理事件"><span class="toc-number">4.</span> <span class="toc-text">代理事件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#视图框架支持自定义元素的事件订阅吗？"><span class="toc-number">4.1.</span> <span class="toc-text">视图框架支持自定义元素的事件订阅吗？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#不使用-shadow-dom-？"><span class="toc-number">5.</span> <span class="toc-text">不使用  Shadow DOM ？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#那什么时候不使用-shadow-dom-呢？"><span class="toc-number">5.1.</span> <span class="toc-text">那什么时候不使用 Shadow DOM 呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果不使用-shadow-dom-会有什么后果？"><span class="toc-number">5.2.</span> <span class="toc-text">如果不使用 Shadow DOM 会有什么后果？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#slot-插槽"><span class="toc-number">6.</span> <span class="toc-text">Slot 插槽</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#先来看看主流的视图框架支不支持原生-slot？"><span class="toc-number">6.1.</span> <span class="toc-text">先来看看主流的视图框架支不支持原生 Slot？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果不使用-slot-还有哪些回退方案？"><span class="toc-number">6.2.</span> <span class="toc-text">如果不使用 slot 还有哪些回退方案？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">8.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        来一瓶  Web Component 魔法胶水
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-08-02T16:00:00.000Z" itemprop="datePublished">2023-08-03</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>Web Component 已经被浏览器广泛支持，不再是新鲜玩意了，它有很多使用场景，比如编写跨框架的组件库、微前端，完全用它开发复杂的应用也没问题。</p>
+<p>而今天我要介绍的是 Web component 如何扮演框架/微应用之间的胶水层这个角色。</p>
+<h1 id="web-component-是前端通用协议"><a href="#web-component-是前端通用协议" class="headerlink" title="Web Component 是前端通用协议"></a>Web Component 是前端通用协议</h1><p>在软件系统中 ，前端通常作为各种后端服务的聚合层，一个页面中可能承载来自多个业务域的内容：</p>
+<p><img src="/images/web-component/Untitled.png" alt="服务聚合"></p>
+<p>因此前端的业务边界并那么清晰，很难做到和后端微服务一一映射:</p>
+<p><img src="/images/web-component/Untitled%201.png" alt="微应用映射"></p>
+<p>就像微服务一样，微应用之间也会互相依赖。比如在微前端中，我们可能会依赖其他子应用的<code>业务组件</code>，并且这些子应用有可能是异构的，比如 React 引用 Vue 的组件、或者 Vue 3 引用老旧 Vue 2 组件。</p>
+<p>尽管在大部分情况下，我们并不建议子应用之间产生耦合，但是考虑迁移的成本等现实因素，我们只能妥协。下面是一些常见的解决办法有：</p>
+<ul>
+<li>将这些组件剥离出来，放置到通用的业务组件库。</li>
+<li>子应用暴露服务方法，传入 DOM 挂载点，让目标子应用将元素渲染到这个 DOM 元素上</li>
+<li>子应用通过 Web Component 暴露服务。</li>
+</ul>
+<p>第一种方式。很多情况，这些组件很难剥离出来，就算剥离出来为了应付异构消费，我们可能还是得通过 Web component 重构。</p>
+<p>而第二种方式，还不如直接使用 Web Component , 这是一种标准组件 API，主流的视图框架都支持。</p>
+<p><img src="/images/web-component/Untitled%202.png" alt="通用协议"></p>
+<p>就如异构的微服务使用通用的 HTTP、RPC 协议来通信一样，Web Component 就是异构前端应用之间的「通用协议」。</p>
+<p>所以本文的话题就是围绕着：<code>怎么把现有的组件包装成 Web Component</code> 展开。</p>
+<p><br><br><br><br><br></p>
+<h1 id="web-component-概览"><a href="#web-component-概览" class="headerlink" title="Web component 概览"></a>Web component 概览</h1><p>Web Component ，或者说<code>自定义元素</code>(Custom Element) 更加贴切，它就是支持我们<strong><code>创建自定义 HTML 元素</code></strong>的相关’<strong>技术集合’</strong>。</p>
+<p><img src="/images/web-component/Untitled%203.png" alt="思维导图"></p>
+<p>上面的思维导图，基本覆盖了你需要掌握的内容了。如果读者熟悉主流视图框架(比如 Vue)，只要花一两个小时就可以掌握啦。这块资料也比较多， 我就展开细节了，推荐 <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components" target="_blank" rel="noopener">MDN 的相关教程</a>。</p>
+<p><br><br><br></p>
+<p>先简单写几个 <code>Hello world</code> 吧：</p>
+<p><br></p>
+<p>创建一个自定义元素：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;style&gt;</span><br><span class="line">        hello-world &#123; color: red; &#125;</span><br><span class="line">    &lt;/style&gt;</span><br><span class="line">    &lt;script&gt;</span><br><span class="line">        class HelloWorld extends HTMLElement &#123;</span><br><span class="line">            connectedCallback() &#123;</span><br><span class="line">                this.innerHTML = `&lt;p&gt;Hello, World!&lt;/p&gt;`;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        customElements.define(&apos;hello-world&apos;, HelloWorld);</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;hello-world&gt;&lt;/hello-world&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Shadow DOM 版本：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;script&gt;</span><br><span class="line">        class HelloWorld extends HTMLElement &#123;</span><br><span class="line">            constructor() &#123;</span><br><span class="line">                super();</span><br><span class="line">                this.attachShadow(&#123; mode: &apos;open&apos; &#125;);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            connectedCallback() &#123;</span><br><span class="line">                this.shadowRoot.innerHTML = `</span><br><span class="line">                    &lt;style&gt;:host &#123; color: red; &#125;&lt;/style&gt;</span><br><span class="line">                    &lt;p&gt;Hello, World!&lt;/p&gt;</span><br><span class="line">                `;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        customElements.define(&apos;hello-world&apos;, HelloWorld);</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;hello-world&gt;&lt;/hello-world&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>包装 <a href="https://vuejs.org/guide/extras/web-components.html" target="_blank" rel="noopener">Vue 3 组件</a>, 官方支持:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import &#123; defineCustomElement &#125; from &apos;vue&apos;</span><br><span class="line"></span><br><span class="line">const MyVueElement = defineCustomElement(&#123;</span><br><span class="line">  // normal Vue component options here</span><br><span class="line">  props: &#123;&#125;,</span><br><span class="line">  emits: &#123;&#125;,</span><br><span class="line">  template: `...`,</span><br><span class="line"></span><br><span class="line">  // defineCustomElement only: CSS to be injected into shadow root</span><br><span class="line">  styles: [`/* inlined css */`]</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">// Register the custom element.</span><br><span class="line">// After registration, all `&lt;my-vue-element&gt;` tags</span><br><span class="line">// on the page will be upgraded.</span><br><span class="line">customElements.define(&apos;my-vue-element&apos;, MyVueElement)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>包装 React 组件:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class XSearch extends HTMLElement &#123;</span><br><span class="line">  connectedCallback() &#123;</span><br><span class="line">    const mountPoint = document.createElement(&apos;span&apos;);</span><br><span class="line">    this.attachShadow(&#123; mode: &apos;open&apos; &#125;).appendChild(mountPoint);</span><br><span class="line"></span><br><span class="line">    const name = this.getAttribute(&apos;name&apos;);</span><br><span class="line">    const url = &apos;https://www.google.com/search?q=&apos; + encodeURIComponent(name);</span><br><span class="line">    const root = ReactDOM.createRoot(mountPoint);</span><br><span class="line">    root.render(&lt;a href=&#123;url&#125;&gt;&#123;name&#125;&lt;/a&gt;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">customElements.define(&apos;x-search&apos;, XSearch);</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>将原有的组件包装成 Web Component,  我们需要做以下工作：</p>
+<ul>
+<li>怎么把<code>自定义元素</code>的 Attribute 或者 Property 映射到组件的 Props?</li>
+<li>怎么将组件的事件定义映射成 <code>自定义元素</code> 的事件？</li>
+<li>组件的插槽又怎么处理？</li>
+<li>Shadow DOM 要不要用？</li>
+</ul>
+<p>下面开始详细介绍这些细节。</p>
+<p><br><br><br></p>
+<h1 id="映射-props"><a href="#映射-props" class="headerlink" title="映射 Props"></a>映射 Props</h1><p>HTML <code>自定义元素</code>有两种输入参数形式：<code>HTML Attribute</code> 和 <code>Property</code>。这两个的区别就无须过多介绍了。Property 就是普通的类实例属性。而 HTML Attribute 相对特殊：</p>
+<ul>
+<li>HTML Attribute 可以在 HTML 中携带，或者通过 <code>Element.setAttribute</code> 设置</li>
+<li>并且它的值只能是字符串形式，因此它只适合传递一些简单的原始类型。我们可能需要进行转换</li>
+<li>Attribute key 不区分大小写。通常习惯使用 <code>kebab-case</code> 形式。</li>
+</ul>
+<h2 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h2><p>关于怎么设计 Attribute 和 Property，社区已经积累了很多经验，常见的最佳实践有：</p>
+<ul>
+<li>尽量同时提供 HTML Attribute 和 Property 两种形式。并在命名和行为上保持统一</li>
+<li>不要通过 Attribute 传递复杂数据(非原始类型数据)</li>
+<li>单数据源（Source of truth）。即不管是 Attribute 还是 Property 都是来源于单一的数据源。</li>
+</ul>
+<blockquote>
+<p>💡 关于 Web Component 的更多最佳实践，可以参考下面文章：</p>
+<ul>
+<li><a href="https://web.dev/custom-elements-best-practices/" target="_blank" rel="noopener"> web.dev Custom Element Best Practices</a></li>
+<li><a href="https://webcomponents.today/best-practices/" target="_blank" rel="noopener">Best Practices</a></li>
+</ul>
+</blockquote>
+<p>比如简单的场景可以将 Attribute 作为单一数据源：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">HTMLElement</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">get</span> observedAttributes() &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="string">'foo'</span>];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  attributeChangedCallback(name, oldValue, newValue) &#123;</span><br><span class="line">    <span class="keyword">if</span> (name === <span class="string">'foo'</span>) &#123;</span><br><span class="line">      <span class="comment">// 在这里触发动作</span></span><br><span class="line">      dosomething()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> foo() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.getAttribute(<span class="string">'foo'</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> foo(val) &#123;</span><br><span class="line">    <span class="keyword">this</span>.setAttribute(<span class="string">'foo'</span>, val);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>或者使用一个「对象」作为单一数据源：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyComponent</span> <span class="keyword">extends</span> <span class="title">HTMLElement</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    <span class="keyword">super</span>();</span><br><span class="line">    <span class="keyword">this</span>.props = &#123;&#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">get</span> observedAttributes() &#123;</span><br><span class="line">    <span class="keyword">return</span> [<span class="string">'foo'</span>];</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  attributeChangedCallback(name, oldValue, newValue) &#123;</span><br><span class="line">    <span class="keyword">this</span>.updateProps(name, newValue);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> foo() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.props.foo; <span class="comment">// 从 props 对象中获取值</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> foo(val) &#123;</span><br><span class="line">    <span class="keyword">this</span>.updateProps(<span class="string">'foo'</span>, val, <span class="literal">true</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  updateProps(key, value, updateAttribute = <span class="literal">false</span>) &#123;</span><br><span class="line">    <span class="keyword">this</span>.props[key] = value;</span><br><span class="line">    <span class="keyword">if</span> (updateAttribute) <span class="keyword">this</span>.setAttribute(key, value);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  connectedCallback() &#123;</span><br><span class="line">    <span class="comment">// 初始化操作</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.customElements.define(<span class="string">'my-component'</span>, MyComponent);</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>手动维护 Attribute/Property 太麻烦了。</p>
+<p>比如我们已经在 Vue 组件声明中定义了 props，可以直接搬过来用,  基于这些信息来批量添加 Attribute 和 Property，另外也方便我们对 Attribute 进行类型转换，以 <a href="https://github.com/vuejs/vue-web-component-wrapper/blob/master/src/index.js" target="_blank" rel="noopener">Vue 2</a> 为例：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> options = <span class="keyword">typeof</span> Component === <span class="string">'function'</span></span><br><span class="line">      ? Component.options</span><br><span class="line">      : Component</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 提取 Props 信息</span></span><br><span class="line">    <span class="keyword">const</span> propsList = <span class="built_in">Array</span>.isArray(options.props)</span><br><span class="line">      ? options.props</span><br><span class="line">      : <span class="built_in">Object</span>.keys(options.props || &#123;&#125;)</span><br><span class="line">    hyphenatedPropsList = propsList.map(hyphenate)</span><br><span class="line">    camelizedPropsList = propsList.map(camelize)</span><br><span class="line">    <span class="keyword">const</span> originalPropsAsObject = <span class="built_in">Array</span>.isArray(options.props) ? &#123;&#125; : options.props || &#123;&#125;</span><br><span class="line">    camelizedPropsMap = camelizedPropsList.reduce(<span class="function">(<span class="params">map, key, i</span>) =&gt;</span> &#123;</span><br><span class="line">      map[key] = originalPropsAsObject[propsList[i]]</span><br><span class="line">      <span class="keyword">return</span> map</span><br><span class="line">    &#125;, &#123;&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 🔴 定义 Properties</span></span><br><span class="line">    camelizedPropsList.forEach(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">Object</span>.defineProperty(CustomElement.prototype, key, &#123;</span><br><span class="line">        <span class="keyword">get</span> () &#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">this</span>._wrapper.props[key]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">set</span> (newVal) &#123;</span><br><span class="line">          <span class="keyword">this</span>._wrapper.props[key] = newVal</span><br><span class="line">          <span class="comment">// 更新到 attribute </span></span><br><span class="line">          <span class="comment">// ...</span></span><br><span class="line">        &#125;,</span><br><span class="line">        enumerable: <span class="literal">false</span>,</span><br><span class="line">        configurable: <span class="literal">true</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 🔴 Attribute 同步和转换到 props</span></span><br><span class="line">   <span class="function"><span class="keyword">function</span> <span class="title">syncAttribute</span> (<span class="params">el, key</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> camelized = camelize(key)</span><br><span class="line">    <span class="keyword">const</span> value = el.hasAttribute(key) ? el.getAttribute(key) : <span class="literal">undefined</span></span><br><span class="line">    el._wrapper.props[camelized] = convertAttributeValue(</span><br><span class="line">      value,</span><br><span class="line">      key,</span><br><span class="line">      camelizedPropsMap[camelized]</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">CustomElement</span> <span class="keyword">extends</span> <span class="title">HTMLElement</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span> () &#123;</span><br><span class="line">      <span class="keyword">const</span> self = <span class="keyword">super</span>()</span><br><span class="line">      self.attachShadow(&#123; <span class="attr">mode</span>: <span class="string">'open'</span> &#125;)</span><br><span class="line">      <span class="comment">// ....</span></span><br><span class="line"></span><br><span class="line">      <span class="comment">// 🔴 使用 MutationObserver 监听 Attribute 变化，这是另一种监听 Attribute 变化的方式</span></span><br><span class="line">      <span class="keyword">const</span> observer = <span class="keyword">new</span> MutationObserver(<span class="function"><span class="params">mutations</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> hasChildrenChange = <span class="literal">false</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; mutations.length; i++) &#123;</span><br><span class="line">          <span class="keyword">const</span> m = mutations[i]</span><br><span class="line">          <span class="keyword">if</span> (isInitialized &amp;&amp; m.type === <span class="string">'attributes'</span> &amp;&amp; m.target === self) &#123;</span><br><span class="line">            syncAttribute(self, m.attributeName)</span><br><span class="line">          &#125; </span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      observer.observe(self, &#123;</span><br><span class="line">        attributes: <span class="literal">true</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>React 同理，我们需要按照一定的协议来声明 props，然后批量添加即可。</p>
+<p><br><br><br></p>
+<h2 id="框架怎么决定用-html-attribute-还是-property-的呢？"><a href="#框架怎么决定用-html-attribute-还是-property-的呢？" class="headerlink" title="框架怎么决定用 HTML Attribute 还是 Property 的呢？"></a>框架怎么决定用 HTML Attribute 还是 Property 的呢？</h2><p>那么在常见的视图框架中，在对接<code>自定义元素</code>时，<strong>是怎么决定用 HTML Attribute 还是 Property 的呢？</strong></p>
+<ul>
+<li>Vue 2。除了某些特殊的内置字段会使用 Property，默认都使用 Attribute，这个在模板编译阶段就确定下来了。不过开发者可以显式使用 <code>v-bind.prop</code> 强制 Property。</li>
+<li>Vue 3 和 React 会判断元素实例中存不存在 Property（通常用 in 操作符），如果存在就使用 Property，否则使用 Attribute。</li>
+</ul>
+<p>因此，<strong>我们最好是遵循上述的最佳实践，可以让自定义元素更加普适， 减少使用者的心智负担</strong>。</p>
+<p><br><br><br><br><br></p>
+<h1 id="代理事件"><a href="#代理事件" class="headerlink" title="代理事件"></a>代理事件</h1><p>Web Component 使用 Custom Event 对外抛出事件。</p>
+<p>在 Vue 下可以通过拦截 emit 方法来实现代理：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 🔴 intercept emit</span><br><span class="line">instance.emit = (event: string, ...args: any[]) =&gt; &#123;</span><br><span class="line">  // dispatch both the raw and hyphenated versions of an event</span><br><span class="line">  // to match Vue behavior</span><br><span class="line">  dispatch(event, args)</span><br><span class="line"></span><br><span class="line">  if (hyphenate(event) !== event) &#123;</span><br><span class="line">    dispatch(hyphenate(event), args)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>React 则需要预先声明好需要代理哪些事件，预生成对应的 Props。</p>
+<p><br><br><br></p>
+<h2 id="视图框架支持自定义元素的事件订阅吗？"><a href="#视图框架支持自定义元素的事件订阅吗？" class="headerlink" title="视图框架支持自定义元素的事件订阅吗？"></a>视图框架支持自定义元素的事件订阅吗？</h2><ul>
+<li>Vue 支持通过 <code>v-on</code> 来监听自定义元素的事件。</li>
+<li><strong>React 不支持！</strong>因为 React 使用了自己的<code>合成事件</code>(SyntheticEvent)系统，没有提供手段来监听节点的原生事件。因此自定义元素的事件只能通过 addEventListener 来监听。 这篇<a href="https://css-tricks.com/3-approaches-to-integrate-react-with-custom-elements/" target="_blank" rel="noopener">文章</a>也介绍了 React 监听原生事件的几种方式。</li>
+</ul>
+<p><br><br><br></p>
+<h1 id="不使用-shadow-dom-？"><a href="#不使用-shadow-dom-？" class="headerlink" title="不使用  Shadow DOM ？"></a>不使用  Shadow DOM ？</h1><p>Shadow DOM 就是一个超强的<code>结界</code>,  相互隔离了 DOM 和样式。 <code>宿主</code>无法访问它的内部细节，宿主的样式影响不了 Shadow DOM,  Shadow DOM 内部的样式也不会影响宿主。</p>
+<p>Shadow DOM 基本上就是 Web Component 的代名词。但<strong>实际上 Shadow DOM 对于<code>自定义元素</code>来说是可选的，而 Shadow DOM 也可以用在<code>自定义元素</code>之外。</strong></p>
+<p>所以用不用 Shadow DOM 也需要我们来权衡。</p>
+<p><br></p>
+<p>很多视图框架官方提供的 Web Component 包装方案，但都是强制使用 Shadow DOM的，比如：</p>
+<ul>
+<li>Vue 3.x 官方内置支持，使用 <a href="https://cn.vuejs.org/guide/extras/web-components.html" target="_blank" rel="noopener">defineCustomElement</a> 进行定义</li>
+<li>Vue 2.x 则可以通过 Vue CLI 来构建生成，底层由  <a href="https://github.com/karol-f/vue-custom-element" target="_blank" rel="noopener">vue-custom-element</a> 支持</li>
+<li>…</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="那什么时候不使用-shadow-dom-呢？"><a href="#那什么时候不使用-shadow-dom-呢？" class="headerlink" title="那什么时候不使用 Shadow DOM 呢？"></a>那什么时候不使用 Shadow DOM 呢？</h2><p>如果我不使用 Shadow DOM, 理由估计只有一个 —— <strong>样式难以管理</strong>！</p>
+<p>如果没有任何历史包袱的、原子粒度组件库，管理起来要容易很多。我也不需要写一篇文章来讲它了，市面上有很多框架可以帮我们创建 Web Component 组件库，比如 <a href="https://stenciljs.com/docs/react" target="_blank" rel="noopener">Stencil</a>、<a href="https://lit.dev/" target="_blank" rel="noopener">Lit</a>、还有哈啰团队最近开源的 <a href="https://quarkc.hellobike.com/#/" target="_blank" rel="noopener">Quarkc</a>…</p>
+<p>而老旧项目对外暴露的业务组件，首先粒度会比较大，还可能会依赖所在子应用的全局样式、第三方组件库样式等等。这些样式的提取、大量样式应用的性能都是比较大的问题。</p>
+<blockquote>
+<p>较新的浏览器支持 <a href="http://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/adoptedStyleSheets" target="_blank" rel="noopener">adoptedStyleSheets</a> ，可以让<code>构造样式表</code>(Constructed stylesheet) 应用到多个 Shadow Root 中，实现共享。 但也需要开发者来管理样式。</p>
+</blockquote>
+<p><br><br><br></p>
+<h2 id="如果不使用-shadow-dom-会有什么后果？"><a href="#如果不使用-shadow-dom-会有什么后果？" class="headerlink" title="如果不使用 Shadow DOM 会有什么后果？"></a>如果不使用 Shadow DOM 会有什么后果？</h2><ul>
+<li>我们需要自行处理全局样式污染问题。</li>
+<li>无法使用 Slot。</li>
+<li>DOM 干扰</li>
+<li>…</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h1 id="slot-插槽"><a href="#slot-插槽" class="headerlink" title="Slot 插槽"></a>Slot 插槽</h1><p>不使用 Shadow DOM，比较大影响就是无法使用原生 Slot。</p>
+<p>先来简单看看它的用法，和早期的 Vue 非常相似。或者说 Vue 在竭力对齐 Web 标准</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;template id=&quot;my-component&quot;&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;slot name=&quot;header&quot;&gt;Default header&lt;/slot&gt;</span><br><span class="line">    &lt;slot name=&quot;body&quot;&gt;Default body&lt;/slot&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">  class MyComponent extends HTMLElement &#123;</span><br><span class="line">    constructor() &#123;</span><br><span class="line">      super();</span><br><span class="line"></span><br><span class="line">      const template = document.getElementById(&apos;my-component&apos;);</span><br><span class="line">      const node = document.importNode(template.content, true);</span><br><span class="line">      this.attachShadow(&#123; mode: &apos;open&apos; &#125;).appendChild(node);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  customElements.define(&apos;my-component&apos;, MyComponent);</span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">使用</span><br><span class="line">&lt;my-component&gt;</span><br><span class="line">  &lt;span slot=&quot;header&quot;&gt;Custom Header&lt;/span&gt;</span><br><span class="line">  &lt;span slot=&quot;body&quot;&gt;Custom Body&lt;/span&gt;</span><br><span class="line">&lt;/my-component&gt;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>浏览器在 DOM 渲染时，会将自定义元素下的宿主 DOM 节点分配(Assign) 给 Shadow Root 的 Slot 元素：</p>
+<p><img src="/images/web-component/Untitled%204.png" alt="Assignment"></p>
+<p>不过 slot 相比 Vue 的插槽就要弱化很多了。比如不支持作用域插槽(Scoped Slot)。因此它只能简单满足一些 DOM 节点的替换。</p>
+<p><br><br><br><br><br></p>
+<h2 id="先来看看主流的视图框架支不支持原生-slot？"><a href="#先来看看主流的视图框架支不支持原生-slot？" class="headerlink" title="先来看看主流的视图框架支不支持原生 Slot？"></a>先来看看主流的视图框架支不支持原生 Slot？</h2><ul>
+<li><p>Vue 2。因为 slot 和 Vue 本身的插槽机制是冲突的， 如果你通过<a href="https://github.com/vuejs/vue-web-component-wrapper" target="_blank" rel="noopener">https://github.com/vuejs/vue-web-component-wrapper</a> 来创建自定义元素，它的方案比较 Hack, 它会监听宿主 Light DOM 节点的变化，然后将这些 DOM 节点的 <code>innerHTML</code> 提取出来，再搬运到 Shadow DOM 下：</p>
+  <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">  // 监听 Light DOM</span><br><span class="line">  const observer = new MutationObserver(mutations =&gt; &#123;</span><br><span class="line">     // ... 省略</span><br><span class="line">     if (hasChildrenChange) &#123;</span><br><span class="line">       // 🔴 toVnodes 使用 转换 childNodes 为 innerHTML，再转成 VNode</span><br><span class="line">       wrapper.slotChildren = Object.freeze(toVNodes(</span><br><span class="line">         wrapper.$createElement,</span><br><span class="line">         self.childNodes</span><br><span class="line">       ))</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;)</span><br><span class="line">    </span><br><span class="line">const wrapper = self._wrapper = new Vue(&#123;</span><br><span class="line">     name: &apos;shadow-root&apos;,</span><br><span class="line">     customElement: self,</span><br><span class="line">     shadowRoot: self.shadowRoot,</span><br><span class="line">     data () &#123;</span><br><span class="line">       return &#123;</span><br><span class="line">         props: &#123;&#125;,</span><br><span class="line">         slotChildren: []</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;,</span><br><span class="line">     render (h) &#123;</span><br><span class="line">       return h(Component, &#123;</span><br><span class="line">         ref: &apos;inner&apos;,</span><br><span class="line">         props: this.props</span><br><span class="line">       // 🔴 VNode 渲染</span><br><span class="line">       &#125;, this.slotChildren)</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li>Vue 3。而 Vue 3 的 <code>&lt;slot&gt;</code> 在<code>自定义元素（isCE）模式</code>（defineCustomElement）下, 会渲染成真正 Slot HTML 元素</li>
+<li>React。React 本身没有 slot 的概念，不存在冲突，所以 slot 也是渲染成 Slot HTML 元素。</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h2 id="如果不使用-slot-还有哪些回退方案？"><a href="#如果不使用-slot-还有哪些回退方案？" class="headerlink" title="如果不使用 slot 还有哪些回退方案？"></a>如果不使用 slot 还有哪些回退方案？</h2><p>可以理解  Web Component 的 slot 可以理解为 DOM 节点的「搬运工」。将 Light DOM 搬进 Shadow DOM,  尽管这种说法可能不严谨。</p>
+<blockquote>
+<p>💡从将 Light DOM 「搬进」 Shadow DOM 的过程称为“<code>分配</code>”（<code>Assignment</code>） 或者’赋值‘。这并不是简单的将 DOM 节点移动到 Shadow DOM，整个过程有点像变量’引用‘， 插槽的内容和作用域还在宿主 DOM,  而插入 Shadow DOM 内部只是一个’分身‘。</p>
+</blockquote>
+<p><br></p>
+<p>如果不是用 Shadow DOM,  还有一些手段来实现类似插槽的效果：</p>
+<p>方法一，<strong>传入 HTML 字符串。这是最简单、最普适的方案了</strong>。至于事件，可以通过冒泡委托。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>方法二是定义一些<code>元素锚点</code>(Anchor)，供外部来修改这个 DOM 节点。</p>
+<p>我们可以使用  Vue 3 的 <code>Teleport</code> 或者 React <code>Portal</code> 之类的技术来挂载。下面是 Vue 示例:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Demo = defineComponent(&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="comment">// 定义插槽</span></span><br><span class="line">    <span class="keyword">return</span> h(<span class="string">"div"</span>, [h(<span class="string">"div"</span>, &#123; <span class="string">"data-slot"</span>: <span class="string">"header"</span> &#125;)]);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoElement</span> <span class="keyword">extends</span> <span class="title">HTMLElement</span> </span>&#123;</span><br><span class="line">  connectedCallback() &#123;</span><br><span class="line">    <span class="keyword">this</span>.vm = createApp(Demo);</span><br><span class="line">    <span class="keyword">this</span>.vm.mount(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.dispatchEvent(<span class="keyword">new</span> CustomEvent(<span class="string">"ready"</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  disconnectedCallback() &#123;</span><br><span class="line">    <span class="keyword">this</span>.vm.unmount();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (!customElements.get(<span class="string">"wk-demo"</span>)) &#123;</span><br><span class="line">  customElements.define(<span class="string">"wk-demo"</span>, DemoElement);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span>    </span><br><span class="line">  <span class="tag">&lt;<span class="name">wk-demo</span> @<span class="attr">ready</span>=<span class="string">"handleReady"</span>&gt;</span><span class="tag">&lt;/<span class="name">wk-demo</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Teleport</span> <span class="attr">v-if</span>=<span class="string">"demoRef"</span> <span class="attr">:to</span>=<span class="string">"demoRef.querySelector('[data-slot=header]')"</span>&gt;</span></span><br><span class="line">    hello header</span><br><span class="line">  <span class="tag">&lt;/<span class="name">Teleport</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span>&gt;</span><span class="undefined"></span></span><br><span class="line"><span class="javascript"><span class="keyword">const</span> handleReady = <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="undefined">  demoRef.value = event.target;</span></span><br><span class="line"><span class="undefined">&#125;;</span></span><br><span class="line"><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>虽然可以工作，但是不是特别优雅。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><a href="https://stenciljs.com/" target="_blank" rel="noopener">Stenciljs</a> 提供另一种思路 —— <code>Slot Relocation</code> (插槽重定位)。</p>
+<p>Stencil 是一个 Web Component 编译器，因为早期浏览器对 Shadow DOM 支持比较差，基于兼容性的考虑， Stencil 并不强制所有功能都和 Shadow DOM 绑定。slot 就是一个例子。</p>
+<p><br></p>
+<p>那它是怎么模拟 slot 的呢？我们通过一个示例来展开看看：</p>
+<p>组件定义：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">// my-component.tsx</span><br><span class="line"></span><br><span class="line">render()&#123;</span><br><span class="line">  return [</span><br><span class="line">    <span class="tag">&lt;<span class="name">slot</span> <span class="attr">name</span>=<span class="string">"item-start"</span>&gt;</span>fallback content<span class="tag">&lt;/<span class="name">slot</span>&gt;</span>,</span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Here is my main content<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>,</span><br><span class="line">    <span class="tag">&lt;<span class="name">slot</span> <span class="attr">name</span>=<span class="string">"item-end"</span> /&gt;</span></span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>组件使用：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">render()&#123;</span><br><span class="line">  return(</span><br><span class="line">    <span class="tag">&lt;<span class="name">my-component</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span> <span class="attr">slot</span>=<span class="string">"item-start"</span>&gt;</span>I'll be placed before the h1<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span> <span class="attr">slot</span>=<span class="string">"item-end"</span>&gt;</span>I'll be placed after the h1<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">my-component</span>&gt;</span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>渲染结果：</p>
+<p><img src="/images/web-component/Untitled%205.png" alt="Stencil 渲染结果"></p>
+<p>我们来图解一下它的渲染流程：</p>
+<p><img src="/images/web-component/Untitled%206.png" alt="Stencil 渲染流程"></p>
+<p>Stencil 实际上也是一个基于 Virtual DOM 的框架</p>
+<ul>
+<li>挂载前： 插槽的 DOM 节点实际上在 <code>connectedCallback</code> （即挂载）调用之前，就已经存在。</li>
+<li>渲染后： Stencil 在渲染时不会完全清空宿主元素(host)，渲染的内容以 append 的形式追加到宿主元素</li>
+<li>重新定位： 渲染完成后，就会开始插槽重定位。stencil 会遍历宿主元素下的子节点，找出所有非 Virtual DOM 渲染出来的节点(举个例子，Virtual DOM 渲染出来的节点会有特殊的标记， 可以排除掉)。接着对这些节点, 根据 <code>slot=*</code> 声明进行重定位，插入到对应的 <code>&lt;slot-fb&gt;</code> 之后</li>
+<li>隐藏插槽 Fallback:  接着将已经被占用的 <code>&lt;slot-fb&gt;</code>  设置为  hidden，隐藏掉</li>
+</ul>
+<p><br><br><br></p>
+<p>这种思路有一些借鉴意义。不过它目前也有很多缺陷：Stencil 只是在首次挂载时才会进行‘重定位’， 不会动态监听元素新增和移除。比如：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> el = <span class="built_in">document</span>.querySelector(<span class="string">'my-component'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 动态操作不会被重新定位</span></span><br><span class="line">el.appendChild(...)</span><br><span class="line">el.innerHTML = ...</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这也导致了，它和其他视图框架配合使用时，未必能正常工作。</p>
+<p><br></p>
+<p>比如下面使用 JSX 条件渲染 <code>footer</code>，底层的操作就是在 <code>app-foo</code> 节点上执行 <code>remove</code> 和 <code>insert</code> 操作，这将导致 Stencil 的插槽重定位失效：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">render() &#123;</span><br><span class="line">  return (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;app-foo&gt;</span><br><span class="line">        &lt;div onClick=&#123;() =&gt; &#123; this.count++; &#125;&#125;&gt;world&lt;/div&gt;</span><br><span class="line">        &#123;this.count % 2 === 0 &amp;&amp; &lt;footer slot=&quot;footer&quot;&gt;footer: &#123;this.count&#125;&lt;/footer&gt;&#125;</span><br><span class="line">      &lt;/app-foo&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<p>毕竟本质上<code>插槽重定位</code>和 Shadow DOM slot 还是不一样。Shadow DOM 方案会隔离出 Light DOM 和 Shadow DOM 两个不同的空间，DOM 的操作互不干扰。</p>
+<p><strong>如果没有使用 Shadow DOM , 这些操作都是不安全的，会破坏 Stencil 渲染的结果。</strong></p>
+<p>综上，目前最为普适和灵活的方案还是字符串 HTML。</p>
+<p><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文将 Web Component 定义为跨框架的<code>微应用</code>之间的通用协议。介绍了将已有组件以 Web Component 形式对外暴露的各种技术细节， 以及主流视图框架对 Web Component 的支持程度。</p>
+<p>当我们需要封装一个 Web Component 时需要处理以下事情：</p>
+<ul>
+<li>如何将自定义元素的 Attribute 和 Property 映射到组件 Props。本文列举了一些最佳实践</li>
+<li>如何将组件的事件代理出去。</li>
+<li>权衡要不要使用 Shadow DOM。</li>
+<li>插槽的使用等等。</li>
+</ul>
+<p>总得来说，Web Component 作为一个标准的、底层的技术，在目前看来是不能覆盖现在主流视图框架的所有能力的，哪些能力需要进行取舍，需要开发者自行权衡。</p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components" target="_blank" rel="noopener">MDN 的相关教程</a></li>
+<li>Web Component 最佳实践<ul>
+<li><a href="https://web.dev/custom-elements-best-practices/" target="_blank" rel="noopener">web.dev Custom Element Best Practices</a></li>
+<li><a href="https://webcomponents.today/best-practices/" target="_blank" rel="noopener">Best Practices</a></li>
+</ul>
+</li>
+<li>图书推荐<ul>
+<li>Developing Web Components with TypeScript Native Web Development Using Thin Libraries</li>
+<li>Web Components in Action</li>
+</ul>
+</li>
+<li>组件包装<ul>
+<li><a href="https://github.com/vuejs/vue-web-component-wrapper" target="_blank" rel="noopener">vue-web-component-wrapper</a></li>
+<li><a href="https://github.com/bitovi/react-to-web-component/tree/main/packages/react-to-web-component" target="_blank" rel="noopener">react-to-web-component</a></li>
+</ul>
+</li>
+<li>Web Component 框架<ul>
+<li><strong>StencilJS</strong></li>
+<li><strong>LitElement</strong></li>
+<li>Quarkc</li>
+</ul>
+</li>
+<li><a href="https://www.notion.so/Vue-2-3-ca2b6bf71c564dfa90fb09ae92fff599?pvs=21" target="_blank" rel="noopener">Vue 2/3 的互操作性</a></li>
+<li><strong><a href="https://dev.to/steveblue/the-state-of-web-components-in-2022-1ip3" target="_blank" rel="noopener">The State Of Web Components in 2022</a></strong></li>
+<li><strong><strong><a href="https://cn.vuejs.org/guide/extras/web-components.html" target="_blank" rel="noopener">Vue 与 Web Components</a></strong></strong></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#web-component-是前端通用协议"><span class="toc-number">1.</span> <span class="toc-text">Web Component 是前端通用协议</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#web-component-概览"><span class="toc-number">2.</span> <span class="toc-text">Web component 概览</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#映射-props"><span class="toc-number">3.</span> <span class="toc-text">映射 Props</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#最佳实践"><span class="toc-number">3.1.</span> <span class="toc-text">最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#框架怎么决定用-html-attribute-还是-property-的呢？"><span class="toc-number">3.2.</span> <span class="toc-text">框架怎么决定用 HTML Attribute 还是 Property 的呢？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#代理事件"><span class="toc-number">4.</span> <span class="toc-text">代理事件</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#视图框架支持自定义元素的事件订阅吗？"><span class="toc-number">4.1.</span> <span class="toc-text">视图框架支持自定义元素的事件订阅吗？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#不使用-shadow-dom-？"><span class="toc-number">5.</span> <span class="toc-text">不使用  Shadow DOM ？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#那什么时候不使用-shadow-dom-呢？"><span class="toc-number">5.1.</span> <span class="toc-text">那什么时候不使用 Shadow DOM 呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果不使用-shadow-dom-会有什么后果？"><span class="toc-number">5.2.</span> <span class="toc-text">如果不使用 Shadow DOM 会有什么后果？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#slot-插槽"><span class="toc-number">6.</span> <span class="toc-text">Slot 插槽</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#先来看看主流的视图框架支不支持原生-slot？"><span class="toc-number">6.1.</span> <span class="toc-text">先来看看主流的视图框架支不支持原生 Slot？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果不使用-slot-还有哪些回退方案？"><span class="toc-number">6.2.</span> <span class="toc-text">如果不使用 slot 还有哪些回退方案？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">7.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">8.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/03/web-component/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/03/web-component/&text=来一瓶  Web Component 魔法胶水"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/03/web-component/&is_video=false&description=来一瓶  Web Component 魔法胶水"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=来一瓶  Web Component 魔法胶水&body=Check out this article: https://bobi.ink/2023/08/03/web-component/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/03/web-component/&title=来一瓶  Web Component 魔法胶水"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/03/web-component/&name=来一瓶  Web Component 魔法胶水&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+

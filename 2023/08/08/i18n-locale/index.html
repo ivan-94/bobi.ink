@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="又开了个新坑，来讲讲前端国际化。  开篇之前，读者需要区分好国际化(i18n - internationalization)和本地化(l10n - localization) ， 它们是相互关联但又不同的概念：  国际化（i18n）：这是一个设计和开发过程，确保产品（如软件、网站或应用）能够在不做任何修改的情况下适应不同的语言和地区。这涉及到从一开始就预留空间用于文本扩展，确保日期和时间格式可">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端国际化：语言包篇">
+<meta property="og:url" content="https://bobi.ink/2023/08/08/i18n-locale/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="又开了个新坑，来讲讲前端国际化。  开篇之前，读者需要区分好国际化(i18n - internationalization)和本地化(l10n - localization) ， 它们是相互关联但又不同的概念：  国际化（i18n）：这是一个设计和开发过程，确保产品（如软件、网站或应用）能够在不做任何修改的情况下适应不同的语言和地区。这涉及到从一开始就预留空间用于文本扩展，确保日期和时间格式可">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%206.png">
+<meta property="og:image" content="https://bobi.ink/images/i18n-locale/Untitled%207.png">
+<meta property="og:updated_time" content="2023-08-08T08:08:21.066Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="前端国际化：语言包篇">
+<meta name="twitter:description" content="又开了个新坑，来讲讲前端国际化。  开篇之前，读者需要区分好国际化(i18n - internationalization)和本地化(l10n - localization) ， 它们是相互关联但又不同的概念：  国际化（i18n）：这是一个设计和开发过程，确保产品（如软件、网站或应用）能够在不做任何修改的情况下适应不同的语言和地区。这涉及到从一开始就预留空间用于文本扩展，确保日期和时间格式可">
+<meta name="twitter:image" content="https://bobi.ink/images/i18n-locale/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>前端国际化：语言包篇</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/08/03/web-component/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/08/i18n-locale/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/08/i18n-locale/&text=前端国际化：语言包篇"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/08/i18n-locale/&is_video=false&description=前端国际化：语言包篇"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=前端国际化：语言包篇&body=Check out this article: https://bobi.ink/2023/08/08/i18n-locale/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/08/i18n-locale/&name=前端国际化：语言包篇&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-组织语言包"><span class="toc-number">1.</span> <span class="toc-text">1. 组织语言包</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-放在哪个目录下？"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 放在哪个目录下？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-全局使用一个语言包，还是分模块？"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 全局使用一个语言包，还是分模块？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-如果是分模块的话？粒度怎么把握"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 如果是分模块的话？粒度怎么把握?</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-语言包加载"><span class="toc-number">2.</span> <span class="toc-text">2. 语言包加载</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-怎么实现按需加载？web-端？小程序端？"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 怎么实现按需加载？Web 端？小程序端？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-如果分模块组织，碎片化的语言包会不会导致多个请求？"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 如果分模块组织，碎片化的语言包会不会导致多个请求？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-registerbundles-怎么实现？"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 registerBundles 怎么实现？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-语言包管理"><span class="toc-number">3.</span> <span class="toc-text">3. 语言包管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-如何管理和分析语言包的使用？"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 如何管理和分析语言包的使用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-还有哪些建议？"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 还有哪些建议？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-统一语言标签"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 统一语言标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-使用嵌套命名空间来组织语言包"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 使用嵌套命名空间来组织语言包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        前端国际化：语言包篇
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-08-07T16:00:00.000Z" itemprop="datePublished">2023-08-08</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><br></p>
+<p><img src="/images/i18n-locale/Untitled.png" alt="Cover"></p>
+<p>又开了个新坑，来讲讲前端国际化。</p>
+<p><br></p>
+<p>开篇之前，读者需要区分好<code>国际化</code>(i18n - internationalization)和<code>本地化</code>(l10n - localization) ， 它们是相互关联但又不同的概念：</p>
+<ol>
+<li>国际化（i18n）：这是一个设计和开发过程，确保产品（如软件、网站或应用）能够在不做任何修改的情况下适应不同的语言和地区。这涉及到从一开始就预留空间用于文本扩展，确保日期和时间格式可以根据地区变化，以及确保代码可以处理不同的字符集和写作系统等。</li>
+<li>本地化（L10n）：这是将产品或内容适应到特定市场的过程。这可能包括将文本翻译成本地语言，调整图像和色彩以适应本地文化，以及修改日期、电话号码和地址格式等。本地化可能还需要考虑本地法规和商业习惯。</li>
+</ol>
+<p><br></p>
+<p>简单来说，国际化是创建一个可以轻易本地化的产品的过程，而本地化是将产品调整以适应特定地区的过程。两者在实际产品中的边界可能比没有那么清晰，而是相辅相成，通常在大的国际化基座上进一步进行本地化。</p>
+<p><br></p>
+<p>国际化的涉及面非常广，比如语言、文字编码、时区、书写习惯、单复数、标点符号、时间格式、货币格式、计量单位…</p>
+<p>强烈推荐读者读一下 <a href="https://www.zhihu.com/column/txtwork" target="_blank" rel="noopener">基础设计专栏 - From.RED</a> 这个专栏，这里面一系列的国际化/本地化的文章都非常赞：</p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/29759116" target="_blank" rel="noopener">为全球设计，国际化与本地化探索：快速入门</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/29780850" target="_blank" rel="noopener">为全球设计，国际化与本地化探索：国际化设计</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/31025276" target="_blank" rel="noopener">为全球设计，国际化与本地化探索：本地化设计</a></li>
+</ul>
+<p><br></p>
+<p>实际上笔者也不是特别专业，这系列文章仅是我的一些技术实践总结。作为开篇，我们先聊一聊一些比较基础的话题：前端语言包的管理。</p>
+<p><br></p>
+<p>对于语言包的管理，我们大概率会遇到以下问题：</p>
+<ul>
+<li>语言包应该放在哪个目录？</li>
+<li>全局使用一个语言包，还是分模块？</li>
+<li>如果是分模块的话？粒度怎么把握?</li>
+<li>怎么实现按需加载？Web 端？小程序端？</li>
+<li>如果分模块组织，碎片化的语言包会不会导致多个请求？</li>
+<li>如何管理和分析语言包的使用？</li>
+<li>还有哪些建议？</li>
+</ul>
+<p><br></p>
+<p>如果进一步归纳，这些问题又可以分为三大类：</p>
+<ul>
+<li><p>组织语言包</p>
+<ul>
+<li>语言包应该放在哪个目录？</li>
+<li>全局使用一个语言包，还是分模块？</li>
+<li>如果是分模块的话？粒度怎么把握?</li>
+</ul>
+</li>
+<li><p>语言包加载</p>
+<ul>
+<li>怎么实现按需加载？Web 端？小程序端？</li>
+<li>如果分模块组织，碎片化的语言包会不会导致多个请求？</li>
+</ul>
+</li>
+<li><p>语言包管理</p>
+<ul>
+<li>如何管理和分析语言包的使用？</li>
+<li>还有哪些建议？</li>
+</ul>
+</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h1 id="1-组织语言包"><a href="#1-组织语言包" class="headerlink" title="1. 组织语言包"></a>1. 组织语言包</h1><h2 id="1-1-放在哪个目录下？"><a href="#1-1-放在哪个目录下？" class="headerlink" title="1.1 放在哪个目录下？"></a>1.1 放在哪个目录下？</h2><p>通常放在 <code>locales</code> 或者 <code>i18n</code> 目录下。比如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">/src</span><br><span class="line">  /locales</span><br><span class="line">    zh.json</span><br><span class="line">    zh-Hant.json</span><br><span class="line">    en.json</span><br><span class="line">    th.json</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们团队的规范是使用 <code>*.tr</code> 来作为语言包，例如：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">/src</span><br><span class="line">  /locales</span><br><span class="line">    zh.tr</span><br><span class="line">    zh-Hant.tr</span><br><span class="line">    en.tr</span><br><span class="line">    th.tr</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>tr</code> 即 <code>translate</code> 的缩写， 这么做的目的主要为了和 <code>json</code> 文件区分开，方便后面的构建工具识别。</p>
+<p>当然还有其他手段可以实现，但在本篇文章中我们统一约定使用 <code>.tr</code> 作为语言包文件。</p>
+<blockquote>
+<p>💡 VSCode 中加上以下配置，可以将 tr 文件识别为 <code>JSON</code>:</p>
+ <figure class="highlight"><table><tr><td class="code"><pre><span class="line">&gt;  // .vscode/settings.json</span><br><span class="line">&gt;  &#123;</span><br><span class="line">&gt;    "files.associations": &#123;</span><br><span class="line">&gt;      "*.tr": "json"</span><br><span class="line">&gt;    &#125;</span><br><span class="line">&gt;  &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure>
+</blockquote>
+<blockquote>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h2 id="1-2-全局使用一个语言包，还是分模块？"><a href="#1-2-全局使用一个语言包，还是分模块？" class="headerlink" title="1.2 全局使用一个语言包，还是分模块？"></a>1.2 全局使用一个语言包，还是分模块？</h2><p>我们推荐<code>按照业务来聚合&#39;实现&#39;</code>，大部分情况不应该将所有的语言包一股脑放在一起，除非你的项目比较简单。换句话说，应该遵循<code>就近原则</code>，Global is Evil。</p>
+<p><br></p>
+<p>比如 MonoRepo 项目：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">packages</span><br><span class="line">  ├── pkgA</span><br><span class="line">  |   └── i18n</span><br><span class="line">  |       ├── en.tr</span><br><span class="line">  |       ├── zh.tr</span><br><span class="line">  |       └── ...</span><br><span class="line">  ├── pkgB</span><br><span class="line">  |   └── i18n</span><br><span class="line">  |       ├── en.tr</span><br><span class="line">  |       ├── zh.tr</span><br><span class="line">  |       └── ...</span><br><span class="line">  └── ...</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>分模块的好处是维护起来相对容易，尤其是后期迁移和重构时。另外一个好处是可以根据模块按需加载</strong>。</p>
+<p><br><br><br><br><br></p>
+<h2 id="1-3-如果是分模块的话？粒度怎么把握"><a href="#1-3-如果是分模块的话？粒度怎么把握" class="headerlink" title="1.3 如果是分模块的话？粒度怎么把握?"></a>1.3 如果是分模块的话？粒度怎么把握?</h2><p>为了平衡加载速度、可维护性，翻译文件不能过小、也不能过大。通常按照<code>业务模块</code>的粒度来划分。<strong>业务模块是由一个或多个页面组成的完整的功能</strong>。</p>
+<p><br><br><br></p>
+<p><img src="/images/i18n-locale/Untitled%201.png" alt="子域划分"></p>
+<p>图片来源: <a href="https://time.geekbang.org/column/intro/100037301" target="_blank" rel="noopener">https://time.geekbang.org/column/intro/100037301</a></p>
+<p><br></p>
+<p>如果按照 DDD 的说法，业务模块可以是一个<code>子域</code>、甚至更小粒度的<code>聚合</code>。总之这个业务模块有以下特征：</p>
+<ul>
+<li>自包含。自给自足实现一个完整的功能闭环</li>
+<li>高聚合。对外部依赖较少。</li>
+</ul>
+<p><br></p>
+<p>读者也不用过于纠结，实际在业务开发时，随着对需求了解的深入，你会摸索到它们的边界，或者你也可以从其他地方借鉴，比如后端服务的划分、产品需求结构的划分等等。</p>
+<p><br></p>
+<p>从代码的实现层面来看，你也可以认为<code>业务模块</code>等同于 MonoRepo 的一个<code>子项目</code>。尽管子项目内部可能会继续拆分。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<h1 id="2-语言包加载"><a href="#2-语言包加载" class="headerlink" title="2. 语言包加载"></a>2. 语言包加载</h1><h2 id="2-1-怎么实现按需加载？web-端？小程序端？"><a href="#2-1-怎么实现按需加载？web-端？小程序端？" class="headerlink" title="2.1 怎么实现按需加载？Web 端？小程序端？"></a>2.1 怎么实现按需加载？Web 端？小程序端？</h2><p><strong>在 Web 端</strong>，通常通过<code>动态导入</code>(Dynamic Import) 实现， 例如：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">registerBundles(&#123;</span><br><span class="line">  zh: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./zh.tr'</span>),</span><br><span class="line">  en: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./en.tr'</span>),</span><br><span class="line">  <span class="string">'zh-Hant'</span>: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./zh-Hant.tr'</span>),</span><br><span class="line">  th: <span class="function"><span class="params">()</span> =&gt;</span> <span class="keyword">import</span>(<span class="string">'./th.tr'</span>),</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>在 Webpack 中无法识别 tr 扩展名，我们扩展一下：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// webpack chain</span></span><br><span class="line">chain.module.rule(<span class="string">'translate'</span>).test(<span class="regexp">/\.tr$/</span>).use(<span class="string">'json'</span>).loader(<span class="string">'json-loader'</span>).end()</span><br></pre></td></tr></table></figure>
+<p>使用 <code>json-loader</code> 来处理 tr 文件。</p>
+<p><br><br><br><br><br></p>
+<p><strong>小程序端呢？</strong></p>
+<p>小程序端不支持<code>动态执行代码</code>, 所以无法使用<code>动态导入</code>， 解决办法就是作为静态资源提取出去，托管到<code>静态资源服务器</code> 或 <code>CDN</code>中，远程加载:</p>
+<p><img src="/images/i18n-locale/Untitled%202.png" alt="小程序"></p>
+<p><br></p>
+<p>以 <code>Taro</code> 配置为例</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Webpack 5</span></span><br><span class="line"><span class="keyword">const</span> generator = &#123;</span><br><span class="line">  filename: fileLoaderOptions.name,</span><br><span class="line">  publicPath: fileLoaderOptions.publicPath,</span><br><span class="line">  outputPath: fileLoaderOptions.outputPath,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ctx.modifyWebpackChain(<span class="function">(<span class="params">&#123; chain &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 翻译文件提取</span></span><br><span class="line">  <span class="keyword">const</span> translation = chain.module.rule(<span class="string">'translation'</span>).test(<span class="regexp">/\.tr$/</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (process.env.NODE_ENV === <span class="string">'development'</span>) &#123;</span><br><span class="line">    <span class="comment">// 🔴 开发环境使用 JSON 引用</span></span><br><span class="line">    translation.type(<span class="string">'json'</span>).end()</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 🔴 生产环境 使用 ’file-loader‘ 提取到 CDN 服务器</span></span><br><span class="line">    translation.type(<span class="string">'asset/resource'</span>).set(<span class="string">'generator'</span>, generator).end()</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 支持 import xx from './test.json?extra' 模式, 强制提取</span></span><br><span class="line">    chain.module</span><br><span class="line">      .rule(<span class="string">'extra'</span>)</span><br><span class="line">      .resourceQuery(<span class="regexp">/extra/</span>)</span><br><span class="line">      .type(<span class="string">'asset/resource'</span>)</span><br><span class="line">      .set(<span class="string">'generator'</span>, generator)</span><br><span class="line">      .end()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>对于开发环境，沿用 json-loader 的方式处理，生产环境则进行<a href="https://webpack.js.org/guides/asset-modules/" target="_blank" rel="noopener">资源提取</a>(等价 Webpack 4 的 url-loader、file-loader)。</p>
+<p><br></p>
+<p>小程序语言包声明：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">registerBundles(&#123;</span><br><span class="line">  zh: <span class="built_in">require</span>(<span class="string">'@wakeapp/login-sdk/i18n/zh.tr'</span>),</span><br><span class="line">  <span class="string">'zh-Hant'</span>: <span class="built_in">require</span>(<span class="string">'@wakeapp/login-sdk/i18n/zh-Hant.tr'</span>),</span><br><span class="line">  en: <span class="built_in">require</span>(<span class="string">'@wakeapp/login-sdk/i18n/en.tr'</span>),</span><br><span class="line">  th: <span class="built_in">require</span>(<span class="string">'@wakeapp/login-sdk/i18n/th.tr'</span>),</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>同样的思路也可以用于小程序的其他静态资源、比如图片、视频、字体等。</p>
+<p><br><br><br><br><br></p>
+<h2 id="2-2-如果分模块组织，碎片化的语言包会不会导致多个请求？"><a href="#2-2-如果分模块组织，碎片化的语言包会不会导致多个请求？" class="headerlink" title="2.2 如果分模块组织，碎片化的语言包会不会导致多个请求？"></a>2.2 如果分模块组织，碎片化的语言包会不会导致多个请求？</h2><p><img src="/images/i18n-locale/Untitled%203.png" alt="碎片化"></p>
+<p><br><br><br></p>
+<p>一个屎山项目可能会有很多语言包。如果不干预，就会有很多碎片化的请求, 在不支持 HTTP 2.0 的环境，这些请求会对页面性能造成较大的影响，怎么优化加载呢？</p>
+<p><br></p>
+<p>在 Web 端，可以利用 <a href="https://webpack.js.org/plugins/split-chunks-plugin/#root" target="_blank" rel="noopener"><code>splitChunks</code></a> 对语言包进行合并：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const TRANSLATE_FILE_REG = /([^./]*)\.tr$/</span><br><span class="line"></span><br><span class="line">function getLocale(request: string) &#123;</span><br><span class="line">  return request.match(TRANSLATE_FILE_REG)?.[1]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// ... 省略部分代码</span><br><span class="line"></span><br><span class="line">// 翻译文件资源合并, 避免碎片化, 导致并发请求数量过多</span><br><span class="line">if (process.env.NODE_ENV === &apos;production&apos;) &#123;</span><br><span class="line">  const splitChunks = chain.optimization.get(&apos;splitChunks&apos;)</span><br><span class="line">  if (splitChunks == null) &#123;</span><br><span class="line">    // 已禁用</span><br><span class="line">    return</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const translateMerge = &#123;</span><br><span class="line">    // 只针对异步模块</span><br><span class="line">    chunks: &apos;async&apos;,</span><br><span class="line">    test: /\.tr$/,</span><br><span class="line">    // 🔴 最大尺寸</span><br><span class="line">    maxSize: 200 * 1024,</span><br><span class="line">    name: (module: &#123; rawRequest: string &#125;) =&gt; &#123;</span><br><span class="line">      const request = module.rawRequest</span><br><span class="line">      if (request == null) &#123;</span><br><span class="line">        throw new Error(`[vue-cli-plugin-i18n]: failed to get locale from $&#123;request&#125;`)</span><br><span class="line">      &#125;</span><br><span class="line">      // 🔴 按 locale 作为 key 进行合并</span><br><span class="line">      return `$&#123;getLocale(request)&#125;-tr`</span><br><span class="line">    &#125;,</span><br><span class="line">    // 强制执行</span><br><span class="line">    enforce: true,</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  chain.optimization.splitChunks(&#123;</span><br><span class="line">    ...splitChunks,</span><br><span class="line">    cacheGroups: &#123;</span><br><span class="line">      ...splitChunks.cacheGroups,</span><br><span class="line">      translateMerge,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面的代码就是使用 splitChunks 对相同 Locale 的语言包进行合并，最大体积不超过 200kb。</p>
+<p><br></p>
+<p>小程序端暂时不支持这种方式。可以通过其他手段来弥补，比如人工避免碎片化、缓存到本地存储等等。</p>
+<p><br><br><br></p>
+<h2 id="2-3-registerbundles-怎么实现？"><a href="#2-3-registerbundles-怎么实现？" class="headerlink" title="2.3 registerBundles 怎么实现？"></a>2.3 registerBundles 怎么实现？</h2><p><code>registerBundles</code> 负责对语言包进行注册、加载、合并、激活等操作：</p>
+<p><img src="/images/i18n-locale/Untitled%204.png" alt="注册"></p>
+<p><br></p>
+<ul>
+<li>调用 <code>registerBundles</code> 会将相关语言包注册到<code>资源表</code>（Resouces）中。它可以接收对象、HTTP 链接、Promise 等</li>
+<li>具体要加载哪个语言包由 i18n 库通知。i18n 库传入一个 <code>Locale chain</code>, 这是一个字符串数组。表示的是 i18n 库的<code>语言回退链条</code>， 或者说 i18n 库就是按照这个顺序到语言包中查找 key，比如当前 locale 是 ‘<code>zh-Hant-HK</code>’， 那么 Locale chain 就是 <code>[&#39;zh-Hant-HK&#39;, &#39;zh-Hant&#39;, &#39;zh&#39;]</code></li>
+<li>接着根据 <code>Locale chain</code> 计算出需要加载的语言包。</li>
+<li>根据资源的类型选择不同的<code>Loader</code>(加载器)进行处理。比如 <code>HTTP Loader</code>、<code>Promise Loader</code></li>
+<li>当所有语言包加载就绪后，将所有结果合并成一棵树，返回给 i18n。合并时可以有优先级，比如某些语言包从后端服务中获取，我们希望它能覆盖其他语言包，优先展示。</li>
+</ul>
+<p><br><br><br></p>
+<p>来看一下具体代码：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">export class BundleRegister &#123;</span><br><span class="line">  private executing = false</span><br><span class="line"></span><br><span class="line">  private resources: &#123; [locale: string]: Set&lt;I18nBundle&gt; &#125; = &#123;&#125;</span><br><span class="line"></span><br><span class="line">  private layerLinks: &#123; [locale: string]: LayerLink &#125; = &#123;&#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 缓存资源的层级</span><br><span class="line">   */</span><br><span class="line">  private resourceLayer: Map&lt;I18nBundle, number&gt; = new Map()</span><br><span class="line"></span><br><span class="line">  private pendingQueue = new PromiseQueue&lt;void&gt;()</span><br><span class="line"></span><br><span class="line">  constructor(</span><br><span class="line">    private registerBundle: (locale: string, bundle: Record&lt;string, any&gt;) =&gt; void,</span><br><span class="line">    private getLocaleChain: () =&gt; string[],</span><br><span class="line">    private onBundleChange: () =&gt; void</span><br><span class="line">  ) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 判断是否存在正在加载中的语言包</span><br><span class="line">   */</span><br><span class="line">  hasPendingBundle() &#123;&#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 调度语言包加载和合并</span><br><span class="line">   */</span><br><span class="line">  async schedulerMerge(): Promise&lt;void&gt; &#123;&#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 注册语言包</span><br><span class="line">   */</span><br><span class="line">  registerBundles = async (</span><br><span class="line">    bundles: &#123; [locale: string]: I18nBundle &#125;,</span><br><span class="line">    layer: number = 10</span><br><span class="line">  ): Promise&lt;void&gt; =&gt; &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>整个类的结构如上，构造函数需要传入三个钩子：</p>
+<ul>
+<li>registerBundle。 BundleRegister 通过它向 i18n 库提交语言包(message)</li>
+<li>getLocaleChain。向 i18n 获取 local chain</li>
+<li>onBundleChange。语言包变动事件通知</li>
+</ul>
+<p><br></p>
+<p>看下在 vue-i18n(9+) 下怎么对接：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 🔴 初始化</span><br><span class="line">const bundleRegister = new BundleRegister(</span><br><span class="line">  (loc, bundle) =&gt; &#123;</span><br><span class="line">    // 🔴 提交语言包</span><br><span class="line">    const initialMessages = messages?.[loc]</span><br><span class="line">    let cloneBundle = bundle</span><br><span class="line"></span><br><span class="line">    // 拷贝</span><br><span class="line">    if (initialMessages) &#123;</span><br><span class="line">      cloneBundle = merge(&#123;&#125;, initialMessages, cloneBundle)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    vueI18nInstance.setLocaleMessage(loc, cloneBundle)</span><br><span class="line">  &#125;,</span><br><span class="line">  // 🔴 获取 Local chain</span><br><span class="line">  getFallbackLocaleChain,</span><br><span class="line">  () =&gt; &#123;</span><br><span class="line">    eventBus.emit(EVENT_MESSAGE_CHANGE)</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">// 🔴 监听语言变动并触发 BundlerRegister 加载</span><br><span class="line">watch(</span><br><span class="line">  () =&gt; unref(vueI18nInstance.locale),</span><br><span class="line">  (loc) =&gt; &#123;</span><br><span class="line">    // 检查是否通过 setLocale 调用</span><br><span class="line">    if (!SET_LOCALE_CONTEXT) &#123;</span><br><span class="line">      console.error(`[i18n] 禁止直接设置 .locale 来设置当前语言， 必须使用 setLocale()`)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    eventBus.emit(EVENT_LOCALE_CHANGE, loc)</span><br><span class="line">    bundleRegister.schedulerMerge()</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123; flush: &apos;sync&apos; &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>返回来看注册细节。<code>registerBundles</code> 就是注册语言包，过程很简单：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 注册语言包</span><br><span class="line"> */</span><br><span class="line">registerBundles = async (</span><br><span class="line">  bundles: &#123; [locale: string]: I18nBundle &#125;,</span><br><span class="line">  layer: number = 10</span><br><span class="line">): Promise&lt;void&gt; =&gt; &#123;</span><br><span class="line">  let dirty = false</span><br><span class="line">  Object.keys(bundles).forEach((k) =&gt; &#123;</span><br><span class="line">    const normalizedKey = k.toLowerCase()</span><br><span class="line">    // 登记到资源表</span><br><span class="line">    const list = (this.resources[normalizedKey] ??= new Set())</span><br><span class="line">    const bundle = bundles[k]</span><br><span class="line"></span><br><span class="line">    const add = (b: I18nBundle) =&gt; &#123;</span><br><span class="line">      if (!list.has(b)) &#123;</span><br><span class="line">        list.add(b)</span><br><span class="line">        this.resourceLayer.set(b, layer)</span><br><span class="line">        dirty = true</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    if (Array.isArray(bundle)) &#123;</span><br><span class="line">      for (const child of bundle) &#123;</span><br><span class="line">        add(child)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      add(bundle)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  if (dirty) &#123;</span><br><span class="line">    // 🔴 立即调度加载</span><br><span class="line">    return await this.schedulerMerge()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>相对比较复杂的是 <code>scheduleMerge</code>，但也不难理解：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">async schedulerMerge(): Promise&lt;void&gt; &#123;</span><br><span class="line">  // 🔴 执行中，不需要重新发起</span><br><span class="line">  if (this.executing) &#123;</span><br><span class="line">    return await this.pendingQueue.push();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  let queue = this.pendingQueue;</span><br><span class="line"></span><br><span class="line">  try &#123;</span><br><span class="line">    this.executing = true;</span><br><span class="line"></span><br><span class="line">    // 🔴 等待更多 bundle 插入，批量执行</span><br><span class="line">    await Promise.resolve();</span><br><span class="line"></span><br><span class="line">    // 🔴 下一批执行</span><br><span class="line">    this.pendingQueue = new PromiseQueue();</span><br><span class="line"></span><br><span class="line">    // 🔴 加载当前语言</span><br><span class="line">    const localeChain = this.getLocaleChain();</span><br><span class="line"></span><br><span class="line">    // 🔴 已经加载的语言</span><br><span class="line">    let messages: &#123; [locale: string]: Record&lt;string, any&gt;[] &#125; = &#123;&#125;;</span><br><span class="line">    let task: Promise&lt;void&gt;[] = [];</span><br><span class="line"></span><br><span class="line">    // 🔴 遍历 localeChain</span><br><span class="line">    for (const locale of localeChain) &#123;</span><br><span class="line">      const resource = this.resources[locale.toLowerCase()];</span><br><span class="line"></span><br><span class="line">      if (resource == null) &#123;</span><br><span class="line">        continue;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      for (const bundle of resource.values()) &#123;</span><br><span class="line">        // 🔴 跳过已经加载</span><br><span class="line">        if (isLoaded(bundle)) &#123;</span><br><span class="line">          continue;</span><br><span class="line">        &#125;</span><br><span class="line">        // 🔴 layer 表示语言包的分层，或者说合并的优先级， 层数越低优先级越高</span><br><span class="line">        const layer = this.resourceLayer.get(bundle) ?? DEFAULT_LAYER;</span><br><span class="line"></span><br><span class="line">        if (typeof bundle === &apos;function&apos;) &#123;</span><br><span class="line">          // 🔴 异步加载函数</span><br><span class="line">          task.push(</span><br><span class="line">            (async () =&gt; &#123;</span><br><span class="line">              const loadedBundle = await asyncModuleLoader(bundle as I18nAsyncBundle);</span><br><span class="line">              if (loadedBundle) &#123;</span><br><span class="line">                this.setLayer(loadedBundle, layer);</span><br><span class="line">                console.debug(`[i18n] bundle loaded: `, bundle);</span><br><span class="line">                (messages[locale] ??= []).push(loadedBundle);</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;)()</span><br><span class="line">          );</span><br><span class="line">        &#125; else if (typeof bundle === &apos;string&apos;) &#123;</span><br><span class="line">          // 🔴 http 链接</span><br><span class="line">          task.push(</span><br><span class="line">            (async () =&gt; &#123;</span><br><span class="line">              const loadedBundle = await httpLoader(bundle);</span><br><span class="line"></span><br><span class="line">              if (loadedBundle) &#123;</span><br><span class="line">                this.setLayer(loadedBundle, layer);</span><br><span class="line">                console.debug(`[i18n] bundle loaded: `, bundle);</span><br><span class="line">                (messages[locale] ??= []).push(loadedBundle);</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;)()</span><br><span class="line">          );</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">          // 🔴 直接就是语言包对象</span><br><span class="line">          this.setLayer(bundle, layer);</span><br><span class="line">          (messages[locale] ??= []).push(bundle);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        setLoaded(bundle);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 🔴 并发加载</span><br><span class="line">    if (task.length) &#123;</span><br><span class="line">      try &#123;</span><br><span class="line">        await Promise.all(task);</span><br><span class="line">      &#125; catch (err) &#123;</span><br><span class="line">        console.warn(`[i18n] 加载语言包失败:`, err);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    const messageKeys = Object.keys(messages);</span><br><span class="line"></span><br><span class="line">    // 🔴 接下来就是将 messages 合并成一棵树</span><br><span class="line">    if (messageKeys.length) &#123;</span><br><span class="line">      const messageToUpdate: &#123; [locale: string]: LayerLink &#125; = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">      for (const locale of messageKeys) &#123;</span><br><span class="line">        // 🔴 LayerLink 存储了所有已经加载的语言包和他的分层信息</span><br><span class="line">        const layerLink = (this.layerLinks[locale] ??= new LayerLink());</span><br><span class="line"></span><br><span class="line">        for (const bundle of messages[locale]) &#123;</span><br><span class="line">          const layer = this.getLayer(bundle);</span><br><span class="line"></span><br><span class="line">          layerLink.assignLayer(layer, bundle);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        messageToUpdate[locale] = layerLink;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      // 🔴 触发更新</span><br><span class="line">      for (const locale in messageToUpdate) &#123;</span><br><span class="line">        this.registerBundle(locale, messageToUpdate[locale].flattenLayer());</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      this.onBundleChange();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; catch (err) &#123;</span><br><span class="line">    console.error(`[i18n] 语言包加载失败`, err);</span><br><span class="line">  &#125; finally &#123;</span><br><span class="line">    this.executing = false;</span><br><span class="line">    queue.flushResolve();</span><br><span class="line"></span><br><span class="line">    // 🔴 判断是否有新的 bundle 加进来，需要继续调度加载</span><br><span class="line">    if (this.hasUnloadedBundle()) &#123;</span><br><span class="line">      // 继续调度</span><br><span class="line">      this.schedulerMerge();</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      // 没有了，清空队列不需要继续等待了</span><br><span class="line">      this.pendingQueue.flushResolve();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这就是一个典型的异步任务执行的调度过程。相关的<a href="https://github.com/wakeadmin/tools/tree/main/packages/i18n-shared" target="_blank" rel="noopener">源码可以看这里</a></p>
+<p><br><br><br><br><br></p>
+<h1 id="3-语言包管理"><a href="#3-语言包管理" class="headerlink" title="3. 语言包管理"></a>3. 语言包管理</h1><h2 id="3-1-如何管理和分析语言包的使用？"><a href="#3-1-如何管理和分析语言包的使用？" class="headerlink" title="3.1 如何管理和分析语言包的使用？"></a>3.1 如何管理和分析语言包的使用？</h2><p>那么如何提高前端国际化的开发体验呢？比如：</p>
+<ul>
+<li>能够在编辑器回显 key 对应的中文</li>
+<li>能够点击跳转到 key 定义的语言包</li>
+<li>能够分析语言包是否被引用、有没有重复、缺译的情况</li>
+<li>支持 key 重命名(重构)</li>
+<li>能自动发现文本硬编码，并支持提取</li>
+<li>支持机器翻译</li>
+<li>提供协同翻译….</li>
+</ul>
+<p><img src="/images/i18n-locale/Untitled%205.png" alt="i18n-ally"></p>
+<p>🎉 还真有这么一个神器可以满足上面所有需求，那就是 VSCode 的 <a href="https://marketplace.visualstudio.com/items?itemName=lokalise.i18n-ally" target="_blank" rel="noopener">i18n Ally</a> 插件(还是 <a href="http://antfu.me" target="_blank" rel="noopener">antfu</a> 大神开发的, 顶礼膜拜)！</p>
+<p><img src="/images/i18n-locale/Untitled%206.png" alt="i18n-ally"></p>
+<p><br></p>
+<p>安装了 <a href="https://marketplace.visualstudio.com/items?itemName=lokalise.i18n-ally" target="_blank" rel="noopener">i18n Ally</a> 后，大多数情况下是能开箱即用。以下是一些你可能需要调整的常见配置项：</p>
+<p><br></p>
+<ol>
+<li><p>使用的框架。默认情况下，i18n ally 会分析项目根目录下的 package.json, 确定你使用的 i18n 框架，它支持了很多常见的 i18n 库，比如 <code>vue-i18n</code>, <code>react-i18next</code>。</p>
+<p><em>💡  如果无法你发现 i18n ally 插件没有启用，那大概率就是它检测失败了, 可以在 <code>OUTPUT</code> Panel 下看的日志：</em></p>
+<p><img src="/images/i18n-locale/Untitled%207.png" alt="OUTPUT"></p>
+<p>解决办法就是显式告诉它：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">// .vscode/setting.json</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"i18n-ally.enabledFrameworks"</span>: [<span class="string">"react-i18next"</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>自定义语言包检查目录。</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">// .vscode/setting.json</span><br><span class="line">&#123;</span><br><span class="line">  // 支持在所有嵌套的 locales、i18n 目录下发现语言包</span><br><span class="line">  "i18n-ally.localesPaths": ["**/locales", "**/i18n"]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>语言包配置</p>
+<p>我们上文使用的是 <code>.tr</code> 扩展名， i18n ally 并不能识别它，我们通过下面的配置来告诉它如何处理 tr 文件：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">// .vscode/setting.json</span><br><span class="line">&#123;</span><br><span class="line">  // 语言包的命名规则</span><br><span class="line">  "i18n-ally.pathMatcher": "&#123;locale&#125;.tr",</span><br><span class="line">  // 语言包的 parser</span><br><span class="line">  "i18n-ally.parsers.extendFileExtensions": &#123;</span><br><span class="line">    "tr": "json"</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>其他常见配置</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  // 源语言。主要会影响翻译，即以哪个语言为源语言翻译到其他语种。中文开发者通常设置为中文</span><br><span class="line">  "i18n-ally.sourceLanguage": "zh",</span><br><span class="line">  // 在编辑器内联提示的语种</span><br><span class="line">  "i18n-ally.displayLanguage": "zh",</span><br><span class="line">  // 语言包的组织形式，nested 表示嵌套对象模式</span><br><span class="line">  "i18n-ally.keystyle": "nested"</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>更多的配置可以看它的<a href="https://github.com/lokalise/i18n-ally/wiki" target="_blank" rel="noopener">文档</a>。</p>
+<p><br><br><br><br><br></p>
+<h2 id="3-2-还有哪些建议？"><a href="#3-2-还有哪些建议？" class="headerlink" title="3.2 还有哪些建议？"></a>3.2 还有哪些建议？</h2><p><br></p>
+<h3 id="3-2-1-统一语言标签"><a href="#3-2-1-统一语言标签" class="headerlink" title="3.2.1 统一语言标签"></a>3.2.1 统一语言标签</h3><p>多语言的语言标签通常遵循 <a href="https://en.wikipedia.org/wiki/IETF_language_tag" target="_blank" rel="noopener">BCP 47</a>， 这是由互联网工程任务组（IETF）发布的一种语言标签规范，用于唯一标识各种语言。格式为 <code>lng-(script)-(Region 区域)-(Variant 变体)</code>，例如 zh-Hans-CN、en-US、zh-Hant 等等。</p>
+<p>因为语言标签形式多种多样，而且不同的环境给出的结果可能都不太一样，所以建议开发者在维护语言包时统一使用语言标签，并且前后端保持统一。</p>
+<p>以我们团队为例：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">en 默认英文</span><br><span class="line">zh 默认简体中文</span><br><span class="line">zh-Hant 默认繁体</span><br><span class="line">th 默认泰文</span><br></pre></td></tr></table></figure>
+<p>同时维护一些语言标签的映射规则：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"zh-TW"</span>: <span class="string">"zh-Hant-TW"</span>,</span><br><span class="line">  <span class="attr">"zh-HK"</span>: <span class="string">"zh-Hant-HK"</span>,</span><br><span class="line">  <span class="attr">"zh-MO"</span>: <span class="string">"zh-Hant-MO"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>你会发现我们使用的 en、zh、zh-Hant、th 这些语言标签都是 <code>lng-(script)</code> 形式，这样兜底/命中效果会好点。</p>
+<p>举个例子 <code>zh-Hant-TW</code> 的 <code>Locale chain</code> 是 <code>[&#39;zh-Hant-TW&#39;, &#39;zh-Hant&#39;, &#39;zh&#39;]</code> , 会回退加载 <code>zh-Hant</code> 和 <code>zh</code> 语言包。 如果有朝一日，需要对 TW 地区做特殊的适配，我们再创建一个更具体 <code>zh-Hant-TW</code> 语言包就行了。</p>
+<p><br><br><br></p>
+<h3 id="3-2-2-使用嵌套命名空间来组织语言包"><a href="#3-2-2-使用嵌套命名空间来组织语言包" class="headerlink" title="3.2.2 使用嵌套命名空间来组织语言包"></a>3.2.2 使用嵌套命名空间来组织语言包</h3><p>建议以<code>业务模块</code>或者<code>团队名</code>称来作为<code>命名空间</code>, 避免直接将 key 暴露到全局。</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"rule"</span>: &#123;</span><br><span class="line">    <span class="attr">"deleteRuleTips"</span>: <span class="string">"删除规则后无法恢复，确定删除？"</span>,</span><br><span class="line">    <span class="attr">"newRule"</span>: <span class="string">"新建规则"</span>,</span><br><span class="line">    <span class="attr">"pointRule"</span>: <span class="string">"积分规则"</span>,</span><br><span class="line">    <span class="attr">"tiedRule"</span>: <span class="string">"等级规则"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>下一篇，我们介绍多语言的翻译问题，敬请期待！！</strong></p>
+<p><br><br><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://www.zhihu.com/question/51158638/answer/2378431663" target="_blank" rel="noopener">如何论述设计的全球化与本土化的关系？</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/29759116" target="_blank" rel="noopener">为全球设计，国际化与本地化探索：快速入门</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-组织语言包"><span class="toc-number">1.</span> <span class="toc-text">1. 组织语言包</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-放在哪个目录下？"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 放在哪个目录下？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-全局使用一个语言包，还是分模块？"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 全局使用一个语言包，还是分模块？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-如果是分模块的话？粒度怎么把握"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 如果是分模块的话？粒度怎么把握?</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-语言包加载"><span class="toc-number">2.</span> <span class="toc-text">2. 语言包加载</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-怎么实现按需加载？web-端？小程序端？"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 怎么实现按需加载？Web 端？小程序端？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-如果分模块组织，碎片化的语言包会不会导致多个请求？"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 如果分模块组织，碎片化的语言包会不会导致多个请求？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-registerbundles-怎么实现？"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 registerBundles 怎么实现？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-语言包管理"><span class="toc-number">3.</span> <span class="toc-text">3. 语言包管理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-如何管理和分析语言包的使用？"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 如何管理和分析语言包的使用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-还有哪些建议？"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 还有哪些建议？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-统一语言标签"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1 统一语言标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-使用嵌套命名空间来组织语言包"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2 使用嵌套命名空间来组织语言包</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">4.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/08/i18n-locale/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/08/i18n-locale/&text=前端国际化：语言包篇"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/08/i18n-locale/&is_video=false&description=前端国际化：语言包篇"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=前端国际化：语言包篇&body=Check out this article: https://bobi.ink/2023/08/08/i18n-locale/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/08/i18n-locale/&title=前端国际化：语言包篇"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/08/i18n-locale/&name=前端国际化：语言包篇&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
