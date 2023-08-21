@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Why Docker?Docker 容器化技术是当今最重要的基础设施之一，或者说它已经成为服务程序 的标准化运行环境。 先不谈它相比传统的虚拟化技术有多少优势，站在软件工程角度，笔者认为，Docker 有两个重要的意义：   一）提供一致性的运行环境。让我们的程序在一致性的环境中运行：不管是开发环境、测试环境、还是生产环境；不管是开发时、构建时、还是运行时。 比如开发时可以使用 Docker De">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 Docker 实现前端应用的标准化构建、部署和运行">
+<meta property="og:url" content="https://bobi.ink/2023/08/21/docker-for-fe/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="Why Docker?Docker 容器化技术是当今最重要的基础设施之一，或者说它已经成为服务程序 的标准化运行环境。 先不谈它相比传统的虚拟化技术有多少优势，站在软件工程角度，笔者认为，Docker 有两个重要的意义：   一）提供一致性的运行环境。让我们的程序在一致性的环境中运行：不管是开发环境、测试环境、还是生产环境；不管是开发时、构建时、还是运行时。 比如开发时可以使用 Docker De">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%206.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%207.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%208.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%209.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%2010.png">
+<meta property="og:image" content="https://bobi.ink/images/docker-for-fe/Untitled%2011.png">
+<meta property="og:updated_time" content="2023-08-21T10:25:28.746Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 Docker 实现前端应用的标准化构建、部署和运行">
+<meta name="twitter:description" content="Why Docker?Docker 容器化技术是当今最重要的基础设施之一，或者说它已经成为服务程序 的标准化运行环境。 先不谈它相比传统的虚拟化技术有多少优势，站在软件工程角度，笔者认为，Docker 有两个重要的意义：   一）提供一致性的运行环境。让我们的程序在一致性的环境中运行：不管是开发环境、测试环境、还是生产环境；不管是开发时、构建时、还是运行时。 比如开发时可以使用 Docker De">
+<meta name="twitter:image" content="https://bobi.ink/images/docker-for-fe/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>使用 Docker 实现前端应用的标准化构建、部署和运行</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/08/08/i18n-locale/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/21/docker-for-fe/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/21/docker-for-fe/&text=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/21/docker-for-fe/&is_video=false&description=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 Docker 实现前端应用的标准化构建、部署和运行&body=Check out this article: https://bobi.ink/2023/08/21/docker-for-fe/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/21/docker-for-fe/&name=使用 Docker 实现前端应用的标准化构建、部署和运行&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#why-docker"><span class="toc-number">1.</span> <span class="toc-text">Why Docker?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#标准化ci-cd"><span class="toc-number">2.</span> <span class="toc-text">标准化CI/CD</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#从简单的单元测试开始"><span class="toc-number">2.1.</span> <span class="toc-text">从简单的单元测试开始</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缓存处理"><span class="toc-number">2.2.</span> <span class="toc-text">缓存处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多阶段构建"><span class="toc-number">2.3.</span> <span class="toc-text">多阶段构建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建参数"><span class="toc-number">2.4.</span> <span class="toc-text">构建参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#怎么支持更复杂的构建需求？"><span class="toc-number">2.5.</span> <span class="toc-text">怎么支持更复杂的构建需求？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集成到-ci-cd-平台"><span class="toc-number">2.6.</span> <span class="toc-text">集成到 CI/CD 平台</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#标准化部署和运行"><span class="toc-number">3.</span> <span class="toc-text">标准化部署和运行</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#纯静态资源"><span class="toc-number">3.1.</span> <span class="toc-text">纯静态资源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#nodejs-程序"><span class="toc-number">3.2.</span> <span class="toc-text">NodeJS 程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#微前端"><span class="toc-number">3.3.</span> <span class="toc-text">微前端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#不是银弹"><span class="toc-number">3.4.</span> <span class="toc-text">不是银弹</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一些高级话题"><span class="toc-number">4.</span> <span class="toc-text">一些高级话题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一份基准代码，多份部署"><span class="toc-number">4.1.</span> <span class="toc-text">一份基准代码，多份部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何做灰度发布、蓝绿发布…？"><span class="toc-number">4.2.</span> <span class="toc-text">如何做灰度发布、蓝绿发布…？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        使用 Docker 实现前端应用的标准化构建、部署和运行
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-08-20T16:00:00.000Z" itemprop="datePublished">2023-08-21</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h1 id="why-docker"><a href="#why-docker" class="headerlink" title="Why Docker?"></a>Why Docker?</h1><p>Docker 容器化技术是当今最重要的基础设施之一，或者说它已经成为<code>服务程序</code> 的标准化运行环境。</p>
+<p>先不谈它相比传统的<code>虚拟化</code>技术有多少优势，站在软件工程角度，笔者认为，Docker 有两个重要的意义：</p>
+<p><br><br><br></p>
+<p><img src="/images/docker-for-fe/Untitled.png" alt="Untitled"></p>
+<p>一）<strong>提供一致性的运行环境。让我们的程序在一致性的环境中运行：不管是开发环境、测试环境、还是生产环境；不管是开发时、构建时、还是运行时</strong>。</p>
+<p>比如开发时可以使用 <a href="https://docs.docker.com/desktop/dev-environments/" target="_blank" rel="noopener">Docker Dev Environments</a>, 可以配合 VsCode Remote 开发，从而实现跳槽时或者换设备，可以快速 Setup 自己的开发环境。有兴趣的可以看看掘友写的 <a href="https://juejin.cn/post/7264403008163201081?searchId=2023081817551184D71DDBF183A7BC83DA" target="_blank" rel="noopener">Docker化一个前端基础开发环境：简洁高效的选择</a></p>
+<p>构建时，现在 CI/CD 平台都是基于 Docker 来提供多样化的构建环境需求。</p>
+<p>运行时，‘巨轮’ K8S 已经是云时代的重要基础设施。</p>
+<p><br><br><br></p>
+<p><img src="/images/docker-for-fe/Untitled%201.png" alt="Untitled"></p>
+<p><strong>二）标准化的服务程序封装技术。</strong> </p>
+<p>在没有容器之前，使用不同编程语言或框架编写的程序，部署和运行的方式千差万别。比如 Java 会生成 jar 包或者war 包，运行环境需要预装指定版本的 JDK…</p>
+<p>而现在，容器<code>镜像</code>成为了标准的服务程序封装技术。镜像中包含了<code>程序</code>以及程序对运行环境的<code>依赖</code>。</p>
+<p><img src="/images/docker-for-fe/Untitled%202.png" alt="Untitled"></p>
+<p>不管前后端应用都可以使用镜像的形式进行分发和流通。这应该就是 Docker Logo，那条鲸鱼驮着货运箱的解释吧：就像我们平时下载、传递 Zip 文件一样， 镜像是云时代’通用货币’，可以在研发的不同环节、区域中流通。</p>
+<p>这种标准化的打包格式、轻量化的运行时，不仅给开发者和运维带来便利， 也催生了强大的容器管理工具比如 K8S,  <strong>K8S 现在已经是容器和集群管理的标准。</strong></p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p><strong>那 Docker 之于前端意义是啥？</strong></p>
+<p>Docker 对前端的意义也很重大。 实际上，Docker 的世界里，并不区分什么前端、后端，没有人说只适合后端、不适合前端 … 在运维的眼里更是如此</p>
+<p>为了照顾那些不太懂 Docker 的开发者，本文会循序渐进、由浅入深地讲解。如果你需要 Docker 入门教程，推荐你看看 <a href="https://yeasy.gitbook.io/docker_practice/" target="_blank" rel="noopener">Docker —— 从入门到实践</a></p>
+<p>主要分成三个部分：</p>
+<ul>
+<li>标准化的 CI/CD。讲讲怎么基于 Docker 来构建前端应用，这里提出了一个重要的观点：就是基于 Dockerfile 来实现 ‘跨 CI/CD’ 的任务执行，我们可以在 Dockerfile 中执行各种任务，包括环境初始化、单元测试、构建等等</li>
+<li>标准化部署和运行。怎么部署基于 Docker 的前端应用，包括静态资源、NodeJS 程序、微前端。</li>
+<li>一些高级的话题。讲讲容器化后的前端应用怎么实现 ’<strong>一份基准代码，多份部署</strong>‘、灰度发布、蓝绿发布等高级发布需求。</li>
+</ul>
+<p><br><br><br></p>
+<h1 id="标准化ci-cd"><a href="#标准化ci-cd" class="headerlink" title="标准化CI/CD"></a>标准化CI/CD</h1><p>市面上有很多 CI/CD 产品，比如 GitLab、Github Action、Jenkins、Zadig… 它们的构建配置、脚本语法差异都挺大，基本上是不能共用的。</p>
+<p>比如我们公司前不久引入了 Zadig，原本基于 Jenkinks 的构建配置几乎需要重新适配。</p>
+<p><strong>有没有跨‘平台’的方式？</strong>于是，我开始探索将前端 CI/CD 的流程完全集成到 Docker 镜像构建中去。</p>
+<h2 id="从简单的单元测试开始"><a href="#从简单的单元测试开始" class="headerlink" title="从简单的单元测试开始"></a>从简单的单元测试开始</h2><p>我们先从简单的任务开始。先来写一个简单的单元测试：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">20</span>-slim</span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 pnpm 安装</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> corepack <span class="built_in">enable</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 拷贝源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . /app</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 安装依赖</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 执行测试</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm <span class="built_in">test</span></span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>⁉️ <a href="https://nodejs.org/api/corepack.html#corepack" target="_blank" rel="noopener">corepack</a>?  NodeJS 的包管理碎片化越来越验证了，以前我们区分 npm、yarn、pnpm, 现在还要继续分裂版本，pnpm v7、pnpm v8…<br><br><br>NodeJS 官方推出的 Corepack 应该可以救你一命</p>
+</blockquote>
+<p><br></p>
+<p>别忘了 <code>.dockerignore</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">.git</span><br><span class="line">.gitignore</span><br><span class="line">*.md</span><br><span class="line">dist</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>⁉️ 为什么不能遗漏 <code>.dockerignore</code> 呢？</p>
+</blockquote>
+<p><br><br><br></p>
+<p>构建运行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker build . --progress=plain</span><br><span class="line"><span class="comment">#1 [internal] load build definition from Dockerfile.for_test</span></span><br><span class="line"><span class="comment">#1 transferring dockerfile: 40B done</span></span><br><span class="line"><span class="comment">#1 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#2 [internal] load .dockerignore</span></span><br><span class="line"><span class="comment">#2 transferring context: 34B done</span></span><br><span class="line"><span class="comment">#2 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#3 [internal] load metadata for docker.io/library/node:20-slim</span></span><br><span class="line"><span class="comment">#3 DONE 1.5s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#4 [1/6] FROM docker.io/library/node:20-slim@sha256:6eea4330e89a0c6a8106d0bee575d3d9978b51aac16ffe7f6825e78727815631</span></span><br><span class="line"><span class="comment">#4 CACHED</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#5 [internal] load build context</span></span><br><span class="line"><span class="comment">#5 transferring context: 227B done</span></span><br><span class="line"><span class="comment">#5 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#6 [2/6] RUN corepack enable</span></span><br><span class="line"><span class="comment">#6 DONE 0.2s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#7 [3/6] COPY . /app</span></span><br><span class="line"><span class="comment">#7 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#8 [4/6] WORKDIR /app</span></span><br><span class="line"><span class="comment">#8 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#9 [5/6] RUN pnpm install</span></span><br><span class="line"><span class="comment">#9 4.878 Lockfile is up to date, resolution step is skipped</span></span><br><span class="line"><span class="comment">#9 4.880 Progress: resolved 1, reused 0, downloaded 0, added 0</span></span><br><span class="line"><span class="comment">#9 4.881 Packages: +1</span></span><br><span class="line"><span class="comment">#9 4.881 +</span></span><br><span class="line"><span class="comment">#9 6.603 Progress: resolved 1, reused 0, downloaded 1, added 0</span></span><br><span class="line"><span class="comment">#9 6.643 Packages are hard linked from the content-addressable store to the virtual store.</span></span><br><span class="line"><span class="comment">#9 6.643   Content-addressable store is at: /root/.local/share/pnpm/store/v3</span></span><br><span class="line"><span class="comment">#9 6.643   Virtual store is at:             node_modules/.pnpm</span></span><br><span class="line"><span class="comment">#9 6.659 </span></span><br><span class="line"><span class="comment">#9 6.659 dependencies:</span></span><br><span class="line"><span class="comment">#9 6.659 + lodash 4.17.21</span></span><br><span class="line"><span class="comment">#9 6.659 </span></span><br><span class="line"><span class="comment">#9 6.661 Done in 2s</span></span><br><span class="line"><span class="comment">#9 7.608 Progress: resolved 1, reused 0, downloaded 1, added 1, done</span></span><br><span class="line"><span class="comment">#9 DONE 7.7s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#10 [6/6] RUN pnpm test</span></span><br><span class="line"><span class="comment">#10 0.497 测试通过</span></span><br><span class="line"><span class="comment">#10 DONE 0.5s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#11 exporting to image</span></span><br><span class="line"><span class="comment">#11 exporting layers</span></span><br><span class="line"><span class="comment">#11 exporting layers 0.2s done</span></span><br><span class="line"><span class="comment">#11 writing image sha256:9d61ce0fd5d96685aa62fb268db37b3dea4cfa1699df73d8d6a7de259c914a8d done</span></span><br><span class="line"><span class="comment">#11 DONE 0.2s</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>二次运行的结果：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#1 [internal] load build definition from Dockerfile.for_test</span></span><br><span class="line"><span class="comment">#1 transferring dockerfile: 40B done</span></span><br><span class="line"><span class="comment">#1 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#2 [internal] load .dockerignore</span></span><br><span class="line"><span class="comment">#2 transferring context: 34B done</span></span><br><span class="line"><span class="comment">#2 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#3 [internal] load metadata for docker.io/library/node:20-slim</span></span><br><span class="line"><span class="comment">#3 DONE 3.2s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#4 [1/6] FROM docker.io/library/node:20-slim@sha256:6eea4330e89a0c6a8106d0bee575d3d9978b51aac16ffe7f6825e78727815631</span></span><br><span class="line"><span class="comment">#4 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#5 [internal] load build context</span></span><br><span class="line"><span class="comment">#5 transferring context: 227B done</span></span><br><span class="line"><span class="comment">#5 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#6 [2/6] RUN corepack enable</span></span><br><span class="line"><span class="comment">#6 CACHED  &lt;- 🔴 缓存了</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#7 [4/6] WORKDIR /app</span></span><br><span class="line"><span class="comment">#7 CACHED</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#8 [3/6] COPY . /app</span></span><br><span class="line"><span class="comment">#8 CACHED</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#9 [5/6] RUN pnpm install</span></span><br><span class="line"><span class="comment">#9 CACHED</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#10 [6/6] RUN pnpm test</span></span><br><span class="line"><span class="comment">#10 CACHED &lt;- 🔴 缓存了</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Docker 镜像是<code>多层存储</code>的， 每一层是在前一层的基础上进行的修改。换句话说，  <code>Dockerfile</code> 文件中的每条指令(Instruction)都是在构建新的一层。</p>
+<p><br></p>
+<p>Docker 使用了<code>缓存</code>来加速镜像构建，所以上面执行结果可以看出只要<code>上一层</code>和<code>当前层的输入</code>没有变动，那么执行结果就会被缓存下来。</p>
+<p><br></p>
+<p>现在你可以随便更动 <code>src/*</code> 或者 <code>package.json</code> , 再执行构建，会发现，从 <code>COPY</code> 指令那里重新开始执行了：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#3 [internal] load metadata for docker.io/library/node:20-slim</span></span><br><span class="line"><span class="comment">#3 DONE 1.3s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#4 [1/6] FROM docker.io/library/node:20-slim@sha256:75404fc5825f24222276501c09944a5bee8ed04517dede5a9934f1654ca84caf</span></span><br><span class="line"><span class="comment">#4 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#5 [internal] load build context</span></span><br><span class="line"><span class="comment">#5 transferring context: 525B done</span></span><br><span class="line"><span class="comment">#5 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#6 [2/6] RUN corepack enable</span></span><br><span class="line"><span class="comment">#6 CACHED</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 变更点</span></span><br><span class="line"><span class="comment">#7 [3/6] COPY . /app</span></span><br><span class="line"><span class="comment">#7 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#8 [4/6] WORKDIR /app</span></span><br><span class="line"><span class="comment">#8 DONE 0.0s</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#9 [5/6] RUN pnpm install</span></span><br><span class="line"><span class="comment">#....</span></span><br></pre></td></tr></table></figure>
+<p>也就是，又从 0 开始进行 <code>pnpm install</code> …</p>
+<p><br><br><br></p>
+<h2 id="缓存处理"><a href="#缓存处理" class="headerlink" title="缓存处理"></a>缓存处理</h2><p>前端构建会深度依赖缓存来加速，比如 node_modules、Webpack 的模块缓存、vite 的 prebundle、Typescript 的 <a href="https://www.typescriptlang.org/tsconfig/#tsBuildInfoFile" target="_blank" rel="noopener">tsBuildInfoFile</a> …</p>
+<p>上面从零开始 pnpm install 显然是无法接受的。每次都是从头开始，构建的过程会变得很慢。有什么解决办法呢?</p>
+<p><br><br><br></p>
+<p><strong>解决办法 1）利用 Docker 分层缓存</strong></p>
+<p><code>pnpm</code> 依赖的安装，其实只需要 <code>package.json</code>、<code>pnpm-lock.yaml</code> 等文件就够了，那我们是不是可以把 COPY 拆分从两步？采用动静分离策略，分离 package.json 和源代码的变更。毕竟 package.json 的变更频率要低得多：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">20</span>-slim</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> corepack <span class="built_in">enable</span></span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝依赖声明</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json pnpm-lock.yaml /app/</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . /app</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm <span class="built_in">test</span></span></span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<p><strong>解决办法 2） RUN 挂载缓存</strong></p>
+<p>方案1 还是有很多缺陷，比如 package.json 只要变动一个字节，都会导致 pnpm 重新安装。能不能在运行 build 的时候挂载缓存目录进去？把  <code>node_modules</code> 或者 <code>pnpm store</code> 缓存下来？</p>
+<p>Docker build 确实支持<a href="https://docs.docker.com/build/guide/mounts/" target="_blank" rel="noopener">挂载</a>(<a href="https://yeasy.gitbook.io/docker_practice/buildx/buildkit" target="_blank" rel="noopener">BuildKit</a>, 需要 Docker 18.09+)。以下是缓存 pnpm 的示例(来自官方<a href="https://pnpm.io/zh/docker" target="_blank" rel="noopener">文档</a>)：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">20</span>-slim</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> corepack <span class="built_in">enable</span></span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝依赖声明</span></span><br><span class="line"><span class="keyword">ENV</span> PNPM_HOME=<span class="string">"/pnpm"</span></span><br><span class="line"><span class="keyword">ENV</span> PATH=<span class="string">"$PNPM_HOME:$PATH"</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json pnpm-lock.yaml /app/</span></span><br><span class="line"><span class="comment"># 挂载缓存</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> --mount=<span class="built_in">type</span>=cache,id=pnpm,target=/pnpm/store pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . /app</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm <span class="built_in">test</span></span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>💡你也可以通过设置 <code>DOCKER_BUILDKIT=1</code> 环境变量来启用 <code>BuildKit</code></p>
+</blockquote>
+<p><code>RUN —mount</code> 参数可以指定要挂载的目录，对应的缓存会存储在<code>宿主机器</code>中。这样就解决了 Docker 构建过程的外部缓存问题。</p>
+<p>同理其他的缓存，比如 vite、Webpack，也是通过 <code>—mount</code> 挂载。一个 <code>RUN</code> 支持指定多个 <code>—mount</code> </p>
+<blockquote>
+<p>⚠️ 因为采用挂载形式，这种跨设备会导致 <code>pnpm</code> 回退到拷贝模式(pnpm store → node_modules)，而不是链接模式，所以安装性能会有所损耗。</p>
+</blockquote>
+<blockquote>
+<p>如果是 npm 通常需要缓存 <code>~/.npm</code> 目录</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h2 id="多阶段构建"><a href="#多阶段构建" class="headerlink" title="多阶段构建"></a>多阶段构建</h2><p>假设我们要在原有单元测试的基础上，加入编译任务。并且要求两个命令支持<strong>独立执行</strong>，比如在代码 commit 到远程仓库时只执行单元测试，发布时才执行单元测试 + 编译。</p>
+<p>第一种解决办法就是创建两个 Dockerfile， 这个方案的缺点就是指令重复(比如 pnpm 安装依赖)。另一个缺点就是如果任务之间有依赖或文件交互，那么整合起来也会比较<a href="https://yeasy.gitbook.io/docker_practice/image/multistage-builds#fen-san-dao-duo-ge-dockerfile" target="_blank" rel="noopener">麻烦</a>。</p>
+<p>更好的办法就是<a href="https://docs.docker.com/build/guide/multi-stage/" target="_blank" rel="noopener">多阶段构建</a>（Multi-Stage）。Docker 允许将多个构建步骤整合在一个 Dockerfile 文件中，这个构建步骤之间可以存在依赖关系，也可以进行文件传递，还可以更好地利用缓存。</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 🔴 阶段 1，安装依赖</span></span><br><span class="line"><span class="keyword">FROM</span> node:<span class="number">20</span>-slim as base</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> corepack <span class="built_in">enable</span></span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> PNPM_HOME=<span class="string">"/pnpm"</span></span><br><span class="line"><span class="keyword">ENV</span> PATH=<span class="string">"$PNPM_HOME:$PATH"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝依赖声明</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json pnpm-lock.yaml /app/</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> --mount=<span class="built_in">type</span>=cache,id=pnpm,target=/pnpm/store pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 阶段 2，单元测试</span></span><br><span class="line"><span class="keyword">FROM</span> base as test</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . /app</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm <span class="built_in">test</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 阶段 3，构建</span></span><br><span class="line"><span class="keyword">FROM</span> test as build</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm build</span></span><br></pre></td></tr></table></figure>
+<p>通过 <code>FROM * as NAME</code> 的形式创建一个阶段。FROM 可以指定依赖的其他步骤。</p>
+<p><br><br><br></p>
+<p>现在我们运行:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker build .</span><br></pre></td></tr></table></figure>
+<p>默认会执行最后一个阶段。即 build。</p>
+<p>如果我们只想跑 test，可以通过 <code>—target</code> 参数指定:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker build --target=build .</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>我们再来看一个典型的复杂例子，<code>Nextjs</code> 程序构建：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> node:<span class="number">19</span>-alpine AS base</span><br><span class="line"></span><br><span class="line"><span class="comment"># 0. 构建依赖, 为什么要分开一步构建依赖呢，这是为了利用 Docker 的构建缓存</span></span><br><span class="line"><span class="keyword">FROM</span> base AS deps</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --no-cache libc6-compat</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json .npmrc pnpm-lock.yaml* ./</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> npm i -g pnpm@7 &amp;&amp; pnpm install </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 第一步构建编译</span></span><br><span class="line"><span class="keyword">FROM</span> base AS builder</span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># COPY 依赖</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=deps /app/node_modules /app/node_modules</span></span><br><span class="line"><span class="comment"># COPY 源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . .</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># COPY .env.production.sample .env.production</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> env &amp;&amp; ls -a &amp;&amp; npm run build</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 第二步，运行</span></span><br><span class="line"><span class="keyword">FROM</span> base AS runner</span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> NODE_ENV production</span><br><span class="line"></span><br><span class="line"><span class="comment"># Uncomment the following line in case you want to disable telemetry during runtime.</span></span><br><span class="line"><span class="comment"># ENV NEXT_TELEMETRY_DISABLED 1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> addgroup --system --gid 1001 nodejs</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> adduser --system --uid 1001 nextjs</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder --chown=nextjs:nodejs app/public /app/public</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder --chown=nextjs:nodejs app/.next/standalone /app</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=builder --chown=nextjs:nodejs app/.next/static /app/.next/static</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">USER</span> nextjs</span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">3000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> PORT <span class="number">3000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"node"</span>, <span class="string">"server.js"</span>]</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>多阶段构建的另一个好处是隐藏构建的细节:  比如上游构建的过程中传递的一些敏感信息、隐藏源代码等。</p>
+<p><br></p>
+<p>在上面的 Next.js 例子中， 最终构建的是 runner,  它从 builder 中拷贝编译的结果，对最终的镜像使用者来说，是查看不到 builder 的构建细节和内容的。</p>
+<p><br><br><br><br><br></p>
+<h2 id="构建参数"><a href="#构建参数" class="headerlink" title="构建参数"></a>构建参数</h2><p>程序在构建时可能会有一些微调变量，比如调整 Webpack PublicPath、编译产物的目标平台、调试开关等等。</p>
+<p><br></p>
+<p>在 DockerFile 下可以通过 <code>ARG</code> 指令来声明<code>构建参数</code> ：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 声明构建参数，支持默认值</span></span><br><span class="line"><span class="keyword">ARG</span> DOCKER_USERNAME=library</span><br><span class="line"></span><br><span class="line"><span class="comment"># 可以在 DockerFile 中作为 '模板变量' 使用</span></span><br><span class="line"><span class="keyword">FROM</span> $&#123;DOCKER_USERNAME&#125;/alpine</span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印 library</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> <span class="variable">$&#123;DOCKER_USERNAME&#125;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 打印 包含 DOCKER_USERNAME=library </span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> env</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>ARG</code> 和 <code>ENV</code> 的效果一样，都是设置<strong>环境变量</strong>。不同的是，<code>ARG</code> 所设置是<code>构建时</code>的环境变量，在将来容器<code>运行时</code>是不会存在这些环境变量的。</p>
+<blockquote>
+<p>⚠️  注意，尽量不要在 <code>ARG</code> 放置敏感信息，因为 <code>docker history</code>  可以看到构建的过程</p>
+</blockquote>
+<p>通过 <code>docker build --build-arg Key=[Value]</code> 设置构建参数：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ docker build --build-arg BABEL_ENV=<span class="built_in">test</span> .</span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 或者只指定 KEY, Value 自动获取</span></span><br><span class="line">$ docker build --build-arg BABEL_ENV .</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h2 id="怎么支持更复杂的构建需求？"><a href="#怎么支持更复杂的构建需求？" class="headerlink" title="怎么支持更复杂的构建需求？"></a>怎么支持更复杂的构建需求？</h2><p>Dockerfile 中不建议放置复杂的逻辑，而且它语法支持也很有限。如果有复杂的构建需求，更应该通过  Shell 脚本或者 Node 程序来实现。</p>
+<p><br><br><br></p>
+<h2 id="集成到-ci-cd-平台"><a href="#集成到-ci-cd-平台" class="headerlink" title="集成到 CI/CD 平台"></a>集成到 CI/CD 平台</h2><p>上文，我们探索了使用 Docker 来实现‘跨平台’(CI/CD) 的构建任务。看起来还不错，应该能够满足我们的需求。</p>
+<p>通常这些平台对 Docker 镜像构建的支持都是开箱即用的， 如果使用 Dockerfile 方案，我们可以免去一些额外的声明，比如构建依赖的软件包、缓存配置、构建脚本等等。</p>
+<p>现在只需要关注 <code>Dockerfile</code> 构建， 下图以 <code>Zadig</code> 为例。在 Zadig 中，我们只需要告诉 Dockerfile 在哪，其余的工作(比如镜像 tag、镜像发布)都不需要操心：</p>
+<p><img src="/images/docker-for-fe/Untitled%203.png" alt="Untitled"></p>
+<p>接入其他构建平台也是类似的，<strong>我们只需要学习对应平台如何构建镜像就行</strong>。</p>
+<p><br><br><br><br><br></p>
+<h1 id="标准化部署和运行"><a href="#标准化部署和运行" class="headerlink" title="标准化部署和运行"></a>标准化部署和运行</h1><p>上一节， 讲到将 Docker 作为‘跨平台’的任务执行环境。下一步就是发布、部署、运行。注意接下内容可能需要你对 K8S 有基本的了解。</p>
+<p>镜像发布就不用展开说了，就和 npm 发布一样简单。本节的重点在于讨论，前端‘应用’在容器环境如何对外服务。</p>
+<p>目前比较主流的前端应用可以分为三类：</p>
+<ul>
+<li>纯静态资源。</li>
+<li>NodeJS 程序。包括 NodeJS 的纯后端服务、还有 NextJS、NuxtJS 这里 SSR 服务</li>
+<li>微前端。主要指<strong>以基座为核心的中心化的微前端方案</strong>， 比如 <code>qiankun</code>。这类程序需要基座和子应用相互搭配才能对外服务。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="纯静态资源"><a href="#纯静态资源" class="headerlink" title="纯静态资源"></a>纯静态资源</h2><p>估计 80% 以上的前端应用都是纯静态的。</p>
+<p>笔者尝试过多种部署的方式。在我们将前端应用容器化的初期， 有过这样一种中间的演进形态：</p>
+<p><img src="/images/docker-for-fe/Untitled%204.png" alt="Untitled"></p>
+<p><br></p>
+<p>在改造之前我们所有的前端静态资源都堆在一个静态资源服务器中(上图左侧)，所有人都有部署权限、所有人都能改 Nginx 配置、目录混乱。部署方式也是各显神通，有 Jenkins 自动部署、有 FTP/rsync 手动上传… 就是一个极其原始的状态。</p>
+<p><br></p>
+<p>在容器化改造的初期，运维把<code>静态资源服务器</code>转换成为了 <code>Nginx 容器</code>，而原本 Nginx 的配置通过<code>配置映射</code>（Config Map）来挂载到容器内部。</p>
+<p><br></p>
+<p>前端应用也做了非常简单的改造， 就是简单把静态资源 COPY 到镜像中：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> busybox:latest</span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> dist /data</span></span><br></pre></td></tr></table></figure>
+<p>运行时，前端应用以 <code>Nginx 容器</code>的 <code>Sidecar</code> 形式存在，在启动时向共享的 PVC (数据卷)拷贝静态资源。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>更理想的情况是每个前端应用能够独立对外服务， 对镜像的使用者来说，他应该是开箱即用的、自包含、透明的。</p>
+<p>所以我们对部分比较独立的应用进行了重构：</p>
+<p><img src="/images/docker-for-fe/Untitled%205.png" alt="Untitled"></p>
+<p>如上图， 前端应用基于 nginx 运行，流量会通过 Ingress 来分发到不同的应用，分发的方式通常有域名、请求路径等等。</p>
+<p>这也进一步简化了运维的工作，运维只需要前端后两个镜像就可以将一套系统部署起来。</p>
+<p><br><br><br></p>
+<p>我们稍微改造一下上文的 Dockerfile 来支持 nginx 部署：</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 🔴 阶段 1，安装依赖</span></span><br><span class="line"><span class="keyword">FROM</span> node:<span class="number">20</span>-slim as base</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> corepack <span class="built_in">enable</span></span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /app</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENV</span> PNPM_HOME=<span class="string">"/pnpm"</span></span><br><span class="line"><span class="keyword">ENV</span> PATH=<span class="string">"$PNPM_HOME:$PATH"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝依赖声明</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> package.json pnpm-lock.yaml /app/</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> --mount=<span class="built_in">type</span>=cache,id=pnpm,target=/pnpm/store pnpm install</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 阶段 2，单元测试</span></span><br><span class="line"><span class="keyword">FROM</span> base as test</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拷贝源代码</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> . /app</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm <span class="built_in">test</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 阶段 3，构建</span></span><br><span class="line"><span class="keyword">FROM</span> test as build</span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pnpm build</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 🔴 阶段 4，运行</span></span><br><span class="line"><span class="keyword">FROM</span> nginx:stable-alpine as deploy</span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=build /app/dist/ /usr/nginx/wwwroot</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果需要自定义 nginx 配置，可以开启这行</span></span><br><span class="line"><span class="comment">#COPY nginx.conf /etc/nginx/nginx.conf</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">80</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">"nginx"</span>, <span class="string">"-g"</span>, <span class="string">"daemon off;"</span>]</span></span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h2 id="nodejs-程序"><a href="#nodejs-程序" class="headerlink" title="NodeJS 程序"></a>NodeJS 程序</h2><p><br></p>
+<p>这个和普通后端服务没什么区别，狭义上不属于前端的范畴，没有太多可以讲的，可以参考上文的 Next.js 示例。</p>
+<p><br></p>
+<h2 id="微前端"><a href="#微前端" class="headerlink" title="微前端"></a>微前端</h2><p>我在<a href="https://juejin.cn/post/7254944931386163260#heading-6" target="_blank" rel="noopener">微前端的落地和治理实战</a> 中简单介绍过：</p>
+<p><img src="/images/docker-for-fe/Untitled%206.png" alt="Untitled"></p>
+<p>我们公司目前采用的是上图的 Sidecar 模式。每个子应用都是一个 Sidecar，启动时将自己‘注册’到基座中，由基座统一对外服务。</p>
+<p>好处：基座可以统一管理所有子应用。比如可以实现‘子应用发现’、动态配置替换之类的工作</p>
+<p>坏处：依赖 PVC 共享存储。我们也有遇到部分客户环境不支持共享 PVC 的。</p>
+<p><br><br><br></p>
+<p>对于不支持共享 PVC 的场景，我们也会进行回退：</p>
+<p><img src="/images/docker-for-fe/Untitled%207.png" alt="Untitled"></p>
+<p>让每个子应用独立对外服务，每个子应用都有自己的前缀， Ingress 根据前缀来分发流量。</p>
+<p>好处就是子应用可以自己管理自己，升级和流量控制会更加灵活。缺点就是基座无法感知到这些子应用的存在，需要手动配置这些子应用的信息。</p>
+<p>如果要更进一步，可以将基座定义为类似后端“<code>注册中心</code>”， 子应用主动向基座注册，有点后端微服务的味道了。如果真需要复杂到这一步，也没有必要自己造轮子，复用后端的技术栈不是更香？</p>
+<p>除此之外，还有很多手段，比如基座提供发布服务，子应用调用基座发布服务，将自己的应用信息、静态资源提交给基座。</p>
+<p><br><br><br><br><br></p>
+<h2 id="不是银弹"><a href="#不是银弹" class="headerlink" title="不是银弹"></a>不是银弹</h2><p>上面我们介绍了基于 Docker 容器的前端应用部署的各种方式和场景。但这并不是银弹！前端也不一定非得就要容器化。</p>
+<p>很多大厂都有自己成熟的发布、部署流程和系统平台，他们需要应付各种复杂的情况,  比如大流量、CDN 同步、熔断降级、灰度发布、蓝绿发布，回滚…  那本文讲到的各种‘朴素’的技巧，就是一种雕虫小技</p>
+<p><br></p>
+<p><strong>那它对我们为什么有用？</strong></p>
+<p>我们主要做 ToB 业务，容器化的方案可以应付私有化交付、私有化部署需求。开发和运维会面对各种千奇百怪的运行环境、公有云、私有云。但大部分甲方都会提供基础的 K8S 环境，容器化对我们来说就是一个最简单且高效的方案。</p>
+<p>另外，依托于 K8S 这类强大容器管理平台，大部分问题都有解决方案，何必造轮子呢？</p>
+<p><br><br><br><br><br></p>
+<h1 id="一些高级话题"><a href="#一些高级话题" class="headerlink" title="一些高级话题"></a>一些高级话题</h1><h2 id="一份基准代码，多份部署"><a href="#一份基准代码，多份部署" class="headerlink" title="一份基准代码，多份部署"></a><strong>一份基准代码，多份部署</strong></h2><p><img src="/images/docker-for-fe/Untitled%208.png" alt="Untitled"></p>
+<p><a href="https://12factor.net/zh_cn/" target="_blank" rel="noopener">12-factors</a> 里有一个原则：<em>一份基准代码，多份部署</em>。如果放在容器这个上下文中，就是一个镜像应该能够在不同的环境部署，而不需要任何修改。</p>
+<p><br></p>
+<p>这对我们做 ToB 的也很重要，如果我们为一个客户做一次私有化部署，就要将所有的应用重新构建一遍，这显然无法接受。</p>
+<p>对于后端服务来说，很容易做到，要么通过<code>环境变量</code>，要么就从<code>配置中心</code>动态拉取。</p>
+<p><br></p>
+<p>而对于前端来说，静态资源的各种 URL (比如 CDN 链接) 和配置可能在<code>构建时</code>就固定下来了。而且我们的代码不运行在服务端，因此也不能通过环境变量来动态配置。</p>
+<p>当然，也有解决办法：</p>
+<ul>
+<li>使用 SSR。理论上可以解决，但是现代前端框架不是纯动态的，也会有一个编译的过程</li>
+<li>模板替换。可以参考 <a href="https://juejin.cn/post/7254944931386163260#heading-6" target="_blank" rel="noopener">微前端的落地和治理实战</a> ，<a href="https://wakeadmin.wakedata.com/mapp/advanced/container.html#%E6%A8%A1%E6%9D%BF%E8%AF%AD%E6%B3%95" target="_blank" rel="noopener">运行容器</a>。</li>
+<li>还有古老的 <a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html" target="_blank" rel="noopener">SSI</a>(ServerSideInclude) 技术。</li>
+</ul>
+<p><br><br><br></p>
+<p>下面以 <code>Nginx</code> SSI + <code>Vite</code>  为例， 演示一下 SSI: </p>
+<p>vite 配置：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; defineConfig &#125; <span class="keyword">from</span> <span class="string">'vite'</span></span><br><span class="line"><span class="keyword">import</span> vue <span class="keyword">from</span> <span class="string">'@vitejs/plugin-vue'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> defineConfig(&#123;</span><br><span class="line">  plugins: [vue()],</span><br><span class="line">  experimental: &#123;</span><br><span class="line">    renderBuiltUrl(filename) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"&lt;!--# echo var='public_url' --&gt;"</span> + filename</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><code>&lt;!--# echo var=&#39;public_url&#39; --&gt;</code> 是 SSI 的指令语法。这里使用 Vite 实验性的 renderBuiltUrl 来配置（因为直接使用 base 会有问题）。</p>
+<p><br></p>
+<p>Dockerfile:</p>
+<figure class="highlight docker"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> nginx:stable-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> dist /usr/share/nginx/html</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> nginx.conf /etc/nginx/nginx.conf</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">80</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这里是需要显式告诉 envsubst 要替换的环境变量，如果有多个环境变量，使用 ',' 分割</span></span><br><span class="line"><span class="comment"># 因为 nginx 变量的语法和 环境变量相似，如果不显式设置，envsubst 可能会误替其他 nginx 变量</span></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> (cat /etc/nginx/nginx.conf | envsubst <span class="string">'$&#123;PUBLIC_URL&#125;'</span> &gt;/etc/nginx/nginx.conf) &amp;&amp; cat /etc/nginx/nginx.conf &amp;&amp; nginx -g <span class="string">'daemon off;'</span></span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p><strong>nginx 配置文件中无法愉快地引用环境变量</strong>，所以<a href="https://www.baeldung.com/linux/nginx-config-environment-variables" target="_blank" rel="noopener">曲线救国</a>， 使用 <code>envsubst</code> 来替换 nginx.conf 中的环境变量占位符。</p>
+<p>Nginx 配置：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ... 省略</span></span><br><span class="line"></span><br><span class="line">        <span class="string">location</span> <span class="string">/</span> <span class="string">&#123;</span></span><br><span class="line">            <span class="comment"># 开启 ssi</span></span><br><span class="line">            <span class="string">ssi</span> <span class="string">on;</span></span><br><span class="line">            <span class="string">ssi_last_modified</span> <span class="string">on;</span></span><br><span class="line">            <span class="comment"># 支持 html、js、css 等文件</span></span><br><span class="line">            <span class="string">ssi_types</span> <span class="string">text/html</span> <span class="string">application/javascript</span> <span class="string">text/css;</span></span><br><span class="line">            <span class="comment"># 设置变量，将由 envsubst 替换，格式为 $&#123;NAME-defaultValue&#125;</span></span><br><span class="line">            <span class="string">set</span> <span class="string">$public_url</span> <span class="string">"$&#123;PUBLIC_URL-/&#125;"</span><span class="string">;</span></span><br><span class="line">            <span class="string">root</span> <span class="string">/usr/share/nginx/html;</span></span><br><span class="line">            <span class="string">index</span> <span class="string">index.html</span> <span class="string">index.htm;</span></span><br><span class="line">        <span class="string">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ... 省略</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>自己试试看吧!</p>
+<p><br><br><br><br><br></p>
+<h2 id="如何做灰度发布、蓝绿发布…？"><a href="#如何做灰度发布、蓝绿发布…？" class="headerlink" title="如何做灰度发布、蓝绿发布…？"></a>如何做灰度发布、蓝绿发布…？</h2><p>在 K8S 环境，有挺多简单的手段可以实现灰度(金丝雀发布)发布、蓝绿发布这些功能，比如：</p>
+<ul>
+<li><p><a href="https://support.huaweicloud.com/intl/zh-cn/bestpractice-cce/cce_bestpractice_10002.html" target="_blank" rel="noopener">通过 Service。</a>一个 Service 实际上可以映射到多个 Deployment。通过调整不同版本Deployment的副本数，即可调整不同版本服务的权重，实现灰度发布。</p>
+<p>  <img src="/images/docker-for-fe/Untitled%209.png" alt="Untitled"></p>
+</li>
+</ul>
+<ul>
+<li><p><a href="https://support.huaweicloud.com/intl/zh-cn/bestpractice-cce/cce_bestpractice_10003.html" target="_blank" rel="noopener">通过Nginx Ingress</a>。Nginx Ingress 则更加强大一些，支持基于Header、Cookie和服务权重三种流量切分的策略</p>
+<p>  <img src="/images/docker-for-fe/Untitled%2010.png" alt="Untitled"></p>
+</li>
+</ul>
+<p>还有很多实现手段，因为不是本文的重点，就不赘述了。如果大家有更好更简单的方式也可以评论区交流。</p>
+<p><br><br><br></p>
+<p><strong>那如果按照上文讲的微前端部署方式，怎么实现子应用灰度呢？</strong></p>
+<p>这里不需要用到复杂的流量分发技术，因为基座自己会收集子应用的信息，那么只需要在子应用注册表上做文章就行了。例如：</p>
+<p><img src="/images/docker-for-fe/Untitled%2011.png" alt="Untitled"></p>
+<ul>
+<li><p>基座会收集到所有的已部署的子应用。一个子应用可能有多个版本。子应用版本之间使用版本号区分目录：</p>
+  <figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">/apps/</span><br><span class="line">  foo/</span><br><span class="line">     v1/</span><br><span class="line">       manifest.json  # 应用描述信息</span><br><span class="line">       index.html</span><br><span class="line">       js/</span><br><span class="line">       ...</span><br><span class="line">     v2/</span><br><span class="line">       manifest.json</span><br><span class="line">       index.html</span><br><span class="line">       js/</span><br><span class="line">       ...</span><br><span class="line">     current.json     # 保存当前对外服务的应用版本信息。实际上也可以保存一些灰度条件匹配之类的配置信息</span><br><span class="line">  bar/</span><br><span class="line">     v1/</span><br><span class="line">       manifest.json</span><br><span class="line">     current.json</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<ul>
+<li>基座会提供一个管理平台，供运维和开发者 pick 要对外服务的版本，或者配置灰度匹配条件等等。</li>
+<li>当浏览器发起入口文件请求时，基座计算最终要返回的子应用配置列表，不同人群可能拿到的结果不一样，从而实现灰度发布功能。</li>
+</ul>
+<p>这个思路看起来和后端的<code>服务发现</code>平台(比如 Nacos)很像，后端服务实现灰度基本也是依靠这些平台来实现的。</p>
+<p><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>回顾一下本文。Docker 发布已经十年，大家对它应该已经熟悉不过了，它对现代的软件工程有非常重要的意义。</p>
+<p><br></p>
+<p>我在这篇文章中分了两个维度来讨论它， 一是将它作为一个’跨平台’的任务运行环境，它让我们可以在一致的环境中运行单测、构建、发布等任务；二是讲怎么将前端应用容器化，对齐后端，利用现有的容器管理平台来实现复杂的部署需求。</p>
+<p><br></p>
+<p>复杂的前端应用构建、发布和部署需要考虑很多问题，可以看看知乎：<a href="https://www.zhihu.com/question/20790576" target="_blank" rel="noopener">大公司里怎样开发和部署前端代码？</a> 字节这篇文章 <a href="https://juejin.cn/post/7017710911443959839" target="_blank" rel="noopener">2021 年当我们聊前端部署时，我们在聊什么</a>。</p>
+<p><br><br><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><p><a href="https://docs.docker.com/build/guide/mounts/" target="_blank" rel="noopener">Build With Docker</a><br><a href="https://docs.docker.com/engine/reference/builder/" target="_blank" rel="noopener">Dockerfile reference</a><br><a href="https://yeasy.gitbook.io/docker_practice/image/multistage-builds" target="_blank" rel="noopener">Dockerfile 多阶段构建</a><br><a href="https://12factor.net/zh_cn/" target="_blank" rel="noopener">The Twelve-Factor App</a><br><a href="http://nginx.org/en/docs/http/ngx_http_ssi_module.html" target="_blank" rel="noopener">ngx_http_ssi_module</a><br><a href="https://www.baeldung.com/linux/nginx-config-environment-variables" target="_blank" rel="noopener">Using Environment Variables in Nginx Config File</a><br><a href="https://juejin.cn/post/7017710911443959839" target="_blank" rel="noopener">2021 年当我们聊前端部署时，我们在聊什么</a><br><a href="https://yeasy.gitbook.io/docker_practice/buildx/buildkit" target="_blank" rel="noopener">BuildKit 下一代的镜像构建组件</a></p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#why-docker"><span class="toc-number">1.</span> <span class="toc-text">Why Docker?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#标准化ci-cd"><span class="toc-number">2.</span> <span class="toc-text">标准化CI/CD</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#从简单的单元测试开始"><span class="toc-number">2.1.</span> <span class="toc-text">从简单的单元测试开始</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#缓存处理"><span class="toc-number">2.2.</span> <span class="toc-text">缓存处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多阶段构建"><span class="toc-number">2.3.</span> <span class="toc-text">多阶段构建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构建参数"><span class="toc-number">2.4.</span> <span class="toc-text">构建参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#怎么支持更复杂的构建需求？"><span class="toc-number">2.5.</span> <span class="toc-text">怎么支持更复杂的构建需求？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#集成到-ci-cd-平台"><span class="toc-number">2.6.</span> <span class="toc-text">集成到 CI/CD 平台</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#标准化部署和运行"><span class="toc-number">3.</span> <span class="toc-text">标准化部署和运行</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#纯静态资源"><span class="toc-number">3.1.</span> <span class="toc-text">纯静态资源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#nodejs-程序"><span class="toc-number">3.2.</span> <span class="toc-text">NodeJS 程序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#微前端"><span class="toc-number">3.3.</span> <span class="toc-text">微前端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#不是银弹"><span class="toc-number">3.4.</span> <span class="toc-text">不是银弹</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一些高级话题"><span class="toc-number">4.</span> <span class="toc-text">一些高级话题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一份基准代码，多份部署"><span class="toc-number">4.1.</span> <span class="toc-text">一份基准代码，多份部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如何做灰度发布、蓝绿发布…？"><span class="toc-number">4.2.</span> <span class="toc-text">如何做灰度发布、蓝绿发布…？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/08/21/docker-for-fe/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/08/21/docker-for-fe/&text=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/08/21/docker-for-fe/&is_video=false&description=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 Docker 实现前端应用的标准化构建、部署和运行&body=Check out this article: https://bobi.ink/2023/08/21/docker-for-fe/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/08/21/docker-for-fe/&title=使用 Docker 实现前端应用的标准化构建、部署和运行"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/08/21/docker-for-fe/&name=使用 Docker 实现前端应用的标准化构建、部署和运行&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
