@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="CodeMod(Code Modification) 的应用场景非常多，我在过去几年就使用 ‘codemod‘ 升级过多个项目，节省了大量的人力成本：  将原生微信小程序转换到 Taro; 后面又从 Taro 2 升级到 Taro 3 Sonar / Eslint 问题修复。 前端多语言自动提取 …  除此之外，codemod 也可以用在以下场景：  框架升级，比如 Next.js 升级、Vue">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CodeMod 代码重构&#x2F;升级必知必会">
+<meta property="og:url" content="https://bobi.ink/2023/09/19/codemod/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="CodeMod(Code Modification) 的应用场景非常多，我在过去几年就使用 ‘codemod‘ 升级过多个项目，节省了大量的人力成本：  将原生微信小程序转换到 Taro; 后面又从 Taro 2 升级到 Taro 3 Sonar / Eslint 问题修复。 前端多语言自动提取 …  除此之外，codemod 也可以用在以下场景：  框架升级，比如 Next.js 升级、Vue">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled.jpeg">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/codemod/Untitled%205.png">
+<meta property="og:updated_time" content="2023-09-19T10:48:27.357Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CodeMod 代码重构&#x2F;升级必知必会">
+<meta name="twitter:description" content="CodeMod(Code Modification) 的应用场景非常多，我在过去几年就使用 ‘codemod‘ 升级过多个项目，节省了大量的人力成本：  将原生微信小程序转换到 Taro; 后面又从 Taro 2 升级到 Taro 3 Sonar / Eslint 问题修复。 前端多语言自动提取 …  除此之外，codemod 也可以用在以下场景：  框架升级，比如 Next.js 升级、Vue">
+<meta name="twitter:image" content="https://bobi.ink/images/codemod/Untitled.jpeg">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>CodeMod 代码重构/升级必知必会</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/09/12/cross-runtime/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/09/19/codemod/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/09/19/codemod/&text=CodeMod 代码重构/升级必知必会"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/09/19/codemod/&is_video=false&description=CodeMod 代码重构/升级必知必会"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CodeMod 代码重构/升级必知必会&body=Check out this article: https://bobi.ink/2023/09/19/codemod/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/09/19/codemod/&name=CodeMod 代码重构/升级必知必会&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#recast"><span class="toc-number">1.</span> <span class="toc-text">Recast</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#jscodeshift"><span class="toc-number">2.</span> <span class="toc-text">Jscodeshift</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gogocode"><span class="toc-number">3.</span> <span class="toc-text">Gogocode</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ast-grep"><span class="toc-number">4.</span> <span class="toc-text">AST Grep</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        CodeMod 代码重构/升级必知必会
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-09-18T16:00:00.000Z" itemprop="datePublished">2023-09-19</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/codemod/Untitled.jpeg" alt="Cover"></p>
+<p><code>CodeMod</code>(Code Modification) 的应用场景非常多，我在过去几年就使用 ‘codemod‘ 升级过多个项目，节省了大量的人力成本：</p>
+<ul>
+<li>将原生微信小程序转换到 Taro; 后面又从 Taro 2 升级到 Taro 3</li>
+<li>Sonar / Eslint 问题修复。</li>
+<li>前端多语言自动提取</li>
+<li>…</li>
+</ul>
+<p>除此之外，codemod 也可以用在以下场景：</p>
+<ul>
+<li>框架升级，比如 Next.js 升级、Vue 3 升级</li>
+<li>语言升级，将废弃的旧语法替换从新语法</li>
+<li>代码格式化</li>
+<li>API 重构</li>
+<li>代码检查等等</li>
+</ul>
+<p>如果你有这方面的需求，那这篇文章很适合你。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>前置知识：你需要对编译原理有基本了解，如果你感到吃力，可以看看我之前写的文章：<strong><a href="https://juejin.cn/post/6844903956905197576#heading-8" target="_blank" rel="noopener">深入浅出 Babel 上篇：架构和原理 + 实战</a></strong></p>
+<p><br></p>
+<p><strong>编写一个代码升级/重构程序主要涉及以下环节</strong>:</p>
+<p><br></p>
+<p><img src="/images/codemod/Untitled.png" alt="流程"></p>
+<p><br></p>
+<p>这里每个环节都有很多库/方案可以选择，比如：</p>
+<ul>
+<li><strong>文件查找</strong>: 可以使用 <code>Glob</code> 通配符库来查找或忽略文件，比如 <a href="https://github.com/isaacs/node-glob" target="_blank" rel="noopener">node-glob</a>、fast-glob、globby 等</li>
+<li><strong>AST parse</strong>:  这个需要根据特定的语言进行选择。比如 JavaScript 可以选择 <code>Babel</code>(推荐)、<code>Esprima</code>、<code>Acorn</code>、<code>swc</code>；CSS 可以使用 <code>postcss</code>、<code>lightning css</code>；Vue SFC 可以使用其官方的 vue-template-parser 等等。更多方案，可以探索一下 <a href="https://astexplorer.net/#/KJ8AjD6maa" target="_blank" rel="noopener">AST Explorer</a>，这里列举了市面上主流的 Parser</li>
+<li><strong>AST Transform</strong>: 将 AST 解析出来之后，可以根据自己的需求来改写 AST。不同语言/parser 处理规则会有较大的差异。AST parse 和 transform 可以选择一些工具来简化工作，比如 <code>Jscodeshift</code>、<code>gogocode</code>，本文接下来会深入讲解这些工具。</li>
+<li><strong>Code Generate</strong>:  将 AST 转换为代码。<strong>我们要尽可能地维持原有的代码格式，否则代码 Diff 会很难看。</strong>这个阶段可以选择 <code>recast</code> 这类方案，它可以尽量维持代码的原有格式；另一种方案就是使用代码格式化工具，比如 <code>prettier</code>、<code>eslint</code>，也可以最大限度维持代码的格式。</li>
+<li>写入代码: 调用 fs 写入。</li>
+</ul>
+<p>将这些东西串起来，你可能还需要一些库，帮你快速编写命令行工具，例如 yargs、commander、inquirer.js</p>
+<p><br></p>
+<p>接下来我将介绍 codemod 这个领域一些主流的库，这些库都各有所长，有些提供了一整套的流程，有些则提供了更高效的 AST 查找和替换方法。</p>
+<p><br><br><br></p>
+<h1 id="recast"><a href="#recast" class="headerlink" title="Recast"></a>Recast</h1><p><a href="https://github.com/benjamn/recast" target="_blank" rel="noopener">recast</a> 是一个知名的库，很多 CodeMod 工具都是基于它来实现的。我们通常将它作为 JavaScript 的 <code>AST 转换器</code>和<strong><code>非破坏(nondestructive)代码格式化</code></strong>工具来使用。</p>
+<p><strong>简单说就是使用 recast 进行’代码生成‘可以最大程度地保持代码原本的格式</strong>。</p>
+<blockquote>
+<p>💡原理： 在解析代码生成 AST 时，Recast 使用其解析器（默认是 Esprima）收集代码的原始格式信息。当你修改 AST 时，Recast 记录了哪些部分的 AST 被修改了。最后在代码生成时，Recast 复用未修改部分的原始代码，然后只为修改过的部分生成新的代码，尽可能地保留原始格式。</p>
+</blockquote>
+<p>它的 API 也非常简单：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; parse, print &#125; <span class="keyword">from</span> <span class="string">"recast"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(print(parse(source)).code);</span><br></pre></td></tr></table></figure>
+<p>核心 API 就两个 <code>parse</code> 和 <code>print</code>。顾名思义，也不用多介绍了。</p>
+<p>recast 默认使用的 Parser 是 <a href="https://www.npmjs.com/package/esprima" target="_blank" rel="noopener">Esprima</a>,  也允许用户使用其他的 Parser，比如 Babel、Acorn。</p>
+<p><br></p>
+<p><strong>为什么它能兼容不同的 Parser 呢？</strong></p>
+<p><br></p>
+<p>兼容不同的 Parser 并不是一件新鲜事，我们在使用 Eslint 时，它也支持自定义 Parser。实际上只要 AST 符合一定的标准就行。</p>
+<p>如果深入去挖，会发现 recast 底层就是使用 <a href="https://github.com/benjamn/ast-types" target="_blank" rel="noopener">ast-types</a> 来对 AST 进行表示、查找、操作的。而 ast-types 又是 <a href="https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/Parser_API" target="_blank" rel="noopener">Mozilla Parser API</a> 规范的实现。</p>
+<p>基于 Mozilla Parser API 又发展出了 <a href="https://github.com/estree/estree" target="_blank" rel="noopener">EsTree</a> 这个社区标准，旨在为 ECMAScript 语法树定义一个更为正式的规范，它会随着 JavaScript 语言的演进，不断发展和扩展，以支持新的 ECMAScript 特性。</p>
+<p><img src="/images/codemod/Untitled%201.png" alt="ast standard"></p>
+<p>如上图，目前大部分 Parser 都是基于 ESTree 标准的。因此理论上它们都支持作为 recast 的 parser。</p>
+<p>对开发者来说，选择不同的 parser 主要基于性能、资源消耗、支持的语言特性等多个方面去权衡。</p>
+<p>目前普适性比较强的是 Babel，原因在于支持的语言特性很多，比如 Typescript、Flow 以及最新的 ECMAScript 特性，另外它的生态也比较庞大。</p>
+<p><br></p>
+<hr>
+<p><br></p>
+<p>为了方便开发者使用，recast 也将 <a href="https://github.com/benjamn/ast-types" target="_blank" rel="noopener">ast-types 的 API</a> 重新导出了：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 🔴 类型断言</span></span><br><span class="line"><span class="keyword">const</span> n = recast.types.namedTypes;</span><br><span class="line">n.FunctionDeclaration.assert(add);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 AST 节点构造器</span></span><br><span class="line"><span class="keyword">const</span> b = recast.types.builders;</span><br><span class="line">ast.program.body[<span class="number">0</span>] = b.variableDeclaration(<span class="string">"var"</span>, [</span><br><span class="line">  b.variableDeclarator(add.id, b.functionExpression(</span><br><span class="line">    <span class="literal">null</span>, <span class="comment">// Anonymize the function expression.</span></span><br><span class="line">    add.params,</span><br><span class="line">    add.body</span><br><span class="line">  ))</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 AST 访问器</span></span><br><span class="line">recast.types.visit(ast, &#123;</span><br><span class="line">  <span class="comment">// This method will be called for any node with .type "MemberExpression":</span></span><br><span class="line">  visitMemberExpression(path) &#123;</span><br><span class="line">    <span class="comment">// Visitor methods receive a single argument, a NodePath object</span></span><br><span class="line">    <span class="comment">// wrapping the node of interest.</span></span><br><span class="line">    <span class="keyword">var</span> node = path.node;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      n.Identifier.check(node.object) &amp;&amp;</span><br><span class="line">      node.object.name === <span class="string">"arguments"</span> &amp;&amp;</span><br><span class="line">      n.Identifier.check(node.property)</span><br><span class="line">    ) &#123;</span><br><span class="line">      assert.notStrictEqual(node.property.name, <span class="string">"callee"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// It's your responsibility to call this.traverse with some</span></span><br><span class="line">    <span class="comment">// NodePath object (usually the one passed into the visitor</span></span><br><span class="line">    <span class="comment">// method) before the visitor method returns, or return false to</span></span><br><span class="line">    <span class="comment">// indicate that the traversal need not continue any further down</span></span><br><span class="line">    <span class="comment">// this subtree.</span></span><br><span class="line">    <span class="keyword">this</span>.traverse(path);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h1 id="jscodeshift"><a href="#jscodeshift" class="headerlink" title="Jscodeshift"></a>Jscodeshift</h1><p><a href="https://github.com/facebook/jscodeshift" target="_blank" rel="noopener">jscodeshift</a>  是 Meta 开源的 CodeMod 工具，很多前端框架都是基于它来实现代码升级，比如 Nextjs、storybook、react、antd、vue 等，算是能见度最高的 CodeMod 方案了。</p>
+<p><br></p>
+<p><strong>一句话来总结 jscodeshift 就是它是一个 CodeMod Runner 和 Recast 的封装</strong>：</p>
+<ul>
+<li><p>Runner：负责文件的查找、转换、生成的整个流程，还提供了 CLI 和<code>单元测试套件</code>。开发者只需要编写转换逻辑即可：</p>
+  <figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params">fileInfo, api, options</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// transform `fileInfo.source` here</span></span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">  <span class="comment">// return changed source</span></span><br><span class="line">  <span class="keyword">return</span> source;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p> <br></p>
+</li>
+<li><p>Recast 封装： jscodeshift 内部的 AST parse、transform、generate 都是基于 recast。</p>
+</li>
+</ul>
+<p><br><br><br></p>
+<p>在我看来，jscodeshift 比较有趣的是它封装了类似 jQuery 的 AST 查找方法(主要是它的扩展方式、链式调用、集合方法)，可以简化 AST 的查找和转换：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 🔴 recast 原本的查找形式，访问者模式</span></span><br><span class="line"><span class="keyword">var</span> ast = recast.parse(src);</span><br><span class="line">recast.visit(ast, &#123;</span><br><span class="line">  visitIdentifier: <span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// do something with path</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 jscodeshift，类似 jquery 支持链式调用</span></span><br><span class="line">jscodeshift(src)</span><br><span class="line">  .find(jscodeshift.Identifier)</span><br><span class="line">  .forEach(<span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// do something with path</span></span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+<p>其中核心类是 Collection:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Collection</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * @param &#123;Array&#125; paths An array of AST paths</span></span><br><span class="line"><span class="comment">   * @param &#123;Collection&#125; parent A parent collection</span></span><br><span class="line"><span class="comment">   * @param &#123;Array&#125; types An array of types all the paths in the collection</span></span><br><span class="line"><span class="comment">   *  have in common. If not passed, it will be inferred from the paths.</span></span><br><span class="line"><span class="comment">   * @return &#123;Collection&#125;</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">constructor</span>(paths, parent, types) &#123;</span><br><span class="line">    <span class="keyword">this</span>._parent = parent;</span><br><span class="line">    <span class="keyword">this</span>.__paths = paths;</span><br><span class="line">    <span class="keyword">this</span>._types = types.length === <span class="number">0</span> ? _defaultType : types;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  filter(callback) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="keyword">this</span>.constructor(<span class="keyword">this</span>.__paths.filter(callback), <span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  forEach(callback) &#123;</span><br><span class="line">    <span class="keyword">this</span>.__paths.forEach(</span><br><span class="line">      (path, i, paths) =&gt; callback.call(path, path, i, paths)</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  some(callback) &#123;&#125;</span><br><span class="line">  every(callback) &#123;&#125;</span><br><span class="line">  map(callback, type) &#123;&#125;</span><br><span class="line">  size() &#123;&#125;</span><br><span class="line">  nodes() &#123;&#125;</span><br><span class="line">  paths() &#125;</span><br><span class="line">  getAST() &#123;  &#125;</span><br><span class="line">  toSource(options) &#123;&#125;</span><br><span class="line">  at(index) &#123;&#125;</span><br><span class="line">  <span class="keyword">get</span>() &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Collection 的内置方法不过就是一些集合操作，其余的方法都是通过 <code>registerMethods</code> 扩展的：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 🔴 固定类型方法</span></span><br><span class="line">jscodeshift.registerMethods(&#123;</span><br><span class="line">  logNames: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">path</span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(path.node.name);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, jscodeshift.Identifier);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 任意类型方法</span></span><br><span class="line">jscodeshift.registerMethods(&#123;</span><br><span class="line">  findIdentifiers: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.find(jscodeshift.Identifier);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">jscodeshift(ast).findIdentifiers().logNames();</span><br><span class="line">jscodeshift(ast).logNames(); <span class="comment">// error, unless `ast` only consists of Identifier nodes</span></span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>jscodeshift 内部内置了很多实用的方法，比如 find、closestScope、closest、replaceWith、insertBefore、remove、renameTo 等等。</p>
+<p><br></p>
+<p>借助这些方法，可以写出比较优雅的代码(相比visitor 而言)：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">api.jscodeshift(fileInfo.source)</span><br><span class="line">    .findVariableDeclarators(<span class="string">'foo'</span>)</span><br><span class="line">    .renameTo(<span class="string">'bar'</span>)</span><br><span class="line">    .toSource();</span><br></pre></td></tr></table></figure>
+<p>这些方法都没有在文档说明，建议读者直接去看源码和它的测试用例。代码并不多，非常适合练手。</p>
+<p><br><br><br><br><br></p>
+<h1 id="gogocode"><a href="#gogocode" class="headerlink" title="Gogocode"></a>Gogocode</h1><p>国内阿里妈妈开源的 <a href="https://gogocode.io/zh/docs/specification/basic" target="_blank" rel="noopener">gogocode</a> 用来做 codemod 也是不错的选择，它支持类似<code>通配符</code>的语法来进行 AST 树查找，比如：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1️⃣ 精确查找语句</span></span><br><span class="line">ast.find(<span class="string">'const a = 123'</span>);</span><br><span class="line">ast.find(<span class="string">'import vue from "vue"'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2️⃣ 支持通配符</span></span><br><span class="line">ast.find(<span class="string">'const a = $_$'</span>)</span><br><span class="line">ast.find(<span class="string">`function $_$() &#123;&#125;`</span>)</span><br><span class="line">ast.find(<span class="string">'sum($_$0, $_$1)'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3️⃣ 多项匹配</span></span><br><span class="line">ast.find(<span class="string">'console.log($$$0)'</span>)</span><br><span class="line">ast.find(<span class="string">'&#123; text: $_$1, value: $_$2, $$$0 &#125;'</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>不过你不能真把它当做‘<code>正则表达式</code>’，否则你照着官方文档吭哧吭哧搞起来，会踩很多坑，比较挫败。别问为什么，亲身经历。</p>
+<p><br></p>
+<p>不过，如果你理解了背后的原理，就会豁然开朗，从此就会走上阳光大道。</p>
+<p><strong>当你传入一个<code>选择器</code>时，gogocode 实际上会将<code>选择器</code>也转换为 <code>AST</code>, 我们尚且称它为 <code>Selector AST</code> 吧，然后再在<code>源码 AST</code> 中查找和 <code>Selector AST</code> ‘结构吻合’的节点，并收集<code>匹配信息</code></strong>&gt;</p>
+<p><br></p>
+<p>整体过程如下：</p>
+<p><img src="/images/codemod/Untitled%202.png" alt="gogocode 原理"></p>
+<ul>
+<li>第一步： 将选择器中的<code>通配符</code>替换从<code>特殊字符串</code>，比如 gogocode 内部就是一个 g123o456g789o, 没有实际的意义，就是为了避免冲突</li>
+<li>第二步：将选择器解析成 AST，即 Selector AST</li>
+<li>第三步：在源码 AST 中查找吻合 Selector AST 结构的节点，在匹配的过程中，<code>$_$</code> 可以匹配任意值; 而 <code>$$$</code> 主要用于匹配序列/数组。这些匹配的信息会被反正 match 对象中，类似正则匹配的<code>分组捕获</code>。</li>
+</ul>
+<p><br></p>
+<blockquote>
+<p>⚠️  gogocode 不会去检查通配符分组是否相等，例如 <code>$_$1 === $_$1</code>  ,   你可能期望匹配两侧相等的节点，例如 <code>foo === foo</code> ,  但是 gogocode 会匹配到所有的全等表达式，例如 <code>1=== 2</code>, <code>foo() === bar</code>。</p>
+</blockquote>
+<p><br></p>
+<p>理解这个过程很关键，举一些实际的例子</p>
+<p><br></p>
+<p>示例1️⃣：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">ast.find(<span class="string">'import Vue from "vue"'</span>)</span><br></pre></td></tr></table></figure>
+<p>选择器 parse 出来的 Selector AST 为：</p>
+<p><img src="/images/codemod/Untitled%203.png" alt="ast"></p>
+<p><br></p>
+<p>接下来， gogocode 首先会通过 <code>recast</code> 的 <code>visit</code> 函数，查找到所有的 <code>ImportDeclaration</code> 节点，然后依次递归匹配节点属性，例如：</p>
+<ul>
+<li>importKind 是否是 value?</li>
+<li>source 是否是字符串 vue?</li>
+<li>specifiers：第一项是否为 ImportDefaultSpecifier,   ImportDefaultSpecifier 的 local 是否为 Vue?</li>
+<li>…</li>
+</ul>
+<p><br><br><br></p>
+<p>示例 2️⃣：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 假设源代码如下，这是一个序列表达式(SequenceExpression)</span></span><br><span class="line">(a, b, c);</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>AST 结构如下：</p>
+<p><img src="/images/codemod/Untitled%204.png" alt="ast"></p>
+<p>我们想要匹配序列表达式中的所有成员，怎么做呢？</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">ast.find(<span class="string">'($$$)'</span>)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>你会发现上面的选择器会将源码的所有<code>标识符</code>都匹配出来了。因为 <code>($$$)</code> 最终 parse 识别出来的不是<code>序列表达式</code>，而是 <code>Identifier</code>(<code>()</code> 在这里没有实际意义)，因此会查找出来所有的标识符。</p>
+<p><br></p>
+<p>最终解决办法是：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">ast.find(<span class="string">'($_$, $$$)'</span>)</span><br></pre></td></tr></table></figure>
+<p>这个选择器 parse 出来就是 SequenceExpression 节点啦。</p>
+<p><br><br><br><br><br></p>
+<p>示例 3️⃣</p>
+<p>再举一个比较反直觉的例子，假设我们想要通过 <code>ast.find(&#39;function $_$() {}&#39;)</code>  查找所有函数定义:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;&#125;);</span><br><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;);</span><br></pre></td></tr></table></figure>
+<p>猜一下会匹配到哪些函数?</p>
+<p>答案是：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;&#125; <span class="comment">// ✅</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">b</span>(<span class="params"></span>) </span>&#123;&#125; <span class="comment">// ✅</span></span><br><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">c</span>(<span class="params"></span>) </span>&#123;&#125;); <span class="comment">// ❌</span></span><br><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;); <span class="comment">// ❌</span></span><br></pre></td></tr></table></figure>
+<p>为什么？</p>
+<p><br></p>
+<hr>
+<p><br><br><br></p>
+<p>Ok，通过上面的讲解，你应该知道 gogocode 选择器的能力边界了。<strong>也就是说选择器必须也是合法的 JavaScript 代码，并且它只能进行简单的结构匹配</strong>。</p>
+<p><br></p>
+<p>另外，gogocode 的 find 方法也支持直接传入 AST 对象结构来匹配查找，如果你不想使用上面的字符串形式的选择器，或者处在歧义时，可以试试它：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> importer = script.find(&#123;</span><br><span class="line">    type: <span class="string">'ImportDeclaration'</span>,</span><br><span class="line">    source: &#123;</span><br><span class="line">      type: <span class="string">'StringLiteral'</span>,</span><br><span class="line">      value: <span class="string">'@wakeadmin/i18n'</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>因为 gogocode 底层就是 Babel 和 Recast,  如果你需要处理更复杂的场景，可以直接使用它们提供的 visit 或 traverse 等方法。</p>
+<p><strong>gogocode 还提供了很多便利的 API,  还支持 Vue，可以直接去看它的文档。</strong></p>
+<p><strong>不过文档比较一般，整个使用的过程中并不舒畅，而且遗憾的是目前开发也不活跃了。🙏</strong></p>
+<p><br><br><br></p>
+<h1 id="ast-grep"><a href="#ast-grep" class="headerlink" title="AST Grep"></a>AST Grep</h1><p>如果你比较喜欢 gogocode 这种<code>通配符</code>查找/替换的语法，那就不得不给你安利一下 <strong><a href="https://ast-grep.github.io/guide/introduction.html" target="_blank" rel="noopener">ast-grep</a>：</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sg --pattern <span class="string">'$PROP &amp;&amp; $PROP()'</span> --lang ts TypeScript/src <span class="comment"># path to TS source</span></span><br><span class="line">$ sg --pattern <span class="string">'var code = $PAT'</span> --rewrite <span class="string">'let code = $PAT'</span> --lang js</span><br></pre></td></tr></table></figure>
+<p>ast-grep 可以认为是 grep 命令的升级版，支持多种主流的编程语言，支持对代码进行查找、Lint、和重写。查找语法和上文介绍的 gogocode 差不多，通配符规则更加严谨，文档也写得很棒👍。</p>
+<p><br></p>
+<p>ast-grep 足矣满足大部分简单的代码替换工作，比如取代 VsCode、WebStorm 这些编辑器的代码查找/替换功能。</p>
+<p>复杂的代码升级/重构，涉及到的查找规则会比较多，可能还有副作用处理(比如注入import 语句)，还是老老实实用前面介绍的方案吧。</p>
+<p><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p><img src="/images/codemod/Untitled%205.png" alt="金字塔分层"></p>
+<p>其实到最后比拼的是谁能更优雅、更快捷地进行 AST 查找和转换，如上图的金字塔所示，上层的方案需要写的代码更少。如果你有更复杂的需求，也可以回退到底层 Parser 提供的 visit 访问器。</p>
+<p><br></p>
+<p>以下是一些横向对比：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>定位/亮点</th>
+<th>Parser</th>
+<th>查找/转换</th>
+<th>代码生成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Babel</td>
+<td>通用的 Javascript 编译器。主要用于转译最新的(包括实验性的) JavaScript 语言特性，并且支持 Typescript、Flow、JSX 等非标准语法</td>
+<td>@babel/parser</td>
+<td>基于 visit 访问器模式。</td>
+<td>@babel/generator。无法保证原代码格式</td>
+</tr>
+<tr>
+<td>recast</td>
+<td>非破坏性的代码生成</td>
+<td>默认 <a href="https://esprima.org/" target="_blank" rel="noopener">https://esprima.org/</a>, 也支持 Babel 等 estree 标准的 AST</td>
+<td>使用 ast-types 的 visit 方法，也是访问器模式。查找和转换的过程和 Babel 类似</td>
+<td>可以保留原有代码格式</td>
+</tr>
+<tr>
+<td>jscodeshift</td>
+<td>codemod runner、recast wrapper。</td>
+<td>基于 recast</td>
+<td>类 jquery 方法，可扩展</td>
+<td>基于 recast</td>
+</tr>
+<tr>
+<td>gogocode</td>
+<td>codemod runner、recast wrapper、AST 模式匹配</td>
+<td>基于 recast，默认使用 Babel；另外还支持 Vue、html</td>
+<td>类 jquery 方法，支持模式匹配</td>
+<td>基于 recast</td>
+</tr>
+<tr>
+<td>ast-grep</td>
+<td>AST 模式匹配和替换；rust 高性能；</td>
+<td><a href="https://tree-sitter.github.io/tree-sitter/" target="_blank" rel="noopener">tree-sitter</a>, 支持多种语言</td>
+<td>模式匹配</td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://github.com/benjamn/ast-types" target="_blank" rel="noopener">ast-types</a></li>
+<li><a href="https://github.com/thx/gogocode" target="_blank" rel="noopener">gogocode</a></li>
+<li><a href="https://github.com/estree/estree" target="_blank" rel="noopener">estree</a></li>
+<li><a href="https://udn.realityripple.com/docs/Mozilla/Projects/SpiderMonkey/Parser_API" target="_blank" rel="noopener">Parser API</a></li>
+<li><a href="https://astexplorer.net/#/KJ8AjD6maa" target="_blank" rel="noopener">AST explorer</a></li>
+<li><a href="https://github.com/vercel/next.js/tree/canary/packages/next-codemod" target="_blank" rel="noopener">nextjs-codemod</a></li>
+<li><a href="https://ast-grep.github.io/" target="_blank" rel="noopener">ast-grep</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#recast"><span class="toc-number">1.</span> <span class="toc-text">Recast</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#jscodeshift"><span class="toc-number">2.</span> <span class="toc-text">Jscodeshift</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#gogocode"><span class="toc-number">3.</span> <span class="toc-text">Gogocode</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ast-grep"><span class="toc-number">4.</span> <span class="toc-text">AST Grep</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/09/19/codemod/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/09/19/codemod/&text=CodeMod 代码重构/升级必知必会"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/09/19/codemod/&is_video=false&description=CodeMod 代码重构/升级必知必会"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CodeMod 代码重构/升级必知必会&body=Check out this article: https://bobi.ink/2023/09/19/codemod/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/09/19/codemod/&title=CodeMod 代码重构/升级必知必会"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/09/19/codemod/&name=CodeMod 代码重构/升级必知必会&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
