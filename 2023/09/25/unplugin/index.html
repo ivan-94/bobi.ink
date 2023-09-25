@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="这篇文章继续我们的‘跨平台’之旅， 之前我们聊过:  编写‘跨版本’ 的组件库： 如何实现支持跨 Vue 2/3 的组件库 编写‘跨框架’的组件：来一瓶 Web Component 魔法胶水 跨平台的运行容器： 使用 Docker 实现前端应用的标准化构建、部署和运行 编写跨运行时的程序   今天继续来聊一下怎么编写‘跨平台’的构建插件，前端构建工具一直都是一个比较卷的赛道，毕竟它是前端工程化">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 unplugin 编写跨平台的构建插件">
+<meta property="og:url" content="https://bobi.ink/2023/09/25/unplugin/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="这篇文章继续我们的‘跨平台’之旅， 之前我们聊过:  编写‘跨版本’ 的组件库： 如何实现支持跨 Vue 2/3 的组件库 编写‘跨框架’的组件：来一瓶 Web Component 魔法胶水 跨平台的运行容器： 使用 Docker 实现前端应用的标准化构建、部署和运行 编写跨运行时的程序   今天继续来聊一下怎么编写‘跨平台’的构建插件，前端构建工具一直都是一个比较卷的赛道，毕竟它是前端工程化">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%205.png">
+<meta property="og:image" content="https://bobi.ink/images/unplugin/Untitled%206.png">
+<meta property="og:updated_time" content="2023-09-25T07:15:41.999Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用 unplugin 编写跨平台的构建插件">
+<meta name="twitter:description" content="这篇文章继续我们的‘跨平台’之旅， 之前我们聊过:  编写‘跨版本’ 的组件库： 如何实现支持跨 Vue 2/3 的组件库 编写‘跨框架’的组件：来一瓶 Web Component 魔法胶水 跨平台的运行容器： 使用 Docker 实现前端应用的标准化构建、部署和运行 编写跨运行时的程序   今天继续来聊一下怎么编写‘跨平台’的构建插件，前端构建工具一直都是一个比较卷的赛道，毕竟它是前端工程化">
+<meta name="twitter:image" content="https://bobi.ink/images/unplugin/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>使用 unplugin 编写跨平台的构建插件</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/09/19/codemod/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/09/25/unplugin/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/09/25/unplugin/&text=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/09/25/unplugin/&is_video=false&description=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 unplugin 编写跨平台的构建插件&body=Check out this article: https://bobi.ink/2023/09/25/unplugin/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/09/25/unplugin/&name=使用 unplugin 编写跨平台的构建插件&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#webpack"><span class="toc-number">1.</span> <span class="toc-text">Webpack</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rollup"><span class="toc-number">2.</span> <span class="toc-text">Rollup</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#编写跨平台的插件"><span class="toc-number">3.</span> <span class="toc-text">编写跨平台的插件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#实战"><span class="toc-number">4.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue-热更新初识"><span class="toc-number">4.1.</span> <span class="toc-text">Vue 热更新初识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实现"><span class="toc-number">4.2.</span> <span class="toc-text">实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#支持-hmr"><span class="toc-number">4.3.</span> <span class="toc-text">支持 HMR</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        使用 unplugin 编写跨平台的构建插件
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-09-24T16:00:00.000Z" itemprop="datePublished">2023-09-25</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><img src="/images/unplugin/Untitled.png" alt="State of JS"></p>
+<p><br></p>
+<p>这篇文章继续我们的‘跨平台’之旅， 之前我们聊过:</p>
+<ul>
+<li>编写‘跨版本’ 的组件库： <a href="https://juejin.cn/post/7243413934765916219" target="_blank" rel="noopener">如何实现支持跨 Vue 2/3 的组件库</a></li>
+<li>编写‘跨框架’的组件：<a href="https://juejin.cn/post/7263062397240377404" target="_blank" rel="noopener">来一瓶 Web Component 魔法胶水</a></li>
+<li>跨平台的运行容器： <a href="https://juejin.cn/post/7269668219488354361" target="_blank" rel="noopener">使用 Docker 实现前端应用的标准化构建、部署和运行</a></li>
+<li><a href="https://juejin.cn/post/7277426842814709815" target="_blank" rel="noopener">编写跨运行时的程序</a></li>
+</ul>
+<p><br></p>
+<p>今天继续来聊一下怎么编写‘跨平台’的构建插件，前端构建工具一直都是一个比较卷的赛道，毕竟它是前端工程化的重要一环，此时此刻它正在经历着新一轮的变革 —— 使用系统编程语言(如 Rust、Go) 重构。</p>
+<p><br></p>
+<p>从 Webpack、Parcel，到 Vite, 再到 Turbopack、<a href="https://www.rspack.dev/" target="_blank" rel="noopener">Rspack</a>、Bun… 百花齐放。</p>
+<p><br></p>
+<p>那问题又来了，新的构建工具出来，意味着又有新的“技术债”产生。</p>
+<p>在这个技术快速发展的时代，新旧并存的局面没办法避免。作为库的开发者，我们希望我们的库能够服务更多的人，那“跨平台”是我们不得不考虑的问题。</p>
+<p><br></p>
+<p><strong>怎么开发一个跨平台的构建插件呢？</strong></p>
+<p>首先我们要站在更高的角度审视这些构建工具，这些构建工具主要做什么工作？从它们暴露的插件 API 中抽象共性。这些构建工具目的都是一致的，无非就是:</p>
+<ul>
+<li>文件预处理/转换。比如 sass、typescript、image、icon 等，前端需要处理的各类资源的处理</li>
+<li>依赖关系处理。解析和处理模块之间的依赖关系</li>
+<li>代码输出。包含代码合并、代码优化、产物输出等。</li>
+</ul>
+<p>主要的差异点无非就是实现不同，进而在扩展性、构建性能上面也会有不同的表现。</p>
+<p><br></p>
+<p>接下来我们就挑两个目前比较主流的构建工具来喵喵看，我挑选的是 <code>Webpack</code> 和 <code>Rollup</code>（ Vite 也是基于 Rollup 的，两者差异不大）。</p>
+<p><br><br><br></p>
+<h1 id="webpack"><a href="#webpack" class="headerlink" title="Webpack"></a>Webpack</h1><p>尽管这几年受到了 Vite 等方案的挑战，但不得不承认，Webpack 依旧是王，至少在生态和存量市场上。</p>
+<p><br></p>
+<p>Webpack 是基于<code>事件驱动</code>(Event Driven) 的<code>插件式</code>编译器。Webpack 就是一个非常典型的<code>微内核</code>架构， 可以说 Webpack 的内核就是 <a href="https://github.com/webpack/tapable" target="_blank" rel="noopener"><code>Tapable</code></a>，非常小、非常优雅。非常值得我们去反复咀嚼研究</p>
+<p>几乎所有的功能，不管是内置的、还是第三方的都是通过插件的形式实现。包括我们看到的所有的 webpack 配置， 都会被解析转换成相应的插件，而配置不过是方便用户使用的<code>用户界面</code>罢了</p>
+<p>Webpack 通过 <code>Tapable Hooks</code> 暴露了丰富的生命周期钩子，支持开发者对编译器、模块查找、文件转换、优化、产物生成的每一个细节进行定制。</p>
+<p><br></p>
+<blockquote>
+<p>💡  了解 Webpack 的一些基本概念。</p>
+<ul>
+<li><code>Compiler</code>：即 Webpack 编译器本身，它从整体上管理 Webpack 的生命周期，负责处理配置、加载插件、构造核心的对象（Compilation、Resolver、Modulefactory 等），可以认为就是一个全局的管理者。</li>
+<li><code>Compilation</code>: 由 Compiler 创建，可以认为是 Webpack 的核心大脑，Webpack 的大部分工作由它完成，它包含依赖图(Dependency Graph)的构造、负责模块构造、转换、优化、资源输出等各种核心的流程。</li>
+<li><code>Resolver</code>：模块查找器，简单说就是将相对路径转换为绝对路径</li>
+<li><code>Module</code>: JavaScript 模块在 Webpack 内的表示</li>
+<li><code>Module Factory</code>：Module 构造工厂</li>
+<li><code>Parser</code>：解析 Module 为 AST, 获取模块依赖。</li>
+<li><code>Loader</code>: 负责将文件输入(比如图片、CSS、JavaScript 文件等等)转换为 Module。Loader 通常只负责无副作用的转换工作，Loader 有点类似于 Shell 命令行</li>
+<li><code>Plugin</code>: 插件，为 Webpack 扩展实际的功能</li>
+</ul>
+</blockquote>
+<p><br></p>
+<p>Webpack 暴露了非常丰富的 <a href="https://webpack.js.org/api/compiler-hooks/" target="_blank" rel="noopener">Hooks</a>，这些 Hooks 主要由两个主要的对象管理，即 <code>Compiler</code> 和 <code>Compilation</code>。怎么理解这两个对象呢？从两个角度看：</p>
+<p><br></p>
+<ul>
+<li>从构建工具的角度看， Compiler 代表的是 Webpack 构建的整体流程</li>
+<li>从模块的角度看， Compilation 则负责具体模块的编译流程</li>
+</ul>
+<p><br></p>
+<p>下面，我整理 Compiler 和 Compilation 暴露的常用的 hooks 以及调用的顺序。可以一窥 Webpack 的运行原理。</p>
+<p><strong>Compiler 生命周期</strong>：</p>
+<p><img src="/images/unplugin/Untitled%201.png" alt="Compiler"></p>
+<p><br></p>
+<p><strong>Compilation 生命周期</strong>：</p>
+<p><img src="/images/unplugin/Untitled%202.png" alt="Compilation"></p>
+<p><br></p>
+<p>这些 Hooks 的详情介绍和使用，可以参考 <a href="https://webpack.js.org/api/compiler-hooks/#afterenvironment" target="_blank" rel="noopener">Webpack 的文档</a>。</p>
+<p><strong>我建议你去直接去看 Webpack 的源码，技巧是：搜索对应的 Hooks 是怎么被触发和消费的， 可以帮助你进一步理解它们的意义。</strong></p>
+<p><br><br><br></p>
+<h1 id="rollup"><a href="#rollup" class="headerlink" title="Rollup"></a>Rollup</h1><p>跟 Webpack 相比，Rollup 的 hooks 更加精练。没有像 Webpack 一样区分 Compiler 和 Compillation，Loader 和 Plugin。</p>
+<p>Webpack 暴露了很多 Hooks，有些文档上都没有提及，甚至有些连 Webpack 自己也没用上。</p>
+<p>尽管这样子可以给开发者很大的定制空间，但对于初学者来说，就很容易被这些细节淹没。</p>
+<p><br></p>
+<p><strong>Rollup 构建 Hooks</strong>:</p>
+<p><img src="/images/unplugin/Untitled%203.png" alt="Build hooks"></p>
+<ul>
+<li><code>resolveId</code>: 用于自定义模块查找逻辑</li>
+<li><code>load</code>: 用于自定义模块加载逻辑</li>
+<li><code>transform</code>：可以用于转换模块</li>
+<li><code>moduleParsed</code>：模块已解析</li>
+</ul>
+<p><br><br><br><br><br><br><br></p>
+<p><strong>Rollup 代码生成 Hooks</strong>:</p>
+<p><img src="/images/unplugin/Untitled%204.png" alt="Emit Hooks"></p>
+<p>学习 Rollup 插件的最好方式，还是去临摹别人怎么写， 先从<a href="https://github.com/rollup/plugins/tree/master/packages" target="_blank" rel="noopener">官方的插件</a>开始吧。</p>
+<p><br><br><br><br><br><br><br></p>
+<h1 id="编写跨平台的插件"><a href="#编写跨平台的插件" class="headerlink" title="编写跨平台的插件"></a>编写跨平台的插件</h1><p>除了 Webpack、Rollup，还有很多构建工具不停地被造出来，有没有办法开发一套跨平台的插件呢？</p>
+<p>目前最佳答案是 <a href="https://github.com/unjs/unplugin" target="_blank" rel="noopener">unplugin</a>, 它的主要贡献者还是 <a href="https://github.com/antfu" target="_blank" rel="noopener">antfu</a> 大佬。</p>
+<p><br></p>
+<p>unplugin 以 Rollup 插件 API 为基准，Rollup 这套 API 非常精练，这个抽象基本可以覆盖到主流的构建工具。</p>
+<p><img src="/images/unplugin/Untitled%205.png" alt="API"></p>
+<p><br></p>
+<p>大家可以直接去看源码，代码并不多。以下是 Webpack 和 unplugin API 的映射关系：</p>
+<p><img src="/images/unplugin/Untitled%206.png" alt="Webpack to Rollup"></p>
+<p><br><br><br><br><br></p>
+<h1 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h1><p>接下来，是实战部分。</p>
+<p>我在 <a href="https://juejin.cn/post/7244800185024380984#heading-4" target="_blank" rel="noopener">《前端如何破解 CRUD 的循环》</a>介绍了我们的组件库，示例如下：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; defineFatForm &#125; <span class="keyword">from</span> <span class="string">'@wakeadmin/components'</span></span><br><span class="line"><span class="keyword">import</span> &#123; ElMessageBox &#125; <span class="keyword">from</span> <span class="string">'element-plus'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> defineFatForm&lt;&#123;</span><br><span class="line">  <span class="comment">// 🔴 这里的泛型变量可以定义表单数据结构</span></span><br><span class="line">  name: string</span><br><span class="line">  nickName: string</span><br><span class="line">&#125;&gt;<span class="function">(<span class="params">(&#123; item, form, consumer, group &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 🔴 这里可以放置 Vue Hooks</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 返回表单定义</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">()</span> =&gt;</span> (&#123;</span><br><span class="line">    <span class="comment">// FatForm props 定义</span></span><br><span class="line">    initialValue: &#123;</span><br><span class="line">      name: <span class="string">'ivan'</span>,</span><br><span class="line">      nickName: <span class="string">'狗蛋'</span>,</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    submit: <span class="keyword">async</span> (values) =&gt; &#123;</span><br><span class="line">      <span class="keyword">await</span> ElMessageBox.confirm(<span class="string">'确认保存'</span>)</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'保存成功'</span>, values)</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 🔴 子节点</span></span><br><span class="line">    children: [</span><br><span class="line">      item(&#123; <span class="attr">prop</span>: <span class="string">'name'</span>, <span class="attr">label</span>: <span class="string">'账号名'</span> &#125;),</span><br><span class="line">      item(&#123;</span><br><span class="line">        prop: <span class="string">'nickName'</span>,</span><br><span class="line">        label: <span class="string">'昵称'</span>,</span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>现在有一个问题，defineFatForm 这种写法不支持热更新，每次修改都会重刷页面，体验很差。</p>
+<p><br></p>
+<p>因此今天我们就来写一个插件，让我们的组件库 define* 写法也支持像 Vue defineComponent 一样的热更新。</p>
+<blockquote>
+<p>defineComponent 的热更新实现可以参考 <a href="https://github.com/vitejs/vite-plugin-vue/tree/main/packages/plugin-vue-jsx" target="_blank" rel="noopener">@vitejs/plugin-vue-js</a></p>
+</blockquote>
+<p><br><br><br><br><br><br><br></p>
+<h2 id="vue-热更新初识"><a href="#vue-热更新初识" class="headerlink" title="Vue 热更新初识"></a>Vue 热更新初识</h2><p>来简单看看 Vue 是怎么实现热更新</p>
+<p>在 <code>SFC</code> （Single File Component）文件编译之后，Vue 插件会注入以下代码:</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 🔴 _sfc_main 是 SFC 编译出来的 Vue Component 组件</span></span><br><span class="line">_sfc_main.__hmrId = <span class="string">'模块ID'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 注册组件记录</span></span><br><span class="line"><span class="keyword">typeof</span> __VUE_HMR_RUNTIME__ !== <span class="string">'undefined'</span> &amp;&amp; __VUE_HMR_RUNTIME__.createRecord(_sfc_main.__hmrId, _sfc_main)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> _rerender_only = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 🔴 vite 热更新</span></span><br><span class="line"><span class="keyword">import</span>.meta.hot.(<span class="function"><span class="params">mod</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 🔴 当前模块更新后会触发当前回调</span></span><br><span class="line">  <span class="keyword">if</span> (!mod) <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">const</span> &#123; <span class="attr">default</span>: updated, _rerender_only &#125; = mod</span><br><span class="line">  <span class="keyword">if</span> (_rerender_only) &#123;</span><br><span class="line">    <span class="comment">// 🔴 SFC 可以支持替换 render，不会丢失状态，开发体验会更好，</span></span><br><span class="line">    __VUE_HMR_RUNTIME__.rerender(updated.__hmrId, updated.render)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 🔴 如果是 defineComponent 就这里走这里了，会触发 parent 完全重新渲染组件，状态会丢失</span></span><br><span class="line">    __VUE_HMR_RUNTIME__.reload(updated.__hmrId, updated)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>Vue 内部是怎么实现 <code>HMR</code> 的呢？</p>
+<ul>
+<li><code>__VUE_HMR_RUNTIME__.createRecord(模块ID, 组件)</code> 会将“<code>组件实现</code>”放到一个全局 Map 中，和 <code>模块 ID</code> 关联起来</li>
+<li><p>组件挂载时，将组件实例 + 模块 ID 关联起来：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 挂载时注册</span></span><br><span class="line"><span class="keyword">if</span> (__DEV__ &amp;&amp; instance.type.__hmrId) &#123;</span><br><span class="line">  registerHMR(instance)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  <br></p>
+<p>现在全局 Map 的结构类似：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> records = &#123;</span><br><span class="line">  [__hmrId]: &#123;</span><br><span class="line">    initialDef: 组件实现，</span><br><span class="line">    instances: <span class="built_in">Set</span>&lt;[所有已渲染的组件实例]&gt;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>组件卸载后，同理从这个 Map 中移除实例</p>
+</li>
+<li>rerender: 更新 initialDef 和所有“组件实例” render 方法，然后 update() 所有“组件实例”</li>
+<li>reload：更新 initialDef, 遍历所有“组件实例”，调用“组件实例” parent 节点 的 update() 方法，重新渲染当前组件</li>
+</ul>
+<blockquote>
+<p>源码在<a href="https://github.com/vuejs/core/blob/main/packages/runtime-core/src/hmr.ts" target="_blank" rel="noopener">这里</a>。来看看</p>
+</blockquote>
+<p><br><br><br><br><br></p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>首先，快速通过 <a href="https://github.com/unplugin/unplugin-starter" target="_blank" rel="noopener">unplugin-starter</a> 初始化一个项目模板：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ npx degit antfu/unplugin-starter unplugin-wakeadmin-components</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>在项目命名上，遵循 unplugin 的<a href="https://github.com/unjs/unplugin#conventions" target="_blank" rel="noopener">规范</a>， 使用 <code>unplugin-*</code> 的形式， Vite 下，插件用法如下：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vite.config.ts</span></span><br><span class="line"><span class="keyword">import</span> WakeadminComponents <span class="keyword">from</span> <span class="string">'unplugin-wakeadmin-components/vite'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> defineConfig(&#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    WakeadminComponents(&#123;</span><br><span class="line">      <span class="comment">/* options */</span></span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>先来写一个 Hello world，小试牛刀。</p>
+<p>第一步， 我们先给 <code>define*</code> 方法调用加上 <code>#__PURE__</code> 注释，避免被识别为‘副作用’，这个有利于 Tree-Shaking 和 死代码消除(Dead Code Elimination)。</p>
+<p><br><br><br></p>
+<p>读者可以在 <a href="https://try.terser.org/" target="_blank" rel="noopener">Terser REPL</a> 上对比一下以下代码的优化结果：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// B 不会被清理掉</span></span><br><span class="line"><span class="keyword">const</span> A = defineA(&#123;&#125;)</span><br><span class="line"><span class="keyword">const</span> B = defineA(&#123;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(A)</span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// B 会被清理掉</span></span><br><span class="line"><span class="keyword">const</span> A = <span class="comment">/*#__PURE__*/</span> defineA(&#123;&#125;)</span><br><span class="line"><span class="keyword">const</span> B = <span class="comment">/*#__PURE__*/</span> defineA(&#123;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(A)</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>现在开始写插件的实现。首先定义插件的<code>参数</code>：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import type &#123; ParserOptions &#125; from &apos;@babel/core&apos;</span><br><span class="line">import type &#123; FilterPattern &#125; from &apos;@rollup/pluginutils&apos;</span><br><span class="line"></span><br><span class="line">export interface Options &#123;</span><br><span class="line">  /**</span><br><span class="line">   * 待处理的文件，默认 会处理 .jsx、.tsx 文件</span><br><span class="line">   */</span><br><span class="line">  include?: FilterPattern</span><br><span class="line">  exclude?: FilterPattern</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 是否开启 defineComponent 的处理，默认 false</span><br><span class="line">   */</span><br><span class="line">  enabledDefineComponent?: boolean</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * babel parser 插件，默认 [&apos;jsx&apos;]</span><br><span class="line">   * 如果是 tsx 文件，会加上 typescript</span><br><span class="line">   */</span><br><span class="line">  parserPlugins?: ParserOptions[&apos;plugins&apos;]</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 调试模式</span><br><span class="line">   */</span><br><span class="line">  debug?: boolean</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br><br><br></p>
+<p>接着是实现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import &#123; UnpluginFactory, createUnplugin &#125; from &apos;unplugin&apos;</span><br><span class="line">import &#123; createFilter &#125; from &apos;@rollup/pluginutils&apos;</span><br><span class="line">import type &#123; Options &#125; from &apos;./types&apos;</span><br><span class="line">import babel, &#123; PluginObj, ParserOptions &#125; from &apos;@babel/core&apos;</span><br><span class="line"></span><br><span class="line">const PLUGIN_NAME = &apos;unplugin-wakeadmin-components&apos;</span><br><span class="line">const t = babel.types</span><br><span class="line"></span><br><span class="line">const DEFINE_FACTORIES = new Set([&apos;defineFatTable&apos;, &apos;defineFatForm&apos;])</span><br><span class="line"></span><br><span class="line">function isDefineCall(node: babel.types.CallExpression) &#123;</span><br><span class="line">  return t.isIdentifier(node.callee) &amp;&amp; DEFINE_FACTORIES.has(node.callee.name)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export const unpluginFactory: UnpluginFactory&lt;Options | undefined&gt; = (options, meta) =&gt; &#123;</span><br><span class="line">  const filter = createFilter(options?.include || /\.[jt]sx$/, options?.exclude)</span><br><span class="line">  const enableDefineComponent = options?.enabledDefineComponent</span><br><span class="line"></span><br><span class="line">  if (enableDefineComponent) &#123;</span><br><span class="line">    DEFINE_FACTORIES.add(&apos;defineComponent&apos;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  const REGEXP = new RegExp(`($&#123;Array.from(DEFINE_FACTORIES).join(&apos;|&apos;)&#125;)`, &apos;g&apos;)</span><br><span class="line"></span><br><span class="line">  return &#123;</span><br><span class="line">    name: PLUGIN_NAME,</span><br><span class="line">    // 🔴 配置为 pre, 在其他 loader 之前处理</span><br><span class="line">    enforce: &apos;pre&apos;,</span><br><span class="line">    // 🔴 筛选要被转换的文件</span><br><span class="line">    transformInclude(id) &#123;</span><br><span class="line">      const [filepath] = id.split(&apos;?&apos;)</span><br><span class="line"></span><br><span class="line">      return filter(id) || filter(filepath)</span><br><span class="line">    &#125;,</span><br><span class="line">    //  🔴 转换逻辑</span><br><span class="line">    transform(code, id) &#123;</span><br><span class="line">      if (code.match(REGEXP) == null) &#123;</span><br><span class="line">        // 没有包含 define* 跳过</span><br><span class="line">        return null</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      const plugins: PluginObj[] = []</span><br><span class="line">      const parserPlugins: ParserOptions[&apos;plugins&apos;] = [&apos;jsx&apos;]</span><br><span class="line"></span><br><span class="line">      if (id.endsWith(&apos;.tsx&apos;)) &#123;</span><br><span class="line">        parserPlugins.push(&apos;typescript&apos;)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      if (options?.parserPlugins) &#123;</span><br><span class="line">        parserPlugins.push(...options.parserPlugins)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      plugins.push(&#123;</span><br><span class="line">        visitor: &#123;</span><br><span class="line">          // 🔴  为 define* 添加 #__PURE__</span><br><span class="line">          CallExpression(path) &#123;</span><br><span class="line">            if (isDefineCall(path.node)) &#123;</span><br><span class="line">              path.get(&apos;callee&apos;).addComment(&apos;leading&apos;, &apos;#__PURE__&apos;)</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      const result = babel.transformSync(code, &#123;</span><br><span class="line">        sourceFileName: id,</span><br><span class="line">        sourceMaps: true,</span><br><span class="line">        babelrc: false,</span><br><span class="line">        configFile: false,</span><br><span class="line">        plugins,</span><br><span class="line">        parserOpts: &#123;</span><br><span class="line">          plugins: parserPlugins,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">      if (result?.code == null) &#123;</span><br><span class="line">        return null</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      return &#123;</span><br><span class="line">        code: result.code,</span><br><span class="line">        map: result?.map,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export const unplugin = /* #__PURE__ */ createUnplugin(unpluginFactory)</span><br><span class="line"></span><br><span class="line">export default unplugin</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>这里使用 Babel 来 parse 和 transform 代码。逻辑很简单，就是找到所有的函数调用，如果名称匹配到我们的 <code>define*</code> 列表，就给它添加 <code>#__PURE__</code> 注释。</p>
+<p>如果你对 Babel 代码感到吃力，可以看我之前写的文章 <a href="https://juejin.cn/post/6844903956905197576" target="_blank" rel="noopener">深入浅出 Babel 上篇：架构和原理 + 实战</a>。</p>
+<p><br><br><br><br><br><br><br></p>
+<h2 id="支持-hmr"><a href="#支持-hmr" class="headerlink" title="支持 HMR"></a>支持 HMR</h2><p>接下来，我们正式添加 HMR 的逻辑。</p>
+<p>我们需要在 JavaScript 文件中找出所有 <code>define*</code> 的“导出”， 以下形式导出我们都需要支持：</p>
+<p><br></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 命名导出</span><br><span class="line">export const NamedExport = defineFatForm(/*...*/)</span><br><span class="line">const AnotherNamedExport = defineFatForm(/*...*/)</span><br><span class="line"></span><br><span class="line">// 另一种命名导出</span><br><span class="line">export &#123; AnotherNamedExport &#125;</span><br><span class="line"></span><br><span class="line">// 默认导出形式</span><br><span class="line">export default defineFatForm(/*...*/)</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>转换后的代码类似于：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// 命名导出</span><br><span class="line">export const NamedExport = defineFatForm(/*...*/)</span><br><span class="line">const AnotherNamedExport = defineFatForm(/*...*/)</span><br><span class="line"></span><br><span class="line">// 另一种命名导出</span><br><span class="line">export &#123; AnotherNamedExport &#125;</span><br><span class="line"></span><br><span class="line">// 🔴 默认导出形式, 使用一个临时变量存储，方便后面 patch</span><br><span class="line">const __default__ = defineFatForm(/*...*/)</span><br><span class="line">export default __default__</span><br><span class="line"></span><br><span class="line">// 🔴 注册组件实例</span><br><span class="line">if (typeof __VUE_HMR_RUNTIME__ !== &apos;undefined&apos;) &#123;</span><br><span class="line">  NamedExport.__hmrId = &apos;a1203740&apos;</span><br><span class="line">  AnotherNamedExport.__hmrId = &apos;bad12ad2&apos;</span><br><span class="line">  __default__.__hmrId = &apos;x12312w32&apos;</span><br><span class="line"></span><br><span class="line">  __VUE_HMR_RUNTIME__.createRecord(&apos;a1203740&apos;, A)</span><br><span class="line">  __VUE_HMR_RUNTIME__.createRecord(&apos;bad12ad2&apos;, AnotherNamedExport)</span><br><span class="line">  __VUE_HMR_RUNTIME__.createRecord(&apos;x12312w32&apos;, __default__)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 🔴 vite HMR</span><br><span class="line">if (import.meta.hot) &#123;</span><br><span class="line">  import.meta.hot.accept(</span><br><span class="line">    (&#123;</span><br><span class="line">      NamedExport: __NamedExport,</span><br><span class="line">      AnotherNamedExport: __AnotherNamedExport,</span><br><span class="line">      default: __default,</span><br><span class="line">    &#125;) =&gt; &#123;</span><br><span class="line">      __VUE_HMR_RUNTIME__.reload(&apos;a1203740&apos;, __NamedExport)</span><br><span class="line">      __VUE_HMR_RUNTIME__.reload(&apos;bad12ad2&apos;, __AnotherNamedExport)</span><br><span class="line">      __VUE_HMR_RUNTIME__.reload(&apos;x12312w32&apos;, __default)</span><br><span class="line">    &#125;</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>照着上面的约定，我们来实现看看：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">// .. 省略</span><br><span class="line">const DEFAULT_LOCAL_NAME = &apos;__default__&apos;</span><br><span class="line"></span><br><span class="line">// 生成 hash 值</span><br><span class="line">function getHash(text: string) &#123;</span><br><span class="line">  return createHash(&apos;sha256&apos;).update(text).digest(&apos;hex&apos;).substring(0, 12)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 解析出来的热更新组件</span><br><span class="line">interface HotComponent &#123;</span><br><span class="line">  local: string</span><br><span class="line">  exported: string</span><br><span class="line">  id: string</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export const unpluginFactory: UnpluginFactory&lt;Options | undefined&gt; = (options, meta) =&gt; &#123;</span><br><span class="line">  // ....</span><br><span class="line">  let isWebpack = meta.framework === &apos;webpack&apos;</span><br><span class="line">  let isVite = meta.framework === &apos;vite&apos;</span><br><span class="line"></span><br><span class="line">  const enableHMR = process.env.NODE_ENV === &apos;development&apos; &amp;&amp; (isWebpack || isVite)</span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  return &#123;</span><br><span class="line">    // ...</span><br><span class="line">    transform(code, id) &#123;</span><br><span class="line">      // ...</span><br><span class="line">      // 🔴 记录查找到的组件</span><br><span class="line">      const hotComponents: HotComponent[] = []</span><br><span class="line"></span><br><span class="line">      // ...</span><br><span class="line"></span><br><span class="line">      if (enableHMR) &#123;</span><br><span class="line">        // 🔴 支持热更新</span><br><span class="line">        plugins.push(&#123;</span><br><span class="line">          visitor: &#123;</span><br><span class="line">            // 🔴 处理命名导出</span><br><span class="line">            ExportNamedDeclaration(path) &#123;</span><br><span class="line">              if (path.node.declaration &amp;&amp; t.isVariableDeclaration(path.node.declaration)) &#123;</span><br><span class="line">                // 🔴 export const xxx = defineXXX() 形式</span><br><span class="line">                const declarations = path.node.declaration.declarations</span><br><span class="line">                for (const decl of declarations) &#123;</span><br><span class="line">                  if (</span><br><span class="line">                    t.isIdentifier(decl.id) &amp;&amp;</span><br><span class="line">                    decl.init &amp;&amp;</span><br><span class="line">                    t.isCallExpression(decl.init) &amp;&amp;</span><br><span class="line">                    isDefineCall(decl.init)</span><br><span class="line">                  ) &#123;</span><br><span class="line">                    hotComponents.push(&#123;</span><br><span class="line">                      local: decl.id.name,</span><br><span class="line">                      exported: decl.id.name,</span><br><span class="line">                      id: getHash(id + decl.id.name),</span><br><span class="line">                    &#125;)</span><br><span class="line">                  &#125;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125; else if (path.node.specifiers) &#123;</span><br><span class="line">                // 🔴 export &#123; xxx &#125; 形式</span><br><span class="line">                const specifiers = path.node.specifiers</span><br><span class="line">                for (const spec of specifiers) &#123;</span><br><span class="line">                  if (t.isExportSpecifier(spec)) &#123;</span><br><span class="line">                    // 查找变量定义</span><br><span class="line">                    const binding = path.scope.getBinding(spec.local.name)</span><br><span class="line">                    if (</span><br><span class="line">                      binding &amp;&amp;</span><br><span class="line">                      t.isVariableDeclarator(binding.path.node) &amp;&amp;</span><br><span class="line">                      t.isCallExpression(binding.path.node.init) &amp;&amp;</span><br><span class="line">                      isDefineCall(binding.path.node.init)</span><br><span class="line">                    ) &#123;</span><br><span class="line">                      const exported = t.isIdentifier(spec.exported)</span><br><span class="line">                        ? spec.exported.name</span><br><span class="line">                        : spec.exported.value</span><br><span class="line">                      hotComponents.push(&#123;</span><br><span class="line">                        local: spec.local.name,</span><br><span class="line">                        exported,</span><br><span class="line">                        id: getHash(id + exported),</span><br><span class="line">                      &#125;)</span><br><span class="line">                    &#125;</span><br><span class="line">                  &#125;</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            // 🔴 默认导出</span><br><span class="line">            ExportDefaultDeclaration(path) &#123;</span><br><span class="line">              // export default defineXXX() 形式</span><br><span class="line">              const declaration = path.node.declaration</span><br><span class="line">              if (t.isCallExpression(declaration) &amp;&amp; isDefineCall(declaration)) &#123;</span><br><span class="line">                hotComponents.push(&#123;</span><br><span class="line">                  local: DEFAULT_LOCAL_NAME,</span><br><span class="line">                  exported: &apos;default&apos;,</span><br><span class="line">                  id: getHash(id + &apos;default&apos;),</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line">                // 创建临时变量</span><br><span class="line">                const variable = t.variableDeclaration(&apos;const&apos;, [</span><br><span class="line">                  t.variableDeclarator(t.identifier(DEFAULT_LOCAL_NAME), declaration),</span><br><span class="line">                ])</span><br><span class="line">                const exportDefault = t.exportDefaultDeclaration(t.identifier(DEFAULT_LOCAL_NAME))</span><br><span class="line">                // 替换 export default 为 export default __default__</span><br><span class="line">                path.replaceWithMultiple([variable, exportDefault])</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      // ....</span><br><span class="line"></span><br><span class="line">      if (hotComponents.length !== 0) &#123;</span><br><span class="line">        // 🔴 注入热更新代码</span><br><span class="line">        const hmrCode = patchHotComponents(hotComponents, meta.framework, id, options?.debug)</span><br><span class="line">        result.code = result.code + hmrCode</span><br><span class="line">      &#125;</span><br><span class="line">      // ...</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// ...</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>上面代码的主要逻辑是运用 Babel 来遍历导出语句，找出所有通过 <code>define*</code> 创建的组件。</p>
+<p><br></p>
+<p>接下来就是注入 HMR 的代码：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">function patchHotComponents(</span><br><span class="line">  hotComponents: HotComponent[],</span><br><span class="line">  framework: &apos;vite&apos; | &apos;webpack&apos;,</span><br><span class="line">  id: string,</span><br><span class="line">  debug?: boolean</span><br><span class="line">): string &#123;</span><br><span class="line">  let hmrCode = &apos;&apos;</span><br><span class="line">  let callbackCode = &apos;&apos;</span><br><span class="line">  const debugCode = debug ? `\n  console.log(&apos;HMR reloading for $&#123;id&#125;&apos;)` : &apos;&apos;</span><br><span class="line"></span><br><span class="line">  for (const c of hotComponents) &#123;</span><br><span class="line">    hmrCode +=</span><br><span class="line">      `\n  $&#123;c.local&#125;.__hmrId = $&#123;c.local&#125;.__wkhmr = &apos;$&#123;c.id&#125;&apos;` +</span><br><span class="line">      `\n  __VUE_HMR_RUNTIME__.createRecord(&apos;$&#123;c.id&#125;&apos;, $&#123;c.local&#125;)`</span><br><span class="line">    callbackCode += `\n  __VUE_HMR_RUNTIME__.reload(&quot;$&#123;c.id&#125;&quot;, __$&#123;c.exported&#125;)`</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  hmrCode = `\nif (typeof __VUE_HMR_RUNTIME__ !== &apos;undefined&apos;) &#123;\n$&#123;hmrCode&#125;\n&#125;\n`</span><br><span class="line"></span><br><span class="line">  if (framework === &apos;vite&apos;) &#123;</span><br><span class="line">    // 🔴 vite</span><br><span class="line">    hmrCode += `\nif (import.meta.hot) &#123;</span><br><span class="line">  import.meta.hot.accept((&#123;$&#123;hotComponents</span><br><span class="line">    .map((c) =&gt; `$&#123;c.exported&#125;: __$&#123;c.exported&#125;`)</span><br><span class="line">    .join(&apos;,&apos;)&#125;&#125;) =&gt; &#123;$&#123;debugCode&#125;$&#123;callbackCode&#125;\n&#125;)</span><br><span class="line">&#125;`</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    // 🔴 webpack</span><br><span class="line">    hmrCode += `\nif (module.hot) &#123;</span><br><span class="line">  // 接受自身，</span><br><span class="line">  module.hot.accept()</span><br><span class="line">  if (module.hot.status() !== &apos;idle&apos;) &#123;</span><br><span class="line">    const &#123;$&#123;hotComponents</span><br><span class="line">      .map((c) =&gt; `$&#123;c.exported&#125;: __$&#123;c.exported&#125;`)</span><br><span class="line">      .join(&apos;, &apos;)&#125;&#125; = __webpack_module__.exports</span><br><span class="line">    $&#123;debugCode&#125;</span><br><span class="line">    $&#123;callbackCode&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;`</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return hmrCode</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>Vite 和 Webpack 的 HMR API 有点差异。</p>
+<p><br></p>
+<p>相对而言 Vite 会更直观一点，使用 <code>import.meta.hot.accept(callback)</code> 一行代码就可以搞定，只要当前模块变动，回调就会被调用，并传入新的模块信息。</p>
+<p><br></p>
+<p>而 Webpack，要接受当前模块的更新，首先要调用一下 <code>module.hot.accept()</code>，表示未来的模块更新我可以自行处理。</p>
+<p>后面每次代码模块更新，都会重新执行模块代码，我们通过 <code>status === &#39;idle&#39;</code> 来区分首次执行，还是后续的热更新重新执行，如果是热更新执行，就 reload 组件。</p>
+<p><br></p>
+<p>学废了吗？源代码在<a href="https://github.com/wakeadmin/components/tree/master/packages/unplugin/src" target="_blank" rel="noopener">这里</a></p>
+<p><br><br><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>这篇文章我们走马观花讲了讲 Webpack 和 Rollup 的插件 API，接着引入了 Unplugin。</p>
+<p>Unplugin 以 Rollup 的简练插件 API 为母版，这套 API 基本就是主流构建工具插件 API 的最小并集了，可以轻松兼容主流的平台。</p>
+<p>接着，实战部分，我们基于 Babel 写了一个简单的 Vue HMR 插件。</p>
+<p>如果读者想要进一步如何编写插件，可以临摹一些官方插件，再深一点，可以顺藤摸瓜看看源码。</p>
+<p><br><br><br><br><br></p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><a href="https://juejin.cn/post/6844903956905197576" target="_blank" rel="noopener">深入浅出 Babel 上篇：架构和原理 + 实战</a></li>
+<li><a href="https://cn.vitejs.dev/guide/api-plugin.html" target="_blank" rel="noopener">Vite</a></li>
+<li><a href="https://github.com/unjs/unplugin" target="_blank" rel="noopener">https://github.com/unjs/unplugin</a></li>
+<li><a href="https://webpack.docschina.org/api/plugins/#plugin-types" target="_blank" rel="noopener">Plugin API | webpack 中文文档</a></li>
+<li><a href="https://cn.rollupjs.org/plugin-development/#watchchange" target="_blank" rel="noopener">Rollup</a></li>
+<li><a href="https://blog.lyearn.com/how-webpack-works-236f8cc43ae7" target="_blank" rel="noopener">How Webpack works?</a></li>
+<li><a href="https://github.com/vitejs/vite-plugin-vue" target="_blank" rel="noopener">vite-plugin-vue</a></li>
+</ul>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#webpack"><span class="toc-number">1.</span> <span class="toc-text">Webpack</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#rollup"><span class="toc-number">2.</span> <span class="toc-text">Rollup</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#编写跨平台的插件"><span class="toc-number">3.</span> <span class="toc-text">编写跨平台的插件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#实战"><span class="toc-number">4.</span> <span class="toc-text">实战</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue-热更新初识"><span class="toc-number">4.1.</span> <span class="toc-text">Vue 热更新初识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#实现"><span class="toc-number">4.2.</span> <span class="toc-text">实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#支持-hmr"><span class="toc-number">4.3.</span> <span class="toc-text">支持 HMR</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#扩展阅读"><span class="toc-number">6.</span> <span class="toc-text">扩展阅读</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/09/25/unplugin/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/09/25/unplugin/&text=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/09/25/unplugin/&is_video=false&description=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=使用 unplugin 编写跨平台的构建插件&body=Check out this article: https://bobi.ink/2023/09/25/unplugin/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/09/25/unplugin/&title=使用 unplugin 编写跨平台的构建插件"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/09/25/unplugin/&name=使用 unplugin 编写跨平台的构建插件&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
