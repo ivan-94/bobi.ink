@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="if 我是前端 Leader 系列已经好久没更新了，我这两三年都去哪了?  😂 有可能掉进了一个黑洞。不是 Byte Dance，现在国内大小公司都卷，整体行业的已经被带偏了，还有向其他行业蔓延的趋势… 真是好的不学  那我现在怎么又开始写文章了？ 因为现在我不卷工作了，公司也开始的考勤打卡，我觉得挺好了，一切按规矩办事，到点就弹射下班。 工作只是生活的一部分而已，工作的目的本来就是为了生活过得">
+<meta name="keywords" content="Blog,FrontEnd,React,Javascript,Typescript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="if 我是前端 Leader, 前端业务开发做不做设计？">
+<meta property="og:url" content="https://bobi.ink/2023/10/08/biz-design/index.html">
+<meta property="og:site_name" content="Bobi.ink">
+<meta property="og:description" content="if 我是前端 Leader 系列已经好久没更新了，我这两三年都去哪了?  😂 有可能掉进了一个黑洞。不是 Byte Dance，现在国内大小公司都卷，整体行业的已经被带偏了，还有向其他行业蔓延的趋势… 真是好的不学  那我现在怎么又开始写文章了？ 因为现在我不卷工作了，公司也开始的考勤打卡，我觉得挺好了，一切按规矩办事，到点就弹射下班。 工作只是生活的一部分而已，工作的目的本来就是为了生活过得">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%201.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%202.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%203.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%204.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/%E6%8B%BC%E5%9B%A2.jpg">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/design-%E4%BC%98%E6%83%A0%E5%88%B8.jpg">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2014.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/%E6%B4%BB%E5%8A%A8%E9%A2%84%E7%BA%A6%E6%B5%81%E7%A8%8B%E5%9B%BE.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2015.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/%E7%8A%B6%E6%80%81%E6%9C%BA-%E7%AC%AC_2_%E9%A1%B5.jpg">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2016.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2017.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2018.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2019.png">
+<meta property="og:image" content="https://bobi.ink/images/biz-design/Untitled%2020.png">
+<meta property="og:updated_time" content="2023-10-08T07:19:54.127Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="if 我是前端 Leader, 前端业务开发做不做设计？">
+<meta name="twitter:description" content="if 我是前端 Leader 系列已经好久没更新了，我这两三年都去哪了?  😂 有可能掉进了一个黑洞。不是 Byte Dance，现在国内大小公司都卷，整体行业的已经被带偏了，还有向其他行业蔓延的趋势… 真是好的不学  那我现在怎么又开始写文章了？ 因为现在我不卷工作了，公司也开始的考勤打卡，我觉得挺好了，一切按规矩办事，到点就弹射下班。 工作只是生活的一部分而已，工作的目的本来就是为了生活过得">
+<meta name="twitter:image" content="https://bobi.ink/images/biz-design/Untitled.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>if 我是前端 Leader, 前端业务开发做不做设计？</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- rss -->
+    
+    
+</head>
+
+<body>
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fa fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="/2023/09/27/to-young-me/"><i class="fa fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fa fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/10/08/biz-design/"><i class="fa fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/10/08/biz-design/&text=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/10/08/biz-design/&is_video=false&description=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端 Leader, 前端业务开发做不做设计？&body=Check out this article: https://bobi.ink/2023/10/08/biz-design/"><i class="fa fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/10/08/biz-design/&name=if 我是前端 Leader, 前端业务开发做不做设计？&description="><i class="fa fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-为什么需要设计？"><span class="toc-number">1.</span> <span class="toc-text">0. 为什么需要设计？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-画好业务流程图"><span class="toc-number">2.</span> <span class="toc-text">1. 画好业务流程图</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-图例和要点"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 图例和要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-案例"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-1：-营销拼团"><span class="toc-number">2.2.1.</span> <span class="toc-text">案例 1： 营销拼团</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-2-优惠券"><span class="toc-number">2.2.2.</span> <span class="toc-text">案例 2: 优惠券</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-3：-活动预约"><span class="toc-number">2.2.3.</span> <span class="toc-text">案例 3： 活动预约</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-做好概要设计"><span class="toc-number">3.</span> <span class="toc-text">2. 做好概要设计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-页面-模块拆分"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 页面/模块拆分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-数据模型拆分和设计"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 数据模型拆分和设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-业务状态机-业务主体生命周期"><span class="toc-number">3.2.1.</span> <span class="toc-text">2.2.1 业务状态机/业务主体生命周期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-模型设计"><span class="toc-number">3.2.2.</span> <span class="toc-text">2.2.2 模型设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-输出案例"><span class="toc-number">3.2.3.</span> <span class="toc-text">2.2.3 输出案例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-视图设计：组件拆分和设计"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 视图设计：组件拆分和设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-扩展点设计"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 扩展点设计</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-评审"><span class="toc-number">4.</span> <span class="toc-text">4. 评审</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index width mx-auto px2 my4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        if 我是前端 Leader, 前端业务开发做不做设计？
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Bobi.ink</span>
+      </span>
+      
+    <div class="postdate">
+        <time datetime="2023-10-07T16:00:00.000Z" itemprop="datePublished">2023-10-08</time>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p><a href="https://juejin.cn/column/7249626243124101181" target="_blank" rel="noopener">if 我是前端 Leader 系列</a>已经好久没更新了，我这两三年都去哪了?</p>
+<p><img src="/images/biz-design/Untitled.png" alt="Twitter"></p>
+<p>😂 有可能掉进了一个黑洞。不是 Byte Dance，现在国内大小公司都卷，整体行业的已经被带偏了，还有向其他行业蔓延的趋势… 真是好的不学</p>
+<p><br></p>
+<p>那我现在怎么又开始写文章了？</p>
+<p>因为现在我不卷工作了，公司也开始的考勤打卡，我觉得挺好了，<strong>一切按规矩办事</strong>，到点就弹射下班。</p>
+<p>工作只是生活的一部分而已，工作的目的本来就是为了生活过得更好不是吗？这才应该是正常的人生形态，你说是不是？ 2023 年了，梦也该醒了</p>
+<p><br></p>
+<p><img src="/images/biz-design/Untitled%201.png" alt="老贼"></p>
+<p><br></p>
+<hr>
+<p><br></p>
+<blockquote>
+<p><strong>💥 另外，我这边也想挪坑了，Base 珠海、远程也可以，有坑位推荐的可以私信我，感激不尽</strong>。</p>
+</blockquote>
+<hr>
+<p><br><br><br></p>
+<p><strong>回到正题，做业务前端开发要不要做设计呢？我觉得大部分情况不需要，简单的增删改查业务，没有必要浪费时间去做这些，只要在产品侧描述清楚就行了。</strong></p>
+<p>如果业务比较复杂、涉及到多人分工和共识建立、而且项目预留的充裕的时间给开发者做预研和设计，那么做一下设计还是有必要的。</p>
+<p>那怎么做呢？本文就介绍一下我在这方面的探索，希望能给读者提供一些借鉴。</p>
+<p><br><br><br></p>
+<h1 id="0-为什么需要设计？"><a href="#0-为什么需要设计？" class="headerlink" title="0. 为什么需要设计？"></a>0. <strong>为什么需要设计？</strong></h1><p><img src="/images/biz-design/Untitled%202.png" alt="一次做好"></p>
+<ul>
+<li>敏捷 DoD 有个设计环节，后端通常有设计和评审环节，这个阶段前端应该有什么产出？</li>
+<li>前端专业性体现在哪里呢？</li>
+<li>和 DDD 一样。 在开始开发之前，把设计工作做好，开发就是照葫芦画瓢，我们的工作更容易预测，没有惊喜。很多问题在 Code Review 阶段发现有可能已经晚了，何况我们 Code Review 还没做好？</li>
+<li>设计不是一个人的事情，我们要利用集体智慧，把事情做好。 以后前端也会有一个技术评审会议。这是除 Code Review 之外，难得一次技术上的沟通和知识互换。</li>
+<li>写完代码之后呢？文档呢？听说过文档驱动开发吗？设计阶段的产出就是我们的文档。</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h1 id="1-画好业务流程图"><a href="#1-画好业务流程图" class="headerlink" title="1. 画好业务流程图"></a>1. 画好业务流程图</h1><p>设计的第一步是梳理业务。这个不是产品的责任吗？产品会提供 PRD、原型、用户故事等需求输入，但是下游的开发、测试还需要进一步消化，因为职责的不同，立场和关注点也是有差异的。</p>
+<p>因此，笔者设计了一套适合前端的业务流程图绘制规范。<code>关注点</code>在于：</p>
+<ul>
+<li>用户与 UI 的<code>交互流程</code></li>
+<li>页面或模块的<code>拆分</code></li>
+<li>页面或模块之间的<code>数据流</code></li>
+<li>以及页面或模块的<code>状态流转</code>。</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="1-1-图例和要点"><a href="#1-1-图例和要点" class="headerlink" title="1.1 图例和要点"></a>1.1 图例和要点</h2><p><img src="/images/biz-design/Untitled%203.png" alt="示例"></p>
+<p><strong>图例</strong>：</p>
+<p><br></p>
+<p><img src="/images/biz-design/Untitled%204.png" alt="图例"></p>
+<p><br><br><br></p>
+<p><strong>要点</strong>：</p>
+<ul>
+<li>流程图要表示业务流程的<code>闭环</code>，而不是前端的<code>局部交互</code>。</li>
+<li>和传统业务流程图不太一样的是，我们的业务流程图也会关注<code>用户的交互流程</code>。</li>
+<li>尽量使用<code>业务语言</code>，而不是<code>技术语言</code>。</li>
+<li>使用泳道来表示业务环节由什么<code>容器</code>来承载。</li>
+<li>梳理流程图时不要过度关注<code>技术实现细节</code>。</li>
+</ul>
+<p><strong>通过流程图可以提供什么信息？</strong></p>
+<ul>
+<li>熟悉业务规则，比如业务的边界条件、业务主体状态的流转规则、流程数据(通信规则)。</li>
+<li>分析模块之间的依赖关系。</li>
+<li>页面的状态(有限状态机)。</li>
+</ul>
+<p><strong>无法提供什么信息？</strong></p>
+<ul>
+<li>无法体现技术设计细节</li>
+<li>无法体现视图的呈现细节</li>
+</ul>
+<p>→ 这部分由概要设计来弥补</p>
+<p><br><br><br><br><br></p>
+<h2 id="1-2-案例"><a href="#1-2-案例" class="headerlink" title="1.2 案例"></a>1.2 案例</h2><blockquote>
+<p>统一使用 <a href="http://draw.io" target="_blank" rel="noopener">draw.io</a> 来绘制流程图。将流程图保存在项目根目录下的 docs 下，跟随代码一起存储和更新。</p>
+</blockquote>
+<blockquote>
+<p>推荐 VSCode <a href="http://draw.io" target="_blank" rel="noopener">draw.io</a> 插件</p>
+</blockquote>
+<p><br></p>
+<h3 id="案例-1：-营销拼团"><a href="#案例-1：-营销拼团" class="headerlink" title="案例 1： 营销拼团"></a>案例 1： 营销拼团</h3><p><img src="/images/biz-design/%E6%8B%BC%E5%9B%A2.jpg" alt="拼团.jpg"></p>
+<p>要点：</p>
+<ul>
+<li>使用不同的泳道来表示页面</li>
+<li>不是该领域的流程放在 <code>其他领域</code> 或者 <code>外部域</code> , 这些不是该业务域的核心问题。通常也不是由该业务域来实现。</li>
+<li>使用子视图分离<code>团长</code>和团员的不同角色的业务</li>
+<li>使用黄色标记跨泳道之间的流程，用蓝色标记角色的业务发起点。</li>
+</ul>
+<p><br></p>
+<hr>
+<p><br><br><br><br><br></p>
+<h3 id="案例-2-优惠券"><a href="#案例-2-优惠券" class="headerlink" title="案例 2: 优惠券"></a>案例 2: 优惠券</h3><p><img src="/images/biz-design/design-%E4%BC%98%E6%83%A0%E5%88%B8.jpg" alt="优惠券"></p>
+<p>要点：</p>
+<ul>
+<li>如果多个页面的业务存在重复，可以在泳道上进行一些合并，例如<br><img src="/images/biz-design/Untitled%2014.png" alt="合并子视图"></li>
+</ul>
+<p><br></p>
+<hr>
+<p><br><br><br><br><br><br><br></p>
+<h3 id="案例-3：-活动预约"><a href="#案例-3：-活动预约" class="headerlink" title="案例 3： 活动预约"></a>案例 3： 活动预约</h3><p><img src="/images/biz-design/%E6%B4%BB%E5%8A%A8%E9%A2%84%E7%BA%A6%E6%B5%81%E7%A8%8B%E5%9B%BE.png" alt="活动预约流程图"></p>
+<p><br><br><br><br><br></p>
+<h1 id="2-做好概要设计"><a href="#2-做好概要设计" class="headerlink" title="2. 做好概要设计"></a>2. 做好概要设计</h1><p>业务流程图可以梳理待开发的业务流程、业务主体状态、依赖关系等等。这里并没有包含太多前端技术设计细节，<code>概要设计</code>就是为了弥补这块的空白。</p>
+<p>我在 <a href="https://juejin.cn/post/6844903936504119304" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么做好概要设计</a> 讲过类似的话题，可以结合一起看吧。</p>
+<p><br><br><br><br><br></p>
+<h2 id="2-1-页面-模块拆分"><a href="#2-1-页面-模块拆分" class="headerlink" title="2.1 页面/模块拆分"></a>2.1 页面/模块拆分</h2><p>根据<code>业务需求</code>以及<code>产品原型</code>对业务域内的页面进行拆分。页面拆分是前端设计中最简单的一个环节，主要涉及：</p>
+<ul>
+<li><strong>页面路由定义</strong>。<ul>
+<li>页面命名。我们推荐使用别名导航，而不是路径导航。因为路径的可读性较差、变动的频率也更高。</li>
+<li>页面路径。</li>
+<li>分包规划。如果是小程序，则需要考虑分包的规划，分包直接影响页面路径，以及后期发布。能不放在主包的就不放在主包。</li>
+</ul>
+</li>
+<li><p><strong>页面通信协议设计</strong>。</p>
+<ul>
+<li>路由参数(params)。设计携带在页面 URL 上的关键参数(查询字符串)。例如商品详情页面，id 表示商品 id。</li>
+<li><p>通信协议。如果路由参数无法满足需要，需要在页面之间<code>传递大量数据</code>或者<code>引用类型值</code>, 则需要用到<code>内存通信</code>。</p>
+<ul>
+<li>输入(data)。</li>
+<li><p>输出(backMessage)。页面返回参数， 移动端可能需要考虑，比如一些‘选择器’页面</p>
+<aside><br>⚠️ <strong>大部分场景我们不推荐使用内存通信，因为这会造成页面之间的耦合、丧失独立运行能力、且无法分享到外部。因此在审核设计时要考虑有没有必要用内存通信。</strong><br><br></aside>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>目录规划</strong>。<strong>原则是按业务聚合而不是职能聚合</strong>。我们推荐将同一个业务域下的组件、API、模型、页面都聚在一起，而不是按照功能分散在程序多处。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ❌ 按职能聚合</span></span><br><span class="line">/components</span><br><span class="line">  /a</span><br><span class="line">  /b</span><br><span class="line">  /c</span><br><span class="line">/pages</span><br><span class="line">  /page<span class="_">-a</span></span><br><span class="line">  /page-c</span><br><span class="line">/api</span><br><span class="line">/utils</span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ 按业务域聚合</span></span><br><span class="line">/modules</span><br><span class="line">   domain<span class="_">-a</span>/     <span class="comment"># 业务模块</span></span><br><span class="line">     components/</span><br><span class="line">       /a</span><br><span class="line">       /b</span><br><span class="line">     page-a.tsx</span><br><span class="line">     api.ts</span><br><span class="line">     utils.ts</span><br><span class="line">   domain-b/     <span class="comment"># 业务模块</span></span><br><span class="line">     components/</span><br><span class="line">       /c</span><br><span class="line">     page-b.tsx</span><br><span class="line">     api.ts</span><br><span class="line">routes.ts <span class="comment"># 通用注册路由，引用业务域的页面</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><br><br><br></p>
+<p><strong>输出案例</strong>：</p>
+<p><br></p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="section"># 优惠券</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 页面设计</span></span><br><span class="line"></span><br><span class="line">所属分包： member</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<table>
+<thead>
+<tr>
+<th>页面</th>
+<th>路径</th>
+<th>命名</th>
+<th>params</th>
+<th>data</th>
+<th>backMessage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br></p>
+<h2 id="2-2-数据模型拆分和设计"><a href="#2-2-数据模型拆分和设计" class="headerlink" title="2.2 数据模型拆分和设计"></a>2.2 数据模型拆分和设计</h2><p>数据模型用于放置业务逻辑和业务状态。</p>
+<p><br></p>
+<h3 id="2-2-1-业务状态机-业务主体生命周期"><a href="#2-2-1-业务状态机-业务主体生命周期" class="headerlink" title="2.2.1 业务状态机/业务主体生命周期"></a>2.2.1 <strong>业务状态机/业务主体生命周期</strong></h3><p>通过上面的业务流程图，我们可以发现很多业务可以抽象为<code>有限状态机</code>，而前端页面无非在不同的状态下，支持不同的呈现和操作。</p>
+<p>例如拼团详情页状态机：</p>
+<p><br></p>
+<p><img src="/images/biz-design/Untitled%2015.png" alt="状态机"></p>
+<p><strong>我们可以从上图抽象出三个状态(等待拼团、拼团过期、拼团成功、拼团取消)，以及挂靠在不同状态下的不同动作。</strong></p>
+<p><br></p>
+<p>最简单的实现是用一个状态枚举来表达它：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">enum GroupStatus &#123;</span><br><span class="line">  Pending = &apos;等待&apos;,</span><br><span class="line">  OutDated = &apos;过期&apos;,</span><br><span class="line">  Success = &apos;成功&apos;,</span><br><span class="line">  Cancelled = &apos;取消&apos;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<p>在视图层，我们可以给这些状态区分不同的呈现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">status === GroupStatus.Pending ? (</span><br><span class="line">  &lt;ButtonGroup&gt;</span><br><span class="line">    &lt;Button&gt;取消拼团&lt;/Button&gt;</span><br><span class="line">    &lt;Button&gt;分享拼团&lt;/Button&gt;</span><br><span class="line">  &lt;/ButtonGroup&gt;</span><br><span class="line">) : status === GroupStatus.OutDated || status === GroupStatus.Cancelled ? (</span><br><span class="line">  &lt;ButtonGroup&gt;</span><br><span class="line">    &lt;Button&gt;再次拼团&lt;/Button&gt;</span><br><span class="line">  &lt;/ButtonGroup&gt;</span><br><span class="line">) : status === GroupStatus.Success ? (</span><br><span class="line">  &lt;ButtonGroup&gt;</span><br><span class="line">    &lt;Button&gt;查看订单&lt;/Button&gt;</span><br><span class="line">    &lt;Button&gt;再次拼团&lt;/Button&gt;</span><br><span class="line">  &lt;/ButtonGroup&gt;</span><br><span class="line">) : null</span><br></pre></td></tr></table></figure>
+<p><br></p>
+<aside><br>💡 如果不同状态下视图有较大差异，可以将每个状态抽离成单独的组件。<br></aside>
+
+<p><br></p>
+<p>模型层对应的<code>行为</code>触发时，也可以对状态进行<code>断言检查</code>(assert， 或者转换守卫 guard)：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class GroupModel &#123;</span><br><span class="line">  status: GroupStatus</span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 取消拼团</span><br><span class="line">   */</span><br><span class="line">  cancel() &#123;</span><br><span class="line">    // 状态检查</span><br><span class="line">    this.assertStatus(GroupStatus.Pending, &apos;取消拼团&apos;)</span><br><span class="line">    await this.repo.cancel(this.id)</span><br><span class="line"></span><br><span class="line">    // 状态流转</span><br><span class="line">    this.status = GroupStatus.Cancelled</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  /**</span><br><span class="line">   * 状态检查</span><br><span class="line">   */</span><br><span class="line">  assertStatus(status: GroupStatus, message: string) &#123;</span><br><span class="line">    if (this.status !== status) &#123;</span><br><span class="line">      throw new Error(`程序异常：只能在 $&#123;status&#125; 状态下，才能 $&#123;message&#125;`)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然，对于复杂的页面，状态不会像上述的那么单一, 比如：</p>
+<ul>
+<li>有可能存在多个<code>业务主体</code>（可以理解为业务的参与角色，比如拼图有团长、团员），且不同业务主体有不同状态和转换逻辑</li>
+<li>甚至状态还可以<code>嵌套子状态</code>（复合状态 <a href="https://xstate.js.org/docs/zh/guides/introduction-to-state-machines-and-statecharts/#%E6%9C%80%E7%BB%88%E7%8A%B6%E6%80%81-final-state" target="_blank" rel="noopener">Compound states</a>）、<a href="https://xstate.js.org/docs/zh/guides/introduction-to-state-machines-and-statecharts/#%E5%A4%8D%E5%90%88%E7%8A%B6%E6%80%81-compound-states" target="_blank" rel="noopener">并行状态</a>(Parallel states)</li>
+<li>状态流转规则复杂等等。</li>
+</ul>
+<p><br><br><br></p>
+<p>就拿发起拼团这个例子来说：</p>
+<p><img src="/images/biz-design/%E7%8A%B6%E6%80%81%E6%9C%BA-%E7%AC%AC_2_%E9%A1%B5.jpg" alt="多个嵌套状态，可以由多个状态变量来控制。"></p>
+<p>多个嵌套状态，可以由多个状态变量来控制。</p>
+<p>如上所示，一个复杂业务流程会涉及很多子状态，在设计阶段我们需要将 不同的主体的状态 识别出来。后期就围绕着这些状态进行开发。</p>
+<p><br><br><br><br><br></p>
+<p><strong>好在我们在梳理业务流程图时，已经将相关规则梳理清楚了。识别这些状态并不难。更重要的是，这是一种业务建模思维的转变。</strong></p>
+<p>如果你想要深入学习和理解状态机， 或者在项目中严谨应用状态机，不妨试一下更专业的 <a href="https://xstate.js.org/docs/zh/guides/introduction-to-state-machines-and-statecharts/#%E7%8A%B6%E6%80%81-states" target="_blank" rel="noopener">XState</a>。</p>
+<p><br><br><br></p>
+<aside><br>💡 状态机学习资料：<br><br>- <a href="http://www.woshipm.com/pmd/828671.html" target="_blank" rel="noopener">产品之术：一目了然的状态机图</a><br>- <a href="http://www.woshipm.com/pd/594751.html" target="_blank" rel="noopener">如何绘画状态机来描述业务的变化</a><br>- <a href="https://xstate.js.org/" target="_blank" rel="noopener">XState</a><br><br></aside>
+
+<p><br><br><br></p>
+<h3 id="2-2-2-模型设计"><a href="#2-2-2-模型设计" class="headerlink" title="2.2.2 模型设计"></a>2.2.2 模型设计</h3><p><br><br><br><br><br></p>
+<p>模型(Model) 是一个核心对象，它承载了核心的业务逻辑。模型类中应该包含哪些内容呢？</p>
+<p><img src="/images/biz-design/Untitled%2016.png" alt="模型内容"></p>
+<ul>
+<li><p><strong>业务状态。即我们在上一节中识别出来的业务状态。在模型层中会为不同’主体‘创建一个状态变量，用于存放当前的状态。</strong></p>
+</li>
+<li><p><strong>业务数据</strong>。例如活动详情、当前选中数据、活动列表等等。</p>
+</li>
+<li><p><strong>计算数据/衍生数据</strong>。在业务数据的基础上计算出来。我们建议你不要去直接修改业务数据，而是优先基于业务数据去推断、计算你想要的数据。</p>
+</li>
+<li><p><strong>行为</strong>。模型就是是 数据+行为。通常行为可以总结为以下集中</p>
+<ul>
+<li>状态变更、流转。比如下单、发起拼团，触发业务状态之间的流转。</li>
+<li>业务数据变更。比如修改选中的商品、删除列表项。</li>
+<li>数据持久化。调用持久化层相关接口，对业务数据/状态进行持久化。</li>
+</ul>
+</li>
+<li><p><strong>事件</strong>。事件是模块解耦、实现扩展的一种重要手段。通常模型会抛出下列事件：</p>
+<ul>
+<li>业务状态变更。</li>
+<li>异常情况。</li>
+<li><p>考虑扩展点</p>
+<aside><br>💡 <strong>不过不是所有业务状态变更事件都应该抛出来</strong>，因为：<br>-  不是所有业务状态变更事件都能在前端捕获到。前端只是业务流程的局部，能被前端捕获的往往是由页面在界面触发的。<br>-  不是所有事件抛出去都有意义。结合实际场景来看，比如需要在这个事件触发时进行埋点。<br></aside>
+</li>
+</ul>
+</li>
+<li><p><strong>模型生命周期</strong>。使用依赖注入框架之后，需要关心这个问题，<strong>决定单例还是非单例</strong>？<br>原则是如果你的模型需要在整个应用生命周期中存在，则使用单例，例如登录、会员信息这些。大部分场景都应该使用非单例，跟随页面释放而释放。</p>
+</li>
+</ul>
+<p><br><br><br><br><br></p>
+<h3 id="2-2-3-输出案例"><a href="#2-2-3-输出案例" class="headerlink" title="2.2.3 输出案例"></a>2.2.3 输出案例</h3><p><br></p>
+<p>以登录 SDK 为例：</p>
+<ul>
+<li><p><strong>业务状态：</strong></p>
+<p><br><br><img src="/images/biz-design/Untitled%2017.png" alt="Untitled"><br><br></p>
+<ul>
+<li>登录状态<ul>
+<li>初始化：创建会话</li>
+<li>登录中</li>
+<li>登录成功：重新登录、更新用户信息、退出登录</li>
+<li>登录失败：再次登录<br><br></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>业务数据</strong>：</p>
+<ul>
+<li>会话信息</li>
+<li>失败信息</li>
+<li>重新登录的次数</li>
+</ul>
+</li>
+<li><strong>衍生数据</strong>：这些信息都从会话信息中提取出来<ul>
+<li>已登录？</li>
+<li>已注册？</li>
+<li>会话 id</li>
+<li>用户信息</li>
+</ul>
+</li>
+<li><strong>行为</strong>：<ul>
+<li>创建会话</li>
+<li>重新登录</li>
+<li>退出登录</li>
+<li>等待登录成功</li>
+<li>更新用户信息</li>
+</ul>
+</li>
+<li><strong>事件</strong>：<ul>
+<li>缓存会话恢复</li>
+<li>登录前</li>
+<li>初次登录成功</li>
+<li>登录成功</li>
+<li>登录失败</li>
+<li>会话刷新</li>
+<li>退出登录</li>
+<li>用户信息更新</li>
+</ul>
+</li>
+<li><strong>模型生命周期</strong>：单例</li>
+</ul>
+<p><br><br><br></p>
+<h2 id="2-3-视图设计：组件拆分和设计"><a href="#2-3-视图设计：组件拆分和设计" class="headerlink" title="2.3 视图设计：组件拆分和设计"></a>2.3 视图设计：组件拆分和设计</h2><p>组件的拆分和设计是前端设计的重头戏，合理拆分组件，可以提高代码复用率和后期的可维护性。关于如何拆分和设计组件见 <a href="https://www.notion.so/186be8c108d34d1db4da4fd71c262795?pvs=21" target="_blank" rel="noopener">组件设计指南</a> 、以及 <strong><a href="https://juejin.cn/post/6844903843189243917" target="_blank" rel="noopener">React 组件设计实践相关文章</a></strong></p>
+<p><br><br><br></p>
+<p><img src="/images/biz-design/Untitled%2018.png" alt="组件设计"></p>
+<p><br></p>
+<p><strong>案例：</strong></p>
+<p>NoticeBar 滚动公告栏</p>
+<p><img src="/images/biz-design/Untitled%2019.png" alt="NoticeBar 原型"></p>
+<p><strong>属性</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>说明</th>
+<th>类型</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mode</td>
+<td>通知栏模式，可选值为 <code>&#39;closeable&#39; / &#39;link&#39;</code></td>
+<td>string</td>
+<td>‘’</td>
+</tr>
+<tr>
+<td>text</td>
+<td>通知文本内容</td>
+<td>string</td>
+<td>‘’</td>
+</tr>
+<tr>
+<td>color</td>
+<td>通知文本颜色</td>
+<td>string</td>
+<td>#f60</td>
+</tr>
+<tr>
+<td>background</td>
+<td>滚动条背景</td>
+<td>string</td>
+<td>#fff7cc</td>
+</tr>
+<tr>
+<td>leftIcon</td>
+<td>左侧图标名称或图片链接</td>
+<td>string</td>
+<td>-</td>
+</tr>
+<tr>
+<td>rightIcon</td>
+<td>右侧图标名称或图片链接</td>
+<td>string</td>
+<td>-</td>
+</tr>
+<tr>
+<td>delay</td>
+<td>动画延迟时间 (s)</td>
+<td>number</td>
+<td>string</td>
+<td>1</td>
+</tr>
+<tr>
+<td>speed</td>
+<td>滚动速率 (px/s)</td>
+<td>number</td>
+<td>string</td>
+<td>60</td>
+</tr>
+<tr>
+<td>scrollable</td>
+<td>是否开启滚动播放，内容长度溢出时默认开启</td>
+<td>boolean</td>
+<td>-</td>
+</tr>
+<tr>
+<td>wrap</td>
+<td>是否开启文本换行，只在禁用滚动时生效</td>
+<td>boolean</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br></p>
+<p><strong>事件</strong></p>
+<table>
+<thead>
+<tr>
+<th>事件名</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>onClick</td>
+<td>单击通告栏时触发</td>
+</tr>
+<tr>
+<td>onClose</td>
+<td>关闭通告栏时触发</td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br></p>
+<p><strong>插槽</strong></p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>children</td>
+<td>通知栏内显示内容</td>
+</tr>
+<tr>
+<td>leftIcon</td>
+<td>自定义左边图标内容</td>
+</tr>
+<tr>
+<td>rightIcon</td>
+<td>自定义右侧图标内容</td>
+</tr>
+</tbody>
+</table>
+<p><br><br><br><br><br></p>
+<h2 id="2-4-扩展点设计"><a href="#2-4-扩展点设计" class="headerlink" title="2.4 扩展点设计"></a>2.4 扩展点设计</h2><p>如果你开发的是 SDK (即面向其他开发者)，那就需要考虑扩展性问题，你的程序需要考虑各种场景的使用，比如对于 ToB 行业， 需要考虑二开、项目交付时，对你的程序进行各种粒度的定制。我在 <a href="https://juejin.cn/post/7257560570740047931" target="_blank" rel="noopener">2B or not 2B: 多业态下的前端大泥球</a> 这篇文章也讨论过相关的背景。。</p>
+<p><br><br><br></p>
+<p>扩展点实现方式：</p>
+<ul>
+<li>使用<a href="https://www.notion.so/SDK-9adb4c7dc8b74f9cb7e4ef42f6d03274?pvs=21" target="_blank" rel="noopener">依赖注入形式</a>。依赖注入点可以由外部进行重新定义</li>
+<li>事件/回调。</li>
+</ul>
+<p><br><br><br></p>
+<p><strong>案例</strong>:</p>
+<p>登录 SDK 扩展点</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line"><span class="section">## 暴露的扩展点</span></span><br><span class="line"></span><br><span class="line">| 名称                                              | 说明                                                           | 单例 |</span><br><span class="line">| ------------------------------------------------- | -------------------------------------------------------------- | ---- |</span><br><span class="line">| 'DI.login.SUPPORT<span class="emphasis">_QUICK_</span>PHONE_AUTH': boolean;     | 是否支持快捷手机号码授权, 默认 true                            |</span><br><span class="line">| 'DI.login.SUPPORT<span class="emphasis">_QUICK_</span>USER<span class="emphasis">_INFO_</span>AUTH': boolean; | 是否支持快捷用户授权，默认 true                                |</span><br><span class="line">| 'DI.login.QUICK<span class="emphasis">_PHONE_</span>AUTH_TEXT': string;         | 手机号码快捷登录文案， 默认为手机号码快捷登录                  |</span><br><span class="line">| 'DI.login.QUICK<span class="emphasis">_USER_</span>INFO_TEXT': string;          | 快捷用户信息获取, 默认为 允许授权                              |</span><br><span class="line">| 'DI.login.ROUTE<span class="emphasis">_PROTOCOL_</span>DETAIL': string;         | 服务协议详情页面, 默认为 protocolDetail(命名路由)              |</span><br><span class="line">| 'DI.login.MAX<span class="emphasis">_RELOGIN_</span>COUNT': number;             | 最大重新登录次数, 默认为 10                                    |</span><br><span class="line">| 'DI.login.VERIFY_TIMEOUT': number;                | 发送验证码超时时间, 默认 60 秒                                 |</span><br><span class="line">| 'DI.login.LOGIN<span class="emphasis">_API': string;                     | 登录接口路径， 默认 /login_</span>v3/login_v3                         |</span><br><span class="line">| 'DI.login.USER<span class="emphasis">_RULE_</span>API': string;                 | 用户服务协议列表接口路径， 默认 /wk-base/c/agreement/queryList |</span><br><span class="line">| 'DI.login.REGISTER_API': string;                  | 注册用户接口路径， 默认 /cs/auth/user/register/v3              |</span><br><span class="line">| 'DI.login.UPDATE<span class="emphasis">_USER_</span>API': string;               | 更新用户信息接口路径， 默认 /cs/auth/vip/user/update_user      |</span><br><span class="line">| 'DI.login.SEND<span class="emphasis">_PHONE_</span>VERIFICATION<span class="emphasis">_API': string;   | 发送验证码接口路径， 默认 /cs/auth/user/send_</span>register_code     |</span><br><span class="line">| 'DI.login.PLATFORM': PlatformType;                | 当前平台                                                       |</span><br><span class="line">| 'DI.login.Implement': ImplementProtocol;          | 平台适配实现                                                   | yes  |</span><br><span class="line">| 'DI.login.LoginRepo': LoginRepo;                  | 登录接口实现                                                   | yes  |</span><br><span class="line">| 'DI.login.LoginModel': LoginModel;                | 登录模型                                                       | yes  |</span><br><span class="line">| 'DI.login.RegisterModel': RegisterModel;          | 注册模型                                                       | yes  |</span><br><span class="line">| 'DI.login.PhoneVerifyModel': PhoneVerifyModel;    | 手机验证码模型                                                 |</span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="section">## 暴露的事件</span></span><br><span class="line"></span><br><span class="line">| 标识符                                                                | 描述                         |</span><br><span class="line">| --------------------------------------------------------------------- | ---------------------------- |</span><br><span class="line">| 'Event.login.onRecover': SessionInfo;                                 | 从缓存中恢复                 |</span><br><span class="line">| 'Event.login.onBeforeLogin': undefined;                               | 登录前                       |</span><br><span class="line">| 'Event.login.onSetup': SessionInfo;                                   | 首次登录完成                 |</span><br><span class="line">| 'Event.login.onLogined': SessionInfo;                                 | 已鉴权，鉴权成功             |</span><br><span class="line">| 'Event.login.onLoginFailed': Error;                                   | 鉴权失败                     |</span><br><span class="line">| 'Event.login.onLoginComplete': &#123; info?: SessionInfo; error?: Error &#125;; | 登录完成，可能成功，可能失败 |</span><br><span class="line">| 'Event.login.onRefreshed': SessionInfo;                               | 会话刷新成功                 |</span><br><span class="line">| 'Event.login.onRefreshFailed': Error;                                 | 会话刷新失败                 |</span><br><span class="line">| 'Event.login.onLogout': never;                                        | 退出登录                     |</span><br><span class="line">| 'Event.login.onUpdateInfo': SessionInfo;                              | 更新信息成功                 |</span><br><span class="line">| 'Event.login.onUpdatedUser': UserInfo;                                | 更新用户信息                 |</span><br><span class="line">| 'Event.login.onUpdatedUserFailed': Error;                             | 更新用户信息失败             |</span><br><span class="line">| 'Event.login.onBeforeRegister': RegisterOptions;                      | 注册前                       |</span><br><span class="line">| 'Event.login.onRegistered': UserInfo;                                 | 注册成功                     |</span><br><span class="line">| 'Event.login.onRegisterFailed': Error;                                | 鉴权失败                     |</span><br></pre></td></tr></table></figure>
+<p><br><br><br><br><br></p>
+<h1 id="4-评审"><a href="#4-评审" class="headerlink" title="4. 评审"></a>4. 评审</h1><p><br><br><br></p>
+<p>当汽车到达一定的速度时，大部分的能耗用在了克服空气阻力(比如当到达 120km/h 时，大于 60%，随着速度的提升，这个比例会越来越高)。</p>
+<p>这个适用于软件开发，随着团队规模的扩大，我们会花费大量时间用于“<strong>达成共识</strong>”。</p>
+<p>这包括面对面的会议、电子邮件、即时消息、编写和阅读文档等各种形式。这是因为软件开发不仅仅是编写代码，更是需要理解业务需求、解决问题、协调任务、分享知识等。</p>
+<p>软件开发中有很多工具 和方法论，可以帮助提升“达成共识”的效率，近些年最为出名的应该是 DDD 了，比如它强调引入领域专家来指导软件的设计、划分边界上下文、统一语言等等。</p>
+<p>我们进行软件设计，也是出于此目的。因此一定要有评审，在这个过程中进行碰撞、纠错、最后达成共识。</p>
+<p><br><br><br><br><br></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>上文给做前端业务开发怎么做设计打了个样，主要脉络是：</p>
+<p><br></p>
+<p><img src="/images/biz-design/Untitled%2020.png" alt="脉络"></p>
+<ul>
+<li>业务梳理：我们定义了流程图的绘制规范。通过流程图来分析用户与 UI 的交互流程，凸显页面/模块之间的关系、状态的流转。</li>
+<li>模型设计：设计视图无关的状态和行为。这里引入了状态机的概念</li>
+<li>视图设计：页面、组件的拆分以及输入/输出的设计。</li>
+</ul>
+<p><br></p>
+<p>这些规范和观点可能并不完全适合你们的团队。为此，你们需要找出自身所面临的问题，然后采取行动，来构建出符合你们需求的设计规范。接着，在不断的迭代过程中，逐步完善和优化这些规范。</p>
+<p><br></p>
+<p>系列文章：</p>
+<ul>
+<li><a href="https://juejin.cn/post/6844903897610321934" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么制定前端协作规范?</a></li>
+<li><a href="https://juejin.cn/post/6844904016200073223" target="_blank" rel="noopener">if 我是前端 Leader，谈谈前端框架体系建设</a></li>
+<li><a href="https://juejin.cn/post/6844904001603895304" target="_blank" rel="noopener">if 我是前端 Leader，怎么走出小微前端团队的围墙?</a></li>
+<li><a href="https://juejin.cn/post/6844903953939824654" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么用好看板进行任务管理?</a></li>
+<li><a href="https://juejin.cn/post/6844903936504119304" target="_blank" rel="noopener">if 我是前端团队 Leader，怎么做好概要设计</a></li>
+</ul>
+<p><br></p>
+<blockquote>
+<p><strong>💥 另外，我这边也想挪坑了，Base 珠海、远程也可以，有坑位推荐的可以私信我，感激不尽</strong>。</p>
+</blockquote>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </div>
+    </div>
+
+
+
+    </div>
+    
+      <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#0-为什么需要设计？"><span class="toc-number">1.</span> <span class="toc-text">0. 为什么需要设计？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-画好业务流程图"><span class="toc-number">2.</span> <span class="toc-text">1. 画好业务流程图</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-图例和要点"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 图例和要点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-案例"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-1：-营销拼团"><span class="toc-number">2.2.1.</span> <span class="toc-text">案例 1： 营销拼团</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-2-优惠券"><span class="toc-number">2.2.2.</span> <span class="toc-text">案例 2: 优惠券</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#案例-3：-活动预约"><span class="toc-number">2.2.3.</span> <span class="toc-text">案例 3： 活动预约</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-做好概要设计"><span class="toc-number">3.</span> <span class="toc-text">2. 做好概要设计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-页面-模块拆分"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 页面/模块拆分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-数据模型拆分和设计"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 数据模型拆分和设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-业务状态机-业务主体生命周期"><span class="toc-number">3.2.1.</span> <span class="toc-text">2.2.1 业务状态机/业务主体生命周期</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-模型设计"><span class="toc-number">3.2.2.</span> <span class="toc-text">2.2.2 模型设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-输出案例"><span class="toc-number">3.2.3.</span> <span class="toc-text">2.2.3 输出案例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-视图设计：组件拆分和设计"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 视图设计：组件拆分和设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-扩展点设计"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 扩展点设计</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-评审"><span class="toc-number">4.</span> <span class="toc-text">4. 评审</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#总结"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=https://bobi.ink/2023/10/08/biz-design/"><i class="fa fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=https://bobi.ink/2023/10/08/biz-design/&text=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=https://bobi.ink/2023/10/08/biz-design/&is_video=false&description=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=if 我是前端 Leader, 前端业务开发做不做设计？&body=Check out this article: https://bobi.ink/2023/10/08/biz-design/"><i class="fa fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=https://bobi.ink/2023/10/08/biz-design/&title=if 我是前端 Leader, 前端业务开发做不做设计？"><i class="fa fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=https://bobi.ink/2023/10/08/biz-design/&name=if 我是前端 Leader, 前端业务开发做不做设计？&description="><i class="fa fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+      <ul>
+        <li id="toc"><a class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa fa-list fa-lg" aria-hidden="true"></i> TOC</a></li>
+        <li id="share"><a class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa fa-share-alt fa-lg" aria-hidden="true"></i> Share</a></li>
+        <li id="top" style="display:none"><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a></li>
+        <li id="menu"><a class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa fa-bars fa-lg" aria-hidden="true"></i> Menu</a></li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+    
+    <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2023 Ivan
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Blogs</a></li>
+         
+          <li><a href="http://github.com/ivan-94">Projects</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+</body>
+</html>
+<!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="/lib/meslo-LG/styles.css">
+<link rel="stylesheet" href="/lib/justified-gallery/justifiedGallery.min.css">
+
+<!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+
+
+    <!-- Google Analytics -->
+    <script type="text/javascript">
+        (function(i,s,o,g,r,a,m) {i['GoogleAnalyticsObject']=r;i[r]=i[r]||function() {
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-44571525-2', 'auto');
+        ga('send', 'pageview');
+    </script>
+
+
+    <!-- Disqus Comments -->
+    <script type="text/javascript">
+        var disqus_shortname = 'bobi-ink';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
