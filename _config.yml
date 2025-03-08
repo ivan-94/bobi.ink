@@ -5,7 +5,7 @@
 # Site
 title: Bobi.ink
 subtitle:
-description: Personal blog by Ivan
+description: 荒山的个人博客
 keywords: Blog,FrontEnd,React,Javascript,Typescript
 author: Ivan
 language: zh
@@ -43,7 +43,7 @@ highlight:
   line_number: false
   auto_detect: false
   tab_replace:
-  
+
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
 # per_page: Posts displayed per page. (0 = disable pagination)
@@ -52,7 +52,7 @@ index_generator:
   path: ''
   per_page: 50
   order_by: -date
-  
+
 # Category & Tag
 default_category: uncategorized
 category_map:
